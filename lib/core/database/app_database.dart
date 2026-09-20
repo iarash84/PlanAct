@@ -10,14 +10,40 @@ class SchemaMetadata extends Table {
   Set<Column<Object>> get primaryKey => {key};
 }
 
-@DriftDatabase(tables: [SchemaMetadata])
+class Commitments extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+  DateTimeColumn get createdAt => dateTime()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class CommitmentCycles extends Table {
+  TextColumn get id => text()();
+  TextColumn get commitmentId => text().references(Commitments, #id)();
+  IntColumn get cycleType => integer()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get plannedEndDate => dateTime().nullable()();
+  DateTimeColumn get actualEndDate => dateTime().nullable()();
+  IntColumn get targetUnits => integer().nullable()();
+  IntColumn get consumedUnits => integer()();
+  IntColumn get completionRule => integer()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [SchemaMetadata, Commitments, CommitmentCycles])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -26,7 +52,10 @@ class AppDatabase extends _$AppDatabase {
       await _writeSchemaMetadata();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // Future schema versions add explicit, forward-only migration steps.
+      if (from < 2) {
+        await m.createTable(commitments);
+        await m.createTable(commitmentCycles);
+      }
       await _writeSchemaMetadata();
     },
     beforeOpen: (details) async {
