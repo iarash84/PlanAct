@@ -16,9 +16,19 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '3');
+    expect(await database.readMetadata('schema_version'), '4');
     expect(await database.select(database.scheduleDefinitions).get(), isEmpty);
     expect(await database.select(database.occurrences).get(), isEmpty);
+    expect(await database.select(database.entitlementPlans).get(), isEmpty);
+    expect(
+      await database.select(database.entitlementLedgerEntries).get(),
+      isEmpty,
+    );
+    expect(await database.select(database.sessionPolicies).get(), isEmpty);
+    expect(
+      await database.select(database.replacementOccurrences).get(),
+      isEmpty,
+    );
   });
 
   test(

@@ -2639,6 +2639,2235 @@ class OccurrencesCompanion extends UpdateCompanion<Occurrence> {
   }
 }
 
+class $EntitlementPlansTable extends EntitlementPlans
+    with TableInfo<$EntitlementPlansTable, EntitlementPlan> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntitlementPlansTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cycleIdMeta = const VerificationMeta(
+    'cycleId',
+  );
+  @override
+  late final GeneratedColumn<String> cycleId = GeneratedColumn<String>(
+    'cycle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES commitment_cycles (id)',
+    ),
+  );
+  static const VerificationMeta _totalUnitsMeta = const VerificationMeta(
+    'totalUnits',
+  );
+  @override
+  late final GeneratedColumn<int> totalUnits = GeneratedColumn<int>(
+    'total_units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitTypeMeta = const VerificationMeta(
+    'unitType',
+  );
+  @override
+  late final GeneratedColumn<int> unitType = GeneratedColumn<int>(
+    'unit_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _validFromMeta = const VerificationMeta(
+    'validFrom',
+  );
+  @override
+  late final GeneratedColumn<DateTime> validFrom = GeneratedColumn<DateTime>(
+    'valid_from',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _plannedExpiryMeta = const VerificationMeta(
+    'plannedExpiry',
+  );
+  @override
+  late final GeneratedColumn<DateTime> plannedExpiry =
+      GeneratedColumn<DateTime>(
+        'planned_expiry',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _autoExtendMeta = const VerificationMeta(
+    'autoExtend',
+  );
+  @override
+  late final GeneratedColumn<bool> autoExtend = GeneratedColumn<bool>(
+    'auto_extend',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("auto_extend" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    cycleId,
+    totalUnits,
+    unitType,
+    validFrom,
+    plannedExpiry,
+    autoExtend,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entitlement_plans';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntitlementPlan> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('cycle_id')) {
+      context.handle(
+        _cycleIdMeta,
+        cycleId.isAcceptableOrUnknown(data['cycle_id']!, _cycleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cycleIdMeta);
+    }
+    if (data.containsKey('total_units')) {
+      context.handle(
+        _totalUnitsMeta,
+        totalUnits.isAcceptableOrUnknown(data['total_units']!, _totalUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalUnitsMeta);
+    }
+    if (data.containsKey('unit_type')) {
+      context.handle(
+        _unitTypeMeta,
+        unitType.isAcceptableOrUnknown(data['unit_type']!, _unitTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitTypeMeta);
+    }
+    if (data.containsKey('valid_from')) {
+      context.handle(
+        _validFromMeta,
+        validFrom.isAcceptableOrUnknown(data['valid_from']!, _validFromMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_validFromMeta);
+    }
+    if (data.containsKey('planned_expiry')) {
+      context.handle(
+        _plannedExpiryMeta,
+        plannedExpiry.isAcceptableOrUnknown(
+          data['planned_expiry']!,
+          _plannedExpiryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('auto_extend')) {
+      context.handle(
+        _autoExtendMeta,
+        autoExtend.isAcceptableOrUnknown(data['auto_extend']!, _autoExtendMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_autoExtendMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EntitlementPlan map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntitlementPlan(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      cycleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cycle_id'],
+      )!,
+      totalUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_units'],
+      )!,
+      unitType: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}unit_type'],
+      )!,
+      validFrom: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}valid_from'],
+      )!,
+      plannedExpiry: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}planned_expiry'],
+      ),
+      autoExtend: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_extend'],
+      )!,
+    );
+  }
+
+  @override
+  $EntitlementPlansTable createAlias(String alias) {
+    return $EntitlementPlansTable(attachedDatabase, alias);
+  }
+}
+
+class EntitlementPlan extends DataClass implements Insertable<EntitlementPlan> {
+  final String id;
+  final String cycleId;
+  final int totalUnits;
+  final int unitType;
+  final DateTime validFrom;
+  final DateTime? plannedExpiry;
+  final bool autoExtend;
+  const EntitlementPlan({
+    required this.id,
+    required this.cycleId,
+    required this.totalUnits,
+    required this.unitType,
+    required this.validFrom,
+    this.plannedExpiry,
+    required this.autoExtend,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['cycle_id'] = Variable<String>(cycleId);
+    map['total_units'] = Variable<int>(totalUnits);
+    map['unit_type'] = Variable<int>(unitType);
+    map['valid_from'] = Variable<DateTime>(validFrom);
+    if (!nullToAbsent || plannedExpiry != null) {
+      map['planned_expiry'] = Variable<DateTime>(plannedExpiry);
+    }
+    map['auto_extend'] = Variable<bool>(autoExtend);
+    return map;
+  }
+
+  EntitlementPlansCompanion toCompanion(bool nullToAbsent) {
+    return EntitlementPlansCompanion(
+      id: Value(id),
+      cycleId: Value(cycleId),
+      totalUnits: Value(totalUnits),
+      unitType: Value(unitType),
+      validFrom: Value(validFrom),
+      plannedExpiry: plannedExpiry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(plannedExpiry),
+      autoExtend: Value(autoExtend),
+    );
+  }
+
+  factory EntitlementPlan.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntitlementPlan(
+      id: serializer.fromJson<String>(json['id']),
+      cycleId: serializer.fromJson<String>(json['cycleId']),
+      totalUnits: serializer.fromJson<int>(json['totalUnits']),
+      unitType: serializer.fromJson<int>(json['unitType']),
+      validFrom: serializer.fromJson<DateTime>(json['validFrom']),
+      plannedExpiry: serializer.fromJson<DateTime?>(json['plannedExpiry']),
+      autoExtend: serializer.fromJson<bool>(json['autoExtend']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'cycleId': serializer.toJson<String>(cycleId),
+      'totalUnits': serializer.toJson<int>(totalUnits),
+      'unitType': serializer.toJson<int>(unitType),
+      'validFrom': serializer.toJson<DateTime>(validFrom),
+      'plannedExpiry': serializer.toJson<DateTime?>(plannedExpiry),
+      'autoExtend': serializer.toJson<bool>(autoExtend),
+    };
+  }
+
+  EntitlementPlan copyWith({
+    String? id,
+    String? cycleId,
+    int? totalUnits,
+    int? unitType,
+    DateTime? validFrom,
+    Value<DateTime?> plannedExpiry = const Value.absent(),
+    bool? autoExtend,
+  }) => EntitlementPlan(
+    id: id ?? this.id,
+    cycleId: cycleId ?? this.cycleId,
+    totalUnits: totalUnits ?? this.totalUnits,
+    unitType: unitType ?? this.unitType,
+    validFrom: validFrom ?? this.validFrom,
+    plannedExpiry: plannedExpiry.present
+        ? plannedExpiry.value
+        : this.plannedExpiry,
+    autoExtend: autoExtend ?? this.autoExtend,
+  );
+  EntitlementPlan copyWithCompanion(EntitlementPlansCompanion data) {
+    return EntitlementPlan(
+      id: data.id.present ? data.id.value : this.id,
+      cycleId: data.cycleId.present ? data.cycleId.value : this.cycleId,
+      totalUnits: data.totalUnits.present
+          ? data.totalUnits.value
+          : this.totalUnits,
+      unitType: data.unitType.present ? data.unitType.value : this.unitType,
+      validFrom: data.validFrom.present ? data.validFrom.value : this.validFrom,
+      plannedExpiry: data.plannedExpiry.present
+          ? data.plannedExpiry.value
+          : this.plannedExpiry,
+      autoExtend: data.autoExtend.present
+          ? data.autoExtend.value
+          : this.autoExtend,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntitlementPlan(')
+          ..write('id: $id, ')
+          ..write('cycleId: $cycleId, ')
+          ..write('totalUnits: $totalUnits, ')
+          ..write('unitType: $unitType, ')
+          ..write('validFrom: $validFrom, ')
+          ..write('plannedExpiry: $plannedExpiry, ')
+          ..write('autoExtend: $autoExtend')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    cycleId,
+    totalUnits,
+    unitType,
+    validFrom,
+    plannedExpiry,
+    autoExtend,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntitlementPlan &&
+          other.id == this.id &&
+          other.cycleId == this.cycleId &&
+          other.totalUnits == this.totalUnits &&
+          other.unitType == this.unitType &&
+          other.validFrom == this.validFrom &&
+          other.plannedExpiry == this.plannedExpiry &&
+          other.autoExtend == this.autoExtend);
+}
+
+class EntitlementPlansCompanion extends UpdateCompanion<EntitlementPlan> {
+  final Value<String> id;
+  final Value<String> cycleId;
+  final Value<int> totalUnits;
+  final Value<int> unitType;
+  final Value<DateTime> validFrom;
+  final Value<DateTime?> plannedExpiry;
+  final Value<bool> autoExtend;
+  final Value<int> rowid;
+  const EntitlementPlansCompanion({
+    this.id = const Value.absent(),
+    this.cycleId = const Value.absent(),
+    this.totalUnits = const Value.absent(),
+    this.unitType = const Value.absent(),
+    this.validFrom = const Value.absent(),
+    this.plannedExpiry = const Value.absent(),
+    this.autoExtend = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntitlementPlansCompanion.insert({
+    required String id,
+    required String cycleId,
+    required int totalUnits,
+    required int unitType,
+    required DateTime validFrom,
+    this.plannedExpiry = const Value.absent(),
+    required bool autoExtend,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       cycleId = Value(cycleId),
+       totalUnits = Value(totalUnits),
+       unitType = Value(unitType),
+       validFrom = Value(validFrom),
+       autoExtend = Value(autoExtend);
+  static Insertable<EntitlementPlan> custom({
+    Expression<String>? id,
+    Expression<String>? cycleId,
+    Expression<int>? totalUnits,
+    Expression<int>? unitType,
+    Expression<DateTime>? validFrom,
+    Expression<DateTime>? plannedExpiry,
+    Expression<bool>? autoExtend,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (cycleId != null) 'cycle_id': cycleId,
+      if (totalUnits != null) 'total_units': totalUnits,
+      if (unitType != null) 'unit_type': unitType,
+      if (validFrom != null) 'valid_from': validFrom,
+      if (plannedExpiry != null) 'planned_expiry': plannedExpiry,
+      if (autoExtend != null) 'auto_extend': autoExtend,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntitlementPlansCompanion copyWith({
+    Value<String>? id,
+    Value<String>? cycleId,
+    Value<int>? totalUnits,
+    Value<int>? unitType,
+    Value<DateTime>? validFrom,
+    Value<DateTime?>? plannedExpiry,
+    Value<bool>? autoExtend,
+    Value<int>? rowid,
+  }) {
+    return EntitlementPlansCompanion(
+      id: id ?? this.id,
+      cycleId: cycleId ?? this.cycleId,
+      totalUnits: totalUnits ?? this.totalUnits,
+      unitType: unitType ?? this.unitType,
+      validFrom: validFrom ?? this.validFrom,
+      plannedExpiry: plannedExpiry ?? this.plannedExpiry,
+      autoExtend: autoExtend ?? this.autoExtend,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (cycleId.present) {
+      map['cycle_id'] = Variable<String>(cycleId.value);
+    }
+    if (totalUnits.present) {
+      map['total_units'] = Variable<int>(totalUnits.value);
+    }
+    if (unitType.present) {
+      map['unit_type'] = Variable<int>(unitType.value);
+    }
+    if (validFrom.present) {
+      map['valid_from'] = Variable<DateTime>(validFrom.value);
+    }
+    if (plannedExpiry.present) {
+      map['planned_expiry'] = Variable<DateTime>(plannedExpiry.value);
+    }
+    if (autoExtend.present) {
+      map['auto_extend'] = Variable<bool>(autoExtend.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntitlementPlansCompanion(')
+          ..write('id: $id, ')
+          ..write('cycleId: $cycleId, ')
+          ..write('totalUnits: $totalUnits, ')
+          ..write('unitType: $unitType, ')
+          ..write('validFrom: $validFrom, ')
+          ..write('plannedExpiry: $plannedExpiry, ')
+          ..write('autoExtend: $autoExtend, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EntitlementLedgerEntriesTable extends EntitlementLedgerEntries
+    with TableInfo<$EntitlementLedgerEntriesTable, EntitlementLedgerEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EntitlementLedgerEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _planIdMeta = const VerificationMeta('planId');
+  @override
+  late final GeneratedColumn<String> planId = GeneratedColumn<String>(
+    'plan_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES entitlement_plans (id)',
+    ),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitsMeta = const VerificationMeta('units');
+  @override
+  late final GeneratedColumn<int> units = GeneratedColumn<int>(
+    'units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceIdMeta = const VerificationMeta(
+    'referenceId',
+  );
+  @override
+  late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
+    'reference_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    planId,
+    type,
+    units,
+    occurredAt,
+    referenceId,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'entitlement_ledger_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EntitlementLedgerEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('plan_id')) {
+      context.handle(
+        _planIdMeta,
+        planId.isAcceptableOrUnknown(data['plan_id']!, _planIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_planIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('units')) {
+      context.handle(
+        _unitsMeta,
+        units.isAcceptableOrUnknown(data['units']!, _unitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitsMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('reference_id')) {
+      context.handle(
+        _referenceIdMeta,
+        referenceId.isAcceptableOrUnknown(
+          data['reference_id']!,
+          _referenceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EntitlementLedgerEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EntitlementLedgerEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      planId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      units: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}units'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      referenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference_id'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+    );
+  }
+
+  @override
+  $EntitlementLedgerEntriesTable createAlias(String alias) {
+    return $EntitlementLedgerEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class EntitlementLedgerEntry extends DataClass
+    implements Insertable<EntitlementLedgerEntry> {
+  final String id;
+  final String planId;
+  final int type;
+  final int units;
+  final DateTime occurredAt;
+  final String? referenceId;
+  final String? note;
+  const EntitlementLedgerEntry({
+    required this.id,
+    required this.planId,
+    required this.type,
+    required this.units,
+    required this.occurredAt,
+    this.referenceId,
+    this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['plan_id'] = Variable<String>(planId);
+    map['type'] = Variable<int>(type);
+    map['units'] = Variable<int>(units);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    if (!nullToAbsent || referenceId != null) {
+      map['reference_id'] = Variable<String>(referenceId);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    return map;
+  }
+
+  EntitlementLedgerEntriesCompanion toCompanion(bool nullToAbsent) {
+    return EntitlementLedgerEntriesCompanion(
+      id: Value(id),
+      planId: Value(planId),
+      type: Value(type),
+      units: Value(units),
+      occurredAt: Value(occurredAt),
+      referenceId: referenceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referenceId),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+    );
+  }
+
+  factory EntitlementLedgerEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EntitlementLedgerEntry(
+      id: serializer.fromJson<String>(json['id']),
+      planId: serializer.fromJson<String>(json['planId']),
+      type: serializer.fromJson<int>(json['type']),
+      units: serializer.fromJson<int>(json['units']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      referenceId: serializer.fromJson<String?>(json['referenceId']),
+      note: serializer.fromJson<String?>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'planId': serializer.toJson<String>(planId),
+      'type': serializer.toJson<int>(type),
+      'units': serializer.toJson<int>(units),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'referenceId': serializer.toJson<String?>(referenceId),
+      'note': serializer.toJson<String?>(note),
+    };
+  }
+
+  EntitlementLedgerEntry copyWith({
+    String? id,
+    String? planId,
+    int? type,
+    int? units,
+    DateTime? occurredAt,
+    Value<String?> referenceId = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+  }) => EntitlementLedgerEntry(
+    id: id ?? this.id,
+    planId: planId ?? this.planId,
+    type: type ?? this.type,
+    units: units ?? this.units,
+    occurredAt: occurredAt ?? this.occurredAt,
+    referenceId: referenceId.present ? referenceId.value : this.referenceId,
+    note: note.present ? note.value : this.note,
+  );
+  EntitlementLedgerEntry copyWithCompanion(
+    EntitlementLedgerEntriesCompanion data,
+  ) {
+    return EntitlementLedgerEntry(
+      id: data.id.present ? data.id.value : this.id,
+      planId: data.planId.present ? data.planId.value : this.planId,
+      type: data.type.present ? data.type.value : this.type,
+      units: data.units.present ? data.units.value : this.units,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      referenceId: data.referenceId.present
+          ? data.referenceId.value
+          : this.referenceId,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntitlementLedgerEntry(')
+          ..write('id: $id, ')
+          ..write('planId: $planId, ')
+          ..write('type: $type, ')
+          ..write('units: $units, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, planId, type, units, occurredAt, referenceId, note);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EntitlementLedgerEntry &&
+          other.id == this.id &&
+          other.planId == this.planId &&
+          other.type == this.type &&
+          other.units == this.units &&
+          other.occurredAt == this.occurredAt &&
+          other.referenceId == this.referenceId &&
+          other.note == this.note);
+}
+
+class EntitlementLedgerEntriesCompanion
+    extends UpdateCompanion<EntitlementLedgerEntry> {
+  final Value<String> id;
+  final Value<String> planId;
+  final Value<int> type;
+  final Value<int> units;
+  final Value<DateTime> occurredAt;
+  final Value<String?> referenceId;
+  final Value<String?> note;
+  final Value<int> rowid;
+  const EntitlementLedgerEntriesCompanion({
+    this.id = const Value.absent(),
+    this.planId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.units = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.referenceId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EntitlementLedgerEntriesCompanion.insert({
+    required String id,
+    required String planId,
+    required int type,
+    required int units,
+    required DateTime occurredAt,
+    this.referenceId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       planId = Value(planId),
+       type = Value(type),
+       units = Value(units),
+       occurredAt = Value(occurredAt);
+  static Insertable<EntitlementLedgerEntry> custom({
+    Expression<String>? id,
+    Expression<String>? planId,
+    Expression<int>? type,
+    Expression<int>? units,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? referenceId,
+    Expression<String>? note,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (planId != null) 'plan_id': planId,
+      if (type != null) 'type': type,
+      if (units != null) 'units': units,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (referenceId != null) 'reference_id': referenceId,
+      if (note != null) 'note': note,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EntitlementLedgerEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? planId,
+    Value<int>? type,
+    Value<int>? units,
+    Value<DateTime>? occurredAt,
+    Value<String?>? referenceId,
+    Value<String?>? note,
+    Value<int>? rowid,
+  }) {
+    return EntitlementLedgerEntriesCompanion(
+      id: id ?? this.id,
+      planId: planId ?? this.planId,
+      type: type ?? this.type,
+      units: units ?? this.units,
+      occurredAt: occurredAt ?? this.occurredAt,
+      referenceId: referenceId ?? this.referenceId,
+      note: note ?? this.note,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (planId.present) {
+      map['plan_id'] = Variable<String>(planId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (units.present) {
+      map['units'] = Variable<int>(units.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (referenceId.present) {
+      map['reference_id'] = Variable<String>(referenceId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EntitlementLedgerEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('planId: $planId, ')
+          ..write('type: $type, ')
+          ..write('units: $units, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('note: $note, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SessionPoliciesTable extends SessionPolicies
+    with TableInfo<$SessionPoliciesTable, SessionPolicy> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SessionPoliciesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cycleIdMeta = const VerificationMeta(
+    'cycleId',
+  );
+  @override
+  late final GeneratedColumn<String> cycleId = GeneratedColumn<String>(
+    'cycle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES commitment_cycles (id)',
+    ),
+  );
+  static const VerificationMeta _providerCancellationConsumesMeta =
+      const VerificationMeta('providerCancellationConsumes');
+  @override
+  late final GeneratedColumn<bool> providerCancellationConsumes =
+      GeneratedColumn<bool>(
+        'provider_cancellation_consumes',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("provider_cancellation_consumes" IN (0, 1))',
+        ),
+      );
+  static const VerificationMeta _userCancellationNoticeHoursMeta =
+      const VerificationMeta('userCancellationNoticeHours');
+  @override
+  late final GeneratedColumn<int> userCancellationNoticeHours =
+      GeneratedColumn<int>(
+        'user_cancellation_notice_hours',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _lateCancellationConsumesMeta =
+      const VerificationMeta('lateCancellationConsumes');
+  @override
+  late final GeneratedColumn<bool> lateCancellationConsumes =
+      GeneratedColumn<bool>(
+        'late_cancellation_consumes',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("late_cancellation_consumes" IN (0, 1))',
+        ),
+      );
+  static const VerificationMeta _noShowConsumesMeta = const VerificationMeta(
+    'noShowConsumes',
+  );
+  @override
+  late final GeneratedColumn<bool> noShowConsumes = GeneratedColumn<bool>(
+    'no_show_consumes',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("no_show_consumes" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _freeAbsenceQuotaMeta = const VerificationMeta(
+    'freeAbsenceQuota',
+  );
+  @override
+  late final GeneratedColumn<int> freeAbsenceQuota = GeneratedColumn<int>(
+    'free_absence_quota',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _holidayConsumesMeta = const VerificationMeta(
+    'holidayConsumes',
+  );
+  @override
+  late final GeneratedColumn<bool> holidayConsumes = GeneratedColumn<bool>(
+    'holiday_consumes',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("holiday_consumes" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _makeupRequiredMeta = const VerificationMeta(
+    'makeupRequired',
+  );
+  @override
+  late final GeneratedColumn<bool> makeupRequired = GeneratedColumn<bool>(
+    'makeup_required',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("makeup_required" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _autoExtendUntilUnitsConsumedMeta =
+      const VerificationMeta('autoExtendUntilUnitsConsumed');
+  @override
+  late final GeneratedColumn<bool> autoExtendUntilUnitsConsumed =
+      GeneratedColumn<bool>(
+        'auto_extend_until_units_consumed',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_extend_until_units_consumed" IN (0, 1))',
+        ),
+      );
+  static const VerificationMeta _maxExtensionDateMeta = const VerificationMeta(
+    'maxExtensionDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> maxExtensionDate =
+      GeneratedColumn<DateTime>(
+        'max_extension_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _partialUnitAllowedMeta =
+      const VerificationMeta('partialUnitAllowed');
+  @override
+  late final GeneratedColumn<bool> partialUnitAllowed = GeneratedColumn<bool>(
+    'partial_unit_allowed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("partial_unit_allowed" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    cycleId,
+    providerCancellationConsumes,
+    userCancellationNoticeHours,
+    lateCancellationConsumes,
+    noShowConsumes,
+    freeAbsenceQuota,
+    holidayConsumes,
+    makeupRequired,
+    autoExtendUntilUnitsConsumed,
+    maxExtensionDate,
+    partialUnitAllowed,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'session_policies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SessionPolicy> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('cycle_id')) {
+      context.handle(
+        _cycleIdMeta,
+        cycleId.isAcceptableOrUnknown(data['cycle_id']!, _cycleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cycleIdMeta);
+    }
+    if (data.containsKey('provider_cancellation_consumes')) {
+      context.handle(
+        _providerCancellationConsumesMeta,
+        providerCancellationConsumes.isAcceptableOrUnknown(
+          data['provider_cancellation_consumes']!,
+          _providerCancellationConsumesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_providerCancellationConsumesMeta);
+    }
+    if (data.containsKey('user_cancellation_notice_hours')) {
+      context.handle(
+        _userCancellationNoticeHoursMeta,
+        userCancellationNoticeHours.isAcceptableOrUnknown(
+          data['user_cancellation_notice_hours']!,
+          _userCancellationNoticeHoursMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_userCancellationNoticeHoursMeta);
+    }
+    if (data.containsKey('late_cancellation_consumes')) {
+      context.handle(
+        _lateCancellationConsumesMeta,
+        lateCancellationConsumes.isAcceptableOrUnknown(
+          data['late_cancellation_consumes']!,
+          _lateCancellationConsumesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lateCancellationConsumesMeta);
+    }
+    if (data.containsKey('no_show_consumes')) {
+      context.handle(
+        _noShowConsumesMeta,
+        noShowConsumes.isAcceptableOrUnknown(
+          data['no_show_consumes']!,
+          _noShowConsumesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_noShowConsumesMeta);
+    }
+    if (data.containsKey('free_absence_quota')) {
+      context.handle(
+        _freeAbsenceQuotaMeta,
+        freeAbsenceQuota.isAcceptableOrUnknown(
+          data['free_absence_quota']!,
+          _freeAbsenceQuotaMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_freeAbsenceQuotaMeta);
+    }
+    if (data.containsKey('holiday_consumes')) {
+      context.handle(
+        _holidayConsumesMeta,
+        holidayConsumes.isAcceptableOrUnknown(
+          data['holiday_consumes']!,
+          _holidayConsumesMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_holidayConsumesMeta);
+    }
+    if (data.containsKey('makeup_required')) {
+      context.handle(
+        _makeupRequiredMeta,
+        makeupRequired.isAcceptableOrUnknown(
+          data['makeup_required']!,
+          _makeupRequiredMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_makeupRequiredMeta);
+    }
+    if (data.containsKey('auto_extend_until_units_consumed')) {
+      context.handle(
+        _autoExtendUntilUnitsConsumedMeta,
+        autoExtendUntilUnitsConsumed.isAcceptableOrUnknown(
+          data['auto_extend_until_units_consumed']!,
+          _autoExtendUntilUnitsConsumedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_autoExtendUntilUnitsConsumedMeta);
+    }
+    if (data.containsKey('max_extension_date')) {
+      context.handle(
+        _maxExtensionDateMeta,
+        maxExtensionDate.isAcceptableOrUnknown(
+          data['max_extension_date']!,
+          _maxExtensionDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('partial_unit_allowed')) {
+      context.handle(
+        _partialUnitAllowedMeta,
+        partialUnitAllowed.isAcceptableOrUnknown(
+          data['partial_unit_allowed']!,
+          _partialUnitAllowedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_partialUnitAllowedMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SessionPolicy map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SessionPolicy(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      cycleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cycle_id'],
+      )!,
+      providerCancellationConsumes: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}provider_cancellation_consumes'],
+      )!,
+      userCancellationNoticeHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_cancellation_notice_hours'],
+      )!,
+      lateCancellationConsumes: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}late_cancellation_consumes'],
+      )!,
+      noShowConsumes: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}no_show_consumes'],
+      )!,
+      freeAbsenceQuota: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}free_absence_quota'],
+      )!,
+      holidayConsumes: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}holiday_consumes'],
+      )!,
+      makeupRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}makeup_required'],
+      )!,
+      autoExtendUntilUnitsConsumed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_extend_until_units_consumed'],
+      )!,
+      maxExtensionDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}max_extension_date'],
+      ),
+      partialUnitAllowed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}partial_unit_allowed'],
+      )!,
+    );
+  }
+
+  @override
+  $SessionPoliciesTable createAlias(String alias) {
+    return $SessionPoliciesTable(attachedDatabase, alias);
+  }
+}
+
+class SessionPolicy extends DataClass implements Insertable<SessionPolicy> {
+  final String id;
+  final String cycleId;
+  final bool providerCancellationConsumes;
+  final int userCancellationNoticeHours;
+  final bool lateCancellationConsumes;
+  final bool noShowConsumes;
+  final int freeAbsenceQuota;
+  final bool holidayConsumes;
+  final bool makeupRequired;
+  final bool autoExtendUntilUnitsConsumed;
+  final DateTime? maxExtensionDate;
+  final bool partialUnitAllowed;
+  const SessionPolicy({
+    required this.id,
+    required this.cycleId,
+    required this.providerCancellationConsumes,
+    required this.userCancellationNoticeHours,
+    required this.lateCancellationConsumes,
+    required this.noShowConsumes,
+    required this.freeAbsenceQuota,
+    required this.holidayConsumes,
+    required this.makeupRequired,
+    required this.autoExtendUntilUnitsConsumed,
+    this.maxExtensionDate,
+    required this.partialUnitAllowed,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['cycle_id'] = Variable<String>(cycleId);
+    map['provider_cancellation_consumes'] = Variable<bool>(
+      providerCancellationConsumes,
+    );
+    map['user_cancellation_notice_hours'] = Variable<int>(
+      userCancellationNoticeHours,
+    );
+    map['late_cancellation_consumes'] = Variable<bool>(
+      lateCancellationConsumes,
+    );
+    map['no_show_consumes'] = Variable<bool>(noShowConsumes);
+    map['free_absence_quota'] = Variable<int>(freeAbsenceQuota);
+    map['holiday_consumes'] = Variable<bool>(holidayConsumes);
+    map['makeup_required'] = Variable<bool>(makeupRequired);
+    map['auto_extend_until_units_consumed'] = Variable<bool>(
+      autoExtendUntilUnitsConsumed,
+    );
+    if (!nullToAbsent || maxExtensionDate != null) {
+      map['max_extension_date'] = Variable<DateTime>(maxExtensionDate);
+    }
+    map['partial_unit_allowed'] = Variable<bool>(partialUnitAllowed);
+    return map;
+  }
+
+  SessionPoliciesCompanion toCompanion(bool nullToAbsent) {
+    return SessionPoliciesCompanion(
+      id: Value(id),
+      cycleId: Value(cycleId),
+      providerCancellationConsumes: Value(providerCancellationConsumes),
+      userCancellationNoticeHours: Value(userCancellationNoticeHours),
+      lateCancellationConsumes: Value(lateCancellationConsumes),
+      noShowConsumes: Value(noShowConsumes),
+      freeAbsenceQuota: Value(freeAbsenceQuota),
+      holidayConsumes: Value(holidayConsumes),
+      makeupRequired: Value(makeupRequired),
+      autoExtendUntilUnitsConsumed: Value(autoExtendUntilUnitsConsumed),
+      maxExtensionDate: maxExtensionDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxExtensionDate),
+      partialUnitAllowed: Value(partialUnitAllowed),
+    );
+  }
+
+  factory SessionPolicy.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SessionPolicy(
+      id: serializer.fromJson<String>(json['id']),
+      cycleId: serializer.fromJson<String>(json['cycleId']),
+      providerCancellationConsumes: serializer.fromJson<bool>(
+        json['providerCancellationConsumes'],
+      ),
+      userCancellationNoticeHours: serializer.fromJson<int>(
+        json['userCancellationNoticeHours'],
+      ),
+      lateCancellationConsumes: serializer.fromJson<bool>(
+        json['lateCancellationConsumes'],
+      ),
+      noShowConsumes: serializer.fromJson<bool>(json['noShowConsumes']),
+      freeAbsenceQuota: serializer.fromJson<int>(json['freeAbsenceQuota']),
+      holidayConsumes: serializer.fromJson<bool>(json['holidayConsumes']),
+      makeupRequired: serializer.fromJson<bool>(json['makeupRequired']),
+      autoExtendUntilUnitsConsumed: serializer.fromJson<bool>(
+        json['autoExtendUntilUnitsConsumed'],
+      ),
+      maxExtensionDate: serializer.fromJson<DateTime?>(
+        json['maxExtensionDate'],
+      ),
+      partialUnitAllowed: serializer.fromJson<bool>(json['partialUnitAllowed']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'cycleId': serializer.toJson<String>(cycleId),
+      'providerCancellationConsumes': serializer.toJson<bool>(
+        providerCancellationConsumes,
+      ),
+      'userCancellationNoticeHours': serializer.toJson<int>(
+        userCancellationNoticeHours,
+      ),
+      'lateCancellationConsumes': serializer.toJson<bool>(
+        lateCancellationConsumes,
+      ),
+      'noShowConsumes': serializer.toJson<bool>(noShowConsumes),
+      'freeAbsenceQuota': serializer.toJson<int>(freeAbsenceQuota),
+      'holidayConsumes': serializer.toJson<bool>(holidayConsumes),
+      'makeupRequired': serializer.toJson<bool>(makeupRequired),
+      'autoExtendUntilUnitsConsumed': serializer.toJson<bool>(
+        autoExtendUntilUnitsConsumed,
+      ),
+      'maxExtensionDate': serializer.toJson<DateTime?>(maxExtensionDate),
+      'partialUnitAllowed': serializer.toJson<bool>(partialUnitAllowed),
+    };
+  }
+
+  SessionPolicy copyWith({
+    String? id,
+    String? cycleId,
+    bool? providerCancellationConsumes,
+    int? userCancellationNoticeHours,
+    bool? lateCancellationConsumes,
+    bool? noShowConsumes,
+    int? freeAbsenceQuota,
+    bool? holidayConsumes,
+    bool? makeupRequired,
+    bool? autoExtendUntilUnitsConsumed,
+    Value<DateTime?> maxExtensionDate = const Value.absent(),
+    bool? partialUnitAllowed,
+  }) => SessionPolicy(
+    id: id ?? this.id,
+    cycleId: cycleId ?? this.cycleId,
+    providerCancellationConsumes:
+        providerCancellationConsumes ?? this.providerCancellationConsumes,
+    userCancellationNoticeHours:
+        userCancellationNoticeHours ?? this.userCancellationNoticeHours,
+    lateCancellationConsumes:
+        lateCancellationConsumes ?? this.lateCancellationConsumes,
+    noShowConsumes: noShowConsumes ?? this.noShowConsumes,
+    freeAbsenceQuota: freeAbsenceQuota ?? this.freeAbsenceQuota,
+    holidayConsumes: holidayConsumes ?? this.holidayConsumes,
+    makeupRequired: makeupRequired ?? this.makeupRequired,
+    autoExtendUntilUnitsConsumed:
+        autoExtendUntilUnitsConsumed ?? this.autoExtendUntilUnitsConsumed,
+    maxExtensionDate: maxExtensionDate.present
+        ? maxExtensionDate.value
+        : this.maxExtensionDate,
+    partialUnitAllowed: partialUnitAllowed ?? this.partialUnitAllowed,
+  );
+  SessionPolicy copyWithCompanion(SessionPoliciesCompanion data) {
+    return SessionPolicy(
+      id: data.id.present ? data.id.value : this.id,
+      cycleId: data.cycleId.present ? data.cycleId.value : this.cycleId,
+      providerCancellationConsumes: data.providerCancellationConsumes.present
+          ? data.providerCancellationConsumes.value
+          : this.providerCancellationConsumes,
+      userCancellationNoticeHours: data.userCancellationNoticeHours.present
+          ? data.userCancellationNoticeHours.value
+          : this.userCancellationNoticeHours,
+      lateCancellationConsumes: data.lateCancellationConsumes.present
+          ? data.lateCancellationConsumes.value
+          : this.lateCancellationConsumes,
+      noShowConsumes: data.noShowConsumes.present
+          ? data.noShowConsumes.value
+          : this.noShowConsumes,
+      freeAbsenceQuota: data.freeAbsenceQuota.present
+          ? data.freeAbsenceQuota.value
+          : this.freeAbsenceQuota,
+      holidayConsumes: data.holidayConsumes.present
+          ? data.holidayConsumes.value
+          : this.holidayConsumes,
+      makeupRequired: data.makeupRequired.present
+          ? data.makeupRequired.value
+          : this.makeupRequired,
+      autoExtendUntilUnitsConsumed: data.autoExtendUntilUnitsConsumed.present
+          ? data.autoExtendUntilUnitsConsumed.value
+          : this.autoExtendUntilUnitsConsumed,
+      maxExtensionDate: data.maxExtensionDate.present
+          ? data.maxExtensionDate.value
+          : this.maxExtensionDate,
+      partialUnitAllowed: data.partialUnitAllowed.present
+          ? data.partialUnitAllowed.value
+          : this.partialUnitAllowed,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionPolicy(')
+          ..write('id: $id, ')
+          ..write('cycleId: $cycleId, ')
+          ..write(
+            'providerCancellationConsumes: $providerCancellationConsumes, ',
+          )
+          ..write('userCancellationNoticeHours: $userCancellationNoticeHours, ')
+          ..write('lateCancellationConsumes: $lateCancellationConsumes, ')
+          ..write('noShowConsumes: $noShowConsumes, ')
+          ..write('freeAbsenceQuota: $freeAbsenceQuota, ')
+          ..write('holidayConsumes: $holidayConsumes, ')
+          ..write('makeupRequired: $makeupRequired, ')
+          ..write(
+            'autoExtendUntilUnitsConsumed: $autoExtendUntilUnitsConsumed, ',
+          )
+          ..write('maxExtensionDate: $maxExtensionDate, ')
+          ..write('partialUnitAllowed: $partialUnitAllowed')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    cycleId,
+    providerCancellationConsumes,
+    userCancellationNoticeHours,
+    lateCancellationConsumes,
+    noShowConsumes,
+    freeAbsenceQuota,
+    holidayConsumes,
+    makeupRequired,
+    autoExtendUntilUnitsConsumed,
+    maxExtensionDate,
+    partialUnitAllowed,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SessionPolicy &&
+          other.id == this.id &&
+          other.cycleId == this.cycleId &&
+          other.providerCancellationConsumes ==
+              this.providerCancellationConsumes &&
+          other.userCancellationNoticeHours ==
+              this.userCancellationNoticeHours &&
+          other.lateCancellationConsumes == this.lateCancellationConsumes &&
+          other.noShowConsumes == this.noShowConsumes &&
+          other.freeAbsenceQuota == this.freeAbsenceQuota &&
+          other.holidayConsumes == this.holidayConsumes &&
+          other.makeupRequired == this.makeupRequired &&
+          other.autoExtendUntilUnitsConsumed ==
+              this.autoExtendUntilUnitsConsumed &&
+          other.maxExtensionDate == this.maxExtensionDate &&
+          other.partialUnitAllowed == this.partialUnitAllowed);
+}
+
+class SessionPoliciesCompanion extends UpdateCompanion<SessionPolicy> {
+  final Value<String> id;
+  final Value<String> cycleId;
+  final Value<bool> providerCancellationConsumes;
+  final Value<int> userCancellationNoticeHours;
+  final Value<bool> lateCancellationConsumes;
+  final Value<bool> noShowConsumes;
+  final Value<int> freeAbsenceQuota;
+  final Value<bool> holidayConsumes;
+  final Value<bool> makeupRequired;
+  final Value<bool> autoExtendUntilUnitsConsumed;
+  final Value<DateTime?> maxExtensionDate;
+  final Value<bool> partialUnitAllowed;
+  final Value<int> rowid;
+  const SessionPoliciesCompanion({
+    this.id = const Value.absent(),
+    this.cycleId = const Value.absent(),
+    this.providerCancellationConsumes = const Value.absent(),
+    this.userCancellationNoticeHours = const Value.absent(),
+    this.lateCancellationConsumes = const Value.absent(),
+    this.noShowConsumes = const Value.absent(),
+    this.freeAbsenceQuota = const Value.absent(),
+    this.holidayConsumes = const Value.absent(),
+    this.makeupRequired = const Value.absent(),
+    this.autoExtendUntilUnitsConsumed = const Value.absent(),
+    this.maxExtensionDate = const Value.absent(),
+    this.partialUnitAllowed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SessionPoliciesCompanion.insert({
+    required String id,
+    required String cycleId,
+    required bool providerCancellationConsumes,
+    required int userCancellationNoticeHours,
+    required bool lateCancellationConsumes,
+    required bool noShowConsumes,
+    required int freeAbsenceQuota,
+    required bool holidayConsumes,
+    required bool makeupRequired,
+    required bool autoExtendUntilUnitsConsumed,
+    this.maxExtensionDate = const Value.absent(),
+    required bool partialUnitAllowed,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       cycleId = Value(cycleId),
+       providerCancellationConsumes = Value(providerCancellationConsumes),
+       userCancellationNoticeHours = Value(userCancellationNoticeHours),
+       lateCancellationConsumes = Value(lateCancellationConsumes),
+       noShowConsumes = Value(noShowConsumes),
+       freeAbsenceQuota = Value(freeAbsenceQuota),
+       holidayConsumes = Value(holidayConsumes),
+       makeupRequired = Value(makeupRequired),
+       autoExtendUntilUnitsConsumed = Value(autoExtendUntilUnitsConsumed),
+       partialUnitAllowed = Value(partialUnitAllowed);
+  static Insertable<SessionPolicy> custom({
+    Expression<String>? id,
+    Expression<String>? cycleId,
+    Expression<bool>? providerCancellationConsumes,
+    Expression<int>? userCancellationNoticeHours,
+    Expression<bool>? lateCancellationConsumes,
+    Expression<bool>? noShowConsumes,
+    Expression<int>? freeAbsenceQuota,
+    Expression<bool>? holidayConsumes,
+    Expression<bool>? makeupRequired,
+    Expression<bool>? autoExtendUntilUnitsConsumed,
+    Expression<DateTime>? maxExtensionDate,
+    Expression<bool>? partialUnitAllowed,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (cycleId != null) 'cycle_id': cycleId,
+      if (providerCancellationConsumes != null)
+        'provider_cancellation_consumes': providerCancellationConsumes,
+      if (userCancellationNoticeHours != null)
+        'user_cancellation_notice_hours': userCancellationNoticeHours,
+      if (lateCancellationConsumes != null)
+        'late_cancellation_consumes': lateCancellationConsumes,
+      if (noShowConsumes != null) 'no_show_consumes': noShowConsumes,
+      if (freeAbsenceQuota != null) 'free_absence_quota': freeAbsenceQuota,
+      if (holidayConsumes != null) 'holiday_consumes': holidayConsumes,
+      if (makeupRequired != null) 'makeup_required': makeupRequired,
+      if (autoExtendUntilUnitsConsumed != null)
+        'auto_extend_until_units_consumed': autoExtendUntilUnitsConsumed,
+      if (maxExtensionDate != null) 'max_extension_date': maxExtensionDate,
+      if (partialUnitAllowed != null)
+        'partial_unit_allowed': partialUnitAllowed,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SessionPoliciesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? cycleId,
+    Value<bool>? providerCancellationConsumes,
+    Value<int>? userCancellationNoticeHours,
+    Value<bool>? lateCancellationConsumes,
+    Value<bool>? noShowConsumes,
+    Value<int>? freeAbsenceQuota,
+    Value<bool>? holidayConsumes,
+    Value<bool>? makeupRequired,
+    Value<bool>? autoExtendUntilUnitsConsumed,
+    Value<DateTime?>? maxExtensionDate,
+    Value<bool>? partialUnitAllowed,
+    Value<int>? rowid,
+  }) {
+    return SessionPoliciesCompanion(
+      id: id ?? this.id,
+      cycleId: cycleId ?? this.cycleId,
+      providerCancellationConsumes:
+          providerCancellationConsumes ?? this.providerCancellationConsumes,
+      userCancellationNoticeHours:
+          userCancellationNoticeHours ?? this.userCancellationNoticeHours,
+      lateCancellationConsumes:
+          lateCancellationConsumes ?? this.lateCancellationConsumes,
+      noShowConsumes: noShowConsumes ?? this.noShowConsumes,
+      freeAbsenceQuota: freeAbsenceQuota ?? this.freeAbsenceQuota,
+      holidayConsumes: holidayConsumes ?? this.holidayConsumes,
+      makeupRequired: makeupRequired ?? this.makeupRequired,
+      autoExtendUntilUnitsConsumed:
+          autoExtendUntilUnitsConsumed ?? this.autoExtendUntilUnitsConsumed,
+      maxExtensionDate: maxExtensionDate ?? this.maxExtensionDate,
+      partialUnitAllowed: partialUnitAllowed ?? this.partialUnitAllowed,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (cycleId.present) {
+      map['cycle_id'] = Variable<String>(cycleId.value);
+    }
+    if (providerCancellationConsumes.present) {
+      map['provider_cancellation_consumes'] = Variable<bool>(
+        providerCancellationConsumes.value,
+      );
+    }
+    if (userCancellationNoticeHours.present) {
+      map['user_cancellation_notice_hours'] = Variable<int>(
+        userCancellationNoticeHours.value,
+      );
+    }
+    if (lateCancellationConsumes.present) {
+      map['late_cancellation_consumes'] = Variable<bool>(
+        lateCancellationConsumes.value,
+      );
+    }
+    if (noShowConsumes.present) {
+      map['no_show_consumes'] = Variable<bool>(noShowConsumes.value);
+    }
+    if (freeAbsenceQuota.present) {
+      map['free_absence_quota'] = Variable<int>(freeAbsenceQuota.value);
+    }
+    if (holidayConsumes.present) {
+      map['holiday_consumes'] = Variable<bool>(holidayConsumes.value);
+    }
+    if (makeupRequired.present) {
+      map['makeup_required'] = Variable<bool>(makeupRequired.value);
+    }
+    if (autoExtendUntilUnitsConsumed.present) {
+      map['auto_extend_until_units_consumed'] = Variable<bool>(
+        autoExtendUntilUnitsConsumed.value,
+      );
+    }
+    if (maxExtensionDate.present) {
+      map['max_extension_date'] = Variable<DateTime>(maxExtensionDate.value);
+    }
+    if (partialUnitAllowed.present) {
+      map['partial_unit_allowed'] = Variable<bool>(partialUnitAllowed.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SessionPoliciesCompanion(')
+          ..write('id: $id, ')
+          ..write('cycleId: $cycleId, ')
+          ..write(
+            'providerCancellationConsumes: $providerCancellationConsumes, ',
+          )
+          ..write('userCancellationNoticeHours: $userCancellationNoticeHours, ')
+          ..write('lateCancellationConsumes: $lateCancellationConsumes, ')
+          ..write('noShowConsumes: $noShowConsumes, ')
+          ..write('freeAbsenceQuota: $freeAbsenceQuota, ')
+          ..write('holidayConsumes: $holidayConsumes, ')
+          ..write('makeupRequired: $makeupRequired, ')
+          ..write(
+            'autoExtendUntilUnitsConsumed: $autoExtendUntilUnitsConsumed, ',
+          )
+          ..write('maxExtensionDate: $maxExtensionDate, ')
+          ..write('partialUnitAllowed: $partialUnitAllowed, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReplacementOccurrencesTable extends ReplacementOccurrences
+    with TableInfo<$ReplacementOccurrencesTable, ReplacementOccurrence> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReplacementOccurrencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalOccurrenceIdMeta =
+      const VerificationMeta('originalOccurrenceId');
+  @override
+  late final GeneratedColumn<String> originalOccurrenceId =
+      GeneratedColumn<String>(
+        'original_occurrence_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _parentReplacementIdMeta =
+      const VerificationMeta('parentReplacementId');
+  @override
+  late final GeneratedColumn<String> parentReplacementId =
+      GeneratedColumn<String>(
+        'parent_replacement_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _scheduledAtMeta = const VerificationMeta(
+    'scheduledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> scheduledAt = GeneratedColumn<DateTime>(
+    'scheduled_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<int> reason = GeneratedColumn<int>(
+    'reason',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    originalOccurrenceId,
+    parentReplacementId,
+    scheduledAt,
+    reason,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'replacement_occurrences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReplacementOccurrence> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('original_occurrence_id')) {
+      context.handle(
+        _originalOccurrenceIdMeta,
+        originalOccurrenceId.isAcceptableOrUnknown(
+          data['original_occurrence_id']!,
+          _originalOccurrenceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originalOccurrenceIdMeta);
+    }
+    if (data.containsKey('parent_replacement_id')) {
+      context.handle(
+        _parentReplacementIdMeta,
+        parentReplacementId.isAcceptableOrUnknown(
+          data['parent_replacement_id']!,
+          _parentReplacementIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('scheduled_at')) {
+      context.handle(
+        _scheduledAtMeta,
+        scheduledAt.isAcceptableOrUnknown(
+          data['scheduled_at']!,
+          _scheduledAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scheduledAtMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReplacementOccurrence map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReplacementOccurrence(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      originalOccurrenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_occurrence_id'],
+      )!,
+      parentReplacementId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_replacement_id'],
+      ),
+      scheduledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}scheduled_at'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reason'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $ReplacementOccurrencesTable createAlias(String alias) {
+    return $ReplacementOccurrencesTable(attachedDatabase, alias);
+  }
+}
+
+class ReplacementOccurrence extends DataClass
+    implements Insertable<ReplacementOccurrence> {
+  final String id;
+  final String originalOccurrenceId;
+  final String? parentReplacementId;
+  final DateTime scheduledAt;
+  final int reason;
+  final int status;
+  const ReplacementOccurrence({
+    required this.id,
+    required this.originalOccurrenceId,
+    this.parentReplacementId,
+    required this.scheduledAt,
+    required this.reason,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['original_occurrence_id'] = Variable<String>(originalOccurrenceId);
+    if (!nullToAbsent || parentReplacementId != null) {
+      map['parent_replacement_id'] = Variable<String>(parentReplacementId);
+    }
+    map['scheduled_at'] = Variable<DateTime>(scheduledAt);
+    map['reason'] = Variable<int>(reason);
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  ReplacementOccurrencesCompanion toCompanion(bool nullToAbsent) {
+    return ReplacementOccurrencesCompanion(
+      id: Value(id),
+      originalOccurrenceId: Value(originalOccurrenceId),
+      parentReplacementId: parentReplacementId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentReplacementId),
+      scheduledAt: Value(scheduledAt),
+      reason: Value(reason),
+      status: Value(status),
+    );
+  }
+
+  factory ReplacementOccurrence.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReplacementOccurrence(
+      id: serializer.fromJson<String>(json['id']),
+      originalOccurrenceId: serializer.fromJson<String>(
+        json['originalOccurrenceId'],
+      ),
+      parentReplacementId: serializer.fromJson<String?>(
+        json['parentReplacementId'],
+      ),
+      scheduledAt: serializer.fromJson<DateTime>(json['scheduledAt']),
+      reason: serializer.fromJson<int>(json['reason']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'originalOccurrenceId': serializer.toJson<String>(originalOccurrenceId),
+      'parentReplacementId': serializer.toJson<String?>(parentReplacementId),
+      'scheduledAt': serializer.toJson<DateTime>(scheduledAt),
+      'reason': serializer.toJson<int>(reason),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  ReplacementOccurrence copyWith({
+    String? id,
+    String? originalOccurrenceId,
+    Value<String?> parentReplacementId = const Value.absent(),
+    DateTime? scheduledAt,
+    int? reason,
+    int? status,
+  }) => ReplacementOccurrence(
+    id: id ?? this.id,
+    originalOccurrenceId: originalOccurrenceId ?? this.originalOccurrenceId,
+    parentReplacementId: parentReplacementId.present
+        ? parentReplacementId.value
+        : this.parentReplacementId,
+    scheduledAt: scheduledAt ?? this.scheduledAt,
+    reason: reason ?? this.reason,
+    status: status ?? this.status,
+  );
+  ReplacementOccurrence copyWithCompanion(
+    ReplacementOccurrencesCompanion data,
+  ) {
+    return ReplacementOccurrence(
+      id: data.id.present ? data.id.value : this.id,
+      originalOccurrenceId: data.originalOccurrenceId.present
+          ? data.originalOccurrenceId.value
+          : this.originalOccurrenceId,
+      parentReplacementId: data.parentReplacementId.present
+          ? data.parentReplacementId.value
+          : this.parentReplacementId,
+      scheduledAt: data.scheduledAt.present
+          ? data.scheduledAt.value
+          : this.scheduledAt,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReplacementOccurrence(')
+          ..write('id: $id, ')
+          ..write('originalOccurrenceId: $originalOccurrenceId, ')
+          ..write('parentReplacementId: $parentReplacementId, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    originalOccurrenceId,
+    parentReplacementId,
+    scheduledAt,
+    reason,
+    status,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReplacementOccurrence &&
+          other.id == this.id &&
+          other.originalOccurrenceId == this.originalOccurrenceId &&
+          other.parentReplacementId == this.parentReplacementId &&
+          other.scheduledAt == this.scheduledAt &&
+          other.reason == this.reason &&
+          other.status == this.status);
+}
+
+class ReplacementOccurrencesCompanion
+    extends UpdateCompanion<ReplacementOccurrence> {
+  final Value<String> id;
+  final Value<String> originalOccurrenceId;
+  final Value<String?> parentReplacementId;
+  final Value<DateTime> scheduledAt;
+  final Value<int> reason;
+  final Value<int> status;
+  final Value<int> rowid;
+  const ReplacementOccurrencesCompanion({
+    this.id = const Value.absent(),
+    this.originalOccurrenceId = const Value.absent(),
+    this.parentReplacementId = const Value.absent(),
+    this.scheduledAt = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReplacementOccurrencesCompanion.insert({
+    required String id,
+    required String originalOccurrenceId,
+    this.parentReplacementId = const Value.absent(),
+    required DateTime scheduledAt,
+    required int reason,
+    required int status,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       originalOccurrenceId = Value(originalOccurrenceId),
+       scheduledAt = Value(scheduledAt),
+       reason = Value(reason),
+       status = Value(status);
+  static Insertable<ReplacementOccurrence> custom({
+    Expression<String>? id,
+    Expression<String>? originalOccurrenceId,
+    Expression<String>? parentReplacementId,
+    Expression<DateTime>? scheduledAt,
+    Expression<int>? reason,
+    Expression<int>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (originalOccurrenceId != null)
+        'original_occurrence_id': originalOccurrenceId,
+      if (parentReplacementId != null)
+        'parent_replacement_id': parentReplacementId,
+      if (scheduledAt != null) 'scheduled_at': scheduledAt,
+      if (reason != null) 'reason': reason,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReplacementOccurrencesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? originalOccurrenceId,
+    Value<String?>? parentReplacementId,
+    Value<DateTime>? scheduledAt,
+    Value<int>? reason,
+    Value<int>? status,
+    Value<int>? rowid,
+  }) {
+    return ReplacementOccurrencesCompanion(
+      id: id ?? this.id,
+      originalOccurrenceId: originalOccurrenceId ?? this.originalOccurrenceId,
+      parentReplacementId: parentReplacementId ?? this.parentReplacementId,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      reason: reason ?? this.reason,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (originalOccurrenceId.present) {
+      map['original_occurrence_id'] = Variable<String>(
+        originalOccurrenceId.value,
+      );
+    }
+    if (parentReplacementId.present) {
+      map['parent_replacement_id'] = Variable<String>(
+        parentReplacementId.value,
+      );
+    }
+    if (scheduledAt.present) {
+      map['scheduled_at'] = Variable<DateTime>(scheduledAt.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<int>(reason.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReplacementOccurrencesCompanion(')
+          ..write('id: $id, ')
+          ..write('originalOccurrenceId: $originalOccurrenceId, ')
+          ..write('parentReplacementId: $parentReplacementId, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('reason: $reason, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2650,6 +4879,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ScheduleDefinitionsTable scheduleDefinitions =
       $ScheduleDefinitionsTable(this);
   late final $OccurrencesTable occurrences = $OccurrencesTable(this);
+  late final $EntitlementPlansTable entitlementPlans = $EntitlementPlansTable(
+    this,
+  );
+  late final $EntitlementLedgerEntriesTable entitlementLedgerEntries =
+      $EntitlementLedgerEntriesTable(this);
+  late final $SessionPoliciesTable sessionPolicies = $SessionPoliciesTable(
+    this,
+  );
+  late final $ReplacementOccurrencesTable replacementOccurrences =
+      $ReplacementOccurrencesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2660,6 +4899,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     commitmentCycles,
     scheduleDefinitions,
     occurrences,
+    entitlementPlans,
+    entitlementLedgerEntries,
+    sessionPolicies,
+    replacementOccurrences,
   ];
 }
 
@@ -3201,6 +5444,46 @@ final class $$CommitmentCyclesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$EntitlementPlansTable, List<EntitlementPlan>>
+  _entitlementPlansRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.entitlementPlans,
+    aliasName: 'commitment_cycles__id__entitlement_plans__cycle_id',
+  );
+
+  $$EntitlementPlansTableProcessedTableManager get entitlementPlansRefs {
+    final manager = $$EntitlementPlansTableTableManager(
+      $_db,
+      $_db.entitlementPlans,
+    ).filter((f) => f.cycleId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _entitlementPlansRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SessionPoliciesTable, List<SessionPolicy>>
+  _sessionPoliciesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.sessionPolicies,
+    aliasName: 'commitment_cycles__id__session_policies__cycle_id',
+  );
+
+  $$SessionPoliciesTableProcessedTableManager get sessionPoliciesRefs {
+    final manager = $$SessionPoliciesTableTableManager(
+      $_db,
+      $_db.sessionPolicies,
+    ).filter((f) => f.cycleId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _sessionPoliciesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CommitmentCyclesTableFilterComposer
@@ -3321,6 +5604,56 @@ class $$CommitmentCyclesTableFilterComposer
           }) => $$OccurrencesTableFilterComposer(
             $db: $db,
             $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> entitlementPlansRefs(
+    Expression<bool> Function($$EntitlementPlansTableFilterComposer f) f,
+  ) {
+    final $$EntitlementPlansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entitlementPlans,
+      getReferencedColumn: (t) => t.cycleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntitlementPlansTableFilterComposer(
+            $db: $db,
+            $table: $db.entitlementPlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> sessionPoliciesRefs(
+    Expression<bool> Function($$SessionPoliciesTableFilterComposer f) f,
+  ) {
+    final $$SessionPoliciesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPolicies,
+      getReferencedColumn: (t) => t.cycleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionPoliciesTableFilterComposer(
+            $db: $db,
+            $table: $db.sessionPolicies,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3528,6 +5861,56 @@ class $$CommitmentCyclesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> entitlementPlansRefs<T extends Object>(
+    Expression<T> Function($$EntitlementPlansTableAnnotationComposer a) f,
+  ) {
+    final $$EntitlementPlansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.entitlementPlans,
+      getReferencedColumn: (t) => t.cycleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntitlementPlansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entitlementPlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> sessionPoliciesRefs<T extends Object>(
+    Expression<T> Function($$SessionPoliciesTableAnnotationComposer a) f,
+  ) {
+    final $$SessionPoliciesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.sessionPolicies,
+      getReferencedColumn: (t) => t.cycleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SessionPoliciesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sessionPolicies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CommitmentCyclesTableTableManager
@@ -3547,6 +5930,8 @@ class $$CommitmentCyclesTableTableManager
             bool commitmentId,
             bool scheduleDefinitionsRefs,
             bool occurrencesRefs,
+            bool entitlementPlansRefs,
+            bool sessionPoliciesRefs,
           })
         > {
   $$CommitmentCyclesTableTableManager(
@@ -3627,12 +6012,16 @@ class $$CommitmentCyclesTableTableManager
                 commitmentId = false,
                 scheduleDefinitionsRefs = false,
                 occurrencesRefs = false,
+                entitlementPlansRefs = false,
+                sessionPoliciesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (scheduleDefinitionsRefs) db.scheduleDefinitions,
                     if (occurrencesRefs) db.occurrences,
+                    if (entitlementPlansRefs) db.entitlementPlans,
+                    if (sessionPoliciesRefs) db.sessionPolicies,
                   ],
                   addJoins:
                       <
@@ -3708,6 +6097,48 @@ class $$CommitmentCyclesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (entitlementPlansRefs)
+                        await $_getPrefetchedData<
+                          CommitmentCycle,
+                          $CommitmentCyclesTable,
+                          EntitlementPlan
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentCyclesTableReferences
+                              ._entitlementPlansRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentCyclesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).entitlementPlansRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.cycleId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (sessionPoliciesRefs)
+                        await $_getPrefetchedData<
+                          CommitmentCycle,
+                          $CommitmentCyclesTable,
+                          SessionPolicy
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentCyclesTableReferences
+                              ._sessionPoliciesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentCyclesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).sessionPoliciesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.cycleId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3732,6 +6163,8 @@ typedef $$CommitmentCyclesTableProcessedTableManager =
         bool commitmentId,
         bool scheduleDefinitionsRefs,
         bool occurrencesRefs,
+        bool entitlementPlansRefs,
+        bool sessionPoliciesRefs,
       })
     >;
 typedef $$ScheduleDefinitionsTableCreateCompanionBuilder =
@@ -4839,6 +7272,1597 @@ typedef $$OccurrencesTableProcessedTableManager =
       Occurrence,
       PrefetchHooks Function({bool cycleId, bool scheduleDefinitionId})
     >;
+typedef $$EntitlementPlansTableCreateCompanionBuilder =
+    EntitlementPlansCompanion Function({
+      required String id,
+      required String cycleId,
+      required int totalUnits,
+      required int unitType,
+      required DateTime validFrom,
+      Value<DateTime?> plannedExpiry,
+      required bool autoExtend,
+      Value<int> rowid,
+    });
+typedef $$EntitlementPlansTableUpdateCompanionBuilder =
+    EntitlementPlansCompanion Function({
+      Value<String> id,
+      Value<String> cycleId,
+      Value<int> totalUnits,
+      Value<int> unitType,
+      Value<DateTime> validFrom,
+      Value<DateTime?> plannedExpiry,
+      Value<bool> autoExtend,
+      Value<int> rowid,
+    });
+
+final class $$EntitlementPlansTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $EntitlementPlansTable, EntitlementPlan> {
+  $$EntitlementPlansTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CommitmentCyclesTable _cycleIdTable(_$AppDatabase db) => db
+      .commitmentCycles
+      .createAlias('entitlement_plans__cycle_id__commitment_cycles__id');
+
+  $$CommitmentCyclesTableProcessedTableManager get cycleId {
+    final $_column = $_itemColumn<String>('cycle_id')!;
+
+    final manager = $$CommitmentCyclesTableTableManager(
+      $_db,
+      $_db.commitmentCycles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cycleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $EntitlementLedgerEntriesTable,
+    List<EntitlementLedgerEntry>
+  >
+  _entitlementLedgerEntriesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.entitlementLedgerEntries,
+        aliasName: 'entitlement_plans__id__entitlement_ledger_entries__plan_id',
+      );
+
+  $$EntitlementLedgerEntriesTableProcessedTableManager
+  get entitlementLedgerEntriesRefs {
+    final manager = $$EntitlementLedgerEntriesTableTableManager(
+      $_db,
+      $_db.entitlementLedgerEntries,
+    ).filter((f) => f.planId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _entitlementLedgerEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$EntitlementPlansTableFilterComposer
+    extends Composer<_$AppDatabase, $EntitlementPlansTable> {
+  $$EntitlementPlansTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalUnits => $composableBuilder(
+    column: $table.totalUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get unitType => $composableBuilder(
+    column: $table.unitType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get validFrom => $composableBuilder(
+    column: $table.validFrom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get plannedExpiry => $composableBuilder(
+    column: $table.plannedExpiry,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get autoExtend => $composableBuilder(
+    column: $table.autoExtend,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CommitmentCyclesTableFilterComposer get cycleId {
+    final $$CommitmentCyclesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableFilterComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> entitlementLedgerEntriesRefs(
+    Expression<bool> Function($$EntitlementLedgerEntriesTableFilterComposer f)
+    f,
+  ) {
+    final $$EntitlementLedgerEntriesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.entitlementLedgerEntries,
+          getReferencedColumn: (t) => t.planId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EntitlementLedgerEntriesTableFilterComposer(
+                $db: $db,
+                $table: $db.entitlementLedgerEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$EntitlementPlansTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntitlementPlansTable> {
+  $$EntitlementPlansTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalUnits => $composableBuilder(
+    column: $table.totalUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get unitType => $composableBuilder(
+    column: $table.unitType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get validFrom => $composableBuilder(
+    column: $table.validFrom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get plannedExpiry => $composableBuilder(
+    column: $table.plannedExpiry,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get autoExtend => $composableBuilder(
+    column: $table.autoExtend,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CommitmentCyclesTableOrderingComposer get cycleId {
+    final $$CommitmentCyclesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableOrderingComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntitlementPlansTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntitlementPlansTable> {
+  $$EntitlementPlansTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get totalUnits => $composableBuilder(
+    column: $table.totalUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get unitType =>
+      $composableBuilder(column: $table.unitType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get validFrom =>
+      $composableBuilder(column: $table.validFrom, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get plannedExpiry => $composableBuilder(
+    column: $table.plannedExpiry,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get autoExtend => $composableBuilder(
+    column: $table.autoExtend,
+    builder: (column) => column,
+  );
+
+  $$CommitmentCyclesTableAnnotationComposer get cycleId {
+    final $$CommitmentCyclesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> entitlementLedgerEntriesRefs<T extends Object>(
+    Expression<T> Function($$EntitlementLedgerEntriesTableAnnotationComposer a)
+    f,
+  ) {
+    final $$EntitlementLedgerEntriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.entitlementLedgerEntries,
+          getReferencedColumn: (t) => t.planId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$EntitlementLedgerEntriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.entitlementLedgerEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$EntitlementPlansTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntitlementPlansTable,
+          EntitlementPlan,
+          $$EntitlementPlansTableFilterComposer,
+          $$EntitlementPlansTableOrderingComposer,
+          $$EntitlementPlansTableAnnotationComposer,
+          $$EntitlementPlansTableCreateCompanionBuilder,
+          $$EntitlementPlansTableUpdateCompanionBuilder,
+          (EntitlementPlan, $$EntitlementPlansTableReferences),
+          EntitlementPlan,
+          PrefetchHooks Function({
+            bool cycleId,
+            bool entitlementLedgerEntriesRefs,
+          })
+        > {
+  $$EntitlementPlansTableTableManager(
+    _$AppDatabase db,
+    $EntitlementPlansTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntitlementPlansTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EntitlementPlansTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EntitlementPlansTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> cycleId = const Value.absent(),
+                Value<int> totalUnits = const Value.absent(),
+                Value<int> unitType = const Value.absent(),
+                Value<DateTime> validFrom = const Value.absent(),
+                Value<DateTime?> plannedExpiry = const Value.absent(),
+                Value<bool> autoExtend = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementPlansCompanion(
+                id: id,
+                cycleId: cycleId,
+                totalUnits: totalUnits,
+                unitType: unitType,
+                validFrom: validFrom,
+                plannedExpiry: plannedExpiry,
+                autoExtend: autoExtend,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String cycleId,
+                required int totalUnits,
+                required int unitType,
+                required DateTime validFrom,
+                Value<DateTime?> plannedExpiry = const Value.absent(),
+                required bool autoExtend,
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementPlansCompanion.insert(
+                id: id,
+                cycleId: cycleId,
+                totalUnits: totalUnits,
+                unitType: unitType,
+                validFrom: validFrom,
+                plannedExpiry: plannedExpiry,
+                autoExtend: autoExtend,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EntitlementPlansTable, EntitlementPlan>(table),
+                  $$EntitlementPlansTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({cycleId = false, entitlementLedgerEntriesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (entitlementLedgerEntriesRefs)
+                      db.entitlementLedgerEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (cycleId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.cycleId,
+                            referencedTable: $$EntitlementPlansTableReferences
+                                ._cycleIdTable(db),
+                            referencedColumn: $$EntitlementPlansTableReferences
+                                ._cycleIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (entitlementLedgerEntriesRefs)
+                        await $_getPrefetchedData<
+                          EntitlementPlan,
+                          $EntitlementPlansTable,
+                          EntitlementLedgerEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EntitlementPlansTableReferences
+                              ._entitlementLedgerEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EntitlementPlansTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).entitlementLedgerEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.planId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$EntitlementPlansTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntitlementPlansTable,
+      EntitlementPlan,
+      $$EntitlementPlansTableFilterComposer,
+      $$EntitlementPlansTableOrderingComposer,
+      $$EntitlementPlansTableAnnotationComposer,
+      $$EntitlementPlansTableCreateCompanionBuilder,
+      $$EntitlementPlansTableUpdateCompanionBuilder,
+      (EntitlementPlan, $$EntitlementPlansTableReferences),
+      EntitlementPlan,
+      PrefetchHooks Function({bool cycleId, bool entitlementLedgerEntriesRefs})
+    >;
+typedef $$EntitlementLedgerEntriesTableCreateCompanionBuilder =
+    EntitlementLedgerEntriesCompanion Function({
+      required String id,
+      required String planId,
+      required int type,
+      required int units,
+      required DateTime occurredAt,
+      Value<String?> referenceId,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+typedef $$EntitlementLedgerEntriesTableUpdateCompanionBuilder =
+    EntitlementLedgerEntriesCompanion Function({
+      Value<String> id,
+      Value<String> planId,
+      Value<int> type,
+      Value<int> units,
+      Value<DateTime> occurredAt,
+      Value<String?> referenceId,
+      Value<String?> note,
+      Value<int> rowid,
+    });
+
+final class $$EntitlementLedgerEntriesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $EntitlementLedgerEntriesTable,
+          EntitlementLedgerEntry
+        > {
+  $$EntitlementLedgerEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $EntitlementPlansTable _planIdTable(_$AppDatabase db) =>
+      db.entitlementPlans.createAlias(
+        'entitlement_ledger_entries__plan_id__entitlement_plans__id',
+      );
+
+  $$EntitlementPlansTableProcessedTableManager get planId {
+    final $_column = $_itemColumn<String>('plan_id')!;
+
+    final manager = $$EntitlementPlansTableTableManager(
+      $_db,
+      $_db.entitlementPlans,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_planIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EntitlementLedgerEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $EntitlementLedgerEntriesTable> {
+  $$EntitlementLedgerEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EntitlementPlansTableFilterComposer get planId {
+    final $$EntitlementPlansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.entitlementPlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntitlementPlansTableFilterComposer(
+            $db: $db,
+            $table: $db.entitlementPlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntitlementLedgerEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $EntitlementLedgerEntriesTable> {
+  $$EntitlementLedgerEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EntitlementPlansTableOrderingComposer get planId {
+    final $$EntitlementPlansTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.entitlementPlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntitlementPlansTableOrderingComposer(
+            $db: $db,
+            $table: $db.entitlementPlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntitlementLedgerEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EntitlementLedgerEntriesTable> {
+  $$EntitlementLedgerEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get units =>
+      $composableBuilder(column: $table.units, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  $$EntitlementPlansTableAnnotationComposer get planId {
+    final $$EntitlementPlansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.planId,
+      referencedTable: $db.entitlementPlans,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntitlementPlansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entitlementPlans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EntitlementLedgerEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EntitlementLedgerEntriesTable,
+          EntitlementLedgerEntry,
+          $$EntitlementLedgerEntriesTableFilterComposer,
+          $$EntitlementLedgerEntriesTableOrderingComposer,
+          $$EntitlementLedgerEntriesTableAnnotationComposer,
+          $$EntitlementLedgerEntriesTableCreateCompanionBuilder,
+          $$EntitlementLedgerEntriesTableUpdateCompanionBuilder,
+          (EntitlementLedgerEntry, $$EntitlementLedgerEntriesTableReferences),
+          EntitlementLedgerEntry,
+          PrefetchHooks Function({bool planId})
+        > {
+  $$EntitlementLedgerEntriesTableTableManager(
+    _$AppDatabase db,
+    $EntitlementLedgerEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EntitlementLedgerEntriesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$EntitlementLedgerEntriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$EntitlementLedgerEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> planId = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<int> units = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementLedgerEntriesCompanion(
+                id: id,
+                planId: planId,
+                type: type,
+                units: units,
+                occurredAt: occurredAt,
+                referenceId: referenceId,
+                note: note,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String planId,
+                required int type,
+                required int units,
+                required DateTime occurredAt,
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EntitlementLedgerEntriesCompanion.insert(
+                id: id,
+                planId: planId,
+                type: type,
+                units: units,
+                occurredAt: occurredAt,
+                referenceId: referenceId,
+                note: note,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $EntitlementLedgerEntriesTable,
+                    EntitlementLedgerEntry
+                  >(table),
+                  $$EntitlementLedgerEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({planId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (planId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.planId,
+                        referencedTable:
+                            $$EntitlementLedgerEntriesTableReferences
+                                ._planIdTable(db),
+                        referencedColumn:
+                            $$EntitlementLedgerEntriesTableReferences
+                                ._planIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EntitlementLedgerEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EntitlementLedgerEntriesTable,
+      EntitlementLedgerEntry,
+      $$EntitlementLedgerEntriesTableFilterComposer,
+      $$EntitlementLedgerEntriesTableOrderingComposer,
+      $$EntitlementLedgerEntriesTableAnnotationComposer,
+      $$EntitlementLedgerEntriesTableCreateCompanionBuilder,
+      $$EntitlementLedgerEntriesTableUpdateCompanionBuilder,
+      (EntitlementLedgerEntry, $$EntitlementLedgerEntriesTableReferences),
+      EntitlementLedgerEntry,
+      PrefetchHooks Function({bool planId})
+    >;
+typedef $$SessionPoliciesTableCreateCompanionBuilder =
+    SessionPoliciesCompanion Function({
+      required String id,
+      required String cycleId,
+      required bool providerCancellationConsumes,
+      required int userCancellationNoticeHours,
+      required bool lateCancellationConsumes,
+      required bool noShowConsumes,
+      required int freeAbsenceQuota,
+      required bool holidayConsumes,
+      required bool makeupRequired,
+      required bool autoExtendUntilUnitsConsumed,
+      Value<DateTime?> maxExtensionDate,
+      required bool partialUnitAllowed,
+      Value<int> rowid,
+    });
+typedef $$SessionPoliciesTableUpdateCompanionBuilder =
+    SessionPoliciesCompanion Function({
+      Value<String> id,
+      Value<String> cycleId,
+      Value<bool> providerCancellationConsumes,
+      Value<int> userCancellationNoticeHours,
+      Value<bool> lateCancellationConsumes,
+      Value<bool> noShowConsumes,
+      Value<int> freeAbsenceQuota,
+      Value<bool> holidayConsumes,
+      Value<bool> makeupRequired,
+      Value<bool> autoExtendUntilUnitsConsumed,
+      Value<DateTime?> maxExtensionDate,
+      Value<bool> partialUnitAllowed,
+      Value<int> rowid,
+    });
+
+final class $$SessionPoliciesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $SessionPoliciesTable, SessionPolicy> {
+  $$SessionPoliciesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CommitmentCyclesTable _cycleIdTable(_$AppDatabase db) => db
+      .commitmentCycles
+      .createAlias('session_policies__cycle_id__commitment_cycles__id');
+
+  $$CommitmentCyclesTableProcessedTableManager get cycleId {
+    final $_column = $_itemColumn<String>('cycle_id')!;
+
+    final manager = $$CommitmentCyclesTableTableManager(
+      $_db,
+      $_db.commitmentCycles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_cycleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SessionPoliciesTableFilterComposer
+    extends Composer<_$AppDatabase, $SessionPoliciesTable> {
+  $$SessionPoliciesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get providerCancellationConsumes => $composableBuilder(
+    column: $table.providerCancellationConsumes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userCancellationNoticeHours => $composableBuilder(
+    column: $table.userCancellationNoticeHours,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get lateCancellationConsumes => $composableBuilder(
+    column: $table.lateCancellationConsumes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get noShowConsumes => $composableBuilder(
+    column: $table.noShowConsumes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get freeAbsenceQuota => $composableBuilder(
+    column: $table.freeAbsenceQuota,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get holidayConsumes => $composableBuilder(
+    column: $table.holidayConsumes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get makeupRequired => $composableBuilder(
+    column: $table.makeupRequired,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get autoExtendUntilUnitsConsumed => $composableBuilder(
+    column: $table.autoExtendUntilUnitsConsumed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get maxExtensionDate => $composableBuilder(
+    column: $table.maxExtensionDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get partialUnitAllowed => $composableBuilder(
+    column: $table.partialUnitAllowed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CommitmentCyclesTableFilterComposer get cycleId {
+    final $$CommitmentCyclesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableFilterComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SessionPoliciesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SessionPoliciesTable> {
+  $$SessionPoliciesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get providerCancellationConsumes => $composableBuilder(
+    column: $table.providerCancellationConsumes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userCancellationNoticeHours => $composableBuilder(
+    column: $table.userCancellationNoticeHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get lateCancellationConsumes => $composableBuilder(
+    column: $table.lateCancellationConsumes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get noShowConsumes => $composableBuilder(
+    column: $table.noShowConsumes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get freeAbsenceQuota => $composableBuilder(
+    column: $table.freeAbsenceQuota,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get holidayConsumes => $composableBuilder(
+    column: $table.holidayConsumes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get makeupRequired => $composableBuilder(
+    column: $table.makeupRequired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get autoExtendUntilUnitsConsumed => $composableBuilder(
+    column: $table.autoExtendUntilUnitsConsumed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get maxExtensionDate => $composableBuilder(
+    column: $table.maxExtensionDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get partialUnitAllowed => $composableBuilder(
+    column: $table.partialUnitAllowed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CommitmentCyclesTableOrderingComposer get cycleId {
+    final $$CommitmentCyclesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableOrderingComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SessionPoliciesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SessionPoliciesTable> {
+  $$SessionPoliciesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get providerCancellationConsumes => $composableBuilder(
+    column: $table.providerCancellationConsumes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get userCancellationNoticeHours => $composableBuilder(
+    column: $table.userCancellationNoticeHours,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get lateCancellationConsumes => $composableBuilder(
+    column: $table.lateCancellationConsumes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get noShowConsumes => $composableBuilder(
+    column: $table.noShowConsumes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get freeAbsenceQuota => $composableBuilder(
+    column: $table.freeAbsenceQuota,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get holidayConsumes => $composableBuilder(
+    column: $table.holidayConsumes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get makeupRequired => $composableBuilder(
+    column: $table.makeupRequired,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get autoExtendUntilUnitsConsumed => $composableBuilder(
+    column: $table.autoExtendUntilUnitsConsumed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get maxExtensionDate => $composableBuilder(
+    column: $table.maxExtensionDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get partialUnitAllowed => $composableBuilder(
+    column: $table.partialUnitAllowed,
+    builder: (column) => column,
+  );
+
+  $$CommitmentCyclesTableAnnotationComposer get cycleId {
+    final $$CommitmentCyclesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.cycleId,
+      referencedTable: $db.commitmentCycles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentCyclesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SessionPoliciesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SessionPoliciesTable,
+          SessionPolicy,
+          $$SessionPoliciesTableFilterComposer,
+          $$SessionPoliciesTableOrderingComposer,
+          $$SessionPoliciesTableAnnotationComposer,
+          $$SessionPoliciesTableCreateCompanionBuilder,
+          $$SessionPoliciesTableUpdateCompanionBuilder,
+          (SessionPolicy, $$SessionPoliciesTableReferences),
+          SessionPolicy,
+          PrefetchHooks Function({bool cycleId})
+        > {
+  $$SessionPoliciesTableTableManager(
+    _$AppDatabase db,
+    $SessionPoliciesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SessionPoliciesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SessionPoliciesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SessionPoliciesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> cycleId = const Value.absent(),
+                Value<bool> providerCancellationConsumes = const Value.absent(),
+                Value<int> userCancellationNoticeHours = const Value.absent(),
+                Value<bool> lateCancellationConsumes = const Value.absent(),
+                Value<bool> noShowConsumes = const Value.absent(),
+                Value<int> freeAbsenceQuota = const Value.absent(),
+                Value<bool> holidayConsumes = const Value.absent(),
+                Value<bool> makeupRequired = const Value.absent(),
+                Value<bool> autoExtendUntilUnitsConsumed = const Value.absent(),
+                Value<DateTime?> maxExtensionDate = const Value.absent(),
+                Value<bool> partialUnitAllowed = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SessionPoliciesCompanion(
+                id: id,
+                cycleId: cycleId,
+                providerCancellationConsumes: providerCancellationConsumes,
+                userCancellationNoticeHours: userCancellationNoticeHours,
+                lateCancellationConsumes: lateCancellationConsumes,
+                noShowConsumes: noShowConsumes,
+                freeAbsenceQuota: freeAbsenceQuota,
+                holidayConsumes: holidayConsumes,
+                makeupRequired: makeupRequired,
+                autoExtendUntilUnitsConsumed: autoExtendUntilUnitsConsumed,
+                maxExtensionDate: maxExtensionDate,
+                partialUnitAllowed: partialUnitAllowed,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String cycleId,
+                required bool providerCancellationConsumes,
+                required int userCancellationNoticeHours,
+                required bool lateCancellationConsumes,
+                required bool noShowConsumes,
+                required int freeAbsenceQuota,
+                required bool holidayConsumes,
+                required bool makeupRequired,
+                required bool autoExtendUntilUnitsConsumed,
+                Value<DateTime?> maxExtensionDate = const Value.absent(),
+                required bool partialUnitAllowed,
+                Value<int> rowid = const Value.absent(),
+              }) => SessionPoliciesCompanion.insert(
+                id: id,
+                cycleId: cycleId,
+                providerCancellationConsumes: providerCancellationConsumes,
+                userCancellationNoticeHours: userCancellationNoticeHours,
+                lateCancellationConsumes: lateCancellationConsumes,
+                noShowConsumes: noShowConsumes,
+                freeAbsenceQuota: freeAbsenceQuota,
+                holidayConsumes: holidayConsumes,
+                makeupRequired: makeupRequired,
+                autoExtendUntilUnitsConsumed: autoExtendUntilUnitsConsumed,
+                maxExtensionDate: maxExtensionDate,
+                partialUnitAllowed: partialUnitAllowed,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SessionPoliciesTable, SessionPolicy>(table),
+                  $$SessionPoliciesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({cycleId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (cycleId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.cycleId,
+                        referencedTable: $$SessionPoliciesTableReferences
+                            ._cycleIdTable(db),
+                        referencedColumn: $$SessionPoliciesTableReferences
+                            ._cycleIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SessionPoliciesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SessionPoliciesTable,
+      SessionPolicy,
+      $$SessionPoliciesTableFilterComposer,
+      $$SessionPoliciesTableOrderingComposer,
+      $$SessionPoliciesTableAnnotationComposer,
+      $$SessionPoliciesTableCreateCompanionBuilder,
+      $$SessionPoliciesTableUpdateCompanionBuilder,
+      (SessionPolicy, $$SessionPoliciesTableReferences),
+      SessionPolicy,
+      PrefetchHooks Function({bool cycleId})
+    >;
+typedef $$ReplacementOccurrencesTableCreateCompanionBuilder =
+    ReplacementOccurrencesCompanion Function({
+      required String id,
+      required String originalOccurrenceId,
+      Value<String?> parentReplacementId,
+      required DateTime scheduledAt,
+      required int reason,
+      required int status,
+      Value<int> rowid,
+    });
+typedef $$ReplacementOccurrencesTableUpdateCompanionBuilder =
+    ReplacementOccurrencesCompanion Function({
+      Value<String> id,
+      Value<String> originalOccurrenceId,
+      Value<String?> parentReplacementId,
+      Value<DateTime> scheduledAt,
+      Value<int> reason,
+      Value<int> status,
+      Value<int> rowid,
+    });
+
+class $$ReplacementOccurrencesTableFilterComposer
+    extends Composer<_$AppDatabase, $ReplacementOccurrencesTable> {
+  $$ReplacementOccurrencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originalOccurrenceId => $composableBuilder(
+    column: $table.originalOccurrenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentReplacementId => $composableBuilder(
+    column: $table.parentReplacementId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ReplacementOccurrencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReplacementOccurrencesTable> {
+  $$ReplacementOccurrencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalOccurrenceId => $composableBuilder(
+    column: $table.originalOccurrenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get parentReplacementId => $composableBuilder(
+    column: $table.parentReplacementId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReplacementOccurrencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReplacementOccurrencesTable> {
+  $$ReplacementOccurrencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get originalOccurrenceId => $composableBuilder(
+    column: $table.originalOccurrenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parentReplacementId => $composableBuilder(
+    column: $table.parentReplacementId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$ReplacementOccurrencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReplacementOccurrencesTable,
+          ReplacementOccurrence,
+          $$ReplacementOccurrencesTableFilterComposer,
+          $$ReplacementOccurrencesTableOrderingComposer,
+          $$ReplacementOccurrencesTableAnnotationComposer,
+          $$ReplacementOccurrencesTableCreateCompanionBuilder,
+          $$ReplacementOccurrencesTableUpdateCompanionBuilder,
+          (
+            ReplacementOccurrence,
+            BaseReferences<
+              _$AppDatabase,
+              $ReplacementOccurrencesTable,
+              ReplacementOccurrence
+            >,
+          ),
+          ReplacementOccurrence,
+          PrefetchHooks Function()
+        > {
+  $$ReplacementOccurrencesTableTableManager(
+    _$AppDatabase db,
+    $ReplacementOccurrencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReplacementOccurrencesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ReplacementOccurrencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ReplacementOccurrencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> originalOccurrenceId = const Value.absent(),
+                Value<String?> parentReplacementId = const Value.absent(),
+                Value<DateTime> scheduledAt = const Value.absent(),
+                Value<int> reason = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReplacementOccurrencesCompanion(
+                id: id,
+                originalOccurrenceId: originalOccurrenceId,
+                parentReplacementId: parentReplacementId,
+                scheduledAt: scheduledAt,
+                reason: reason,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String originalOccurrenceId,
+                Value<String?> parentReplacementId = const Value.absent(),
+                required DateTime scheduledAt,
+                required int reason,
+                required int status,
+                Value<int> rowid = const Value.absent(),
+              }) => ReplacementOccurrencesCompanion.insert(
+                id: id,
+                originalOccurrenceId: originalOccurrenceId,
+                parentReplacementId: parentReplacementId,
+                scheduledAt: scheduledAt,
+                reason: reason,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $ReplacementOccurrencesTable,
+                    ReplacementOccurrence
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ReplacementOccurrencesTable,
+                    ReplacementOccurrence
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ReplacementOccurrencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReplacementOccurrencesTable,
+      ReplacementOccurrence,
+      $$ReplacementOccurrencesTableFilterComposer,
+      $$ReplacementOccurrencesTableOrderingComposer,
+      $$ReplacementOccurrencesTableAnnotationComposer,
+      $$ReplacementOccurrencesTableCreateCompanionBuilder,
+      $$ReplacementOccurrencesTableUpdateCompanionBuilder,
+      (
+        ReplacementOccurrence,
+        BaseReferences<
+          _$AppDatabase,
+          $ReplacementOccurrencesTable,
+          ReplacementOccurrence
+        >,
+      ),
+      ReplacementOccurrence,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4853,4 +8877,18 @@ class $AppDatabaseManager {
       $$ScheduleDefinitionsTableTableManager(_db, _db.scheduleDefinitions);
   $$OccurrencesTableTableManager get occurrences =>
       $$OccurrencesTableTableManager(_db, _db.occurrences);
+  $$EntitlementPlansTableTableManager get entitlementPlans =>
+      $$EntitlementPlansTableTableManager(_db, _db.entitlementPlans);
+  $$EntitlementLedgerEntriesTableTableManager get entitlementLedgerEntries =>
+      $$EntitlementLedgerEntriesTableTableManager(
+        _db,
+        _db.entitlementLedgerEntries,
+      );
+  $$SessionPoliciesTableTableManager get sessionPolicies =>
+      $$SessionPoliciesTableTableManager(_db, _db.sessionPolicies);
+  $$ReplacementOccurrencesTableTableManager get replacementOccurrences =>
+      $$ReplacementOccurrencesTableTableManager(
+        _db,
+        _db.replacementOccurrences,
+      );
 }

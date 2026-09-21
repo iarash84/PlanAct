@@ -77,6 +77,62 @@ class Occurrences extends Table {
   ];
 }
 
+class EntitlementPlans extends Table {
+  TextColumn get id => text()();
+  TextColumn get cycleId => text().references(CommitmentCycles, #id)();
+  IntColumn get totalUnits => integer()();
+  IntColumn get unitType => integer()();
+  DateTimeColumn get validFrom => dateTime()();
+  DateTimeColumn get plannedExpiry => dateTime().nullable()();
+  BoolColumn get autoExtend => boolean()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class EntitlementLedgerEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get planId => text().references(EntitlementPlans, #id)();
+  IntColumn get type => integer()();
+  IntColumn get units => integer()();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get referenceId => text().nullable()();
+  TextColumn get note => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class SessionPolicies extends Table {
+  TextColumn get id => text()();
+  TextColumn get cycleId => text().references(CommitmentCycles, #id)();
+  BoolColumn get providerCancellationConsumes => boolean()();
+  IntColumn get userCancellationNoticeHours => integer()();
+  BoolColumn get lateCancellationConsumes => boolean()();
+  BoolColumn get noShowConsumes => boolean()();
+  IntColumn get freeAbsenceQuota => integer()();
+  BoolColumn get holidayConsumes => boolean()();
+  BoolColumn get makeupRequired => boolean()();
+  BoolColumn get autoExtendUntilUnitsConsumed => boolean()();
+  DateTimeColumn get maxExtensionDate => dateTime().nullable()();
+  BoolColumn get partialUnitAllowed => boolean()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ReplacementOccurrences extends Table {
+  TextColumn get id => text()();
+  TextColumn get originalOccurrenceId => text()();
+  TextColumn get parentReplacementId => text().nullable()();
+  DateTimeColumn get scheduledAt => dateTime()();
+  IntColumn get reason => integer()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -84,6 +140,10 @@ class Occurrences extends Table {
     CommitmentCycles,
     ScheduleDefinitions,
     Occurrences,
+    EntitlementPlans,
+    EntitlementLedgerEntries,
+    SessionPolicies,
+    ReplacementOccurrences,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -92,7 +152,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -108,6 +168,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 3) {
         await m.createTable(scheduleDefinitions);
         await m.createTable(occurrences);
+      }
+      if (from < 4) {
+        await m.createTable(entitlementPlans);
+        await m.createTable(entitlementLedgerEntries);
+        await m.createTable(sessionPolicies);
+        await m.createTable(replacementOccurrences);
       }
       await _writeSchemaMetadata();
     },
