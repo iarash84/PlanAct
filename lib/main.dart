@@ -1,122 +1,370 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/application/commitment_use_cases.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const PlanActApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PlanActApp extends StatelessWidget {
+  const PlanActApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'پلن‌اکت',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xff176b87),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: const Color(0xfff7fafb),
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      builder: (context, child) =>
+          Directionality(textDirection: TextDirection.rtl, child: child!),
+      home: const HomeShell(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeShell> createState() => _HomeShellState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeShellState extends State<HomeShell> {
+  final CommitmentRepository _repository = InMemoryCommitmentRepository();
+  late final CreateCommitment _createCommitment = CreateCommitment(_repository);
+  int _selectedIndex = 0;
+  List<Commitment> _commitments = const [];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final items = await _repository.list();
+    if (mounted) setState(() => _commitments = items);
+  }
+
+  Future<void> _showCapture() async {
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) => const _CaptureDialog(),
+    );
+    if (title == null || title.trim().isEmpty) return;
+    await _createCommitment(title: title);
+    await _refresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final pages = <Widget>[
+      TodayPage(commitments: _commitments, onAdd: _showCapture),
+      CalendarPage(commitments: _commitments),
+      const Center(child: Text('تنظیمات در نسخهٔ بعدی اضافه می‌شود')),
+    ];
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        title: Text(
+          _selectedIndex == 0
+              ? 'امروز'
+              : _selectedIndex == 1
+              ? 'تقویم'
+              : 'بیشتر',
         ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            tooltip: 'افزودن تعهد',
+            onPressed: _showCapture,
+            icon: const Icon(Icons.add_circle_outline),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      body: SafeArea(child: pages[_selectedIndex]),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: _showCapture,
+              icon: const Icon(Icons.add),
+              label: const Text('تعهد جدید'),
+            )
+          : null,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.today_outlined),
+            selectedIcon: Icon(Icons.today),
+            label: 'امروز',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'تقویم',
+          ),
+          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'بیشتر'),
+        ],
       ),
     );
   }
+}
+
+class TodayPage extends StatelessWidget {
+  const TodayPage({required this.commitments, required this.onAdd, super.key});
+
+  final List<Commitment> commitments;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      children: [
+        Text('شنبه، ۳۰ شهریور', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 4),
+        Text(
+          'چه چیزی نیاز به توجه دارد؟',
+          style: Theme.of(context).textTheme.headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 24),
+        _SectionHeader(
+          title: 'نیازمند توجه',
+          icon: Icons.priority_high_rounded,
+          color: Colors.orange,
+        ),
+        const SizedBox(height: 8),
+        _AttentionCard(),
+        const SizedBox(height: 24),
+        _SectionHeader(
+          title: 'امروز',
+          icon: Icons.today,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(height: 8),
+        if (commitments.isEmpty)
+          _EmptyCard(onAdd: onAdd)
+        else
+          ...commitments.map((item) => _CommitmentCard(commitment: item)),
+        const SizedBox(height: 24),
+        const _SectionHeader(
+          title: 'پیش‌رو',
+          icon: Icons.upcoming,
+          color: Colors.teal,
+        ),
+        const SizedBox(height: 8),
+        const _InfoCard(
+          text: 'زمان‌بندی‌های آینده پس از ایجاد اولین برنامه اینجا نمایش داده می‌شوند.',
+        ),
+      ],
+    );
+  }
+}
+
+class CalendarPage extends StatelessWidget {
+  const CalendarPage({required this.commitments, super.key});
+  final List<Commitment> commitments;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(20),
+    children: [
+      Text(
+        'شهریور ۱۴۰۵',
+        style: Theme.of(context).textTheme.headlineSmall
+            ?.copyWith(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 16),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text('ش'),
+                  Text('ی'),
+                  Text('د'),
+                  Text('س'),
+                  Text('چ'),
+                  Text('پ'),
+                  Text('ج'),
+                ],
+              ),
+              const SizedBox(height: 12),
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 7,
+                children: List.generate(
+                  31,
+                  (index) => Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        fontWeight: index == 29 ? FontWeight.bold : null,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
+      Text(
+        '${_persianNumber(commitments.length)} تعهد ثبت‌شده',
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+    ],
+  );
+}
+
+String _persianNumber(int value) {
+  const latin = '0123456789';
+  const persian = '۰۱۲۳۴۵۶۷۸۹';
+  return value
+      .toString()
+      .split('')
+      .map((digit) => persian[latin.indexOf(digit)])
+      .join();
+}
+
+class _CaptureDialog extends StatefulWidget {
+  const _CaptureDialog();
+
+  @override
+  State<_CaptureDialog> createState() => _CaptureDialogState();
+}
+
+class _CaptureDialogState extends State<_CaptureDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('تعهد جدید'),
+        content: TextField(
+          controller: _controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(
+            labelText: 'چه کاری باید انجام شود؟',
+            hintText: 'مثلاً کلاس زبان',
+          ),
+          onSubmitted: (_) => Navigator.of(context).pop(_controller.text),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(_controller.text),
+            child: const Text('ثبت'),
+          ),
+        ],
+      );
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+  final String title;
+  final IconData icon;
+  final Color color;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, color: color, size: 22),
+      const SizedBox(width: 8),
+      Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    ],
+  );
+}
+
+class _AttentionCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Card(
+    color: Colors.orange.withValues(alpha: .1),
+    child: const ListTile(
+      leading: Icon(Icons.notifications_active_outlined, color: Colors.orange),
+      title: Text('هنوز تعهدی برای امروز ندارید'),
+      subtitle: Text('با ثبت یک تعهد، برنامهٔ روزانه‌تان را شروع کنید.'),
+    ),
+  );
+}
+
+class _EmptyCard extends StatelessWidget {
+  const _EmptyCard({required this.onAdd});
+  final VoidCallback onAdd;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const Icon(Icons.inbox_outlined, size: 42),
+          const SizedBox(height: 8),
+          const Text('امروز برنامه‌ای ندارید'),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add),
+            label: const Text('ثبت اولین تعهد'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _CommitmentCard extends StatelessWidget {
+  const _CommitmentCard({required this.commitment});
+  final Commitment commitment;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.check)),
+      title: Text(commitment.title),
+      subtitle: const Text('فعال • بدون زمان‌بندی'),
+      trailing: const Icon(Icons.chevron_left),
+    ),
+  );
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(padding: const EdgeInsets.all(16), child: Text(text)),
+  );
 }

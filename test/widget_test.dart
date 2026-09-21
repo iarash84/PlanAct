@@ -1,30 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:planact/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('پوستهٔ فارسی و ثبت تعهد کار می‌کند', (tester) async {
+    await tester.pumpWidget(const PlanActApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('امروز'), findsWidgets);
+    expect(find.text('چه چیزی نیاز به توجه دارد؟'), findsOneWidget);
+    expect(find.text('ثبت اولین تعهد'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final todayContext = tester.element(
+      find.text('چه چیزی نیاز به توجه دارد؟'),
+    );
+    expect(Directionality.of(todayContext), TextDirection.rtl);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('ثبت اولین تعهد'));
+    await tester.pumpAndSettle();
+    expect(find.text('تعهد جدید'), findsNWidgets(2));
+
+    await tester.enterText(find.byType(TextField), 'کلاس زبان');
+    await tester.tap(find.text('ثبت'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('کلاس زبان'), findsOneWidget);
+    expect(find.text('فعال • بدون زمان‌بندی'), findsOneWidget);
+  });
+
+  testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {
+    await tester.pumpWidget(const PlanActApp());
+
+    await tester.tap(find.text('تقویم'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
+    expect(find.text('ج'), findsOneWidget);
   });
 }
