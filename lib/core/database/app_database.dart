@@ -36,14 +36,63 @@ class CommitmentCycles extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [SchemaMetadata, Commitments, CommitmentCycles])
+class ScheduleDefinitions extends Table {
+  TextColumn get id => text()();
+  TextColumn get cycleId => text().references(CommitmentCycles, #id)();
+  IntColumn get mode => integer()();
+  IntColumn get timeSemantics => integer()();
+  TextColumn get startDate => text()();
+  TextColumn get localTime => text().nullable()();
+  TextColumn get timeZoneId => text().nullable()();
+  DateTimeColumn get fixedInstant => dateTime().nullable()();
+  TextColumn get recurrenceRule => text().nullable()();
+  TextColumn get endDate => text().nullable()();
+  IntColumn get occurrenceCount => integer().nullable()();
+  IntColumn get version => integer()();
+  TextColumn get effectiveFrom => text()();
+  IntColumn get generationHorizonDays => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class Occurrences extends Table {
+  TextColumn get id => text()();
+  TextColumn get cycleId => text().references(CommitmentCycles, #id)();
+  TextColumn get scheduleDefinitionId =>
+      text().references(ScheduleDefinitions, #id)();
+  TextColumn get occurrenceKey => text()();
+  IntColumn get timeSemantics => integer()();
+  TextColumn get originalScheduledValue => text()();
+  TextColumn get currentScheduledValue => text()();
+  IntColumn get status => integer()();
+  BoolColumn get isManualOverride => boolean()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {scheduleDefinitionId, occurrenceKey},
+  ];
+}
+
+@DriftDatabase(
+  tables: [
+    SchemaMetadata,
+    Commitments,
+    CommitmentCycles,
+    ScheduleDefinitions,
+    Occurrences,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -55,6 +104,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(commitments);
         await m.createTable(commitmentCycles);
+      }
+      if (from < 3) {
+        await m.createTable(scheduleDefinitions);
+        await m.createTable(occurrences);
       }
       await _writeSchemaMetadata();
     },
