@@ -133,6 +133,33 @@ class ReplacementOccurrences extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class ReminderRules extends Table {
+  TextColumn get id => text()();
+  TextColumn get occurrenceId => text()();
+  IntColumn get anchor => integer()();
+  IntColumn get offsetSeconds => integer()();
+  DateTimeColumn get absoluteAt => dateTime().nullable()();
+  TextColumn get title => text().nullable()();
+  TextColumn get body => text().nullable()();
+  BoolColumn get enabled => boolean()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ReminderInstances extends Table {
+  TextColumn get id => text()();
+  TextColumn get ruleId => text().references(ReminderRules, #id)();
+  TextColumn get occurrenceId => text()();
+  DateTimeColumn get scheduledAt => dateTime()();
+  IntColumn get status => integer()();
+  DateTimeColumn get snoozedUntil => dateTime().nullable()();
+  TextColumn get platformNotificationId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -144,6 +171,8 @@ class ReplacementOccurrences extends Table {
     EntitlementLedgerEntries,
     SessionPolicies,
     ReplacementOccurrences,
+    ReminderRules,
+    ReminderInstances,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -152,7 +181,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -174,6 +203,10 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(entitlementLedgerEntries);
         await m.createTable(sessionPolicies);
         await m.createTable(replacementOccurrences);
+      }
+      if (from < 5) {
+        await m.createTable(reminderRules);
+        await m.createTable(reminderInstances);
       }
       await _writeSchemaMetadata();
     },

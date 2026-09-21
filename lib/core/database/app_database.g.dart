@@ -4868,6 +4868,1026 @@ class ReplacementOccurrencesCompanion
   }
 }
 
+class $ReminderRulesTable extends ReminderRules
+    with TableInfo<$ReminderRulesTable, ReminderRule> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReminderRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurrenceIdMeta = const VerificationMeta(
+    'occurrenceId',
+  );
+  @override
+  late final GeneratedColumn<String> occurrenceId = GeneratedColumn<String>(
+    'occurrence_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _anchorMeta = const VerificationMeta('anchor');
+  @override
+  late final GeneratedColumn<int> anchor = GeneratedColumn<int>(
+    'anchor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _offsetSecondsMeta = const VerificationMeta(
+    'offsetSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> offsetSeconds = GeneratedColumn<int>(
+    'offset_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _absoluteAtMeta = const VerificationMeta(
+    'absoluteAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> absoluteAt = GeneratedColumn<DateTime>(
+    'absolute_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    occurrenceId,
+    anchor,
+    offsetSeconds,
+    absoluteAt,
+    title,
+    body,
+    enabled,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reminder_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReminderRule> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('occurrence_id')) {
+      context.handle(
+        _occurrenceIdMeta,
+        occurrenceId.isAcceptableOrUnknown(
+          data['occurrence_id']!,
+          _occurrenceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_occurrenceIdMeta);
+    }
+    if (data.containsKey('anchor')) {
+      context.handle(
+        _anchorMeta,
+        anchor.isAcceptableOrUnknown(data['anchor']!, _anchorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_anchorMeta);
+    }
+    if (data.containsKey('offset_seconds')) {
+      context.handle(
+        _offsetSecondsMeta,
+        offsetSeconds.isAcceptableOrUnknown(
+          data['offset_seconds']!,
+          _offsetSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_offsetSecondsMeta);
+    }
+    if (data.containsKey('absolute_at')) {
+      context.handle(
+        _absoluteAtMeta,
+        absoluteAt.isAcceptableOrUnknown(data['absolute_at']!, _absoluteAtMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_enabledMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReminderRule map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReminderRule(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      occurrenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}occurrence_id'],
+      )!,
+      anchor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}anchor'],
+      )!,
+      offsetSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}offset_seconds'],
+      )!,
+      absoluteAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}absolute_at'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      ),
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+    );
+  }
+
+  @override
+  $ReminderRulesTable createAlias(String alias) {
+    return $ReminderRulesTable(attachedDatabase, alias);
+  }
+}
+
+class ReminderRule extends DataClass implements Insertable<ReminderRule> {
+  final String id;
+  final String occurrenceId;
+  final int anchor;
+  final int offsetSeconds;
+  final DateTime? absoluteAt;
+  final String? title;
+  final String? body;
+  final bool enabled;
+  const ReminderRule({
+    required this.id,
+    required this.occurrenceId,
+    required this.anchor,
+    required this.offsetSeconds,
+    this.absoluteAt,
+    this.title,
+    this.body,
+    required this.enabled,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['occurrence_id'] = Variable<String>(occurrenceId);
+    map['anchor'] = Variable<int>(anchor);
+    map['offset_seconds'] = Variable<int>(offsetSeconds);
+    if (!nullToAbsent || absoluteAt != null) {
+      map['absolute_at'] = Variable<DateTime>(absoluteAt);
+    }
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || body != null) {
+      map['body'] = Variable<String>(body);
+    }
+    map['enabled'] = Variable<bool>(enabled);
+    return map;
+  }
+
+  ReminderRulesCompanion toCompanion(bool nullToAbsent) {
+    return ReminderRulesCompanion(
+      id: Value(id),
+      occurrenceId: Value(occurrenceId),
+      anchor: Value(anchor),
+      offsetSeconds: Value(offsetSeconds),
+      absoluteAt: absoluteAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(absoluteAt),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      body: body == null && nullToAbsent ? const Value.absent() : Value(body),
+      enabled: Value(enabled),
+    );
+  }
+
+  factory ReminderRule.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReminderRule(
+      id: serializer.fromJson<String>(json['id']),
+      occurrenceId: serializer.fromJson<String>(json['occurrenceId']),
+      anchor: serializer.fromJson<int>(json['anchor']),
+      offsetSeconds: serializer.fromJson<int>(json['offsetSeconds']),
+      absoluteAt: serializer.fromJson<DateTime?>(json['absoluteAt']),
+      title: serializer.fromJson<String?>(json['title']),
+      body: serializer.fromJson<String?>(json['body']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'occurrenceId': serializer.toJson<String>(occurrenceId),
+      'anchor': serializer.toJson<int>(anchor),
+      'offsetSeconds': serializer.toJson<int>(offsetSeconds),
+      'absoluteAt': serializer.toJson<DateTime?>(absoluteAt),
+      'title': serializer.toJson<String?>(title),
+      'body': serializer.toJson<String?>(body),
+      'enabled': serializer.toJson<bool>(enabled),
+    };
+  }
+
+  ReminderRule copyWith({
+    String? id,
+    String? occurrenceId,
+    int? anchor,
+    int? offsetSeconds,
+    Value<DateTime?> absoluteAt = const Value.absent(),
+    Value<String?> title = const Value.absent(),
+    Value<String?> body = const Value.absent(),
+    bool? enabled,
+  }) => ReminderRule(
+    id: id ?? this.id,
+    occurrenceId: occurrenceId ?? this.occurrenceId,
+    anchor: anchor ?? this.anchor,
+    offsetSeconds: offsetSeconds ?? this.offsetSeconds,
+    absoluteAt: absoluteAt.present ? absoluteAt.value : this.absoluteAt,
+    title: title.present ? title.value : this.title,
+    body: body.present ? body.value : this.body,
+    enabled: enabled ?? this.enabled,
+  );
+  ReminderRule copyWithCompanion(ReminderRulesCompanion data) {
+    return ReminderRule(
+      id: data.id.present ? data.id.value : this.id,
+      occurrenceId: data.occurrenceId.present
+          ? data.occurrenceId.value
+          : this.occurrenceId,
+      anchor: data.anchor.present ? data.anchor.value : this.anchor,
+      offsetSeconds: data.offsetSeconds.present
+          ? data.offsetSeconds.value
+          : this.offsetSeconds,
+      absoluteAt: data.absoluteAt.present
+          ? data.absoluteAt.value
+          : this.absoluteAt,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderRule(')
+          ..write('id: $id, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('anchor: $anchor, ')
+          ..write('offsetSeconds: $offsetSeconds, ')
+          ..write('absoluteAt: $absoluteAt, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('enabled: $enabled')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    occurrenceId,
+    anchor,
+    offsetSeconds,
+    absoluteAt,
+    title,
+    body,
+    enabled,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReminderRule &&
+          other.id == this.id &&
+          other.occurrenceId == this.occurrenceId &&
+          other.anchor == this.anchor &&
+          other.offsetSeconds == this.offsetSeconds &&
+          other.absoluteAt == this.absoluteAt &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.enabled == this.enabled);
+}
+
+class ReminderRulesCompanion extends UpdateCompanion<ReminderRule> {
+  final Value<String> id;
+  final Value<String> occurrenceId;
+  final Value<int> anchor;
+  final Value<int> offsetSeconds;
+  final Value<DateTime?> absoluteAt;
+  final Value<String?> title;
+  final Value<String?> body;
+  final Value<bool> enabled;
+  final Value<int> rowid;
+  const ReminderRulesCompanion({
+    this.id = const Value.absent(),
+    this.occurrenceId = const Value.absent(),
+    this.anchor = const Value.absent(),
+    this.offsetSeconds = const Value.absent(),
+    this.absoluteAt = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReminderRulesCompanion.insert({
+    required String id,
+    required String occurrenceId,
+    required int anchor,
+    required int offsetSeconds,
+    this.absoluteAt = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    required bool enabled,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       occurrenceId = Value(occurrenceId),
+       anchor = Value(anchor),
+       offsetSeconds = Value(offsetSeconds),
+       enabled = Value(enabled);
+  static Insertable<ReminderRule> custom({
+    Expression<String>? id,
+    Expression<String>? occurrenceId,
+    Expression<int>? anchor,
+    Expression<int>? offsetSeconds,
+    Expression<DateTime>? absoluteAt,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<bool>? enabled,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (occurrenceId != null) 'occurrence_id': occurrenceId,
+      if (anchor != null) 'anchor': anchor,
+      if (offsetSeconds != null) 'offset_seconds': offsetSeconds,
+      if (absoluteAt != null) 'absolute_at': absoluteAt,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (enabled != null) 'enabled': enabled,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReminderRulesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? occurrenceId,
+    Value<int>? anchor,
+    Value<int>? offsetSeconds,
+    Value<DateTime?>? absoluteAt,
+    Value<String?>? title,
+    Value<String?>? body,
+    Value<bool>? enabled,
+    Value<int>? rowid,
+  }) {
+    return ReminderRulesCompanion(
+      id: id ?? this.id,
+      occurrenceId: occurrenceId ?? this.occurrenceId,
+      anchor: anchor ?? this.anchor,
+      offsetSeconds: offsetSeconds ?? this.offsetSeconds,
+      absoluteAt: absoluteAt ?? this.absoluteAt,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      enabled: enabled ?? this.enabled,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (occurrenceId.present) {
+      map['occurrence_id'] = Variable<String>(occurrenceId.value);
+    }
+    if (anchor.present) {
+      map['anchor'] = Variable<int>(anchor.value);
+    }
+    if (offsetSeconds.present) {
+      map['offset_seconds'] = Variable<int>(offsetSeconds.value);
+    }
+    if (absoluteAt.present) {
+      map['absolute_at'] = Variable<DateTime>(absoluteAt.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('anchor: $anchor, ')
+          ..write('offsetSeconds: $offsetSeconds, ')
+          ..write('absoluteAt: $absoluteAt, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('enabled: $enabled, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReminderInstancesTable extends ReminderInstances
+    with TableInfo<$ReminderInstancesTable, ReminderInstance> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReminderInstancesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ruleIdMeta = const VerificationMeta('ruleId');
+  @override
+  late final GeneratedColumn<String> ruleId = GeneratedColumn<String>(
+    'rule_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES reminder_rules (id)',
+    ),
+  );
+  static const VerificationMeta _occurrenceIdMeta = const VerificationMeta(
+    'occurrenceId',
+  );
+  @override
+  late final GeneratedColumn<String> occurrenceId = GeneratedColumn<String>(
+    'occurrence_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scheduledAtMeta = const VerificationMeta(
+    'scheduledAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> scheduledAt = GeneratedColumn<DateTime>(
+    'scheduled_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _snoozedUntilMeta = const VerificationMeta(
+    'snoozedUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> snoozedUntil = GeneratedColumn<DateTime>(
+    'snoozed_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _platformNotificationIdMeta =
+      const VerificationMeta('platformNotificationId');
+  @override
+  late final GeneratedColumn<String> platformNotificationId =
+      GeneratedColumn<String>(
+        'platform_notification_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ruleId,
+    occurrenceId,
+    scheduledAt,
+    status,
+    snoozedUntil,
+    platformNotificationId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reminder_instances';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReminderInstance> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('rule_id')) {
+      context.handle(
+        _ruleIdMeta,
+        ruleId.isAcceptableOrUnknown(data['rule_id']!, _ruleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ruleIdMeta);
+    }
+    if (data.containsKey('occurrence_id')) {
+      context.handle(
+        _occurrenceIdMeta,
+        occurrenceId.isAcceptableOrUnknown(
+          data['occurrence_id']!,
+          _occurrenceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_occurrenceIdMeta);
+    }
+    if (data.containsKey('scheduled_at')) {
+      context.handle(
+        _scheduledAtMeta,
+        scheduledAt.isAcceptableOrUnknown(
+          data['scheduled_at']!,
+          _scheduledAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_scheduledAtMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('snoozed_until')) {
+      context.handle(
+        _snoozedUntilMeta,
+        snoozedUntil.isAcceptableOrUnknown(
+          data['snoozed_until']!,
+          _snoozedUntilMeta,
+        ),
+      );
+    }
+    if (data.containsKey('platform_notification_id')) {
+      context.handle(
+        _platformNotificationIdMeta,
+        platformNotificationId.isAcceptableOrUnknown(
+          data['platform_notification_id']!,
+          _platformNotificationIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReminderInstance map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReminderInstance(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ruleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_id'],
+      )!,
+      occurrenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}occurrence_id'],
+      )!,
+      scheduledAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}scheduled_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      snoozedUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}snoozed_until'],
+      ),
+      platformNotificationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}platform_notification_id'],
+      ),
+    );
+  }
+
+  @override
+  $ReminderInstancesTable createAlias(String alias) {
+    return $ReminderInstancesTable(attachedDatabase, alias);
+  }
+}
+
+class ReminderInstance extends DataClass
+    implements Insertable<ReminderInstance> {
+  final String id;
+  final String ruleId;
+  final String occurrenceId;
+  final DateTime scheduledAt;
+  final int status;
+  final DateTime? snoozedUntil;
+  final String? platformNotificationId;
+  const ReminderInstance({
+    required this.id,
+    required this.ruleId,
+    required this.occurrenceId,
+    required this.scheduledAt,
+    required this.status,
+    this.snoozedUntil,
+    this.platformNotificationId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['rule_id'] = Variable<String>(ruleId);
+    map['occurrence_id'] = Variable<String>(occurrenceId);
+    map['scheduled_at'] = Variable<DateTime>(scheduledAt);
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || snoozedUntil != null) {
+      map['snoozed_until'] = Variable<DateTime>(snoozedUntil);
+    }
+    if (!nullToAbsent || platformNotificationId != null) {
+      map['platform_notification_id'] = Variable<String>(
+        platformNotificationId,
+      );
+    }
+    return map;
+  }
+
+  ReminderInstancesCompanion toCompanion(bool nullToAbsent) {
+    return ReminderInstancesCompanion(
+      id: Value(id),
+      ruleId: Value(ruleId),
+      occurrenceId: Value(occurrenceId),
+      scheduledAt: Value(scheduledAt),
+      status: Value(status),
+      snoozedUntil: snoozedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(snoozedUntil),
+      platformNotificationId: platformNotificationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(platformNotificationId),
+    );
+  }
+
+  factory ReminderInstance.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReminderInstance(
+      id: serializer.fromJson<String>(json['id']),
+      ruleId: serializer.fromJson<String>(json['ruleId']),
+      occurrenceId: serializer.fromJson<String>(json['occurrenceId']),
+      scheduledAt: serializer.fromJson<DateTime>(json['scheduledAt']),
+      status: serializer.fromJson<int>(json['status']),
+      snoozedUntil: serializer.fromJson<DateTime?>(json['snoozedUntil']),
+      platformNotificationId: serializer.fromJson<String?>(
+        json['platformNotificationId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ruleId': serializer.toJson<String>(ruleId),
+      'occurrenceId': serializer.toJson<String>(occurrenceId),
+      'scheduledAt': serializer.toJson<DateTime>(scheduledAt),
+      'status': serializer.toJson<int>(status),
+      'snoozedUntil': serializer.toJson<DateTime?>(snoozedUntil),
+      'platformNotificationId': serializer.toJson<String?>(
+        platformNotificationId,
+      ),
+    };
+  }
+
+  ReminderInstance copyWith({
+    String? id,
+    String? ruleId,
+    String? occurrenceId,
+    DateTime? scheduledAt,
+    int? status,
+    Value<DateTime?> snoozedUntil = const Value.absent(),
+    Value<String?> platformNotificationId = const Value.absent(),
+  }) => ReminderInstance(
+    id: id ?? this.id,
+    ruleId: ruleId ?? this.ruleId,
+    occurrenceId: occurrenceId ?? this.occurrenceId,
+    scheduledAt: scheduledAt ?? this.scheduledAt,
+    status: status ?? this.status,
+    snoozedUntil: snoozedUntil.present ? snoozedUntil.value : this.snoozedUntil,
+    platformNotificationId: platformNotificationId.present
+        ? platformNotificationId.value
+        : this.platformNotificationId,
+  );
+  ReminderInstance copyWithCompanion(ReminderInstancesCompanion data) {
+    return ReminderInstance(
+      id: data.id.present ? data.id.value : this.id,
+      ruleId: data.ruleId.present ? data.ruleId.value : this.ruleId,
+      occurrenceId: data.occurrenceId.present
+          ? data.occurrenceId.value
+          : this.occurrenceId,
+      scheduledAt: data.scheduledAt.present
+          ? data.scheduledAt.value
+          : this.scheduledAt,
+      status: data.status.present ? data.status.value : this.status,
+      snoozedUntil: data.snoozedUntil.present
+          ? data.snoozedUntil.value
+          : this.snoozedUntil,
+      platformNotificationId: data.platformNotificationId.present
+          ? data.platformNotificationId.value
+          : this.platformNotificationId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderInstance(')
+          ..write('id: $id, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('status: $status, ')
+          ..write('snoozedUntil: $snoozedUntil, ')
+          ..write('platformNotificationId: $platformNotificationId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    ruleId,
+    occurrenceId,
+    scheduledAt,
+    status,
+    snoozedUntil,
+    platformNotificationId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReminderInstance &&
+          other.id == this.id &&
+          other.ruleId == this.ruleId &&
+          other.occurrenceId == this.occurrenceId &&
+          other.scheduledAt == this.scheduledAt &&
+          other.status == this.status &&
+          other.snoozedUntil == this.snoozedUntil &&
+          other.platformNotificationId == this.platformNotificationId);
+}
+
+class ReminderInstancesCompanion extends UpdateCompanion<ReminderInstance> {
+  final Value<String> id;
+  final Value<String> ruleId;
+  final Value<String> occurrenceId;
+  final Value<DateTime> scheduledAt;
+  final Value<int> status;
+  final Value<DateTime?> snoozedUntil;
+  final Value<String?> platformNotificationId;
+  final Value<int> rowid;
+  const ReminderInstancesCompanion({
+    this.id = const Value.absent(),
+    this.ruleId = const Value.absent(),
+    this.occurrenceId = const Value.absent(),
+    this.scheduledAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.snoozedUntil = const Value.absent(),
+    this.platformNotificationId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReminderInstancesCompanion.insert({
+    required String id,
+    required String ruleId,
+    required String occurrenceId,
+    required DateTime scheduledAt,
+    required int status,
+    this.snoozedUntil = const Value.absent(),
+    this.platformNotificationId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       ruleId = Value(ruleId),
+       occurrenceId = Value(occurrenceId),
+       scheduledAt = Value(scheduledAt),
+       status = Value(status);
+  static Insertable<ReminderInstance> custom({
+    Expression<String>? id,
+    Expression<String>? ruleId,
+    Expression<String>? occurrenceId,
+    Expression<DateTime>? scheduledAt,
+    Expression<int>? status,
+    Expression<DateTime>? snoozedUntil,
+    Expression<String>? platformNotificationId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ruleId != null) 'rule_id': ruleId,
+      if (occurrenceId != null) 'occurrence_id': occurrenceId,
+      if (scheduledAt != null) 'scheduled_at': scheduledAt,
+      if (status != null) 'status': status,
+      if (snoozedUntil != null) 'snoozed_until': snoozedUntil,
+      if (platformNotificationId != null)
+        'platform_notification_id': platformNotificationId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReminderInstancesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? ruleId,
+    Value<String>? occurrenceId,
+    Value<DateTime>? scheduledAt,
+    Value<int>? status,
+    Value<DateTime?>? snoozedUntil,
+    Value<String?>? platformNotificationId,
+    Value<int>? rowid,
+  }) {
+    return ReminderInstancesCompanion(
+      id: id ?? this.id,
+      ruleId: ruleId ?? this.ruleId,
+      occurrenceId: occurrenceId ?? this.occurrenceId,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      status: status ?? this.status,
+      snoozedUntil: snoozedUntil ?? this.snoozedUntil,
+      platformNotificationId:
+          platformNotificationId ?? this.platformNotificationId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ruleId.present) {
+      map['rule_id'] = Variable<String>(ruleId.value);
+    }
+    if (occurrenceId.present) {
+      map['occurrence_id'] = Variable<String>(occurrenceId.value);
+    }
+    if (scheduledAt.present) {
+      map['scheduled_at'] = Variable<DateTime>(scheduledAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (snoozedUntil.present) {
+      map['snoozed_until'] = Variable<DateTime>(snoozedUntil.value);
+    }
+    if (platformNotificationId.present) {
+      map['platform_notification_id'] = Variable<String>(
+        platformNotificationId.value,
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReminderInstancesCompanion(')
+          ..write('id: $id, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('scheduledAt: $scheduledAt, ')
+          ..write('status: $status, ')
+          ..write('snoozedUntil: $snoozedUntil, ')
+          ..write('platformNotificationId: $platformNotificationId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4889,6 +5909,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $ReplacementOccurrencesTable replacementOccurrences =
       $ReplacementOccurrencesTable(this);
+  late final $ReminderRulesTable reminderRules = $ReminderRulesTable(this);
+  late final $ReminderInstancesTable reminderInstances =
+      $ReminderInstancesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4903,6 +5926,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     entitlementLedgerEntries,
     sessionPolicies,
     replacementOccurrences,
+    reminderRules,
+    reminderInstances,
   ];
 }
 
@@ -8863,6 +9888,755 @@ typedef $$ReplacementOccurrencesTableProcessedTableManager =
       ReplacementOccurrence,
       PrefetchHooks Function()
     >;
+typedef $$ReminderRulesTableCreateCompanionBuilder =
+    ReminderRulesCompanion Function({
+      required String id,
+      required String occurrenceId,
+      required int anchor,
+      required int offsetSeconds,
+      Value<DateTime?> absoluteAt,
+      Value<String?> title,
+      Value<String?> body,
+      required bool enabled,
+      Value<int> rowid,
+    });
+typedef $$ReminderRulesTableUpdateCompanionBuilder =
+    ReminderRulesCompanion Function({
+      Value<String> id,
+      Value<String> occurrenceId,
+      Value<int> anchor,
+      Value<int> offsetSeconds,
+      Value<DateTime?> absoluteAt,
+      Value<String?> title,
+      Value<String?> body,
+      Value<bool> enabled,
+      Value<int> rowid,
+    });
+
+final class $$ReminderRulesTableReferences
+    extends BaseReferences<_$AppDatabase, $ReminderRulesTable, ReminderRule> {
+  $$ReminderRulesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$ReminderInstancesTable, List<ReminderInstance>>
+  _reminderInstancesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.reminderInstances,
+        aliasName: 'reminder_rules__id__reminder_instances__rule_id',
+      );
+
+  $$ReminderInstancesTableProcessedTableManager get reminderInstancesRefs {
+    final manager = $$ReminderInstancesTableTableManager(
+      $_db,
+      $_db.reminderInstances,
+    ).filter((f) => f.ruleId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _reminderInstancesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ReminderRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $ReminderRulesTable> {
+  $$ReminderRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get anchor => $composableBuilder(
+    column: $table.anchor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get offsetSeconds => $composableBuilder(
+    column: $table.offsetSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get absoluteAt => $composableBuilder(
+    column: $table.absoluteAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> reminderInstancesRefs(
+    Expression<bool> Function($$ReminderInstancesTableFilterComposer f) f,
+  ) {
+    final $$ReminderInstancesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderInstances,
+      getReferencedColumn: (t) => t.ruleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderInstancesTableFilterComposer(
+            $db: $db,
+            $table: $db.reminderInstances,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ReminderRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReminderRulesTable> {
+  $$ReminderRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get anchor => $composableBuilder(
+    column: $table.anchor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get offsetSeconds => $composableBuilder(
+    column: $table.offsetSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get absoluteAt => $composableBuilder(
+    column: $table.absoluteAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReminderRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReminderRulesTable> {
+  $$ReminderRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get anchor =>
+      $composableBuilder(column: $table.anchor, builder: (column) => column);
+
+  GeneratedColumn<int> get offsetSeconds => $composableBuilder(
+    column: $table.offsetSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get absoluteAt => $composableBuilder(
+    column: $table.absoluteAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  Expression<T> reminderInstancesRefs<T extends Object>(
+    Expression<T> Function($$ReminderInstancesTableAnnotationComposer a) f,
+  ) {
+    final $$ReminderInstancesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.reminderInstances,
+          getReferencedColumn: (t) => t.ruleId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReminderInstancesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.reminderInstances,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$ReminderRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReminderRulesTable,
+          ReminderRule,
+          $$ReminderRulesTableFilterComposer,
+          $$ReminderRulesTableOrderingComposer,
+          $$ReminderRulesTableAnnotationComposer,
+          $$ReminderRulesTableCreateCompanionBuilder,
+          $$ReminderRulesTableUpdateCompanionBuilder,
+          (ReminderRule, $$ReminderRulesTableReferences),
+          ReminderRule,
+          PrefetchHooks Function({bool reminderInstancesRefs})
+        > {
+  $$ReminderRulesTableTableManager(_$AppDatabase db, $ReminderRulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReminderRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReminderRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReminderRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> occurrenceId = const Value.absent(),
+                Value<int> anchor = const Value.absent(),
+                Value<int> offsetSeconds = const Value.absent(),
+                Value<DateTime?> absoluteAt = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> body = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderRulesCompanion(
+                id: id,
+                occurrenceId: occurrenceId,
+                anchor: anchor,
+                offsetSeconds: offsetSeconds,
+                absoluteAt: absoluteAt,
+                title: title,
+                body: body,
+                enabled: enabled,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String occurrenceId,
+                required int anchor,
+                required int offsetSeconds,
+                Value<DateTime?> absoluteAt = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> body = const Value.absent(),
+                required bool enabled,
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderRulesCompanion.insert(
+                id: id,
+                occurrenceId: occurrenceId,
+                anchor: anchor,
+                offsetSeconds: offsetSeconds,
+                absoluteAt: absoluteAt,
+                title: title,
+                body: body,
+                enabled: enabled,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ReminderRulesTable, ReminderRule>(table),
+                  $$ReminderRulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reminderInstancesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (reminderInstancesRefs) db.reminderInstances,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (reminderInstancesRefs)
+                    await $_getPrefetchedData<
+                      ReminderRule,
+                      $ReminderRulesTable,
+                      ReminderInstance
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ReminderRulesTableReferences
+                          ._reminderInstancesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ReminderRulesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).reminderInstancesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.ruleId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ReminderRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReminderRulesTable,
+      ReminderRule,
+      $$ReminderRulesTableFilterComposer,
+      $$ReminderRulesTableOrderingComposer,
+      $$ReminderRulesTableAnnotationComposer,
+      $$ReminderRulesTableCreateCompanionBuilder,
+      $$ReminderRulesTableUpdateCompanionBuilder,
+      (ReminderRule, $$ReminderRulesTableReferences),
+      ReminderRule,
+      PrefetchHooks Function({bool reminderInstancesRefs})
+    >;
+typedef $$ReminderInstancesTableCreateCompanionBuilder =
+    ReminderInstancesCompanion Function({
+      required String id,
+      required String ruleId,
+      required String occurrenceId,
+      required DateTime scheduledAt,
+      required int status,
+      Value<DateTime?> snoozedUntil,
+      Value<String?> platformNotificationId,
+      Value<int> rowid,
+    });
+typedef $$ReminderInstancesTableUpdateCompanionBuilder =
+    ReminderInstancesCompanion Function({
+      Value<String> id,
+      Value<String> ruleId,
+      Value<String> occurrenceId,
+      Value<DateTime> scheduledAt,
+      Value<int> status,
+      Value<DateTime?> snoozedUntil,
+      Value<String?> platformNotificationId,
+      Value<int> rowid,
+    });
+
+final class $$ReminderInstancesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ReminderInstancesTable,
+          ReminderInstance
+        > {
+  $$ReminderInstancesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ReminderRulesTable _ruleIdTable(_$AppDatabase db) => db.reminderRules
+      .createAlias('reminder_instances__rule_id__reminder_rules__id');
+
+  $$ReminderRulesTableProcessedTableManager get ruleId {
+    final $_column = $_itemColumn<String>('rule_id')!;
+
+    final manager = $$ReminderRulesTableTableManager(
+      $_db,
+      $_db.reminderRules,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_ruleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ReminderInstancesTableFilterComposer
+    extends Composer<_$AppDatabase, $ReminderInstancesTable> {
+  $$ReminderInstancesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get snoozedUntil => $composableBuilder(
+    column: $table.snoozedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get platformNotificationId => $composableBuilder(
+    column: $table.platformNotificationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ReminderRulesTableFilterComposer get ruleId {
+    final $$ReminderRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ruleId,
+      referencedTable: $db.reminderRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.reminderRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderInstancesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReminderInstancesTable> {
+  $$ReminderInstancesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get snoozedUntil => $composableBuilder(
+    column: $table.snoozedUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get platformNotificationId => $composableBuilder(
+    column: $table.platformNotificationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ReminderRulesTableOrderingComposer get ruleId {
+    final $$ReminderRulesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ruleId,
+      referencedTable: $db.reminderRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderRulesTableOrderingComposer(
+            $db: $db,
+            $table: $db.reminderRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderInstancesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReminderInstancesTable> {
+  $$ReminderInstancesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get scheduledAt => $composableBuilder(
+    column: $table.scheduledAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get snoozedUntil => $composableBuilder(
+    column: $table.snoozedUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get platformNotificationId => $composableBuilder(
+    column: $table.platformNotificationId,
+    builder: (column) => column,
+  );
+
+  $$ReminderRulesTableAnnotationComposer get ruleId {
+    final $$ReminderRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.ruleId,
+      referencedTable: $db.reminderRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reminderRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ReminderInstancesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReminderInstancesTable,
+          ReminderInstance,
+          $$ReminderInstancesTableFilterComposer,
+          $$ReminderInstancesTableOrderingComposer,
+          $$ReminderInstancesTableAnnotationComposer,
+          $$ReminderInstancesTableCreateCompanionBuilder,
+          $$ReminderInstancesTableUpdateCompanionBuilder,
+          (ReminderInstance, $$ReminderInstancesTableReferences),
+          ReminderInstance,
+          PrefetchHooks Function({bool ruleId})
+        > {
+  $$ReminderInstancesTableTableManager(
+    _$AppDatabase db,
+    $ReminderInstancesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReminderInstancesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReminderInstancesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReminderInstancesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> ruleId = const Value.absent(),
+                Value<String> occurrenceId = const Value.absent(),
+                Value<DateTime> scheduledAt = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<DateTime?> snoozedUntil = const Value.absent(),
+                Value<String?> platformNotificationId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderInstancesCompanion(
+                id: id,
+                ruleId: ruleId,
+                occurrenceId: occurrenceId,
+                scheduledAt: scheduledAt,
+                status: status,
+                snoozedUntil: snoozedUntil,
+                platformNotificationId: platformNotificationId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String ruleId,
+                required String occurrenceId,
+                required DateTime scheduledAt,
+                required int status,
+                Value<DateTime?> snoozedUntil = const Value.absent(),
+                Value<String?> platformNotificationId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReminderInstancesCompanion.insert(
+                id: id,
+                ruleId: ruleId,
+                occurrenceId: occurrenceId,
+                scheduledAt: scheduledAt,
+                status: status,
+                snoozedUntil: snoozedUntil,
+                platformNotificationId: platformNotificationId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ReminderInstancesTable, ReminderInstance>(table),
+                  $$ReminderInstancesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({ruleId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (ruleId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.ruleId,
+                        referencedTable: $$ReminderInstancesTableReferences
+                            ._ruleIdTable(db),
+                        referencedColumn: $$ReminderInstancesTableReferences
+                            ._ruleIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ReminderInstancesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReminderInstancesTable,
+      ReminderInstance,
+      $$ReminderInstancesTableFilterComposer,
+      $$ReminderInstancesTableOrderingComposer,
+      $$ReminderInstancesTableAnnotationComposer,
+      $$ReminderInstancesTableCreateCompanionBuilder,
+      $$ReminderInstancesTableUpdateCompanionBuilder,
+      (ReminderInstance, $$ReminderInstancesTableReferences),
+      ReminderInstance,
+      PrefetchHooks Function({bool ruleId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8891,4 +10665,8 @@ class $AppDatabaseManager {
         _db,
         _db.replacementOccurrences,
       );
+  $$ReminderRulesTableTableManager get reminderRules =>
+      $$ReminderRulesTableTableManager(_db, _db.reminderRules);
+  $$ReminderInstancesTableTableManager get reminderInstances =>
+      $$ReminderInstancesTableTableManager(_db, _db.reminderInstances);
 }

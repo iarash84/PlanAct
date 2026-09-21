@@ -16,7 +16,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '4');
+    expect(await database.readMetadata('schema_version'), '5');
     expect(await database.select(database.scheduleDefinitions).get(), isEmpty);
     expect(await database.select(database.occurrences).get(), isEmpty);
     expect(await database.select(database.entitlementPlans).get(), isEmpty);
@@ -29,6 +29,8 @@ void main() {
       await database.select(database.replacementOccurrences).get(),
       isEmpty,
     );
+    expect(await database.select(database.reminderRules).get(), isEmpty);
+    expect(await database.select(database.reminderInstances).get(), isEmpty);
   });
 
   test(
