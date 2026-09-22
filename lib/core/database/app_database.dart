@@ -187,6 +187,32 @@ class Evidences extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class FinancialAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get currency => text()();
+  IntColumn get type => integer()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class AccountEntries extends Table {
+  TextColumn get id => text()();
+  TextColumn get accountId => text().references(FinancialAccounts, #id)();
+  IntColumn get type => integer()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text()();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get referenceId => text().nullable()();
+  TextColumn get note => text().nullable()();
+  TextColumn get transferGroupId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -202,6 +228,8 @@ class Evidences extends Table {
     ReminderInstances,
     Actuals,
     Evidences,
+    FinancialAccounts,
+    AccountEntries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -210,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -257,6 +285,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         await m.createTable(actuals);
         await m.createTable(evidences);
+      }
+      if (from < 8) {
+        await m.createTable(financialAccounts);
+        await m.createTable(accountEntries);
       }
       await _writeSchemaMetadata();
     },

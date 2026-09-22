@@ -6860,6 +6860,933 @@ class EvidencesCompanion extends UpdateCompanion<Evidence> {
   }
 }
 
+class $FinancialAccountsTable extends FinancialAccounts
+    with TableInfo<$FinancialAccountsTable, FinancialAccount> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FinancialAccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, currency, type, status];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'financial_accounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FinancialAccount> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FinancialAccount map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FinancialAccount(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $FinancialAccountsTable createAlias(String alias) {
+    return $FinancialAccountsTable(attachedDatabase, alias);
+  }
+}
+
+class FinancialAccount extends DataClass
+    implements Insertable<FinancialAccount> {
+  final String id;
+  final String name;
+  final String currency;
+  final int type;
+  final int status;
+  const FinancialAccount({
+    required this.id,
+    required this.name,
+    required this.currency,
+    required this.type,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['currency'] = Variable<String>(currency);
+    map['type'] = Variable<int>(type);
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  FinancialAccountsCompanion toCompanion(bool nullToAbsent) {
+    return FinancialAccountsCompanion(
+      id: Value(id),
+      name: Value(name),
+      currency: Value(currency),
+      type: Value(type),
+      status: Value(status),
+    );
+  }
+
+  factory FinancialAccount.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FinancialAccount(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      currency: serializer.fromJson<String>(json['currency']),
+      type: serializer.fromJson<int>(json['type']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'currency': serializer.toJson<String>(currency),
+      'type': serializer.toJson<int>(type),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  FinancialAccount copyWith({
+    String? id,
+    String? name,
+    String? currency,
+    int? type,
+    int? status,
+  }) => FinancialAccount(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    currency: currency ?? this.currency,
+    type: type ?? this.type,
+    status: status ?? this.status,
+  );
+  FinancialAccount copyWithCompanion(FinancialAccountsCompanion data) {
+    return FinancialAccount(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      type: data.type.present ? data.type.value : this.type,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FinancialAccount(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('type: $type, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, currency, type, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FinancialAccount &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.currency == this.currency &&
+          other.type == this.type &&
+          other.status == this.status);
+}
+
+class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> currency;
+  final Value<int> type;
+  final Value<int> status;
+  final Value<int> rowid;
+  const FinancialAccountsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.type = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FinancialAccountsCompanion.insert({
+    required String id,
+    required String name,
+    required String currency,
+    required int type,
+    required int status,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       currency = Value(currency),
+       type = Value(type),
+       status = Value(status);
+  static Insertable<FinancialAccount> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? currency,
+    Expression<int>? type,
+    Expression<int>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (currency != null) 'currency': currency,
+      if (type != null) 'type': type,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FinancialAccountsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? currency,
+    Value<int>? type,
+    Value<int>? status,
+    Value<int>? rowid,
+  }) {
+    return FinancialAccountsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      type: type ?? this.type,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FinancialAccountsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('type: $type, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AccountEntriesTable extends AccountEntries
+    with TableInfo<$AccountEntriesTable, AccountEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES financial_accounts (id)',
+    ),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
+    'minorUnits',
+  );
+  @override
+  late final GeneratedColumn<int> minorUnits = GeneratedColumn<int>(
+    'minor_units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceIdMeta = const VerificationMeta(
+    'referenceId',
+  );
+  @override
+  late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
+    'reference_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _transferGroupIdMeta = const VerificationMeta(
+    'transferGroupId',
+  );
+  @override
+  late final GeneratedColumn<String> transferGroupId = GeneratedColumn<String>(
+    'transfer_group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    accountId,
+    type,
+    minorUnits,
+    currency,
+    occurredAt,
+    referenceId,
+    note,
+    transferGroupId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'account_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('minor_units')) {
+      context.handle(
+        _minorUnitsMeta,
+        minorUnits.isAcceptableOrUnknown(data['minor_units']!, _minorUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_minorUnitsMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('reference_id')) {
+      context.handle(
+        _referenceIdMeta,
+        referenceId.isAcceptableOrUnknown(
+          data['reference_id']!,
+          _referenceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('transfer_group_id')) {
+      context.handle(
+        _transferGroupIdMeta,
+        transferGroupId.isAcceptableOrUnknown(
+          data['transfer_group_id']!,
+          _transferGroupIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AccountEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      minorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}minor_units'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      referenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference_id'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      transferGroupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transfer_group_id'],
+      ),
+    );
+  }
+
+  @override
+  $AccountEntriesTable createAlias(String alias) {
+    return $AccountEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class AccountEntry extends DataClass implements Insertable<AccountEntry> {
+  final String id;
+  final String accountId;
+  final int type;
+  final int minorUnits;
+  final String currency;
+  final DateTime occurredAt;
+  final String? referenceId;
+  final String? note;
+  final String? transferGroupId;
+  const AccountEntry({
+    required this.id,
+    required this.accountId,
+    required this.type,
+    required this.minorUnits,
+    required this.currency,
+    required this.occurredAt,
+    this.referenceId,
+    this.note,
+    this.transferGroupId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['account_id'] = Variable<String>(accountId);
+    map['type'] = Variable<int>(type);
+    map['minor_units'] = Variable<int>(minorUnits);
+    map['currency'] = Variable<String>(currency);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    if (!nullToAbsent || referenceId != null) {
+      map['reference_id'] = Variable<String>(referenceId);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || transferGroupId != null) {
+      map['transfer_group_id'] = Variable<String>(transferGroupId);
+    }
+    return map;
+  }
+
+  AccountEntriesCompanion toCompanion(bool nullToAbsent) {
+    return AccountEntriesCompanion(
+      id: Value(id),
+      accountId: Value(accountId),
+      type: Value(type),
+      minorUnits: Value(minorUnits),
+      currency: Value(currency),
+      occurredAt: Value(occurredAt),
+      referenceId: referenceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referenceId),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      transferGroupId: transferGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transferGroupId),
+    );
+  }
+
+  factory AccountEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountEntry(
+      id: serializer.fromJson<String>(json['id']),
+      accountId: serializer.fromJson<String>(json['accountId']),
+      type: serializer.fromJson<int>(json['type']),
+      minorUnits: serializer.fromJson<int>(json['minorUnits']),
+      currency: serializer.fromJson<String>(json['currency']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      referenceId: serializer.fromJson<String?>(json['referenceId']),
+      note: serializer.fromJson<String?>(json['note']),
+      transferGroupId: serializer.fromJson<String?>(json['transferGroupId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'accountId': serializer.toJson<String>(accountId),
+      'type': serializer.toJson<int>(type),
+      'minorUnits': serializer.toJson<int>(minorUnits),
+      'currency': serializer.toJson<String>(currency),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'referenceId': serializer.toJson<String?>(referenceId),
+      'note': serializer.toJson<String?>(note),
+      'transferGroupId': serializer.toJson<String?>(transferGroupId),
+    };
+  }
+
+  AccountEntry copyWith({
+    String? id,
+    String? accountId,
+    int? type,
+    int? minorUnits,
+    String? currency,
+    DateTime? occurredAt,
+    Value<String?> referenceId = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    Value<String?> transferGroupId = const Value.absent(),
+  }) => AccountEntry(
+    id: id ?? this.id,
+    accountId: accountId ?? this.accountId,
+    type: type ?? this.type,
+    minorUnits: minorUnits ?? this.minorUnits,
+    currency: currency ?? this.currency,
+    occurredAt: occurredAt ?? this.occurredAt,
+    referenceId: referenceId.present ? referenceId.value : this.referenceId,
+    note: note.present ? note.value : this.note,
+    transferGroupId: transferGroupId.present
+        ? transferGroupId.value
+        : this.transferGroupId,
+  );
+  AccountEntry copyWithCompanion(AccountEntriesCompanion data) {
+    return AccountEntry(
+      id: data.id.present ? data.id.value : this.id,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      type: data.type.present ? data.type.value : this.type,
+      minorUnits: data.minorUnits.present
+          ? data.minorUnits.value
+          : this.minorUnits,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      referenceId: data.referenceId.present
+          ? data.referenceId.value
+          : this.referenceId,
+      note: data.note.present ? data.note.value : this.note,
+      transferGroupId: data.transferGroupId.present
+          ? data.transferGroupId.value
+          : this.transferGroupId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountEntry(')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('type: $type, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('note: $note, ')
+          ..write('transferGroupId: $transferGroupId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    accountId,
+    type,
+    minorUnits,
+    currency,
+    occurredAt,
+    referenceId,
+    note,
+    transferGroupId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountEntry &&
+          other.id == this.id &&
+          other.accountId == this.accountId &&
+          other.type == this.type &&
+          other.minorUnits == this.minorUnits &&
+          other.currency == this.currency &&
+          other.occurredAt == this.occurredAt &&
+          other.referenceId == this.referenceId &&
+          other.note == this.note &&
+          other.transferGroupId == this.transferGroupId);
+}
+
+class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
+  final Value<String> id;
+  final Value<String> accountId;
+  final Value<int> type;
+  final Value<int> minorUnits;
+  final Value<String> currency;
+  final Value<DateTime> occurredAt;
+  final Value<String?> referenceId;
+  final Value<String?> note;
+  final Value<String?> transferGroupId;
+  final Value<int> rowid;
+  const AccountEntriesCompanion({
+    this.id = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.minorUnits = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.referenceId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.transferGroupId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountEntriesCompanion.insert({
+    required String id,
+    required String accountId,
+    required int type,
+    required int minorUnits,
+    required String currency,
+    required DateTime occurredAt,
+    this.referenceId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.transferGroupId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       accountId = Value(accountId),
+       type = Value(type),
+       minorUnits = Value(minorUnits),
+       currency = Value(currency),
+       occurredAt = Value(occurredAt);
+  static Insertable<AccountEntry> custom({
+    Expression<String>? id,
+    Expression<String>? accountId,
+    Expression<int>? type,
+    Expression<int>? minorUnits,
+    Expression<String>? currency,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? referenceId,
+    Expression<String>? note,
+    Expression<String>? transferGroupId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (accountId != null) 'account_id': accountId,
+      if (type != null) 'type': type,
+      if (minorUnits != null) 'minor_units': minorUnits,
+      if (currency != null) 'currency': currency,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (referenceId != null) 'reference_id': referenceId,
+      if (note != null) 'note': note,
+      if (transferGroupId != null) 'transfer_group_id': transferGroupId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? accountId,
+    Value<int>? type,
+    Value<int>? minorUnits,
+    Value<String>? currency,
+    Value<DateTime>? occurredAt,
+    Value<String?>? referenceId,
+    Value<String?>? note,
+    Value<String?>? transferGroupId,
+    Value<int>? rowid,
+  }) {
+    return AccountEntriesCompanion(
+      id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
+      type: type ?? this.type,
+      minorUnits: minorUnits ?? this.minorUnits,
+      currency: currency ?? this.currency,
+      occurredAt: occurredAt ?? this.occurredAt,
+      referenceId: referenceId ?? this.referenceId,
+      note: note ?? this.note,
+      transferGroupId: transferGroupId ?? this.transferGroupId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (minorUnits.present) {
+      map['minor_units'] = Variable<int>(minorUnits.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (referenceId.present) {
+      map['reference_id'] = Variable<String>(referenceId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (transferGroupId.present) {
+      map['transfer_group_id'] = Variable<String>(transferGroupId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('accountId: $accountId, ')
+          ..write('type: $type, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('note: $note, ')
+          ..write('transferGroupId: $transferGroupId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6886,6 +7813,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ReminderInstancesTable(this);
   late final $ActualsTable actuals = $ActualsTable(this);
   late final $EvidencesTable evidences = $EvidencesTable(this);
+  late final $FinancialAccountsTable financialAccounts =
+      $FinancialAccountsTable(this);
+  late final $AccountEntriesTable accountEntries = $AccountEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6904,6 +7834,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     reminderInstances,
     actuals,
     evidences,
+    financialAccounts,
+    accountEntries,
   ];
 }
 
@@ -12534,6 +13466,730 @@ typedef $$EvidencesTableProcessedTableManager =
       Evidence,
       PrefetchHooks Function({bool actualId})
     >;
+typedef $$FinancialAccountsTableCreateCompanionBuilder =
+    FinancialAccountsCompanion Function({
+      required String id,
+      required String name,
+      required String currency,
+      required int type,
+      required int status,
+      Value<int> rowid,
+    });
+typedef $$FinancialAccountsTableUpdateCompanionBuilder =
+    FinancialAccountsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> currency,
+      Value<int> type,
+      Value<int> status,
+      Value<int> rowid,
+    });
+
+final class $$FinancialAccountsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $FinancialAccountsTable,
+          FinancialAccount
+        > {
+  $$FinancialAccountsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$AccountEntriesTable, List<AccountEntry>>
+  _accountEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.accountEntries,
+    aliasName: 'financial_accounts__id__account_entries__account_id',
+  );
+
+  $$AccountEntriesTableProcessedTableManager get accountEntriesRefs {
+    final manager = $$AccountEntriesTableTableManager(
+      $_db,
+      $_db.accountEntries,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_accountEntriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$FinancialAccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $FinancialAccountsTable> {
+  $$FinancialAccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> accountEntriesRefs(
+    Expression<bool> Function($$AccountEntriesTableFilterComposer f) f,
+  ) {
+    final $$AccountEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FinancialAccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FinancialAccountsTable> {
+  $$FinancialAccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FinancialAccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FinancialAccountsTable> {
+  $$FinancialAccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  Expression<T> accountEntriesRefs<T extends Object>(
+    Expression<T> Function($$AccountEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$AccountEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FinancialAccountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FinancialAccountsTable,
+          FinancialAccount,
+          $$FinancialAccountsTableFilterComposer,
+          $$FinancialAccountsTableOrderingComposer,
+          $$FinancialAccountsTableAnnotationComposer,
+          $$FinancialAccountsTableCreateCompanionBuilder,
+          $$FinancialAccountsTableUpdateCompanionBuilder,
+          (FinancialAccount, $$FinancialAccountsTableReferences),
+          FinancialAccount,
+          PrefetchHooks Function({bool accountEntriesRefs})
+        > {
+  $$FinancialAccountsTableTableManager(
+    _$AppDatabase db,
+    $FinancialAccountsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FinancialAccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FinancialAccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FinancialAccountsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FinancialAccountsCompanion(
+                id: id,
+                name: name,
+                currency: currency,
+                type: type,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String currency,
+                required int type,
+                required int status,
+                Value<int> rowid = const Value.absent(),
+              }) => FinancialAccountsCompanion.insert(
+                id: id,
+                name: name,
+                currency: currency,
+                type: type,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FinancialAccountsTable, FinancialAccount>(table),
+                  $$FinancialAccountsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountEntriesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (accountEntriesRefs) db.accountEntries,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (accountEntriesRefs)
+                    await $_getPrefetchedData<
+                      FinancialAccount,
+                      $FinancialAccountsTable,
+                      AccountEntry
+                    >(
+                      currentTable: table,
+                      referencedTable: $$FinancialAccountsTableReferences
+                          ._accountEntriesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$FinancialAccountsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).accountEntriesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.accountId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FinancialAccountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FinancialAccountsTable,
+      FinancialAccount,
+      $$FinancialAccountsTableFilterComposer,
+      $$FinancialAccountsTableOrderingComposer,
+      $$FinancialAccountsTableAnnotationComposer,
+      $$FinancialAccountsTableCreateCompanionBuilder,
+      $$FinancialAccountsTableUpdateCompanionBuilder,
+      (FinancialAccount, $$FinancialAccountsTableReferences),
+      FinancialAccount,
+      PrefetchHooks Function({bool accountEntriesRefs})
+    >;
+typedef $$AccountEntriesTableCreateCompanionBuilder =
+    AccountEntriesCompanion Function({
+      required String id,
+      required String accountId,
+      required int type,
+      required int minorUnits,
+      required String currency,
+      required DateTime occurredAt,
+      Value<String?> referenceId,
+      Value<String?> note,
+      Value<String?> transferGroupId,
+      Value<int> rowid,
+    });
+typedef $$AccountEntriesTableUpdateCompanionBuilder =
+    AccountEntriesCompanion Function({
+      Value<String> id,
+      Value<String> accountId,
+      Value<int> type,
+      Value<int> minorUnits,
+      Value<String> currency,
+      Value<DateTime> occurredAt,
+      Value<String?> referenceId,
+      Value<String?> note,
+      Value<String?> transferGroupId,
+      Value<int> rowid,
+    });
+
+final class $$AccountEntriesTableReferences
+    extends BaseReferences<_$AppDatabase, $AccountEntriesTable, AccountEntry> {
+  $$AccountEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $FinancialAccountsTable _accountIdTable(_$AppDatabase db) => db
+      .financialAccounts
+      .createAlias('account_entries__account_id__financial_accounts__id');
+
+  $$FinancialAccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$FinancialAccountsTableTableManager(
+      $_db,
+      $_db.financialAccounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AccountEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountEntriesTable> {
+  $$AccountEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transferGroupId => $composableBuilder(
+    column: $table.transferGroupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FinancialAccountsTableFilterComposer get accountId {
+    final $$FinancialAccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.financialAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FinancialAccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.financialAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountEntriesTable> {
+  $$AccountEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transferGroupId => $composableBuilder(
+    column: $table.transferGroupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FinancialAccountsTableOrderingComposer get accountId {
+    final $$FinancialAccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.financialAccounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FinancialAccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.financialAccounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountEntriesTable> {
+  $$AccountEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get transferGroupId => $composableBuilder(
+    column: $table.transferGroupId,
+    builder: (column) => column,
+  );
+
+  $$FinancialAccountsTableAnnotationComposer get accountId {
+    final $$FinancialAccountsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.accountId,
+          referencedTable: $db.financialAccounts,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$FinancialAccountsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.financialAccounts,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$AccountEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountEntriesTable,
+          AccountEntry,
+          $$AccountEntriesTableFilterComposer,
+          $$AccountEntriesTableOrderingComposer,
+          $$AccountEntriesTableAnnotationComposer,
+          $$AccountEntriesTableCreateCompanionBuilder,
+          $$AccountEntriesTableUpdateCompanionBuilder,
+          (AccountEntry, $$AccountEntriesTableReferences),
+          AccountEntry,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$AccountEntriesTableTableManager(
+    _$AppDatabase db,
+    $AccountEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> accountId = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<int> minorUnits = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> transferGroupId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountEntriesCompanion(
+                id: id,
+                accountId: accountId,
+                type: type,
+                minorUnits: minorUnits,
+                currency: currency,
+                occurredAt: occurredAt,
+                referenceId: referenceId,
+                note: note,
+                transferGroupId: transferGroupId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String accountId,
+                required int type,
+                required int minorUnits,
+                required String currency,
+                required DateTime occurredAt,
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String?> transferGroupId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountEntriesCompanion.insert(
+                id: id,
+                accountId: accountId,
+                type: type,
+                minorUnits: minorUnits,
+                currency: currency,
+                occurredAt: occurredAt,
+                referenceId: referenceId,
+                note: note,
+                transferGroupId: transferGroupId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AccountEntriesTable, AccountEntry>(table),
+                  $$AccountEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.accountId,
+                        referencedTable: $$AccountEntriesTableReferences
+                            ._accountIdTable(db),
+                        referencedColumn: $$AccountEntriesTableReferences
+                            ._accountIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AccountEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountEntriesTable,
+      AccountEntry,
+      $$AccountEntriesTableFilterComposer,
+      $$AccountEntriesTableOrderingComposer,
+      $$AccountEntriesTableAnnotationComposer,
+      $$AccountEntriesTableCreateCompanionBuilder,
+      $$AccountEntriesTableUpdateCompanionBuilder,
+      (AccountEntry, $$AccountEntriesTableReferences),
+      AccountEntry,
+      PrefetchHooks Function({bool accountId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12570,4 +14226,8 @@ class $AppDatabaseManager {
       $$ActualsTableTableManager(_db, _db.actuals);
   $$EvidencesTableTableManager get evidences =>
       $$EvidencesTableTableManager(_db, _db.evidences);
+  $$FinancialAccountsTableTableManager get financialAccounts =>
+      $$FinancialAccountsTableTableManager(_db, _db.financialAccounts);
+  $$AccountEntriesTableTableManager get accountEntries =>
+      $$AccountEntriesTableTableManager(_db, _db.accountEntries);
 }
