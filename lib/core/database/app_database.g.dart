@@ -6137,6 +6137,729 @@ class ReminderInstancesCompanion extends UpdateCompanion<ReminderInstance> {
   }
 }
 
+class $ActualsTable extends Actuals with TableInfo<$ActualsTable, Actual> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ActualsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurrenceIdMeta = const VerificationMeta(
+    'occurrenceId',
+  );
+  @override
+  late final GeneratedColumn<String> occurrenceId = GeneratedColumn<String>(
+    'occurrence_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES occurrences (id)',
+    ),
+  );
+  static const VerificationMeta _outcomeMeta = const VerificationMeta(
+    'outcome',
+  );
+  @override
+  late final GeneratedColumn<int> outcome = GeneratedColumn<int>(
+    'outcome',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    occurrenceId,
+    outcome,
+    recordedAt,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'actuals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Actual> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('occurrence_id')) {
+      context.handle(
+        _occurrenceIdMeta,
+        occurrenceId.isAcceptableOrUnknown(
+          data['occurrence_id']!,
+          _occurrenceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_occurrenceIdMeta);
+    }
+    if (data.containsKey('outcome')) {
+      context.handle(
+        _outcomeMeta,
+        outcome.isAcceptableOrUnknown(data['outcome']!, _outcomeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_outcomeMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Actual map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Actual(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      occurrenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}occurrence_id'],
+      )!,
+      outcome: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}outcome'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+    );
+  }
+
+  @override
+  $ActualsTable createAlias(String alias) {
+    return $ActualsTable(attachedDatabase, alias);
+  }
+}
+
+class Actual extends DataClass implements Insertable<Actual> {
+  final String id;
+  final String occurrenceId;
+  final int outcome;
+  final DateTime recordedAt;
+  final String? note;
+  const Actual({
+    required this.id,
+    required this.occurrenceId,
+    required this.outcome,
+    required this.recordedAt,
+    this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['occurrence_id'] = Variable<String>(occurrenceId);
+    map['outcome'] = Variable<int>(outcome);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    return map;
+  }
+
+  ActualsCompanion toCompanion(bool nullToAbsent) {
+    return ActualsCompanion(
+      id: Value(id),
+      occurrenceId: Value(occurrenceId),
+      outcome: Value(outcome),
+      recordedAt: Value(recordedAt),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+    );
+  }
+
+  factory Actual.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Actual(
+      id: serializer.fromJson<String>(json['id']),
+      occurrenceId: serializer.fromJson<String>(json['occurrenceId']),
+      outcome: serializer.fromJson<int>(json['outcome']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+      note: serializer.fromJson<String?>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'occurrenceId': serializer.toJson<String>(occurrenceId),
+      'outcome': serializer.toJson<int>(outcome),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+      'note': serializer.toJson<String?>(note),
+    };
+  }
+
+  Actual copyWith({
+    String? id,
+    String? occurrenceId,
+    int? outcome,
+    DateTime? recordedAt,
+    Value<String?> note = const Value.absent(),
+  }) => Actual(
+    id: id ?? this.id,
+    occurrenceId: occurrenceId ?? this.occurrenceId,
+    outcome: outcome ?? this.outcome,
+    recordedAt: recordedAt ?? this.recordedAt,
+    note: note.present ? note.value : this.note,
+  );
+  Actual copyWithCompanion(ActualsCompanion data) {
+    return Actual(
+      id: data.id.present ? data.id.value : this.id,
+      occurrenceId: data.occurrenceId.present
+          ? data.occurrenceId.value
+          : this.occurrenceId,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Actual(')
+          ..write('id: $id, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('outcome: $outcome, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, occurrenceId, outcome, recordedAt, note);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Actual &&
+          other.id == this.id &&
+          other.occurrenceId == this.occurrenceId &&
+          other.outcome == this.outcome &&
+          other.recordedAt == this.recordedAt &&
+          other.note == this.note);
+}
+
+class ActualsCompanion extends UpdateCompanion<Actual> {
+  final Value<String> id;
+  final Value<String> occurrenceId;
+  final Value<int> outcome;
+  final Value<DateTime> recordedAt;
+  final Value<String?> note;
+  final Value<int> rowid;
+  const ActualsCompanion({
+    this.id = const Value.absent(),
+    this.occurrenceId = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ActualsCompanion.insert({
+    required String id,
+    required String occurrenceId,
+    required int outcome,
+    required DateTime recordedAt,
+    this.note = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       occurrenceId = Value(occurrenceId),
+       outcome = Value(outcome),
+       recordedAt = Value(recordedAt);
+  static Insertable<Actual> custom({
+    Expression<String>? id,
+    Expression<String>? occurrenceId,
+    Expression<int>? outcome,
+    Expression<DateTime>? recordedAt,
+    Expression<String>? note,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (occurrenceId != null) 'occurrence_id': occurrenceId,
+      if (outcome != null) 'outcome': outcome,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (note != null) 'note': note,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ActualsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? occurrenceId,
+    Value<int>? outcome,
+    Value<DateTime>? recordedAt,
+    Value<String?>? note,
+    Value<int>? rowid,
+  }) {
+    return ActualsCompanion(
+      id: id ?? this.id,
+      occurrenceId: occurrenceId ?? this.occurrenceId,
+      outcome: outcome ?? this.outcome,
+      recordedAt: recordedAt ?? this.recordedAt,
+      note: note ?? this.note,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (occurrenceId.present) {
+      map['occurrence_id'] = Variable<String>(occurrenceId.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<int>(outcome.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActualsCompanion(')
+          ..write('id: $id, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('outcome: $outcome, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('note: $note, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EvidencesTable extends Evidences
+    with TableInfo<$EvidencesTable, Evidence> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EvidencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actualIdMeta = const VerificationMeta(
+    'actualId',
+  );
+  @override
+  late final GeneratedColumn<String> actualId = GeneratedColumn<String>(
+    'actual_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES actuals (id)',
+    ),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, actualId, type, value, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'evidences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Evidence> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('actual_id')) {
+      context.handle(
+        _actualIdMeta,
+        actualId.isAcceptableOrUnknown(data['actual_id']!, _actualIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actualIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Evidence map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Evidence(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      actualId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actual_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EvidencesTable createAlias(String alias) {
+    return $EvidencesTable(attachedDatabase, alias);
+  }
+}
+
+class Evidence extends DataClass implements Insertable<Evidence> {
+  final String id;
+  final String actualId;
+  final int type;
+  final String value;
+  final DateTime createdAt;
+  const Evidence({
+    required this.id,
+    required this.actualId,
+    required this.type,
+    required this.value,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['actual_id'] = Variable<String>(actualId);
+    map['type'] = Variable<int>(type);
+    map['value'] = Variable<String>(value);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  EvidencesCompanion toCompanion(bool nullToAbsent) {
+    return EvidencesCompanion(
+      id: Value(id),
+      actualId: Value(actualId),
+      type: Value(type),
+      value: Value(value),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Evidence.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Evidence(
+      id: serializer.fromJson<String>(json['id']),
+      actualId: serializer.fromJson<String>(json['actualId']),
+      type: serializer.fromJson<int>(json['type']),
+      value: serializer.fromJson<String>(json['value']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'actualId': serializer.toJson<String>(actualId),
+      'type': serializer.toJson<int>(type),
+      'value': serializer.toJson<String>(value),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Evidence copyWith({
+    String? id,
+    String? actualId,
+    int? type,
+    String? value,
+    DateTime? createdAt,
+  }) => Evidence(
+    id: id ?? this.id,
+    actualId: actualId ?? this.actualId,
+    type: type ?? this.type,
+    value: value ?? this.value,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Evidence copyWithCompanion(EvidencesCompanion data) {
+    return Evidence(
+      id: data.id.present ? data.id.value : this.id,
+      actualId: data.actualId.present ? data.actualId.value : this.actualId,
+      type: data.type.present ? data.type.value : this.type,
+      value: data.value.present ? data.value.value : this.value,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Evidence(')
+          ..write('id: $id, ')
+          ..write('actualId: $actualId, ')
+          ..write('type: $type, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, actualId, type, value, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Evidence &&
+          other.id == this.id &&
+          other.actualId == this.actualId &&
+          other.type == this.type &&
+          other.value == this.value &&
+          other.createdAt == this.createdAt);
+}
+
+class EvidencesCompanion extends UpdateCompanion<Evidence> {
+  final Value<String> id;
+  final Value<String> actualId;
+  final Value<int> type;
+  final Value<String> value;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const EvidencesCompanion({
+    this.id = const Value.absent(),
+    this.actualId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.value = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EvidencesCompanion.insert({
+    required String id,
+    required String actualId,
+    required int type,
+    required String value,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       actualId = Value(actualId),
+       type = Value(type),
+       value = Value(value),
+       createdAt = Value(createdAt);
+  static Insertable<Evidence> custom({
+    Expression<String>? id,
+    Expression<String>? actualId,
+    Expression<int>? type,
+    Expression<String>? value,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (actualId != null) 'actual_id': actualId,
+      if (type != null) 'type': type,
+      if (value != null) 'value': value,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EvidencesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? actualId,
+    Value<int>? type,
+    Value<String>? value,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return EvidencesCompanion(
+      id: id ?? this.id,
+      actualId: actualId ?? this.actualId,
+      type: type ?? this.type,
+      value: value ?? this.value,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (actualId.present) {
+      map['actual_id'] = Variable<String>(actualId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EvidencesCompanion(')
+          ..write('id: $id, ')
+          ..write('actualId: $actualId, ')
+          ..write('type: $type, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6161,6 +6884,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ReminderRulesTable reminderRules = $ReminderRulesTable(this);
   late final $ReminderInstancesTable reminderInstances =
       $ReminderInstancesTable(this);
+  late final $ActualsTable actuals = $ActualsTable(this);
+  late final $EvidencesTable evidences = $EvidencesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6177,6 +6902,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     replacementOccurrences,
     reminderRules,
     reminderInstances,
+    actuals,
+    evidences,
   ];
 }
 
@@ -8221,6 +8948,25 @@ final class $$OccurrencesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$ActualsTable, List<Actual>> _actualsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.actuals,
+    aliasName: 'occurrences__id__actuals__occurrence_id',
+  );
+
+  $$ActualsTableProcessedTableManager get actualsRefs {
+    final manager = $$ActualsTableTableManager(
+      $_db,
+      $_db.actuals,
+    ).filter((f) => f.occurrenceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_actualsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$OccurrencesTableFilterComposer
@@ -8311,6 +9057,31 @@ class $$OccurrencesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> actualsRefs(
+    Expression<bool> Function($$ActualsTableFilterComposer f) f,
+  ) {
+    final $$ActualsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.actuals,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ActualsTableFilterComposer(
+            $db: $db,
+            $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -8492,6 +9263,31 @@ class $$OccurrencesTableAnnotationComposer
         );
     return composer;
   }
+
+  Expression<T> actualsRefs<T extends Object>(
+    Expression<T> Function($$ActualsTableAnnotationComposer a) f,
+  ) {
+    final $$ActualsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.actuals,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ActualsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$OccurrencesTableTableManager
@@ -8507,7 +9303,11 @@ class $$OccurrencesTableTableManager
           $$OccurrencesTableUpdateCompanionBuilder,
           (Occurrence, $$OccurrencesTableReferences),
           Occurrence,
-          PrefetchHooks Function({bool cycleId, bool scheduleDefinitionId})
+          PrefetchHooks Function({
+            bool cycleId,
+            bool scheduleDefinitionId,
+            bool actualsRefs,
+          })
         > {
   $$OccurrencesTableTableManager(_$AppDatabase db, $OccurrencesTable table)
     : super(
@@ -8577,10 +9377,14 @@ class $$OccurrencesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({cycleId = false, scheduleDefinitionId = false}) {
+              ({
+                cycleId = false,
+                scheduleDefinitionId = false,
+                actualsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [],
+                  explicitlyWatchedTables: [if (actualsRefs) db.actuals],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -8623,7 +9427,29 @@ class $$OccurrencesTableTableManager
                         return state;
                       },
                   getPrefetchedDataCallback: (items) async {
-                    return [];
+                    return [
+                      if (actualsRefs)
+                        await $_getPrefetchedData<
+                          Occurrence,
+                          $OccurrencesTable,
+                          Actual
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OccurrencesTableReferences
+                              ._actualsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OccurrencesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).actualsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.occurrenceId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
                 );
               },
@@ -8643,7 +9469,11 @@ typedef $$OccurrencesTableProcessedTableManager =
       $$OccurrencesTableUpdateCompanionBuilder,
       (Occurrence, $$OccurrencesTableReferences),
       Occurrence,
-      PrefetchHooks Function({bool cycleId, bool scheduleDefinitionId})
+      PrefetchHooks Function({
+        bool cycleId,
+        bool scheduleDefinitionId,
+        bool actualsRefs,
+      })
     >;
 typedef $$EntitlementPlansTableCreateCompanionBuilder =
     EntitlementPlansCompanion Function({
@@ -10985,6 +11815,725 @@ typedef $$ReminderInstancesTableProcessedTableManager =
       ReminderInstance,
       PrefetchHooks Function({bool ruleId})
     >;
+typedef $$ActualsTableCreateCompanionBuilder = ActualsCompanion Function({
+  required String id,
+  required String occurrenceId,
+  required int outcome,
+  required DateTime recordedAt,
+  Value<String?> note,
+  Value<int> rowid,
+});
+typedef $$ActualsTableUpdateCompanionBuilder = ActualsCompanion Function({
+  Value<String> id,
+  Value<String> occurrenceId,
+  Value<int> outcome,
+  Value<DateTime> recordedAt,
+  Value<String?> note,
+  Value<int> rowid,
+});
+
+final class $$ActualsTableReferences
+    extends BaseReferences<_$AppDatabase, $ActualsTable, Actual> {
+  $$ActualsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $OccurrencesTable _occurrenceIdTable(_$AppDatabase db) =>
+      db.occurrences.createAlias('actuals__occurrence_id__occurrences__id');
+
+  $$OccurrencesTableProcessedTableManager get occurrenceId {
+    final $_column = $_itemColumn<String>('occurrence_id')!;
+
+    final manager = $$OccurrencesTableTableManager(
+      $_db,
+      $_db.occurrences,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_occurrenceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$EvidencesTable, List<Evidence>>
+  _evidencesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.evidences,
+    aliasName: 'actuals__id__evidences__actual_id',
+  );
+
+  $$EvidencesTableProcessedTableManager get evidencesRefs {
+    final manager = $$EvidencesTableTableManager(
+      $_db,
+      $_db.evidences,
+    ).filter((f) => f.actualId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_evidencesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$ActualsTableFilterComposer
+    extends Composer<_$AppDatabase, $ActualsTable> {
+  $$ActualsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$OccurrencesTableFilterComposer get occurrenceId {
+    final $$OccurrencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableFilterComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> evidencesRefs(
+    Expression<bool> Function($$EvidencesTableFilterComposer f) f,
+  ) {
+    final $$EvidencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.evidences,
+      getReferencedColumn: (t) => t.actualId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EvidencesTableFilterComposer(
+            $db: $db,
+            $table: $db.evidences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ActualsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ActualsTable> {
+  $$ActualsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get outcome => $composableBuilder(
+    column: $table.outcome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$OccurrencesTableOrderingComposer get occurrenceId {
+    final $$OccurrencesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableOrderingComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ActualsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ActualsTable> {
+  $$ActualsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get outcome =>
+      $composableBuilder(column: $table.outcome, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  $$OccurrencesTableAnnotationComposer get occurrenceId {
+    final $$OccurrencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> evidencesRefs<T extends Object>(
+    Expression<T> Function($$EvidencesTableAnnotationComposer a) f,
+  ) {
+    final $$EvidencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.evidences,
+      getReferencedColumn: (t) => t.actualId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EvidencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.evidences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$ActualsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ActualsTable,
+          Actual,
+          $$ActualsTableFilterComposer,
+          $$ActualsTableOrderingComposer,
+          $$ActualsTableAnnotationComposer,
+          $$ActualsTableCreateCompanionBuilder,
+          $$ActualsTableUpdateCompanionBuilder,
+          (Actual, $$ActualsTableReferences),
+          Actual,
+          PrefetchHooks Function({bool occurrenceId, bool evidencesRefs})
+        > {
+  $$ActualsTableTableManager(_$AppDatabase db, $ActualsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ActualsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ActualsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ActualsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> occurrenceId = const Value.absent(),
+                Value<int> outcome = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ActualsCompanion(
+                id: id,
+                occurrenceId: occurrenceId,
+                outcome: outcome,
+                recordedAt: recordedAt,
+                note: note,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String occurrenceId,
+                required int outcome,
+                required DateTime recordedAt,
+                Value<String?> note = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ActualsCompanion.insert(
+                id: id,
+                occurrenceId: occurrenceId,
+                outcome: outcome,
+                recordedAt: recordedAt,
+                note: note,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ActualsTable, Actual>(table),
+                  $$ActualsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({occurrenceId = false, evidencesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (evidencesRefs) db.evidences],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (occurrenceId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.occurrenceId,
+                            referencedTable: $$ActualsTableReferences
+                                ._occurrenceIdTable(db),
+                            referencedColumn: $$ActualsTableReferences
+                                ._occurrenceIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (evidencesRefs)
+                        await $_getPrefetchedData<
+                          Actual,
+                          $ActualsTable,
+                          Evidence
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ActualsTableReferences
+                              ._evidencesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ActualsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).evidencesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.actualId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ActualsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ActualsTable,
+      Actual,
+      $$ActualsTableFilterComposer,
+      $$ActualsTableOrderingComposer,
+      $$ActualsTableAnnotationComposer,
+      $$ActualsTableCreateCompanionBuilder,
+      $$ActualsTableUpdateCompanionBuilder,
+      (Actual, $$ActualsTableReferences),
+      Actual,
+      PrefetchHooks Function({bool occurrenceId, bool evidencesRefs})
+    >;
+typedef $$EvidencesTableCreateCompanionBuilder = EvidencesCompanion Function({
+  required String id,
+  required String actualId,
+  required int type,
+  required String value,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$EvidencesTableUpdateCompanionBuilder = EvidencesCompanion Function({
+  Value<String> id,
+  Value<String> actualId,
+  Value<int> type,
+  Value<String> value,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $$EvidencesTableReferences
+    extends BaseReferences<_$AppDatabase, $EvidencesTable, Evidence> {
+  $$EvidencesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ActualsTable _actualIdTable(_$AppDatabase db) =>
+      db.actuals.createAlias('evidences__actual_id__actuals__id');
+
+  $$ActualsTableProcessedTableManager get actualId {
+    final $_column = $_itemColumn<String>('actual_id')!;
+
+    final manager = $$ActualsTableTableManager(
+      $_db,
+      $_db.actuals,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_actualIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EvidencesTableFilterComposer
+    extends Composer<_$AppDatabase, $EvidencesTable> {
+  $$EvidencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ActualsTableFilterComposer get actualId {
+    final $$ActualsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actualId,
+      referencedTable: $db.actuals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ActualsTableFilterComposer(
+            $db: $db,
+            $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EvidencesTableOrderingComposer
+    extends Composer<_$AppDatabase, $EvidencesTable> {
+  $$EvidencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ActualsTableOrderingComposer get actualId {
+    final $$ActualsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actualId,
+      referencedTable: $db.actuals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ActualsTableOrderingComposer(
+            $db: $db,
+            $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EvidencesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EvidencesTable> {
+  $$EvidencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ActualsTableAnnotationComposer get actualId {
+    final $$ActualsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actualId,
+      referencedTable: $db.actuals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ActualsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EvidencesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EvidencesTable,
+          Evidence,
+          $$EvidencesTableFilterComposer,
+          $$EvidencesTableOrderingComposer,
+          $$EvidencesTableAnnotationComposer,
+          $$EvidencesTableCreateCompanionBuilder,
+          $$EvidencesTableUpdateCompanionBuilder,
+          (Evidence, $$EvidencesTableReferences),
+          Evidence,
+          PrefetchHooks Function({bool actualId})
+        > {
+  $$EvidencesTableTableManager(_$AppDatabase db, $EvidencesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EvidencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EvidencesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EvidencesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> actualId = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EvidencesCompanion(
+                id: id,
+                actualId: actualId,
+                type: type,
+                value: value,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String actualId,
+                required int type,
+                required String value,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => EvidencesCompanion.insert(
+                id: id,
+                actualId: actualId,
+                type: type,
+                value: value,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EvidencesTable, Evidence>(table),
+                  $$EvidencesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({actualId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (actualId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.actualId,
+                        referencedTable: $$EvidencesTableReferences
+                            ._actualIdTable(db),
+                        referencedColumn: $$EvidencesTableReferences
+                            ._actualIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EvidencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EvidencesTable,
+      Evidence,
+      $$EvidencesTableFilterComposer,
+      $$EvidencesTableOrderingComposer,
+      $$EvidencesTableAnnotationComposer,
+      $$EvidencesTableCreateCompanionBuilder,
+      $$EvidencesTableUpdateCompanionBuilder,
+      (Evidence, $$EvidencesTableReferences),
+      Evidence,
+      PrefetchHooks Function({bool actualId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11017,4 +12566,8 @@ class $AppDatabaseManager {
       $$ReminderRulesTableTableManager(_db, _db.reminderRules);
   $$ReminderInstancesTableTableManager get reminderInstances =>
       $$ReminderInstancesTableTableManager(_db, _db.reminderInstances);
+  $$ActualsTableTableManager get actuals =>
+      $$ActualsTableTableManager(_db, _db.actuals);
+  $$EvidencesTableTableManager get evidences =>
+      $$EvidencesTableTableManager(_db, _db.evidences);
 }

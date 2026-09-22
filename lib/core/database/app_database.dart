@@ -165,6 +165,28 @@ class ReminderInstances extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class Actuals extends Table {
+  TextColumn get id => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
+  IntColumn get outcome => integer()();
+  DateTimeColumn get recordedAt => dateTime()();
+  TextColumn get note => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class Evidences extends Table {
+  TextColumn get id => text()();
+  TextColumn get actualId => text().references(Actuals, #id)();
+  IntColumn get type => integer()();
+  TextColumn get value => text()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -178,6 +200,8 @@ class ReminderInstances extends Table {
     ReplacementOccurrences,
     ReminderRules,
     ReminderInstances,
+    Actuals,
+    Evidences,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -186,7 +210,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -229,6 +253,10 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           "ALTER TABLE commitments ADD COLUMN attachment_ids TEXT NOT NULL DEFAULT ''",
         );
+      }
+      if (from < 7) {
+        await m.createTable(actuals);
+        await m.createTable(evidences);
       }
       await _writeSchemaMetadata();
     },
