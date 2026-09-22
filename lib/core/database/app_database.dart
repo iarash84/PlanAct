@@ -213,6 +213,31 @@ class AccountEntries extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class TransactionMatches extends Table {
+  TextColumn get id => text()();
+  TextColumn get transactionId => text()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text()();
+  DateTimeColumn get createdAt => dateTime()();
+  IntColumn get status => integer()();
+  TextColumn get correctedMatchId => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class MatchAllocations extends Table {
+  TextColumn get id => text()();
+  TextColumn get matchId => text().references(TransactionMatches, #id)();
+  TextColumn get occurrenceId => text()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text()();
+  IntColumn get type => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -230,6 +255,8 @@ class AccountEntries extends Table {
     Evidences,
     FinancialAccounts,
     AccountEntries,
+    TransactionMatches,
+    MatchAllocations,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -238,7 +265,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -289,6 +316,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) {
         await m.createTable(financialAccounts);
         await m.createTable(accountEntries);
+      }
+      if (from < 9) {
+        await m.createTable(transactionMatches);
+        await m.createTable(matchAllocations);
       }
       await _writeSchemaMetadata();
     },

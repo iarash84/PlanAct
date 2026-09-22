@@ -7787,6 +7787,902 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
   }
 }
 
+class $TransactionMatchesTable extends TransactionMatches
+    with TableInfo<$TransactionMatchesTable, TransactionMatche> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransactionMatchesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+    'transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
+    'minorUnits',
+  );
+  @override
+  late final GeneratedColumn<int> minorUnits = GeneratedColumn<int>(
+    'minor_units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _correctedMatchIdMeta = const VerificationMeta(
+    'correctedMatchId',
+  );
+  @override
+  late final GeneratedColumn<String> correctedMatchId = GeneratedColumn<String>(
+    'corrected_match_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transactionId,
+    minorUnits,
+    currency,
+    createdAt,
+    status,
+    correctedMatchId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transaction_matches';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TransactionMatche> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('minor_units')) {
+      context.handle(
+        _minorUnitsMeta,
+        minorUnits.isAcceptableOrUnknown(data['minor_units']!, _minorUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_minorUnitsMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('corrected_match_id')) {
+      context.handle(
+        _correctedMatchIdMeta,
+        correctedMatchId.isAcceptableOrUnknown(
+          data['corrected_match_id']!,
+          _correctedMatchIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TransactionMatche map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransactionMatche(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      transactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaction_id'],
+      )!,
+      minorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}minor_units'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      correctedMatchId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}corrected_match_id'],
+      ),
+    );
+  }
+
+  @override
+  $TransactionMatchesTable createAlias(String alias) {
+    return $TransactionMatchesTable(attachedDatabase, alias);
+  }
+}
+
+class TransactionMatche extends DataClass
+    implements Insertable<TransactionMatche> {
+  final String id;
+  final String transactionId;
+  final int minorUnits;
+  final String currency;
+  final DateTime createdAt;
+  final int status;
+  final String? correctedMatchId;
+  const TransactionMatche({
+    required this.id,
+    required this.transactionId,
+    required this.minorUnits,
+    required this.currency,
+    required this.createdAt,
+    required this.status,
+    this.correctedMatchId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transaction_id'] = Variable<String>(transactionId);
+    map['minor_units'] = Variable<int>(minorUnits);
+    map['currency'] = Variable<String>(currency);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || correctedMatchId != null) {
+      map['corrected_match_id'] = Variable<String>(correctedMatchId);
+    }
+    return map;
+  }
+
+  TransactionMatchesCompanion toCompanion(bool nullToAbsent) {
+    return TransactionMatchesCompanion(
+      id: Value(id),
+      transactionId: Value(transactionId),
+      minorUnits: Value(minorUnits),
+      currency: Value(currency),
+      createdAt: Value(createdAt),
+      status: Value(status),
+      correctedMatchId: correctedMatchId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(correctedMatchId),
+    );
+  }
+
+  factory TransactionMatche.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransactionMatche(
+      id: serializer.fromJson<String>(json['id']),
+      transactionId: serializer.fromJson<String>(json['transactionId']),
+      minorUnits: serializer.fromJson<int>(json['minorUnits']),
+      currency: serializer.fromJson<String>(json['currency']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      status: serializer.fromJson<int>(json['status']),
+      correctedMatchId: serializer.fromJson<String?>(json['correctedMatchId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transactionId': serializer.toJson<String>(transactionId),
+      'minorUnits': serializer.toJson<int>(minorUnits),
+      'currency': serializer.toJson<String>(currency),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'status': serializer.toJson<int>(status),
+      'correctedMatchId': serializer.toJson<String?>(correctedMatchId),
+    };
+  }
+
+  TransactionMatche copyWith({
+    String? id,
+    String? transactionId,
+    int? minorUnits,
+    String? currency,
+    DateTime? createdAt,
+    int? status,
+    Value<String?> correctedMatchId = const Value.absent(),
+  }) => TransactionMatche(
+    id: id ?? this.id,
+    transactionId: transactionId ?? this.transactionId,
+    minorUnits: minorUnits ?? this.minorUnits,
+    currency: currency ?? this.currency,
+    createdAt: createdAt ?? this.createdAt,
+    status: status ?? this.status,
+    correctedMatchId: correctedMatchId.present
+        ? correctedMatchId.value
+        : this.correctedMatchId,
+  );
+  TransactionMatche copyWithCompanion(TransactionMatchesCompanion data) {
+    return TransactionMatche(
+      id: data.id.present ? data.id.value : this.id,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
+      minorUnits: data.minorUnits.present
+          ? data.minorUnits.value
+          : this.minorUnits,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      status: data.status.present ? data.status.value : this.status,
+      correctedMatchId: data.correctedMatchId.present
+          ? data.correctedMatchId.value
+          : this.correctedMatchId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionMatche(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status, ')
+          ..write('correctedMatchId: $correctedMatchId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transactionId,
+    minorUnits,
+    currency,
+    createdAt,
+    status,
+    correctedMatchId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransactionMatche &&
+          other.id == this.id &&
+          other.transactionId == this.transactionId &&
+          other.minorUnits == this.minorUnits &&
+          other.currency == this.currency &&
+          other.createdAt == this.createdAt &&
+          other.status == this.status &&
+          other.correctedMatchId == this.correctedMatchId);
+}
+
+class TransactionMatchesCompanion extends UpdateCompanion<TransactionMatche> {
+  final Value<String> id;
+  final Value<String> transactionId;
+  final Value<int> minorUnits;
+  final Value<String> currency;
+  final Value<DateTime> createdAt;
+  final Value<int> status;
+  final Value<String?> correctedMatchId;
+  final Value<int> rowid;
+  const TransactionMatchesCompanion({
+    this.id = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.minorUnits = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+    this.correctedMatchId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TransactionMatchesCompanion.insert({
+    required String id,
+    required String transactionId,
+    required int minorUnits,
+    required String currency,
+    required DateTime createdAt,
+    required int status,
+    this.correctedMatchId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       transactionId = Value(transactionId),
+       minorUnits = Value(minorUnits),
+       currency = Value(currency),
+       createdAt = Value(createdAt),
+       status = Value(status);
+  static Insertable<TransactionMatche> custom({
+    Expression<String>? id,
+    Expression<String>? transactionId,
+    Expression<int>? minorUnits,
+    Expression<String>? currency,
+    Expression<DateTime>? createdAt,
+    Expression<int>? status,
+    Expression<String>? correctedMatchId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (minorUnits != null) 'minor_units': minorUnits,
+      if (currency != null) 'currency': currency,
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+      if (correctedMatchId != null) 'corrected_match_id': correctedMatchId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TransactionMatchesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? transactionId,
+    Value<int>? minorUnits,
+    Value<String>? currency,
+    Value<DateTime>? createdAt,
+    Value<int>? status,
+    Value<String?>? correctedMatchId,
+    Value<int>? rowid,
+  }) {
+    return TransactionMatchesCompanion(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      minorUnits: minorUnits ?? this.minorUnits,
+      currency: currency ?? this.currency,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+      correctedMatchId: correctedMatchId ?? this.correctedMatchId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
+    if (minorUnits.present) {
+      map['minor_units'] = Variable<int>(minorUnits.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (correctedMatchId.present) {
+      map['corrected_match_id'] = Variable<String>(correctedMatchId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransactionMatchesCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status, ')
+          ..write('correctedMatchId: $correctedMatchId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MatchAllocationsTable extends MatchAllocations
+    with TableInfo<$MatchAllocationsTable, MatchAllocation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MatchAllocationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _matchIdMeta = const VerificationMeta(
+    'matchId',
+  );
+  @override
+  late final GeneratedColumn<String> matchId = GeneratedColumn<String>(
+    'match_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES transaction_matches (id)',
+    ),
+  );
+  static const VerificationMeta _occurrenceIdMeta = const VerificationMeta(
+    'occurrenceId',
+  );
+  @override
+  late final GeneratedColumn<String> occurrenceId = GeneratedColumn<String>(
+    'occurrence_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
+    'minorUnits',
+  );
+  @override
+  late final GeneratedColumn<int> minorUnits = GeneratedColumn<int>(
+    'minor_units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    matchId,
+    occurrenceId,
+    minorUnits,
+    currency,
+    type,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'match_allocations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MatchAllocation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('match_id')) {
+      context.handle(
+        _matchIdMeta,
+        matchId.isAcceptableOrUnknown(data['match_id']!, _matchIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_matchIdMeta);
+    }
+    if (data.containsKey('occurrence_id')) {
+      context.handle(
+        _occurrenceIdMeta,
+        occurrenceId.isAcceptableOrUnknown(
+          data['occurrence_id']!,
+          _occurrenceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_occurrenceIdMeta);
+    }
+    if (data.containsKey('minor_units')) {
+      context.handle(
+        _minorUnitsMeta,
+        minorUnits.isAcceptableOrUnknown(data['minor_units']!, _minorUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_minorUnitsMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MatchAllocation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MatchAllocation(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      matchId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}match_id'],
+      )!,
+      occurrenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}occurrence_id'],
+      )!,
+      minorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}minor_units'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}type'],
+      )!,
+    );
+  }
+
+  @override
+  $MatchAllocationsTable createAlias(String alias) {
+    return $MatchAllocationsTable(attachedDatabase, alias);
+  }
+}
+
+class MatchAllocation extends DataClass implements Insertable<MatchAllocation> {
+  final String id;
+  final String matchId;
+  final String occurrenceId;
+  final int minorUnits;
+  final String currency;
+  final int type;
+  const MatchAllocation({
+    required this.id,
+    required this.matchId,
+    required this.occurrenceId,
+    required this.minorUnits,
+    required this.currency,
+    required this.type,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['match_id'] = Variable<String>(matchId);
+    map['occurrence_id'] = Variable<String>(occurrenceId);
+    map['minor_units'] = Variable<int>(minorUnits);
+    map['currency'] = Variable<String>(currency);
+    map['type'] = Variable<int>(type);
+    return map;
+  }
+
+  MatchAllocationsCompanion toCompanion(bool nullToAbsent) {
+    return MatchAllocationsCompanion(
+      id: Value(id),
+      matchId: Value(matchId),
+      occurrenceId: Value(occurrenceId),
+      minorUnits: Value(minorUnits),
+      currency: Value(currency),
+      type: Value(type),
+    );
+  }
+
+  factory MatchAllocation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MatchAllocation(
+      id: serializer.fromJson<String>(json['id']),
+      matchId: serializer.fromJson<String>(json['matchId']),
+      occurrenceId: serializer.fromJson<String>(json['occurrenceId']),
+      minorUnits: serializer.fromJson<int>(json['minorUnits']),
+      currency: serializer.fromJson<String>(json['currency']),
+      type: serializer.fromJson<int>(json['type']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'matchId': serializer.toJson<String>(matchId),
+      'occurrenceId': serializer.toJson<String>(occurrenceId),
+      'minorUnits': serializer.toJson<int>(minorUnits),
+      'currency': serializer.toJson<String>(currency),
+      'type': serializer.toJson<int>(type),
+    };
+  }
+
+  MatchAllocation copyWith({
+    String? id,
+    String? matchId,
+    String? occurrenceId,
+    int? minorUnits,
+    String? currency,
+    int? type,
+  }) => MatchAllocation(
+    id: id ?? this.id,
+    matchId: matchId ?? this.matchId,
+    occurrenceId: occurrenceId ?? this.occurrenceId,
+    minorUnits: minorUnits ?? this.minorUnits,
+    currency: currency ?? this.currency,
+    type: type ?? this.type,
+  );
+  MatchAllocation copyWithCompanion(MatchAllocationsCompanion data) {
+    return MatchAllocation(
+      id: data.id.present ? data.id.value : this.id,
+      matchId: data.matchId.present ? data.matchId.value : this.matchId,
+      occurrenceId: data.occurrenceId.present
+          ? data.occurrenceId.value
+          : this.occurrenceId,
+      minorUnits: data.minorUnits.present
+          ? data.minorUnits.value
+          : this.minorUnits,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      type: data.type.present ? data.type.value : this.type,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MatchAllocation(')
+          ..write('id: $id, ')
+          ..write('matchId: $matchId, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('type: $type')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, matchId, occurrenceId, minorUnits, currency, type);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MatchAllocation &&
+          other.id == this.id &&
+          other.matchId == this.matchId &&
+          other.occurrenceId == this.occurrenceId &&
+          other.minorUnits == this.minorUnits &&
+          other.currency == this.currency &&
+          other.type == this.type);
+}
+
+class MatchAllocationsCompanion extends UpdateCompanion<MatchAllocation> {
+  final Value<String> id;
+  final Value<String> matchId;
+  final Value<String> occurrenceId;
+  final Value<int> minorUnits;
+  final Value<String> currency;
+  final Value<int> type;
+  final Value<int> rowid;
+  const MatchAllocationsCompanion({
+    this.id = const Value.absent(),
+    this.matchId = const Value.absent(),
+    this.occurrenceId = const Value.absent(),
+    this.minorUnits = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.type = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MatchAllocationsCompanion.insert({
+    required String id,
+    required String matchId,
+    required String occurrenceId,
+    required int minorUnits,
+    required String currency,
+    required int type,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       matchId = Value(matchId),
+       occurrenceId = Value(occurrenceId),
+       minorUnits = Value(minorUnits),
+       currency = Value(currency),
+       type = Value(type);
+  static Insertable<MatchAllocation> custom({
+    Expression<String>? id,
+    Expression<String>? matchId,
+    Expression<String>? occurrenceId,
+    Expression<int>? minorUnits,
+    Expression<String>? currency,
+    Expression<int>? type,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (matchId != null) 'match_id': matchId,
+      if (occurrenceId != null) 'occurrence_id': occurrenceId,
+      if (minorUnits != null) 'minor_units': minorUnits,
+      if (currency != null) 'currency': currency,
+      if (type != null) 'type': type,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MatchAllocationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? matchId,
+    Value<String>? occurrenceId,
+    Value<int>? minorUnits,
+    Value<String>? currency,
+    Value<int>? type,
+    Value<int>? rowid,
+  }) {
+    return MatchAllocationsCompanion(
+      id: id ?? this.id,
+      matchId: matchId ?? this.matchId,
+      occurrenceId: occurrenceId ?? this.occurrenceId,
+      minorUnits: minorUnits ?? this.minorUnits,
+      currency: currency ?? this.currency,
+      type: type ?? this.type,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (matchId.present) {
+      map['match_id'] = Variable<String>(matchId.value);
+    }
+    if (occurrenceId.present) {
+      map['occurrence_id'] = Variable<String>(occurrenceId.value);
+    }
+    if (minorUnits.present) {
+      map['minor_units'] = Variable<int>(minorUnits.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<int>(type.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MatchAllocationsCompanion(')
+          ..write('id: $id, ')
+          ..write('matchId: $matchId, ')
+          ..write('occurrenceId: $occurrenceId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('type: $type, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7816,6 +8712,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FinancialAccountsTable financialAccounts =
       $FinancialAccountsTable(this);
   late final $AccountEntriesTable accountEntries = $AccountEntriesTable(this);
+  late final $TransactionMatchesTable transactionMatches =
+      $TransactionMatchesTable(this);
+  late final $MatchAllocationsTable matchAllocations = $MatchAllocationsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7836,6 +8737,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     evidences,
     financialAccounts,
     accountEntries,
+    transactionMatches,
+    matchAllocations,
   ];
 }
 
@@ -14190,6 +15093,718 @@ typedef $$AccountEntriesTableProcessedTableManager =
       AccountEntry,
       PrefetchHooks Function({bool accountId})
     >;
+typedef $$TransactionMatchesTableCreateCompanionBuilder =
+    TransactionMatchesCompanion Function({
+      required String id,
+      required String transactionId,
+      required int minorUnits,
+      required String currency,
+      required DateTime createdAt,
+      required int status,
+      Value<String?> correctedMatchId,
+      Value<int> rowid,
+    });
+typedef $$TransactionMatchesTableUpdateCompanionBuilder =
+    TransactionMatchesCompanion Function({
+      Value<String> id,
+      Value<String> transactionId,
+      Value<int> minorUnits,
+      Value<String> currency,
+      Value<DateTime> createdAt,
+      Value<int> status,
+      Value<String?> correctedMatchId,
+      Value<int> rowid,
+    });
+
+final class $$TransactionMatchesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $TransactionMatchesTable,
+          TransactionMatche
+        > {
+  $$TransactionMatchesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$MatchAllocationsTable, List<MatchAllocation>>
+  _matchAllocationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.matchAllocations,
+    aliasName: 'transaction_matches__id__match_allocations__match_id',
+  );
+
+  $$MatchAllocationsTableProcessedTableManager get matchAllocationsRefs {
+    final manager = $$MatchAllocationsTableTableManager(
+      $_db,
+      $_db.matchAllocations,
+    ).filter((f) => f.matchId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _matchAllocationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TransactionMatchesTableFilterComposer
+    extends Composer<_$AppDatabase, $TransactionMatchesTable> {
+  $$TransactionMatchesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get correctedMatchId => $composableBuilder(
+    column: $table.correctedMatchId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> matchAllocationsRefs(
+    Expression<bool> Function($$MatchAllocationsTableFilterComposer f) f,
+  ) {
+    final $$MatchAllocationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchAllocations,
+      getReferencedColumn: (t) => t.matchId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchAllocationsTableFilterComposer(
+            $db: $db,
+            $table: $db.matchAllocations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TransactionMatchesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransactionMatchesTable> {
+  $$TransactionMatchesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get correctedMatchId => $composableBuilder(
+    column: $table.correctedMatchId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TransactionMatchesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransactionMatchesTable> {
+  $$TransactionMatchesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get correctedMatchId => $composableBuilder(
+    column: $table.correctedMatchId,
+    builder: (column) => column,
+  );
+
+  Expression<T> matchAllocationsRefs<T extends Object>(
+    Expression<T> Function($$MatchAllocationsTableAnnotationComposer a) f,
+  ) {
+    final $$MatchAllocationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchAllocations,
+      getReferencedColumn: (t) => t.matchId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchAllocationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.matchAllocations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TransactionMatchesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TransactionMatchesTable,
+          TransactionMatche,
+          $$TransactionMatchesTableFilterComposer,
+          $$TransactionMatchesTableOrderingComposer,
+          $$TransactionMatchesTableAnnotationComposer,
+          $$TransactionMatchesTableCreateCompanionBuilder,
+          $$TransactionMatchesTableUpdateCompanionBuilder,
+          (TransactionMatche, $$TransactionMatchesTableReferences),
+          TransactionMatche,
+          PrefetchHooks Function({bool matchAllocationsRefs})
+        > {
+  $$TransactionMatchesTableTableManager(
+    _$AppDatabase db,
+    $TransactionMatchesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransactionMatchesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransactionMatchesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransactionMatchesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> transactionId = const Value.absent(),
+                Value<int> minorUnits = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<String?> correctedMatchId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TransactionMatchesCompanion(
+                id: id,
+                transactionId: transactionId,
+                minorUnits: minorUnits,
+                currency: currency,
+                createdAt: createdAt,
+                status: status,
+                correctedMatchId: correctedMatchId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String transactionId,
+                required int minorUnits,
+                required String currency,
+                required DateTime createdAt,
+                required int status,
+                Value<String?> correctedMatchId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TransactionMatchesCompanion.insert(
+                id: id,
+                transactionId: transactionId,
+                minorUnits: minorUnits,
+                currency: currency,
+                createdAt: createdAt,
+                status: status,
+                correctedMatchId: correctedMatchId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$TransactionMatchesTable, TransactionMatche>(
+                    table,
+                  ),
+                  $$TransactionMatchesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({matchAllocationsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (matchAllocationsRefs) db.matchAllocations,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (matchAllocationsRefs)
+                    await $_getPrefetchedData<
+                      TransactionMatche,
+                      $TransactionMatchesTable,
+                      MatchAllocation
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TransactionMatchesTableReferences
+                          ._matchAllocationsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$TransactionMatchesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).matchAllocationsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.matchId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TransactionMatchesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TransactionMatchesTable,
+      TransactionMatche,
+      $$TransactionMatchesTableFilterComposer,
+      $$TransactionMatchesTableOrderingComposer,
+      $$TransactionMatchesTableAnnotationComposer,
+      $$TransactionMatchesTableCreateCompanionBuilder,
+      $$TransactionMatchesTableUpdateCompanionBuilder,
+      (TransactionMatche, $$TransactionMatchesTableReferences),
+      TransactionMatche,
+      PrefetchHooks Function({bool matchAllocationsRefs})
+    >;
+typedef $$MatchAllocationsTableCreateCompanionBuilder =
+    MatchAllocationsCompanion Function({
+      required String id,
+      required String matchId,
+      required String occurrenceId,
+      required int minorUnits,
+      required String currency,
+      required int type,
+      Value<int> rowid,
+    });
+typedef $$MatchAllocationsTableUpdateCompanionBuilder =
+    MatchAllocationsCompanion Function({
+      Value<String> id,
+      Value<String> matchId,
+      Value<String> occurrenceId,
+      Value<int> minorUnits,
+      Value<String> currency,
+      Value<int> type,
+      Value<int> rowid,
+    });
+
+final class $$MatchAllocationsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MatchAllocationsTable, MatchAllocation> {
+  $$MatchAllocationsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TransactionMatchesTable _matchIdTable(_$AppDatabase db) => db
+      .transactionMatches
+      .createAlias('match_allocations__match_id__transaction_matches__id');
+
+  $$TransactionMatchesTableProcessedTableManager get matchId {
+    final $_column = $_itemColumn<String>('match_id')!;
+
+    final manager = $$TransactionMatchesTableTableManager(
+      $_db,
+      $_db.transactionMatches,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_matchIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MatchAllocationsTableFilterComposer
+    extends Composer<_$AppDatabase, $MatchAllocationsTable> {
+  $$MatchAllocationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TransactionMatchesTableFilterComposer get matchId {
+    final $$TransactionMatchesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.matchId,
+      referencedTable: $db.transactionMatches,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionMatchesTableFilterComposer(
+            $db: $db,
+            $table: $db.transactionMatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MatchAllocationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MatchAllocationsTable> {
+  $$MatchAllocationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TransactionMatchesTableOrderingComposer get matchId {
+    final $$TransactionMatchesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.matchId,
+      referencedTable: $db.transactionMatches,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionMatchesTableOrderingComposer(
+            $db: $db,
+            $table: $db.transactionMatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MatchAllocationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MatchAllocationsTable> {
+  $$MatchAllocationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get occurrenceId => $composableBuilder(
+    column: $table.occurrenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<int> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  $$TransactionMatchesTableAnnotationComposer get matchId {
+    final $$TransactionMatchesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.matchId,
+          referencedTable: $db.transactionMatches,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$TransactionMatchesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.transactionMatches,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$MatchAllocationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MatchAllocationsTable,
+          MatchAllocation,
+          $$MatchAllocationsTableFilterComposer,
+          $$MatchAllocationsTableOrderingComposer,
+          $$MatchAllocationsTableAnnotationComposer,
+          $$MatchAllocationsTableCreateCompanionBuilder,
+          $$MatchAllocationsTableUpdateCompanionBuilder,
+          (MatchAllocation, $$MatchAllocationsTableReferences),
+          MatchAllocation,
+          PrefetchHooks Function({bool matchId})
+        > {
+  $$MatchAllocationsTableTableManager(
+    _$AppDatabase db,
+    $MatchAllocationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MatchAllocationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MatchAllocationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MatchAllocationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> matchId = const Value.absent(),
+                Value<String> occurrenceId = const Value.absent(),
+                Value<int> minorUnits = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<int> type = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MatchAllocationsCompanion(
+                id: id,
+                matchId: matchId,
+                occurrenceId: occurrenceId,
+                minorUnits: minorUnits,
+                currency: currency,
+                type: type,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String matchId,
+                required String occurrenceId,
+                required int minorUnits,
+                required String currency,
+                required int type,
+                Value<int> rowid = const Value.absent(),
+              }) => MatchAllocationsCompanion.insert(
+                id: id,
+                matchId: matchId,
+                occurrenceId: occurrenceId,
+                minorUnits: minorUnits,
+                currency: currency,
+                type: type,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MatchAllocationsTable, MatchAllocation>(table),
+                  $$MatchAllocationsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({matchId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (matchId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.matchId,
+                        referencedTable: $$MatchAllocationsTableReferences
+                            ._matchIdTable(db),
+                        referencedColumn: $$MatchAllocationsTableReferences
+                            ._matchIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MatchAllocationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MatchAllocationsTable,
+      MatchAllocation,
+      $$MatchAllocationsTableFilterComposer,
+      $$MatchAllocationsTableOrderingComposer,
+      $$MatchAllocationsTableAnnotationComposer,
+      $$MatchAllocationsTableCreateCompanionBuilder,
+      $$MatchAllocationsTableUpdateCompanionBuilder,
+      (MatchAllocation, $$MatchAllocationsTableReferences),
+      MatchAllocation,
+      PrefetchHooks Function({bool matchId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14230,4 +15845,8 @@ class $AppDatabaseManager {
       $$FinancialAccountsTableTableManager(_db, _db.financialAccounts);
   $$AccountEntriesTableTableManager get accountEntries =>
       $$AccountEntriesTableTableManager(_db, _db.accountEntries);
+  $$TransactionMatchesTableTableManager get transactionMatches =>
+      $$TransactionMatchesTableTableManager(_db, _db.transactionMatches);
+  $$MatchAllocationsTableTableManager get matchAllocations =>
+      $$MatchAllocationsTableTableManager(_db, _db.matchAllocations);
 }
