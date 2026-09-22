@@ -5,6 +5,8 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
+import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 
@@ -20,7 +22,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '9');
+    expect(await database.readMetadata('schema_version'), '10');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -136,4 +138,43 @@ void main() {
       expect(stored.single.allocations.last.type, AllocationType.correction);
     },
   );
+
+  test('round-trips staged imports and suggestions through Drift', () async {
+    final repository = DriftInboxRepository(database);
+    final staged = StagedImport(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 20)),
+      rawText: 'amount 2500 2026-09-20',
+      fingerprint: 'fingerprint-1',
+      provenance: ImportProvenance(
+        source: ImportSource.sms,
+        sourceKey: 'sms-1',
+        importedAt: DateTime.utc(2026, 9, 20),
+      ),
+    );
+    final suggestion = InboxSuggestion(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 21)),
+      stagedImportId: staged.id,
+      draft: TransactionDraft(
+        id: StableId.generate(timestamp: DateTime.utc(2026, 9, 22)),
+        stagedImportId: staged.id,
+        amount: const Money(minorUnits: 2500, currency: 'IRR'),
+        occurredAt: DateTime.utc(2026, 9, 20),
+        type: 'expense',
+        merchant: 'فروشگاه',
+      ),
+    );
+
+    await repository.saveImport(staged);
+    await repository.saveSuggestion(suggestion);
+
+    final imports = await repository.listImports();
+    final suggestions = await repository.listSuggestions();
+    expect(imports.single.fingerprint, 'fingerprint-1');
+    expect(imports.single.provenance.source, ImportSource.sms);
+    expect(
+      suggestions.single.draft.amount,
+      const Money(minorUnits: 2500, currency: 'IRR'),
+    );
+    expect(suggestions.single.draft.merchant, 'فروشگاه');
+  });
 }

@@ -8683,6 +8683,1144 @@ class MatchAllocationsCompanion extends UpdateCompanion<MatchAllocation> {
   }
 }
 
+class $StagedImportsTable extends StagedImports
+    with TableInfo<$StagedImportsTable, StagedImport> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StagedImportsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawTextMeta = const VerificationMeta(
+    'rawText',
+  );
+  @override
+  late final GeneratedColumn<String> rawText = GeneratedColumn<String>(
+    'raw_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fingerprintMeta = const VerificationMeta(
+    'fingerprint',
+  );
+  @override
+  late final GeneratedColumn<String> fingerprint = GeneratedColumn<String>(
+    'fingerprint',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<int> source = GeneratedColumn<int>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceKeyMeta = const VerificationMeta(
+    'sourceKey',
+  );
+  @override
+  late final GeneratedColumn<String> sourceKey = GeneratedColumn<String>(
+    'source_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _importedAtMeta = const VerificationMeta(
+    'importedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> importedAt = GeneratedColumn<DateTime>(
+    'imported_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _adapterVersionMeta = const VerificationMeta(
+    'adapterVersion',
+  );
+  @override
+  late final GeneratedColumn<String> adapterVersion = GeneratedColumn<String>(
+    'adapter_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    rawText,
+    fingerprint,
+    source,
+    sourceKey,
+    importedAt,
+    adapterVersion,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'staged_imports';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StagedImport> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('raw_text')) {
+      context.handle(
+        _rawTextMeta,
+        rawText.isAcceptableOrUnknown(data['raw_text']!, _rawTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawTextMeta);
+    }
+    if (data.containsKey('fingerprint')) {
+      context.handle(
+        _fingerprintMeta,
+        fingerprint.isAcceptableOrUnknown(
+          data['fingerprint']!,
+          _fingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fingerprintMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('source_key')) {
+      context.handle(
+        _sourceKeyMeta,
+        sourceKey.isAcceptableOrUnknown(data['source_key']!, _sourceKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceKeyMeta);
+    }
+    if (data.containsKey('imported_at')) {
+      context.handle(
+        _importedAtMeta,
+        importedAt.isAcceptableOrUnknown(data['imported_at']!, _importedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_importedAtMeta);
+    }
+    if (data.containsKey('adapter_version')) {
+      context.handle(
+        _adapterVersionMeta,
+        adapterVersion.isAcceptableOrUnknown(
+          data['adapter_version']!,
+          _adapterVersionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_adapterVersionMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StagedImport map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StagedImport(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      rawText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_text'],
+      )!,
+      fingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fingerprint'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source'],
+      )!,
+      sourceKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_key'],
+      )!,
+      importedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}imported_at'],
+      )!,
+      adapterVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}adapter_version'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $StagedImportsTable createAlias(String alias) {
+    return $StagedImportsTable(attachedDatabase, alias);
+  }
+}
+
+class StagedImport extends DataClass implements Insertable<StagedImport> {
+  final String id;
+  final String rawText;
+  final String fingerprint;
+  final int source;
+  final String sourceKey;
+  final DateTime importedAt;
+  final String adapterVersion;
+  final int status;
+  const StagedImport({
+    required this.id,
+    required this.rawText,
+    required this.fingerprint,
+    required this.source,
+    required this.sourceKey,
+    required this.importedAt,
+    required this.adapterVersion,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['raw_text'] = Variable<String>(rawText);
+    map['fingerprint'] = Variable<String>(fingerprint);
+    map['source'] = Variable<int>(source);
+    map['source_key'] = Variable<String>(sourceKey);
+    map['imported_at'] = Variable<DateTime>(importedAt);
+    map['adapter_version'] = Variable<String>(adapterVersion);
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  StagedImportsCompanion toCompanion(bool nullToAbsent) {
+    return StagedImportsCompanion(
+      id: Value(id),
+      rawText: Value(rawText),
+      fingerprint: Value(fingerprint),
+      source: Value(source),
+      sourceKey: Value(sourceKey),
+      importedAt: Value(importedAt),
+      adapterVersion: Value(adapterVersion),
+      status: Value(status),
+    );
+  }
+
+  factory StagedImport.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StagedImport(
+      id: serializer.fromJson<String>(json['id']),
+      rawText: serializer.fromJson<String>(json['rawText']),
+      fingerprint: serializer.fromJson<String>(json['fingerprint']),
+      source: serializer.fromJson<int>(json['source']),
+      sourceKey: serializer.fromJson<String>(json['sourceKey']),
+      importedAt: serializer.fromJson<DateTime>(json['importedAt']),
+      adapterVersion: serializer.fromJson<String>(json['adapterVersion']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'rawText': serializer.toJson<String>(rawText),
+      'fingerprint': serializer.toJson<String>(fingerprint),
+      'source': serializer.toJson<int>(source),
+      'sourceKey': serializer.toJson<String>(sourceKey),
+      'importedAt': serializer.toJson<DateTime>(importedAt),
+      'adapterVersion': serializer.toJson<String>(adapterVersion),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  StagedImport copyWith({
+    String? id,
+    String? rawText,
+    String? fingerprint,
+    int? source,
+    String? sourceKey,
+    DateTime? importedAt,
+    String? adapterVersion,
+    int? status,
+  }) => StagedImport(
+    id: id ?? this.id,
+    rawText: rawText ?? this.rawText,
+    fingerprint: fingerprint ?? this.fingerprint,
+    source: source ?? this.source,
+    sourceKey: sourceKey ?? this.sourceKey,
+    importedAt: importedAt ?? this.importedAt,
+    adapterVersion: adapterVersion ?? this.adapterVersion,
+    status: status ?? this.status,
+  );
+  StagedImport copyWithCompanion(StagedImportsCompanion data) {
+    return StagedImport(
+      id: data.id.present ? data.id.value : this.id,
+      rawText: data.rawText.present ? data.rawText.value : this.rawText,
+      fingerprint: data.fingerprint.present
+          ? data.fingerprint.value
+          : this.fingerprint,
+      source: data.source.present ? data.source.value : this.source,
+      sourceKey: data.sourceKey.present ? data.sourceKey.value : this.sourceKey,
+      importedAt: data.importedAt.present
+          ? data.importedAt.value
+          : this.importedAt,
+      adapterVersion: data.adapterVersion.present
+          ? data.adapterVersion.value
+          : this.adapterVersion,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StagedImport(')
+          ..write('id: $id, ')
+          ..write('rawText: $rawText, ')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('source: $source, ')
+          ..write('sourceKey: $sourceKey, ')
+          ..write('importedAt: $importedAt, ')
+          ..write('adapterVersion: $adapterVersion, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    rawText,
+    fingerprint,
+    source,
+    sourceKey,
+    importedAt,
+    adapterVersion,
+    status,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StagedImport &&
+          other.id == this.id &&
+          other.rawText == this.rawText &&
+          other.fingerprint == this.fingerprint &&
+          other.source == this.source &&
+          other.sourceKey == this.sourceKey &&
+          other.importedAt == this.importedAt &&
+          other.adapterVersion == this.adapterVersion &&
+          other.status == this.status);
+}
+
+class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
+  final Value<String> id;
+  final Value<String> rawText;
+  final Value<String> fingerprint;
+  final Value<int> source;
+  final Value<String> sourceKey;
+  final Value<DateTime> importedAt;
+  final Value<String> adapterVersion;
+  final Value<int> status;
+  final Value<int> rowid;
+  const StagedImportsCompanion({
+    this.id = const Value.absent(),
+    this.rawText = const Value.absent(),
+    this.fingerprint = const Value.absent(),
+    this.source = const Value.absent(),
+    this.sourceKey = const Value.absent(),
+    this.importedAt = const Value.absent(),
+    this.adapterVersion = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StagedImportsCompanion.insert({
+    required String id,
+    required String rawText,
+    required String fingerprint,
+    required int source,
+    required String sourceKey,
+    required DateTime importedAt,
+    required String adapterVersion,
+    required int status,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       rawText = Value(rawText),
+       fingerprint = Value(fingerprint),
+       source = Value(source),
+       sourceKey = Value(sourceKey),
+       importedAt = Value(importedAt),
+       adapterVersion = Value(adapterVersion),
+       status = Value(status);
+  static Insertable<StagedImport> custom({
+    Expression<String>? id,
+    Expression<String>? rawText,
+    Expression<String>? fingerprint,
+    Expression<int>? source,
+    Expression<String>? sourceKey,
+    Expression<DateTime>? importedAt,
+    Expression<String>? adapterVersion,
+    Expression<int>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rawText != null) 'raw_text': rawText,
+      if (fingerprint != null) 'fingerprint': fingerprint,
+      if (source != null) 'source': source,
+      if (sourceKey != null) 'source_key': sourceKey,
+      if (importedAt != null) 'imported_at': importedAt,
+      if (adapterVersion != null) 'adapter_version': adapterVersion,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StagedImportsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? rawText,
+    Value<String>? fingerprint,
+    Value<int>? source,
+    Value<String>? sourceKey,
+    Value<DateTime>? importedAt,
+    Value<String>? adapterVersion,
+    Value<int>? status,
+    Value<int>? rowid,
+  }) {
+    return StagedImportsCompanion(
+      id: id ?? this.id,
+      rawText: rawText ?? this.rawText,
+      fingerprint: fingerprint ?? this.fingerprint,
+      source: source ?? this.source,
+      sourceKey: sourceKey ?? this.sourceKey,
+      importedAt: importedAt ?? this.importedAt,
+      adapterVersion: adapterVersion ?? this.adapterVersion,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (rawText.present) {
+      map['raw_text'] = Variable<String>(rawText.value);
+    }
+    if (fingerprint.present) {
+      map['fingerprint'] = Variable<String>(fingerprint.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<int>(source.value);
+    }
+    if (sourceKey.present) {
+      map['source_key'] = Variable<String>(sourceKey.value);
+    }
+    if (importedAt.present) {
+      map['imported_at'] = Variable<DateTime>(importedAt.value);
+    }
+    if (adapterVersion.present) {
+      map['adapter_version'] = Variable<String>(adapterVersion.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StagedImportsCompanion(')
+          ..write('id: $id, ')
+          ..write('rawText: $rawText, ')
+          ..write('fingerprint: $fingerprint, ')
+          ..write('source: $source, ')
+          ..write('sourceKey: $sourceKey, ')
+          ..write('importedAt: $importedAt, ')
+          ..write('adapterVersion: $adapterVersion, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InboxSuggestionsTable extends InboxSuggestions
+    with TableInfo<$InboxSuggestionsTable, InboxSuggestion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InboxSuggestionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stagedImportIdMeta = const VerificationMeta(
+    'stagedImportId',
+  );
+  @override
+  late final GeneratedColumn<String> stagedImportId = GeneratedColumn<String>(
+    'staged_import_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES staged_imports (id)',
+    ),
+  );
+  static const VerificationMeta _draftIdMeta = const VerificationMeta(
+    'draftId',
+  );
+  @override
+  late final GeneratedColumn<String> draftId = GeneratedColumn<String>(
+    'draft_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
+    'minorUnits',
+  );
+  @override
+  late final GeneratedColumn<int> minorUnits = GeneratedColumn<int>(
+    'minor_units',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantMeta = const VerificationMeta(
+    'merchant',
+  );
+  @override
+  late final GeneratedColumn<String> merchant = GeneratedColumn<String>(
+    'merchant',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _referenceMeta = const VerificationMeta(
+    'reference',
+  );
+  @override
+  late final GeneratedColumn<String> reference = GeneratedColumn<String>(
+    'reference',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    stagedImportId,
+    draftId,
+    minorUnits,
+    currency,
+    occurredAt,
+    type,
+    merchant,
+    reference,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'inbox_suggestions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InboxSuggestion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('staged_import_id')) {
+      context.handle(
+        _stagedImportIdMeta,
+        stagedImportId.isAcceptableOrUnknown(
+          data['staged_import_id']!,
+          _stagedImportIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_stagedImportIdMeta);
+    }
+    if (data.containsKey('draft_id')) {
+      context.handle(
+        _draftIdMeta,
+        draftId.isAcceptableOrUnknown(data['draft_id']!, _draftIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_draftIdMeta);
+    }
+    if (data.containsKey('minor_units')) {
+      context.handle(
+        _minorUnitsMeta,
+        minorUnits.isAcceptableOrUnknown(data['minor_units']!, _minorUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_minorUnitsMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('merchant')) {
+      context.handle(
+        _merchantMeta,
+        merchant.isAcceptableOrUnknown(data['merchant']!, _merchantMeta),
+      );
+    }
+    if (data.containsKey('reference')) {
+      context.handle(
+        _referenceMeta,
+        reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InboxSuggestion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InboxSuggestion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      stagedImportId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}staged_import_id'],
+      )!,
+      draftId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}draft_id'],
+      )!,
+      minorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}minor_units'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      merchant: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant'],
+      ),
+      reference: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $InboxSuggestionsTable createAlias(String alias) {
+    return $InboxSuggestionsTable(attachedDatabase, alias);
+  }
+}
+
+class InboxSuggestion extends DataClass implements Insertable<InboxSuggestion> {
+  final String id;
+  final String stagedImportId;
+  final String draftId;
+  final int minorUnits;
+  final String currency;
+  final DateTime occurredAt;
+  final String type;
+  final String? merchant;
+  final String? reference;
+  final int status;
+  const InboxSuggestion({
+    required this.id,
+    required this.stagedImportId,
+    required this.draftId,
+    required this.minorUnits,
+    required this.currency,
+    required this.occurredAt,
+    required this.type,
+    this.merchant,
+    this.reference,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['staged_import_id'] = Variable<String>(stagedImportId);
+    map['draft_id'] = Variable<String>(draftId);
+    map['minor_units'] = Variable<int>(minorUnits);
+    map['currency'] = Variable<String>(currency);
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || merchant != null) {
+      map['merchant'] = Variable<String>(merchant);
+    }
+    if (!nullToAbsent || reference != null) {
+      map['reference'] = Variable<String>(reference);
+    }
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  InboxSuggestionsCompanion toCompanion(bool nullToAbsent) {
+    return InboxSuggestionsCompanion(
+      id: Value(id),
+      stagedImportId: Value(stagedImportId),
+      draftId: Value(draftId),
+      minorUnits: Value(minorUnits),
+      currency: Value(currency),
+      occurredAt: Value(occurredAt),
+      type: Value(type),
+      merchant: merchant == null && nullToAbsent
+          ? const Value.absent()
+          : Value(merchant),
+      reference: reference == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reference),
+      status: Value(status),
+    );
+  }
+
+  factory InboxSuggestion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InboxSuggestion(
+      id: serializer.fromJson<String>(json['id']),
+      stagedImportId: serializer.fromJson<String>(json['stagedImportId']),
+      draftId: serializer.fromJson<String>(json['draftId']),
+      minorUnits: serializer.fromJson<int>(json['minorUnits']),
+      currency: serializer.fromJson<String>(json['currency']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      type: serializer.fromJson<String>(json['type']),
+      merchant: serializer.fromJson<String?>(json['merchant']),
+      reference: serializer.fromJson<String?>(json['reference']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'stagedImportId': serializer.toJson<String>(stagedImportId),
+      'draftId': serializer.toJson<String>(draftId),
+      'minorUnits': serializer.toJson<int>(minorUnits),
+      'currency': serializer.toJson<String>(currency),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'type': serializer.toJson<String>(type),
+      'merchant': serializer.toJson<String?>(merchant),
+      'reference': serializer.toJson<String?>(reference),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  InboxSuggestion copyWith({
+    String? id,
+    String? stagedImportId,
+    String? draftId,
+    int? minorUnits,
+    String? currency,
+    DateTime? occurredAt,
+    String? type,
+    Value<String?> merchant = const Value.absent(),
+    Value<String?> reference = const Value.absent(),
+    int? status,
+  }) => InboxSuggestion(
+    id: id ?? this.id,
+    stagedImportId: stagedImportId ?? this.stagedImportId,
+    draftId: draftId ?? this.draftId,
+    minorUnits: minorUnits ?? this.minorUnits,
+    currency: currency ?? this.currency,
+    occurredAt: occurredAt ?? this.occurredAt,
+    type: type ?? this.type,
+    merchant: merchant.present ? merchant.value : this.merchant,
+    reference: reference.present ? reference.value : this.reference,
+    status: status ?? this.status,
+  );
+  InboxSuggestion copyWithCompanion(InboxSuggestionsCompanion data) {
+    return InboxSuggestion(
+      id: data.id.present ? data.id.value : this.id,
+      stagedImportId: data.stagedImportId.present
+          ? data.stagedImportId.value
+          : this.stagedImportId,
+      draftId: data.draftId.present ? data.draftId.value : this.draftId,
+      minorUnits: data.minorUnits.present
+          ? data.minorUnits.value
+          : this.minorUnits,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      type: data.type.present ? data.type.value : this.type,
+      merchant: data.merchant.present ? data.merchant.value : this.merchant,
+      reference: data.reference.present ? data.reference.value : this.reference,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InboxSuggestion(')
+          ..write('id: $id, ')
+          ..write('stagedImportId: $stagedImportId, ')
+          ..write('draftId: $draftId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('type: $type, ')
+          ..write('merchant: $merchant, ')
+          ..write('reference: $reference, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    stagedImportId,
+    draftId,
+    minorUnits,
+    currency,
+    occurredAt,
+    type,
+    merchant,
+    reference,
+    status,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InboxSuggestion &&
+          other.id == this.id &&
+          other.stagedImportId == this.stagedImportId &&
+          other.draftId == this.draftId &&
+          other.minorUnits == this.minorUnits &&
+          other.currency == this.currency &&
+          other.occurredAt == this.occurredAt &&
+          other.type == this.type &&
+          other.merchant == this.merchant &&
+          other.reference == this.reference &&
+          other.status == this.status);
+}
+
+class InboxSuggestionsCompanion extends UpdateCompanion<InboxSuggestion> {
+  final Value<String> id;
+  final Value<String> stagedImportId;
+  final Value<String> draftId;
+  final Value<int> minorUnits;
+  final Value<String> currency;
+  final Value<DateTime> occurredAt;
+  final Value<String> type;
+  final Value<String?> merchant;
+  final Value<String?> reference;
+  final Value<int> status;
+  final Value<int> rowid;
+  const InboxSuggestionsCompanion({
+    this.id = const Value.absent(),
+    this.stagedImportId = const Value.absent(),
+    this.draftId = const Value.absent(),
+    this.minorUnits = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.type = const Value.absent(),
+    this.merchant = const Value.absent(),
+    this.reference = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InboxSuggestionsCompanion.insert({
+    required String id,
+    required String stagedImportId,
+    required String draftId,
+    required int minorUnits,
+    required String currency,
+    required DateTime occurredAt,
+    required String type,
+    this.merchant = const Value.absent(),
+    this.reference = const Value.absent(),
+    required int status,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       stagedImportId = Value(stagedImportId),
+       draftId = Value(draftId),
+       minorUnits = Value(minorUnits),
+       currency = Value(currency),
+       occurredAt = Value(occurredAt),
+       type = Value(type),
+       status = Value(status);
+  static Insertable<InboxSuggestion> custom({
+    Expression<String>? id,
+    Expression<String>? stagedImportId,
+    Expression<String>? draftId,
+    Expression<int>? minorUnits,
+    Expression<String>? currency,
+    Expression<DateTime>? occurredAt,
+    Expression<String>? type,
+    Expression<String>? merchant,
+    Expression<String>? reference,
+    Expression<int>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (stagedImportId != null) 'staged_import_id': stagedImportId,
+      if (draftId != null) 'draft_id': draftId,
+      if (minorUnits != null) 'minor_units': minorUnits,
+      if (currency != null) 'currency': currency,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (type != null) 'type': type,
+      if (merchant != null) 'merchant': merchant,
+      if (reference != null) 'reference': reference,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InboxSuggestionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? stagedImportId,
+    Value<String>? draftId,
+    Value<int>? minorUnits,
+    Value<String>? currency,
+    Value<DateTime>? occurredAt,
+    Value<String>? type,
+    Value<String?>? merchant,
+    Value<String?>? reference,
+    Value<int>? status,
+    Value<int>? rowid,
+  }) {
+    return InboxSuggestionsCompanion(
+      id: id ?? this.id,
+      stagedImportId: stagedImportId ?? this.stagedImportId,
+      draftId: draftId ?? this.draftId,
+      minorUnits: minorUnits ?? this.minorUnits,
+      currency: currency ?? this.currency,
+      occurredAt: occurredAt ?? this.occurredAt,
+      type: type ?? this.type,
+      merchant: merchant ?? this.merchant,
+      reference: reference ?? this.reference,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (stagedImportId.present) {
+      map['staged_import_id'] = Variable<String>(stagedImportId.value);
+    }
+    if (draftId.present) {
+      map['draft_id'] = Variable<String>(draftId.value);
+    }
+    if (minorUnits.present) {
+      map['minor_units'] = Variable<int>(minorUnits.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (merchant.present) {
+      map['merchant'] = Variable<String>(merchant.value);
+    }
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InboxSuggestionsCompanion(')
+          ..write('id: $id, ')
+          ..write('stagedImportId: $stagedImportId, ')
+          ..write('draftId: $draftId, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('type: $type, ')
+          ..write('merchant: $merchant, ')
+          ..write('reference: $reference, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8717,6 +9855,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MatchAllocationsTable matchAllocations = $MatchAllocationsTable(
     this,
   );
+  late final $StagedImportsTable stagedImports = $StagedImportsTable(this);
+  late final $InboxSuggestionsTable inboxSuggestions = $InboxSuggestionsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8739,6 +9881,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accountEntries,
     transactionMatches,
     matchAllocations,
+    stagedImports,
+    inboxSuggestions,
   ];
 }
 
@@ -15805,6 +16949,802 @@ typedef $$MatchAllocationsTableProcessedTableManager =
       MatchAllocation,
       PrefetchHooks Function({bool matchId})
     >;
+typedef $$StagedImportsTableCreateCompanionBuilder =
+    StagedImportsCompanion Function({
+      required String id,
+      required String rawText,
+      required String fingerprint,
+      required int source,
+      required String sourceKey,
+      required DateTime importedAt,
+      required String adapterVersion,
+      required int status,
+      Value<int> rowid,
+    });
+typedef $$StagedImportsTableUpdateCompanionBuilder =
+    StagedImportsCompanion Function({
+      Value<String> id,
+      Value<String> rawText,
+      Value<String> fingerprint,
+      Value<int> source,
+      Value<String> sourceKey,
+      Value<DateTime> importedAt,
+      Value<String> adapterVersion,
+      Value<int> status,
+      Value<int> rowid,
+    });
+
+final class $$StagedImportsTableReferences
+    extends BaseReferences<_$AppDatabase, $StagedImportsTable, StagedImport> {
+  $$StagedImportsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$InboxSuggestionsTable, List<InboxSuggestion>>
+  _inboxSuggestionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.inboxSuggestions,
+    aliasName: 'staged_imports__id__inbox_suggestions__staged_import_id',
+  );
+
+  $$InboxSuggestionsTableProcessedTableManager get inboxSuggestionsRefs {
+    final manager = $$InboxSuggestionsTableTableManager(
+      $_db,
+      $_db.inboxSuggestions,
+    ).filter((f) => f.stagedImportId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _inboxSuggestionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$StagedImportsTableFilterComposer
+    extends Composer<_$AppDatabase, $StagedImportsTable> {
+  $$StagedImportsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawText => $composableBuilder(
+    column: $table.rawText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceKey => $composableBuilder(
+    column: $table.sourceKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get adapterVersion => $composableBuilder(
+    column: $table.adapterVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> inboxSuggestionsRefs(
+    Expression<bool> Function($$InboxSuggestionsTableFilterComposer f) f,
+  ) {
+    final $$InboxSuggestionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.inboxSuggestions,
+      getReferencedColumn: (t) => t.stagedImportId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InboxSuggestionsTableFilterComposer(
+            $db: $db,
+            $table: $db.inboxSuggestions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StagedImportsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StagedImportsTable> {
+  $$StagedImportsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawText => $composableBuilder(
+    column: $table.rawText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceKey => $composableBuilder(
+    column: $table.sourceKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get adapterVersion => $composableBuilder(
+    column: $table.adapterVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StagedImportsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StagedImportsTable> {
+  $$StagedImportsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rawText =>
+      $composableBuilder(column: $table.rawText, builder: (column) => column);
+
+  GeneratedColumn<String> get fingerprint => $composableBuilder(
+    column: $table.fingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceKey =>
+      $composableBuilder(column: $table.sourceKey, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get adapterVersion => $composableBuilder(
+    column: $table.adapterVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  Expression<T> inboxSuggestionsRefs<T extends Object>(
+    Expression<T> Function($$InboxSuggestionsTableAnnotationComposer a) f,
+  ) {
+    final $$InboxSuggestionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.inboxSuggestions,
+      getReferencedColumn: (t) => t.stagedImportId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$InboxSuggestionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.inboxSuggestions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StagedImportsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StagedImportsTable,
+          StagedImport,
+          $$StagedImportsTableFilterComposer,
+          $$StagedImportsTableOrderingComposer,
+          $$StagedImportsTableAnnotationComposer,
+          $$StagedImportsTableCreateCompanionBuilder,
+          $$StagedImportsTableUpdateCompanionBuilder,
+          (StagedImport, $$StagedImportsTableReferences),
+          StagedImport,
+          PrefetchHooks Function({bool inboxSuggestionsRefs})
+        > {
+  $$StagedImportsTableTableManager(_$AppDatabase db, $StagedImportsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StagedImportsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StagedImportsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StagedImportsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> rawText = const Value.absent(),
+                Value<String> fingerprint = const Value.absent(),
+                Value<int> source = const Value.absent(),
+                Value<String> sourceKey = const Value.absent(),
+                Value<DateTime> importedAt = const Value.absent(),
+                Value<String> adapterVersion = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StagedImportsCompanion(
+                id: id,
+                rawText: rawText,
+                fingerprint: fingerprint,
+                source: source,
+                sourceKey: sourceKey,
+                importedAt: importedAt,
+                adapterVersion: adapterVersion,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String rawText,
+                required String fingerprint,
+                required int source,
+                required String sourceKey,
+                required DateTime importedAt,
+                required String adapterVersion,
+                required int status,
+                Value<int> rowid = const Value.absent(),
+              }) => StagedImportsCompanion.insert(
+                id: id,
+                rawText: rawText,
+                fingerprint: fingerprint,
+                source: source,
+                sourceKey: sourceKey,
+                importedAt: importedAt,
+                adapterVersion: adapterVersion,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StagedImportsTable, StagedImport>(table),
+                  $$StagedImportsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({inboxSuggestionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (inboxSuggestionsRefs) db.inboxSuggestions,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (inboxSuggestionsRefs)
+                    await $_getPrefetchedData<
+                      StagedImport,
+                      $StagedImportsTable,
+                      InboxSuggestion
+                    >(
+                      currentTable: table,
+                      referencedTable: $$StagedImportsTableReferences
+                          ._inboxSuggestionsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$StagedImportsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).inboxSuggestionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.stagedImportId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StagedImportsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StagedImportsTable,
+      StagedImport,
+      $$StagedImportsTableFilterComposer,
+      $$StagedImportsTableOrderingComposer,
+      $$StagedImportsTableAnnotationComposer,
+      $$StagedImportsTableCreateCompanionBuilder,
+      $$StagedImportsTableUpdateCompanionBuilder,
+      (StagedImport, $$StagedImportsTableReferences),
+      StagedImport,
+      PrefetchHooks Function({bool inboxSuggestionsRefs})
+    >;
+typedef $$InboxSuggestionsTableCreateCompanionBuilder =
+    InboxSuggestionsCompanion Function({
+      required String id,
+      required String stagedImportId,
+      required String draftId,
+      required int minorUnits,
+      required String currency,
+      required DateTime occurredAt,
+      required String type,
+      Value<String?> merchant,
+      Value<String?> reference,
+      required int status,
+      Value<int> rowid,
+    });
+typedef $$InboxSuggestionsTableUpdateCompanionBuilder =
+    InboxSuggestionsCompanion Function({
+      Value<String> id,
+      Value<String> stagedImportId,
+      Value<String> draftId,
+      Value<int> minorUnits,
+      Value<String> currency,
+      Value<DateTime> occurredAt,
+      Value<String> type,
+      Value<String?> merchant,
+      Value<String?> reference,
+      Value<int> status,
+      Value<int> rowid,
+    });
+
+final class $$InboxSuggestionsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $InboxSuggestionsTable, InboxSuggestion> {
+  $$InboxSuggestionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StagedImportsTable _stagedImportIdTable(_$AppDatabase db) => db
+      .stagedImports
+      .createAlias('inbox_suggestions__staged_import_id__staged_imports__id');
+
+  $$StagedImportsTableProcessedTableManager get stagedImportId {
+    final $_column = $_itemColumn<String>('staged_import_id')!;
+
+    final manager = $$StagedImportsTableTableManager(
+      $_db,
+      $_db.stagedImports,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_stagedImportIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$InboxSuggestionsTableFilterComposer
+    extends Composer<_$AppDatabase, $InboxSuggestionsTable> {
+  $$InboxSuggestionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get draftId => $composableBuilder(
+    column: $table.draftId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reference => $composableBuilder(
+    column: $table.reference,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StagedImportsTableFilterComposer get stagedImportId {
+    final $$StagedImportsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stagedImportId,
+      referencedTable: $db.stagedImports,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StagedImportsTableFilterComposer(
+            $db: $db,
+            $table: $db.stagedImports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InboxSuggestionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $InboxSuggestionsTable> {
+  $$InboxSuggestionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get draftId => $composableBuilder(
+    column: $table.draftId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reference => $composableBuilder(
+    column: $table.reference,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StagedImportsTableOrderingComposer get stagedImportId {
+    final $$StagedImportsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stagedImportId,
+      referencedTable: $db.stagedImports,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StagedImportsTableOrderingComposer(
+            $db: $db,
+            $table: $db.stagedImports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InboxSuggestionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $InboxSuggestionsTable> {
+  $$InboxSuggestionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get draftId =>
+      $composableBuilder(column: $table.draftId, builder: (column) => column);
+
+  GeneratedColumn<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get merchant =>
+      $composableBuilder(column: $table.merchant, builder: (column) => column);
+
+  GeneratedColumn<String> get reference =>
+      $composableBuilder(column: $table.reference, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  $$StagedImportsTableAnnotationComposer get stagedImportId {
+    final $$StagedImportsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stagedImportId,
+      referencedTable: $db.stagedImports,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StagedImportsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stagedImports,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$InboxSuggestionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $InboxSuggestionsTable,
+          InboxSuggestion,
+          $$InboxSuggestionsTableFilterComposer,
+          $$InboxSuggestionsTableOrderingComposer,
+          $$InboxSuggestionsTableAnnotationComposer,
+          $$InboxSuggestionsTableCreateCompanionBuilder,
+          $$InboxSuggestionsTableUpdateCompanionBuilder,
+          (InboxSuggestion, $$InboxSuggestionsTableReferences),
+          InboxSuggestion,
+          PrefetchHooks Function({bool stagedImportId})
+        > {
+  $$InboxSuggestionsTableTableManager(
+    _$AppDatabase db,
+    $InboxSuggestionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InboxSuggestionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InboxSuggestionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InboxSuggestionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> stagedImportId = const Value.absent(),
+                Value<String> draftId = const Value.absent(),
+                Value<int> minorUnits = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<DateTime> occurredAt = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String?> merchant = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InboxSuggestionsCompanion(
+                id: id,
+                stagedImportId: stagedImportId,
+                draftId: draftId,
+                minorUnits: minorUnits,
+                currency: currency,
+                occurredAt: occurredAt,
+                type: type,
+                merchant: merchant,
+                reference: reference,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String stagedImportId,
+                required String draftId,
+                required int minorUnits,
+                required String currency,
+                required DateTime occurredAt,
+                required String type,
+                Value<String?> merchant = const Value.absent(),
+                Value<String?> reference = const Value.absent(),
+                required int status,
+                Value<int> rowid = const Value.absent(),
+              }) => InboxSuggestionsCompanion.insert(
+                id: id,
+                stagedImportId: stagedImportId,
+                draftId: draftId,
+                minorUnits: minorUnits,
+                currency: currency,
+                occurredAt: occurredAt,
+                type: type,
+                merchant: merchant,
+                reference: reference,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$InboxSuggestionsTable, InboxSuggestion>(table),
+                  $$InboxSuggestionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({stagedImportId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (stagedImportId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.stagedImportId,
+                        referencedTable: $$InboxSuggestionsTableReferences
+                            ._stagedImportIdTable(db),
+                        referencedColumn: $$InboxSuggestionsTableReferences
+                            ._stagedImportIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$InboxSuggestionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $InboxSuggestionsTable,
+      InboxSuggestion,
+      $$InboxSuggestionsTableFilterComposer,
+      $$InboxSuggestionsTableOrderingComposer,
+      $$InboxSuggestionsTableAnnotationComposer,
+      $$InboxSuggestionsTableCreateCompanionBuilder,
+      $$InboxSuggestionsTableUpdateCompanionBuilder,
+      (InboxSuggestion, $$InboxSuggestionsTableReferences),
+      InboxSuggestion,
+      PrefetchHooks Function({bool stagedImportId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15849,4 +17789,8 @@ class $AppDatabaseManager {
       $$TransactionMatchesTableTableManager(_db, _db.transactionMatches);
   $$MatchAllocationsTableTableManager get matchAllocations =>
       $$MatchAllocationsTableTableManager(_db, _db.matchAllocations);
+  $$StagedImportsTableTableManager get stagedImports =>
+      $$StagedImportsTableTableManager(_db, _db.stagedImports);
+  $$InboxSuggestionsTableTableManager get inboxSuggestions =>
+      $$InboxSuggestionsTableTableManager(_db, _db.inboxSuggestions);
 }

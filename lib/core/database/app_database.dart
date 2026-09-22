@@ -238,6 +238,36 @@ class MatchAllocations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class StagedImports extends Table {
+  TextColumn get id => text()();
+  TextColumn get rawText => text()();
+  TextColumn get fingerprint => text()();
+  IntColumn get source => integer()();
+  TextColumn get sourceKey => text()();
+  DateTimeColumn get importedAt => dateTime()();
+  TextColumn get adapterVersion => text()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class InboxSuggestions extends Table {
+  TextColumn get id => text()();
+  TextColumn get stagedImportId => text().references(StagedImports, #id)();
+  TextColumn get draftId => text()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text()();
+  DateTimeColumn get occurredAt => dateTime()();
+  TextColumn get type => text()();
+  TextColumn get merchant => text().nullable()();
+  TextColumn get reference => text().nullable()();
+  IntColumn get status => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     SchemaMetadata,
@@ -257,6 +287,8 @@ class MatchAllocations extends Table {
     AccountEntries,
     TransactionMatches,
     MatchAllocations,
+    StagedImports,
+    InboxSuggestions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -265,7 +297,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -320,6 +352,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 9) {
         await m.createTable(transactionMatches);
         await m.createTable(matchAllocations);
+      }
+      if (from < 10) {
+        await m.createTable(stagedImports);
+        await m.createTable(inboxSuggestions);
       }
       await _writeSchemaMetadata();
     },
