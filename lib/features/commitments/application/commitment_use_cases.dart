@@ -8,8 +8,24 @@ class CreateCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call({required String title, DateTime? now}) async {
-    final commitment = Commitment.create(title: title, now: now);
+  Future<Commitment> call({
+    required String title,
+    DateTime? now,
+    CommitmentKind kind = CommitmentKind.oneOff,
+    CommitmentPriority priority = CommitmentPriority.normal,
+    String? description,
+    Set<String> tags = const {},
+    List<String> attachmentIds = const [],
+  }) async {
+    final commitment = Commitment.create(
+      title: title,
+      now: now,
+      kind: kind,
+      priority: priority,
+      description: description,
+      tags: tags,
+      attachmentIds: attachmentIds,
+    );
     await repository.save(commitment);
     return commitment;
   }

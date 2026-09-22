@@ -15,6 +15,11 @@ class Commitments extends Table {
   TextColumn get title => text()();
   DateTimeColumn get createdAt => dateTime()();
   IntColumn get status => integer()();
+  IntColumn get kind => integer().withDefault(const Constant(0))();
+  IntColumn get priority => integer().withDefault(const Constant(1))();
+  TextColumn get description => text().nullable()();
+  TextColumn get tags => text().withDefault(const Constant(''))();
+  TextColumn get attachmentIds => text().withDefault(const Constant(''))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -181,7 +186,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +212,23 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) {
         await m.createTable(reminderRules);
         await m.createTable(reminderInstances);
+      }
+      if (from < 6) {
+        await customStatement(
+          'ALTER TABLE commitments ADD COLUMN kind INTEGER NOT NULL DEFAULT 0',
+        );
+        await customStatement(
+          'ALTER TABLE commitments ADD COLUMN priority INTEGER NOT NULL DEFAULT 1',
+        );
+        await customStatement(
+          'ALTER TABLE commitments ADD COLUMN description TEXT',
+        );
+        await customStatement(
+          "ALTER TABLE commitments ADD COLUMN tags TEXT NOT NULL DEFAULT ''",
+        );
+        await customStatement(
+          "ALTER TABLE commitments ADD COLUMN attachment_ids TEXT NOT NULL DEFAULT ''",
+        );
       }
       await _writeSchemaMetadata();
     },

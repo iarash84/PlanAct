@@ -256,8 +256,73 @@ class $CommitmentsTable extends Commitments
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
   @override
-  List<GeneratedColumn> get $columns => [id, title, createdAt, status];
+  late final GeneratedColumn<int> kind = GeneratedColumn<int>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _priorityMeta = const VerificationMeta(
+    'priority',
+  );
+  @override
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
+    'priority',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _attachmentIdsMeta = const VerificationMeta(
+    'attachmentIds',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentIds = GeneratedColumn<String>(
+    'attachment_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    createdAt,
+    status,
+    kind,
+    priority,
+    description,
+    tags,
+    attachmentIds,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -299,6 +364,42 @@ class $CommitmentsTable extends Commitments
     } else if (isInserting) {
       context.missing(_statusMeta);
     }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('priority')) {
+      context.handle(
+        _priorityMeta,
+        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
+    }
+    if (data.containsKey('attachment_ids')) {
+      context.handle(
+        _attachmentIdsMeta,
+        attachmentIds.isAcceptableOrUnknown(
+          data['attachment_ids']!,
+          _attachmentIdsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -324,6 +425,26 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.int,
         data['${effectivePrefix}status'],
       )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}kind'],
+      )!,
+      priority: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}priority'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      )!,
+      attachmentIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_ids'],
+      )!,
     );
   }
 
@@ -338,11 +459,21 @@ class Commitment extends DataClass implements Insertable<Commitment> {
   final String title;
   final DateTime createdAt;
   final int status;
+  final int kind;
+  final int priority;
+  final String? description;
+  final String tags;
+  final String attachmentIds;
   const Commitment({
     required this.id,
     required this.title,
     required this.createdAt,
     required this.status,
+    required this.kind,
+    required this.priority,
+    this.description,
+    required this.tags,
+    required this.attachmentIds,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -351,6 +482,13 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     map['title'] = Variable<String>(title);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['status'] = Variable<int>(status);
+    map['kind'] = Variable<int>(kind);
+    map['priority'] = Variable<int>(priority);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['tags'] = Variable<String>(tags);
+    map['attachment_ids'] = Variable<String>(attachmentIds);
     return map;
   }
 
@@ -360,6 +498,13 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       title: Value(title),
       createdAt: Value(createdAt),
       status: Value(status),
+      kind: Value(kind),
+      priority: Value(priority),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      tags: Value(tags),
+      attachmentIds: Value(attachmentIds),
     );
   }
 
@@ -373,6 +518,11 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       title: serializer.fromJson<String>(json['title']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       status: serializer.fromJson<int>(json['status']),
+      kind: serializer.fromJson<int>(json['kind']),
+      priority: serializer.fromJson<int>(json['priority']),
+      description: serializer.fromJson<String?>(json['description']),
+      tags: serializer.fromJson<String>(json['tags']),
+      attachmentIds: serializer.fromJson<String>(json['attachmentIds']),
     );
   }
   @override
@@ -383,6 +533,11 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       'title': serializer.toJson<String>(title),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'status': serializer.toJson<int>(status),
+      'kind': serializer.toJson<int>(kind),
+      'priority': serializer.toJson<int>(priority),
+      'description': serializer.toJson<String?>(description),
+      'tags': serializer.toJson<String>(tags),
+      'attachmentIds': serializer.toJson<String>(attachmentIds),
     };
   }
 
@@ -391,11 +546,21 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     String? title,
     DateTime? createdAt,
     int? status,
+    int? kind,
+    int? priority,
+    Value<String?> description = const Value.absent(),
+    String? tags,
+    String? attachmentIds,
   }) => Commitment(
     id: id ?? this.id,
     title: title ?? this.title,
     createdAt: createdAt ?? this.createdAt,
     status: status ?? this.status,
+    kind: kind ?? this.kind,
+    priority: priority ?? this.priority,
+    description: description.present ? description.value : this.description,
+    tags: tags ?? this.tags,
+    attachmentIds: attachmentIds ?? this.attachmentIds,
   );
   Commitment copyWithCompanion(CommitmentsCompanion data) {
     return Commitment(
@@ -403,6 +568,15 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       title: data.title.present ? data.title.value : this.title,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       status: data.status.present ? data.status.value : this.status,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      tags: data.tags.present ? data.tags.value : this.tags,
+      attachmentIds: data.attachmentIds.present
+          ? data.attachmentIds.value
+          : this.attachmentIds,
     );
   }
 
@@ -412,13 +586,28 @@ class Commitment extends DataClass implements Insertable<Commitment> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('createdAt: $createdAt, ')
-          ..write('status: $status')
+          ..write('status: $status, ')
+          ..write('kind: $kind, ')
+          ..write('priority: $priority, ')
+          ..write('description: $description, ')
+          ..write('tags: $tags, ')
+          ..write('attachmentIds: $attachmentIds')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, createdAt, status);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    createdAt,
+    status,
+    kind,
+    priority,
+    description,
+    tags,
+    attachmentIds,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -426,7 +615,12 @@ class Commitment extends DataClass implements Insertable<Commitment> {
           other.id == this.id &&
           other.title == this.title &&
           other.createdAt == this.createdAt &&
-          other.status == this.status);
+          other.status == this.status &&
+          other.kind == this.kind &&
+          other.priority == this.priority &&
+          other.description == this.description &&
+          other.tags == this.tags &&
+          other.attachmentIds == this.attachmentIds);
 }
 
 class CommitmentsCompanion extends UpdateCompanion<Commitment> {
@@ -434,12 +628,22 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
   final Value<String> title;
   final Value<DateTime> createdAt;
   final Value<int> status;
+  final Value<int> kind;
+  final Value<int> priority;
+  final Value<String?> description;
+  final Value<String> tags;
+  final Value<String> attachmentIds;
   final Value<int> rowid;
   const CommitmentsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.status = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.description = const Value.absent(),
+    this.tags = const Value.absent(),
+    this.attachmentIds = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CommitmentsCompanion.insert({
@@ -447,6 +651,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     required String title,
     required DateTime createdAt,
     required int status,
+    this.kind = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.description = const Value.absent(),
+    this.tags = const Value.absent(),
+    this.attachmentIds = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -457,6 +666,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     Expression<String>? title,
     Expression<DateTime>? createdAt,
     Expression<int>? status,
+    Expression<int>? kind,
+    Expression<int>? priority,
+    Expression<String>? description,
+    Expression<String>? tags,
+    Expression<String>? attachmentIds,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -464,6 +678,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
       if (title != null) 'title': title,
       if (createdAt != null) 'created_at': createdAt,
       if (status != null) 'status': status,
+      if (kind != null) 'kind': kind,
+      if (priority != null) 'priority': priority,
+      if (description != null) 'description': description,
+      if (tags != null) 'tags': tags,
+      if (attachmentIds != null) 'attachment_ids': attachmentIds,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -473,6 +692,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     Value<String>? title,
     Value<DateTime>? createdAt,
     Value<int>? status,
+    Value<int>? kind,
+    Value<int>? priority,
+    Value<String?>? description,
+    Value<String>? tags,
+    Value<String>? attachmentIds,
     Value<int>? rowid,
   }) {
     return CommitmentsCompanion(
@@ -480,6 +704,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
       title: title ?? this.title,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
+      kind: kind ?? this.kind,
+      priority: priority ?? this.priority,
+      description: description ?? this.description,
+      tags: tags ?? this.tags,
+      attachmentIds: attachmentIds ?? this.attachmentIds,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -499,6 +728,21 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
+    if (kind.present) {
+      map['kind'] = Variable<int>(kind.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<int>(priority.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
+    if (attachmentIds.present) {
+      map['attachment_ids'] = Variable<String>(attachmentIds.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -512,6 +756,11 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
           ..write('title: $title, ')
           ..write('createdAt: $createdAt, ')
           ..write('status: $status, ')
+          ..write('kind: $kind, ')
+          ..write('priority: $priority, ')
+          ..write('description: $description, ')
+          ..write('tags: $tags, ')
+          ..write('attachmentIds: $attachmentIds, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -6090,6 +6339,11 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       required String title,
       required DateTime createdAt,
       required int status,
+      Value<int> kind,
+      Value<int> priority,
+      Value<String?> description,
+      Value<String> tags,
+      Value<String> attachmentIds,
       Value<int> rowid,
     });
 typedef $$CommitmentsTableUpdateCompanionBuilder =
@@ -6098,6 +6352,11 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<String> title,
       Value<DateTime> createdAt,
       Value<int> status,
+      Value<int> kind,
+      Value<int> priority,
+      Value<String?> description,
+      Value<String> tags,
+      Value<String> attachmentIds,
       Value<int> rowid,
     });
 
@@ -6155,6 +6414,31 @@ class $$CommitmentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentIds => $composableBuilder(
+    column: $table.attachmentIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> commitmentCyclesRefs(
     Expression<bool> Function($$CommitmentCyclesTableFilterComposer f) f,
   ) {
@@ -6209,6 +6493,31 @@ class $$CommitmentsTableOrderingComposer
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachmentIds => $composableBuilder(
+    column: $table.attachmentIds,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CommitmentsTableAnnotationComposer
@@ -6231,6 +6540,25 @@ class $$CommitmentsTableAnnotationComposer
 
   GeneratedColumn<int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
+
+  GeneratedColumn<String> get attachmentIds => $composableBuilder(
+    column: $table.attachmentIds,
+    builder: (column) => column,
+  );
 
   Expression<T> commitmentCyclesRefs<T extends Object>(
     Expression<T> Function($$CommitmentCyclesTableAnnotationComposer a) f,
@@ -6290,12 +6618,22 @@ class $$CommitmentsTableTableManager
                 Value<String> title = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> status = const Value.absent(),
+                Value<int> kind = const Value.absent(),
+                Value<int> priority = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> tags = const Value.absent(),
+                Value<String> attachmentIds = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CommitmentsCompanion(
                 id: id,
                 title: title,
                 createdAt: createdAt,
                 status: status,
+                kind: kind,
+                priority: priority,
+                description: description,
+                tags: tags,
+                attachmentIds: attachmentIds,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6304,12 +6642,22 @@ class $$CommitmentsTableTableManager
                 required String title,
                 required DateTime createdAt,
                 required int status,
+                Value<int> kind = const Value.absent(),
+                Value<int> priority = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> tags = const Value.absent(),
+                Value<String> attachmentIds = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CommitmentsCompanion.insert(
                 id: id,
                 title: title,
                 createdAt: createdAt,
                 status: status,
+                kind: kind,
+                priority: priority,
+                description: description,
+                tags: tags,
+                attachmentIds: attachmentIds,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

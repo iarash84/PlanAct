@@ -10,6 +10,8 @@ enum OccurrenceStatus {
   cancelled,
   rescheduled,
   overdue,
+  deferred,
+  pendingDecision,
 }
 
 class Occurrence {
@@ -37,27 +39,54 @@ class Occurrence {
   final OccurrenceStatus status;
   final bool isManualOverride;
 
-  Occurrence reschedule(Object newScheduledAt) => Occurrence(
-    id: id,
-    cycleId: cycleId,
-    scheduleDefinitionId: scheduleDefinitionId,
-    occurrenceKey: occurrenceKey,
-    originalScheduledAt: originalScheduledAt,
-    currentScheduledAt: newScheduledAt,
-    status: OccurrenceStatus.rescheduled,
-    isManualOverride: true,
-  );
+  Occurrence reschedule(Object newScheduledAt) {
+    if (status == OccurrenceStatus.completed) {
+      throw const ValidationError('A completed occurrence cannot be rescheduled');
+    }
+    return Occurrence(
+      id: id,
+      cycleId: cycleId,
+      scheduleDefinitionId: scheduleDefinitionId,
+      occurrenceKey: occurrenceKey,
+      originalScheduledAt: originalScheduledAt,
+      currentScheduledAt: newScheduledAt,
+      status: OccurrenceStatus.rescheduled,
+      isManualOverride: true,
+    );
+  }
 
-  Occurrence withStatus(OccurrenceStatus nextStatus) => Occurrence(
-    id: id,
-    cycleId: cycleId,
-    scheduleDefinitionId: scheduleDefinitionId,
-    occurrenceKey: occurrenceKey,
-    originalScheduledAt: originalScheduledAt,
-    currentScheduledAt: currentScheduledAt,
-    status: nextStatus,
-    isManualOverride: isManualOverride,
-  );
+  Occurrence deferTo({required Object newScheduledAt, required String newKey}) {
+    if (status == OccurrenceStatus.completed) {
+      throw const ValidationError('A completed occurrence cannot be deferred');
+    }
+    return Occurrence(
+      id: StableId.generate(),
+      cycleId: cycleId,
+      scheduleDefinitionId: scheduleDefinitionId,
+      occurrenceKey: newKey,
+      originalScheduledAt: originalScheduledAt,
+      currentScheduledAt: newScheduledAt,
+      status: OccurrenceStatus.scheduled,
+      isManualOverride: true,
+    );
+  }
+
+  Occurrence withStatus(OccurrenceStatus nextStatus) {
+    if (status == OccurrenceStatus.completed &&
+        nextStatus != OccurrenceStatus.completed) {
+      throw const ValidationError('A completed occurrence is historical');
+    }
+    return Occurrence(
+      id: id,
+      cycleId: cycleId,
+      scheduleDefinitionId: scheduleDefinitionId,
+      occurrenceKey: occurrenceKey,
+      originalScheduledAt: originalScheduledAt,
+      currentScheduledAt: currentScheduledAt,
+      status: nextStatus,
+      isManualOverride: isManualOverride,
+    );
+  }
 }
 
 class OccurrenceGenerator {
@@ -123,11 +152,13 @@ class OccurrenceGenerator {
       case RecurrenceFrequency.daily:
         return days >= 0 && days % rule.interval == 0;
       case RecurrenceFrequency.weekly:
-        if (rule.weekdays.isNotEmpty &&
-            !rule.weekdays.contains(date.toUtcDateForCalculation().weekday)) {
+        final selectedWeekdays = rule.weekdays.isEmpty
+            ? {schedule.startDate.toUtcDateForCalculation().weekday}
+            : rule.weekdays;
+        if (!selectedWeekdays.contains(date.toUtcDateForCalculation().weekday)) {
           return false;
         }
-        return days >= 0 && days % (rule.interval * 7) < 7;
+        return days >= 0 && days ~/ 7 % rule.interval == 0;
       case RecurrenceFrequency.monthly:
         if (rule.dayOfMonth != null) {
           final lastDay = DateTime.utc(date.year, date.month + 1, 0).day;

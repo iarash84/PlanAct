@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
@@ -61,6 +62,43 @@ void main() {
 
     expect(regenerated.first.currentScheduledAt, LocalDate(2026, 1, 10));
     expect(regenerated.first.status, OccurrenceStatus.rescheduled);
+  });
+
+  test('preserves non-completed historical outcomes without deleting the occurrence', () {
+    final schedule = ScheduleDefinition.create(
+      cycleId: cycleId,
+      mode: ScheduleMode.oneOff,
+      timeSemantics: TimeSemantics.allDayLocalDate,
+      startDate: LocalDate(2026, 1, 10),
+    );
+    final occurrence = const OccurrenceGenerator()
+        .generate(schedule: schedule, through: LocalDate(2026, 1, 10))
+        .single;
+
+    final cancelled = occurrence.withStatus(OccurrenceStatus.cancelled);
+    final deferred = occurrence.withStatus(OccurrenceStatus.deferred);
+
+    expect(cancelled.id, occurrence.id);
+    expect(cancelled.originalScheduledAt, occurrence.originalScheduledAt);
+    expect(deferred.status, OccurrenceStatus.deferred);
+  });
+
+  test('does not rewrite a completed occurrence', () {
+    final schedule = ScheduleDefinition.create(
+      cycleId: cycleId,
+      mode: ScheduleMode.oneOff,
+      timeSemantics: TimeSemantics.allDayLocalDate,
+      startDate: LocalDate(2026, 1, 10),
+    );
+    final occurrence = const OccurrenceGenerator()
+        .generate(schedule: schedule, through: LocalDate(2026, 1, 10))
+        .single
+        .withStatus(OccurrenceStatus.completed);
+
+    expect(
+      () => occurrence.withStatus(OccurrenceStatus.cancelled),
+      throwsA(isA<ValidationError>()),
+    );
   });
 
   test('clamps a monthly day to the last day when policy allows it', () {

@@ -53,6 +53,11 @@ class DriftCommitmentRepository implements CommitmentRepository {
             title: Value(commitment.title),
             createdAt: Value(commitment.createdAt.toUtc()),
             status: Value(commitment.status.index),
+            kind: Value(commitment.kind.index),
+            priority: Value(commitment.priority.index),
+            description: Value(commitment.description),
+            tags: Value(commitment.tags.join('\\n')),
+            attachmentIds: Value(commitment.attachmentIds.join('\\n')),
           ),
         );
   }
@@ -63,6 +68,13 @@ class DriftCommitmentRepository implements CommitmentRepository {
       title: row.title,
       createdAt: row.createdAt.toUtc(),
       status: CommitmentStatus.values[row.status],
+      kind: CommitmentKind.values[row.kind],
+      priority: CommitmentPriority.values[row.priority],
+      description: row.description,
+      tags: row.tags.isEmpty ? const {} : row.tags.split('\\n').toSet(),
+      attachmentIds: row.attachmentIds.isEmpty
+          ? const []
+          : row.attachmentIds.split('\\n'),
     );
   }
 }

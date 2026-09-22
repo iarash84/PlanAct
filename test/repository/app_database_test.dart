@@ -16,7 +16,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '5');
+    expect(await database.readMetadata('schema_version'), '6');
     expect(await database.select(database.scheduleDefinitions).get(), isEmpty);
     expect(await database.select(database.occurrences).get(), isEmpty);
     expect(await database.select(database.entitlementPlans).get(), isEmpty);
@@ -40,6 +40,11 @@ void main() {
       final created = Commitment.create(
         title: 'کلاس زبان',
         now: DateTime.utc(2026, 9, 20, 10),
+        kind: CommitmentKind.recurring,
+        priority: CommitmentPriority.high,
+        description: 'جلسهٔ هفتگی',
+        tags: {'آموزش', 'کلاس'},
+        attachmentIds: ['file-1'],
       );
 
       await repository.save(created);
@@ -51,6 +56,11 @@ void main() {
 
       expect(stored?.title, 'کلاس زبان');
       expect(stored?.status, CommitmentStatus.paused);
+      expect(stored?.kind, CommitmentKind.recurring);
+      expect(stored?.priority, CommitmentPriority.high);
+      expect(stored?.description, 'جلسهٔ هفتگی');
+      expect(stored?.tags, containsAll(['آموزش', 'کلاس']));
+      expect(stored?.attachmentIds, ['file-1']);
       expect(
         (await repository.list()).map((item) => item.id),
         contains(created.id),

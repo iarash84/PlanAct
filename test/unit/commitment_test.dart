@@ -16,6 +16,35 @@ void main() {
     expect(commitment.createdAt, createdAt);
   });
 
+  test('stores commitment kind, priority, notes, tags, and attachments', () {
+    final commitment = Commitment.create(
+      title: 'پرداخت قسط',
+      now: createdAt,
+      kind: CommitmentKind.recurring,
+      priority: CommitmentPriority.high,
+      description: 'قسط دوازدهم وام',
+      tags: {'مالی', '  وام  '},
+      attachmentIds: ['receipt-1'],
+    );
+
+    expect(commitment.kind, CommitmentKind.recurring);
+    expect(commitment.priority, CommitmentPriority.high);
+    expect(commitment.description, 'قسط دوازدهم وام');
+    expect(commitment.tags, containsAll(['مالی', 'وام']));
+    expect(commitment.attachmentIds, ['receipt-1']);
+  });
+
+  test(
+    'supports explicit completion and cancellation without erasing identity',
+    () {
+      final commitment = Commitment.create(title: 'قرار کاری', now: createdAt);
+
+      expect(commitment.complete().status, CommitmentStatus.completed);
+      expect(commitment.cancel().status, CommitmentStatus.cancelled);
+      expect(commitment.cancel().id, commitment.id);
+    },
+  );
+
   test('allows active to paused to active transitions', () {
     final commitment = Commitment.create(title: 'مطالعه', now: createdAt);
 

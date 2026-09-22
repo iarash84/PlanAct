@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
-import 'package:planact/features/commitments/application/commitment_use_cases.dart';
+import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
@@ -41,7 +41,12 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
-  late final CreateCommitment _createCommitment = CreateCommitment(_repository);
+  late final InMemoryCommitmentPlanRepository _planRepository =
+      InMemoryCommitmentPlanRepository();
+  late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
+    commitments: _repository,
+    plans: _planRepository,
+  );
   int _selectedIndex = 0;
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
@@ -66,10 +71,86 @@ class _HomeShellState extends State<HomeShell> {
       builder: (_) => const QuickCaptureSheet(),
     );
     if (draft == null || draft.title.trim().isEmpty) return;
-    final commitment = await _createCommitment(title: draft.title);
-    if (draft.scheduledDates.isNotEmpty) {
-      _scheduledDates[commitment.id.value] = draft.scheduledDates;
+    final startAt = draft.scheduledDates.isEmpty
+        ? DateTime.now()
+        : draft.scheduledDates.first;
+    final plan = await _createCommitmentPlan(
+      title: draft.title,
+      startAt: startAt,
+      kind: draft.kind,
+      priority: draft.priority,
+      description: draft.description,
+      tags: draft.tags,
+      attachmentIds: draft.attachmentIds,
+      frequency: draft.frequency,
+      weekdays: draft.weekdays,
+      occurrenceCount: draft.occurrenceCount,
+      reminderOffset: draft.reminderOffset,
+    );
+    final commitment = plan.commitment;
+    if (plan.occurrences.isNotEmpty) {
+      _scheduledDates[commitment.id.value] = [
+        for (final occurrence in plan.occurrences)
+          if (occurrence.currentScheduledAt is DateTime)
+            occurrence.currentScheduledAt as DateTime,
+      ];
     }
+    await _refresh();
+  }
+
+  Future<void> _changeStatus(Commitment commitment) async {
+    final nextStatus = await showModalBottomSheet<CommitmentStatus>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(title: Text('تغییر وضعیت تعهد')),
+            if (commitment.status == CommitmentStatus.active)
+              ListTile(
+                leading: const Icon(Icons.pause_circle_outline),
+                title: const Text('توقف موقت'),
+                onTap: () => Navigator.pop(context, CommitmentStatus.paused),
+              ),
+            if (commitment.status == CommitmentStatus.paused)
+              ListTile(
+                leading: const Icon(Icons.play_circle_outline),
+                title: const Text('ادامه'),
+                onTap: () => Navigator.pop(context, CommitmentStatus.active),
+              ),
+            if (commitment.status == CommitmentStatus.active)
+              ListTile(
+                leading: const Icon(Icons.check_circle_outline),
+                title: const Text('تکمیل‌شده'),
+                onTap: () => Navigator.pop(context, CommitmentStatus.completed),
+              ),
+            if (commitment.status == CommitmentStatus.active ||
+                commitment.status == CommitmentStatus.paused)
+              ListTile(
+                leading: const Icon(Icons.cancel_outlined),
+                title: const Text('لغو تعهد'),
+                onTap: () => Navigator.pop(context, CommitmentStatus.cancelled),
+              ),
+            if (commitment.status != CommitmentStatus.archived)
+              ListTile(
+                leading: const Icon(Icons.archive_outlined),
+                title: const Text('بایگانی'),
+                onTap: () => Navigator.pop(context, CommitmentStatus.archived),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (nextStatus == null) return;
+    final updated = switch (nextStatus) {
+      CommitmentStatus.active => commitment.resume(),
+      CommitmentStatus.paused => commitment.pause(),
+      CommitmentStatus.completed => commitment.complete(),
+      CommitmentStatus.cancelled => commitment.cancel(),
+      CommitmentStatus.archived => commitment.archive(),
+    };
+    await _repository.save(updated);
     await _refresh();
   }
 
@@ -80,6 +161,7 @@ class _HomeShellState extends State<HomeShell> {
         commitments: _commitments,
         scheduledDates: _scheduledDates,
         onAdd: _showCapture,
+        onCommitmentTap: _changeStatus,
       ),
       CalendarPage(commitments: _commitments, scheduledDates: _scheduledDates),
       const _MorePage(),

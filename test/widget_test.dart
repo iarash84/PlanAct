@@ -20,13 +20,24 @@ void main() {
     expect(find.text('تعهد جدید'), findsNWidgets(2));
 
     await tester.enterText(find.byType(TextField).first, 'کلاس زبان');
+    await tester.tap(find.text('افزودن جزئیات'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('نوع تعهد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تکرارشونده').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilterChip, 'د'));
     await tester.tap(find.widgetWithText(FilterChip, 'پ'));
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'ثبت'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
     await tester.pumpAndSettle();
 
     expect(find.text('کلاس زبان'), findsOneWidget);
-    expect(find.textContaining('فعال • '), findsOneWidget);
+    expect(find.textContaining('جلسه'), findsOneWidget);
   });
 
   testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {
