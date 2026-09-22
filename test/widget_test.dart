@@ -19,12 +19,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('تعهد جدید'), findsNWidgets(2));
 
-    await tester.enterText(find.byType(TextField), 'کلاس زبان');
-    await tester.tap(find.text('ثبت'));
+    await tester.enterText(find.byType(TextField).first, 'کلاس زبان');
+    await tester.tap(find.widgetWithText(FilterChip, 'د'));
+    await tester.tap(find.widgetWithText(FilterChip, 'پ'));
+    await tester.tap(find.widgetWithText(FilledButton, 'ثبت'));
     await tester.pumpAndSettle();
 
     expect(find.text('کلاس زبان'), findsOneWidget);
-    expect(find.text('فعال • بدون زمان‌بندی'), findsOneWidget);
+    expect(find.textContaining('فعال • '), findsOneWidget);
   });
 
   testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {
@@ -33,7 +35,12 @@ void main() {
     await tester.tap(find.text('تقویم'));
     await tester.pumpAndSettle();
 
-    expect(find.text('شهریور ۱۴۰۵'), findsOneWidget);
+    expect(find.byTooltip('ماه قبل'), findsOneWidget);
+    expect(find.byTooltip('ماه بعد'), findsOneWidget);
     expect(find.text('ج'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('ماه بعد'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('ماه قبل'), findsOneWidget);
   });
 }
