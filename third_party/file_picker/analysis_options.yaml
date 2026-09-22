@@ -5,6 +5,8 @@ analyzer:
     - build/**
     - example/**
     - lib/generated_plugin_registrant.dart
+    - android/**
+    - ios/**
 #   language:
 #     strict-raw-types: true
 #   strong-mode:
