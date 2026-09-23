@@ -11,17 +11,10 @@ export 'app/planact_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(PlanActStartup(repositoryFuture: _initializeApplication()));
+  runApp(PlanActStartup(repositoryLoader: _initializeApplication));
 }
 
-Future<CommitmentRepository> _initializeApplication() async {
-  final repositoryFuture = _createRepository();
-  await Future.wait<void>([
-    repositoryFuture.then<void>((_) {}),
-    Future<void>.delayed(const Duration(milliseconds: 1800)),
-  ]);
-  return repositoryFuture;
-}
+Future<CommitmentRepository> _initializeApplication() => _createRepository();
 
 Future<CommitmentRepository> _createRepository() async {
   final directory = await getApplicationDocumentsDirectory();

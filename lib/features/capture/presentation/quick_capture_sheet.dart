@@ -46,6 +46,7 @@ class QuickCaptureSheet extends StatefulWidget {
 }
 
 class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
+  final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
   final _occurrenceCountController = TextEditingController();
   bool _showOptions = false;
@@ -89,8 +90,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   }
 
   void _save() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final title = _controller.text.trim();
-    if (title.isEmpty) return;
     Navigator.of(context).pop(
       CommitmentDraft(
         title: title,
@@ -132,224 +133,246 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         PlanActSpacing.lg,
         bottom + PlanActSpacing.lg,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'تعهد جدید',
-              style: Theme.of(context).textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: PlanActSpacing.lg),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _save(),
-              decoration: const InputDecoration(
-                labelText: 'چه کاری باید انجام شود؟',
-                hintText: 'مثلاً کلاس زبان',
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'تعهد جدید',
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: PlanActSpacing.md),
-            TextButton.icon(
-              onPressed: () => setState(() => _showOptions = !_showOptions),
-              icon: Icon(_showOptions ? Icons.expand_less : Icons.tune),
-              label: Text(_showOptions ? 'بستن گزینه‌ها' : 'افزودن جزئیات'),
-            ),
-            if (_showOptions) ...[
-              Wrap(
-                spacing: PlanActSpacing.sm,
-                runSpacing: PlanActSpacing.sm,
-                children: [
-                  ActionChip(
-                    avatar: const Icon(Icons.calendar_today_outlined, size: 18),
-                    label: Text(
-                      PersianDateFormatter.date(JalaliDate.fromDateTime(_date)),
+              const SizedBox(height: PlanActSpacing.lg),
+              TextFormField(
+                key: const ValueKey('commitment-title-field'),
+                controller: _controller,
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _save(),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'عنوان تعهد را وارد کنید.'
+                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'چه کاری باید انجام شود؟',
+                  hintText: 'مثلاً کلاس زبان',
+                ),
+              ),
+              const SizedBox(height: PlanActSpacing.md),
+              TextButton.icon(
+                onPressed: () => setState(() => _showOptions = !_showOptions),
+                icon: Icon(_showOptions ? Icons.expand_less : Icons.tune),
+                label: Text(_showOptions ? 'بستن گزینه‌ها' : 'افزودن جزئیات'),
+              ),
+              if (_showOptions) ...[
+                Wrap(
+                  spacing: PlanActSpacing.sm,
+                  runSpacing: PlanActSpacing.sm,
+                  children: [
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 18,
+                      ),
+                      label: Text(
+                        PersianDateFormatter.date(
+                          JalaliDate.fromDateTime(_date),
+                        ),
+                      ),
+                      onPressed: _pickDate,
                     ),
-                    onPressed: _pickDate,
-                  ),
-                  ActionChip(
-                    avatar: const Icon(Icons.schedule_outlined, size: 18),
-                    label: Text(
-                      _time == null ? 'زمان' : _time!.format(context),
+                    ActionChip(
+                      avatar: const Icon(Icons.schedule_outlined, size: 18),
+                      label: Text(
+                        _time == null ? 'زمان' : _time!.format(context),
+                      ),
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: _time ?? TimeOfDay.now(),
+                        );
+                        if (picked != null) setState(() => _time = picked);
+                      },
                     ),
-                    onPressed: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: _time ?? TimeOfDay.now(),
-                      );
-                      if (picked != null) setState(() => _time = picked);
-                    },
-                  ),
-                  if (_kind == CommitmentKind.recurring)
-                    DropdownButton<RecurrenceFrequency>(
-                      value: _frequency,
+                    if (_kind == CommitmentKind.recurring)
+                      DropdownButton<RecurrenceFrequency>(
+                        value: _frequency,
+                        items: const [
+                          DropdownMenuItem(
+                            value: RecurrenceFrequency.daily,
+                            child: Text('روزانه'),
+                          ),
+                          DropdownMenuItem(
+                            value: RecurrenceFrequency.weekly,
+                            child: Text('هفتگی'),
+                          ),
+                          DropdownMenuItem(
+                            value: RecurrenceFrequency.monthly,
+                            child: Text('ماهانه'),
+                          ),
+                          DropdownMenuItem(
+                            value: RecurrenceFrequency.yearly,
+                            child: Text('سالانه'),
+                          ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _frequency = value!),
+                      ),
+                    DropdownButton<Duration?>(
+                      value: _reminderOffset,
+                      hint: const Text('یادآوری'),
                       items: const [
                         DropdownMenuItem(
-                          value: RecurrenceFrequency.daily,
-                          child: Text('روزانه'),
+                          value: null,
+                          child: Text('بدون یادآوری'),
                         ),
                         DropdownMenuItem(
-                          value: RecurrenceFrequency.weekly,
-                          child: Text('هفتگی'),
+                          value: Duration(minutes: 5),
+                          child: Text('۵ دقیقه قبل'),
                         ),
                         DropdownMenuItem(
-                          value: RecurrenceFrequency.monthly,
-                          child: Text('ماهانه'),
+                          value: Duration(minutes: 15),
+                          child: Text('۱۵ دقیقه قبل'),
                         ),
                         DropdownMenuItem(
-                          value: RecurrenceFrequency.yearly,
-                          child: Text('سالانه'),
+                          value: Duration(hours: 1),
+                          child: Text('۱ ساعت قبل'),
+                        ),
+                        DropdownMenuItem(
+                          value: Duration(days: 1),
+                          child: Text('۱ روز قبل'),
+                        ),
+                        DropdownMenuItem(
+                          value: Duration(days: 2),
+                          child: Text('۲ روز قبل'),
                         ),
                       ],
-                      onChanged: (value) => setState(() => _frequency = value!),
+                      onChanged: (value) =>
+                          setState(() => _reminderOffset = value),
                     ),
-                  DropdownButton<Duration?>(
-                    value: _reminderOffset,
-                    hint: const Text('یادآوری'),
-                    items: const [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text('بدون یادآوری'),
-                      ),
-                      DropdownMenuItem(
-                        value: Duration(minutes: 5),
-                        child: Text('۵ دقیقه قبل'),
-                      ),
-                      DropdownMenuItem(
-                        value: Duration(minutes: 15),
-                        child: Text('۱۵ دقیقه قبل'),
-                      ),
-                      DropdownMenuItem(
-                        value: Duration(hours: 1),
-                        child: Text('۱ ساعت قبل'),
-                      ),
-                      DropdownMenuItem(
-                        value: Duration(days: 1),
-                        child: Text('۱ روز قبل'),
-                      ),
-                      DropdownMenuItem(
-                        value: Duration(days: 2),
-                        child: Text('۲ روز قبل'),
-                      ),
-                    ],
+                  ],
+                ),
+                if (_kind == CommitmentKind.recurring) ...[
+                  const SizedBox(height: PlanActSpacing.md),
+                  TextField(
+                    controller: _occurrenceCountController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'تعداد جلسات',
+                      hintText: 'مثلاً ۱۰',
+                    ),
                     onChanged: (value) =>
-                        setState(() => _reminderOffset = value),
+                        _occurrenceCount = int.tryParse(value),
                   ),
                 ],
-              ),
-              if (_kind == CommitmentKind.recurring) ...[
+                const SizedBox(height: PlanActSpacing.md),
+                DropdownButtonFormField<CommitmentKind>(
+                  key: const ValueKey('commitment-kind-dropdown'),
+                  initialValue: _kind,
+                  decoration: const InputDecoration(labelText: 'نوع تعهد'),
+                  items: const [
+                    DropdownMenuItem(
+                      value: CommitmentKind.oneOff,
+                      child: Text('یک‌باره'),
+                    ),
+                    DropdownMenuItem(
+                      value: CommitmentKind.recurring,
+                      child: Text('تکرارشونده'),
+                    ),
+                  ],
+                  onChanged: (value) => setState(() => _kind = value!),
+                ),
+                const SizedBox(height: PlanActSpacing.md),
+                DropdownButtonFormField<CommitmentPriority>(
+                  initialValue: _priority,
+                  decoration: const InputDecoration(labelText: 'اولویت'),
+                  items: const [
+                    DropdownMenuItem(
+                      value: CommitmentPriority.low,
+                      child: Text('کم'),
+                    ),
+                    DropdownMenuItem(
+                      value: CommitmentPriority.normal,
+                      child: Text('عادی'),
+                    ),
+                    DropdownMenuItem(
+                      value: CommitmentPriority.high,
+                      child: Text('زیاد'),
+                    ),
+                    DropdownMenuItem(
+                      value: CommitmentPriority.urgent,
+                      child: Text('فوری'),
+                    ),
+                  ],
+                  onChanged: (value) => setState(() => _priority = value!),
+                ),
                 const SizedBox(height: PlanActSpacing.md),
                 TextField(
-                  controller: _occurrenceCountController,
-                  keyboardType: TextInputType.number,
+                  controller: _descriptionController,
+                  maxLines: 2,
+                  decoration: const InputDecoration(labelText: 'توضیحات'),
+                ),
+                const SizedBox(height: PlanActSpacing.md),
+                TextField(
+                  controller: _tagsController,
                   decoration: const InputDecoration(
-                    labelText: 'تعداد جلسات',
-                    hintText: 'مثلاً ۱۰',
+                    labelText: 'برچسب‌ها',
+                    hintText: 'مثلاً مالی، شخصی',
                   ),
-                  onChanged: (value) => _occurrenceCount = int.tryParse(value),
+                ),
+                const SizedBox(height: PlanActSpacing.md),
+                OutlinedButton.icon(
+                  onPressed: _pickAttachments,
+                  icon: const Icon(Icons.attach_file),
+                  label: Text(
+                    _attachmentIds.isEmpty
+                        ? 'افزودن فایل'
+                        : '${_attachmentIds.length} فایل انتخاب شده',
+                  ),
+                ),
+              ],
+              if (_showOptions &&
+                  _kind == CommitmentKind.recurring &&
+                  _frequency == RecurrenceFrequency.weekly) ...[
+                const SizedBox(height: PlanActSpacing.sm),
+                Wrap(
+                  spacing: PlanActSpacing.sm,
+                  children: [
+                    for (final day in const [
+                      ('ش', 6),
+                      ('ی', 7),
+                      ('د', 1),
+                      ('س', 2),
+                      ('چ', 3),
+                      ('پ', 4),
+                      ('ج', 5),
+                    ])
+                      FilterChip(
+                        label: Text(day.$1),
+                        selected: _weekdays.contains(day.$2),
+                        onSelected: (selected) => setState(() {
+                          if (selected) {
+                            _weekdays.add(day.$2);
+                          } else {
+                            _weekdays.remove(day.$2);
+                          }
+                        }),
+                      ),
+                  ],
                 ),
               ],
               const SizedBox(height: PlanActSpacing.md),
-              DropdownButtonFormField<CommitmentKind>(
-                initialValue: _kind,
-                decoration: const InputDecoration(labelText: 'نوع تعهد'),
-                items: const [
-                  DropdownMenuItem(
-                    value: CommitmentKind.oneOff,
-                    child: Text('یک‌باره'),
-                  ),
-                  DropdownMenuItem(
-                    value: CommitmentKind.recurring,
-                    child: Text('تکرارشونده'),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _kind = value!),
-              ),
-              const SizedBox(height: PlanActSpacing.md),
-              DropdownButtonFormField<CommitmentPriority>(
-                initialValue: _priority,
-                decoration: const InputDecoration(labelText: 'اولویت'),
-                items: const [
-                  DropdownMenuItem(
-                    value: CommitmentPriority.low,
-                    child: Text('کم'),
-                  ),
-                  DropdownMenuItem(
-                    value: CommitmentPriority.normal,
-                    child: Text('عادی'),
-                  ),
-                  DropdownMenuItem(
-                    value: CommitmentPriority.high,
-                    child: Text('زیاد'),
-                  ),
-                  DropdownMenuItem(
-                    value: CommitmentPriority.urgent,
-                    child: Text('فوری'),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _priority = value!),
-              ),
-              const SizedBox(height: PlanActSpacing.md),
-              TextField(
-                controller: _descriptionController,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'توضیحات'),
-              ),
-              const SizedBox(height: PlanActSpacing.md),
-              TextField(
-                controller: _tagsController,
-                decoration: const InputDecoration(
-                  labelText: 'برچسب‌ها',
-                  hintText: 'مثلاً مالی، شخصی',
-                ),
-              ),
-              const SizedBox(height: PlanActSpacing.md),
-              OutlinedButton.icon(
-                onPressed: _pickAttachments,
-                icon: const Icon(Icons.attach_file),
-                label: Text(
-                  _attachmentIds.isEmpty
-                      ? 'افزودن فایل'
-                      : '${_attachmentIds.length} فایل انتخاب شده',
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  key: const ValueKey('commitment-save-button'),
+                  onPressed: _save,
+                  child: const Text('ثبت'),
                 ),
               ),
             ],
-            if (_showOptions &&
-                _kind == CommitmentKind.recurring &&
-                _frequency == RecurrenceFrequency.weekly) ...[
-              const SizedBox(height: PlanActSpacing.sm),
-              Wrap(
-                spacing: PlanActSpacing.sm,
-                children: [
-                  for (final day in const [
-                    ('ش', 6),
-                    ('ی', 7),
-                    ('د', 1),
-                    ('س', 2),
-                    ('چ', 3),
-                    ('پ', 4),
-                    ('ج', 5),
-                  ])
-                    FilterChip(
-                      label: Text(day.$1),
-                      selected: _weekdays.contains(day.$2),
-                      onSelected: (selected) => setState(() {
-                        if (selected) {
-                          _weekdays.add(day.$2);
-                        } else {
-                          _weekdays.remove(day.$2);
-                        }
-                      }),
-                    ),
-                ],
-              ),
-            ],
-            const SizedBox(height: PlanActSpacing.md),
-            FilledButton(onPressed: _save, child: const Text('ثبت')),
-          ],
+          ),
         ),
       ),
     );

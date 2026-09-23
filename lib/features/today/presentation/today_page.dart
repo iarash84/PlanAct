@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -23,6 +24,20 @@ class TodayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = JalaliDate.now();
+    final todayItems = commitments.where((commitment) {
+      final dates = scheduledDates[commitment.id.value] ?? const <DateTime>[];
+      return dates.any((date) => JalaliDate.fromDateTime(date) == today);
+    }).toList();
+    final completedCount = todayItems
+        .where((item) => item.status == CommitmentStatus.completed)
+        .length;
+    final attentionCount = todayItems
+        .where(
+          (item) =>
+              item.status != CommitmentStatus.completed &&
+              item.status != CommitmentStatus.archived,
+        )
+        .length;
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         PlanActSpacing.lg,
@@ -43,21 +58,25 @@ class TodayPage extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: PlanActSpacing.lg),
-        _Summary(commitments: commitments),
+        _Summary(
+          plannedCount: todayItems.length,
+          completedCount: completedCount,
+          attentionCount: attentionCount,
+        ),
         const SizedBox(height: PlanActSpacing.xl),
         const _SectionHeader(
           title: 'نیازمند توجه',
           color: PlanActColors.attention,
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        _AttentionState(hasItems: false),
+        _AttentionState(hasItems: attentionCount > 0),
         const SizedBox(height: PlanActSpacing.xl),
         const _SectionHeader(title: 'امروز', color: PlanActColors.primary),
         const SizedBox(height: PlanActSpacing.sm),
-        if (commitments.isEmpty)
+        if (todayItems.isEmpty)
           _EmptyState(onAdd: onAdd)
         else
-          ...commitments.map(
+          ...todayItems.map(
             (item) => PlanActCommitmentRow(
               commitment: item,
               scheduledDates: scheduledDates[item.id.value] ?? const [],
@@ -76,8 +95,15 @@ class TodayPage extends StatelessWidget {
 }
 
 class _Summary extends StatelessWidget {
-  const _Summary({required this.commitments});
-  final List<Commitment> commitments;
+  const _Summary({
+    required this.plannedCount,
+    required this.completedCount,
+    required this.attentionCount,
+  });
+
+  final int plannedCount;
+  final int completedCount;
+  final int attentionCount;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(PlanActSpacing.lg),
@@ -88,9 +114,15 @@ class _Summary extends StatelessWidget {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _Metric(value: '${commitments.length}', label: 'برنامه'),
-        const _Metric(value: '۰', label: 'انجام شده'),
-        const _Metric(value: '۰', label: 'نیازمند توجه'),
+        _Metric(value: PersianNumbers.format(plannedCount), label: 'برنامه'),
+        _Metric(
+          value: PersianNumbers.format(completedCount),
+          label: 'انجام شده',
+        ),
+        _Metric(
+          value: PersianNumbers.format(attentionCount),
+          label: 'نیازمند توجه',
+        ),
       ],
     ),
   );

@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/planact_app.dart';
-import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 
-class PlanActStartup extends StatelessWidget {
-  const PlanActStartup({super.key, required this.repositoryFuture});
+class PlanActStartup extends StatefulWidget {
+  const PlanActStartup({super.key, required this.repositoryLoader});
 
-  final Future<CommitmentRepository> repositoryFuture;
+  final Future<CommitmentRepository> Function() repositoryLoader;
+
+  @override
+  State<PlanActStartup> createState() => _PlanActStartupState();
+}
+
+class _PlanActStartupState extends State<PlanActStartup> {
+  late Future<CommitmentRepository> _repositoryFuture = widget
+      .repositoryLoader();
+
+  void _retry() {
+    setState(() {
+      _repositoryFuture = widget.repositoryLoader();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'پلن‌اکت',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: PlanActColors.primary),
-        useMaterial3: true,
-      ),
+      theme: PlanActTheme.light(),
+      darkTheme: PlanActTheme.dark(),
+      themeMode: ThemeMode.system,
       home: FutureBuilder<CommitmentRepository>(
-        future: repositoryFuture,
+        future: _repositoryFuture,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return _StartupError(error: snapshot.error);
+            return _StartupError(onRetry: _retry);
           }
           if (snapshot.hasData) {
             return PlanActApp(repository: snapshot.data);
@@ -177,9 +190,9 @@ class _Glow extends StatelessWidget {
 }
 
 class _StartupError extends StatelessWidget {
-  const _StartupError({this.error});
+  const _StartupError({required this.onRetry});
 
-  final Object? error;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => Directionality(
@@ -191,15 +204,20 @@ class _StartupError extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.cloud_off_outlined, size: 48),
+              const Icon(Icons.error_outline, size: 48),
               const SizedBox(height: 16),
               const Text('راه‌اندازی برنامه انجام نشد'),
               const SizedBox(height: 8),
               Text(
-                'لطفاً برنامه را دوباره باز کنید.',
+                'اتصال به فضای ذخیره‌سازی برقرار نشد.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              if (error != null) const SizedBox.shrink(),
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('تلاش دوباره'),
+              ),
             ],
           ),
         ),

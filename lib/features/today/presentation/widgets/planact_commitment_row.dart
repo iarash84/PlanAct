@@ -17,7 +17,33 @@ class PlanActCommitmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPaused = commitment.status == CommitmentStatus.paused;
+    final (icon, iconColor, statusLabel) = switch (commitment.status) {
+      CommitmentStatus.active => (
+        Icons.radio_button_unchecked,
+        Theme.of(context).colorScheme.primary,
+        'فعال',
+      ),
+      CommitmentStatus.paused => (
+        Icons.pause_circle_outline,
+        PlanActColors.attention,
+        'متوقف‌شده',
+      ),
+      CommitmentStatus.completed => (
+        Icons.check_circle_outline,
+        PlanActColors.success,
+        'تکمیل‌شده',
+      ),
+      CommitmentStatus.cancelled => (
+        Icons.cancel_outlined,
+        Theme.of(context).colorScheme.error,
+        'لغوشده',
+      ),
+      CommitmentStatus.archived => (
+        Icons.archive_outlined,
+        Theme.of(context).colorScheme.onSurfaceVariant,
+        'بایگانی‌شده',
+      ),
+    };
     return Semantics(
       button: onTap != null,
       label: commitment.title,
@@ -27,14 +53,7 @@ class PlanActCommitmentRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: PlanActSpacing.md),
           child: Row(
             children: [
-              Icon(
-                isPaused
-                    ? Icons.pause_circle_outline
-                    : Icons.radio_button_unchecked,
-                color: isPaused
-                    ? PlanActColors.attention
-                    : Theme.of(context).colorScheme.primary,
-              ),
+              Icon(icon, color: iconColor),
               const SizedBox(width: PlanActSpacing.md),
               Expanded(
                 child: Column(
@@ -48,8 +67,8 @@ class PlanActCommitmentRow extends StatelessWidget {
                     const SizedBox(height: PlanActSpacing.xs),
                     Text(
                       scheduledDates.isEmpty
-                          ? 'فعال • بدون زمان‌بندی'
-                          : 'فعال • ${scheduledDates.length} جلسه',
+                          ? '$statusLabel • بدون زمان‌بندی'
+                          : '$statusLabel • ${scheduledDates.length} جلسه',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
