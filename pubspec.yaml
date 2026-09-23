@@ -30,14 +30,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  crypto: ^3.0.6
+  drift: ^2.28.1
+  sqlite3_flutter_libs: ^0.5.29
+  path_provider: ^2.1.5
+  file_picker:
+    path: third_party/file_picker
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  shamsi_date: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: ^2.7.1
+  flutter_launcher_icons: ^0.14.4
+  drift_dev: ^2.28.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -58,7 +68,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/planact_logo.png
+    - assets/icons/app_icon.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -70,6 +80,15 @@ flutter:
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/icons/app_icon.png
+  adaptive_icon_foreground: assets/icons/app_icon_foreground.png
+  adaptive_icon_background: '#062B3A'
+  min_sdk_android: 21
+  remove_alpha_ios: false
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

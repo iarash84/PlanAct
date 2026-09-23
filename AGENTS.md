@@ -28,6 +28,10 @@ The product is **not** primarily a calendar, to-do list, reminder app, expense t
 - **Deterministic core.** Time, status, balance, entitlement, and reconciliation calculations must be explainable and testable.
 - **No silent mutation.** Do not silently change dates, amounts, matches, balances, or consumed sessions.
 - **User-controlled backup.** Offline-first must not mean data-loss-prone.
+- **Persian-first experience.** The primary product language is Persian; user-facing labels, actions, statuses, errors, empty states, accessibility text, and onboarding copy must be Persian unless a documented exception exists.
+- **RTL by default.** The application UI must use right-to-left layout semantics correctly. Do not achieve RTL by manually reversing lists or hard-coding directional padding/icons; use Flutter directionality and start/end-aware layout APIs.
+- **Jalali calendar for users.** User-facing dates, date pickers, calendar views, recurrence editing, and date-related summaries must use the Persian (Jalali) calendar and Persian locale conventions. Domain persistence must retain unambiguous, testable date/time semantics and must not conflate display-calendar conversion with stored instants or local dates.
+- **Locale-aware formatting.** Persian digits, weekday/month names, number formatting, and pluralization must be handled through locale-aware presentation code, not scattered string replacements.
 
 ## 3. Current implementation baseline
 

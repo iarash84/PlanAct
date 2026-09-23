@@ -33,6 +33,12 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local Android/Gradle and plugin build caches
+.gradle/
+**/.gradle/
+android/.kotlin/
+**/android/.kotlin/
+
 # Symbolication related
 app.*.symbols
 
