@@ -65,7 +65,17 @@ void main() {
 
     expect(find.byTooltip('ماه قبل'), findsOneWidget);
     expect(find.byTooltip('ماه بعد'), findsOneWidget);
-    expect(find.text('ج'), findsOneWidget);
+    for (final weekday in [
+      'شنبه',
+      'یکشنبه',
+      'دوشنبه',
+      'سه‌شنبه',
+      'چهارشنبه',
+      'پنجشنبه',
+      'جمعه',
+    ]) {
+      expect(find.text(weekday), findsOneWidget);
+    }
 
     await tester.tap(find.byTooltip('ماه بعد'));
     await tester.pumpAndSettle();
