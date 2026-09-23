@@ -64,8 +64,15 @@ class CreateCommitmentPlan {
     int? dayOfMonth,
     int? occurrenceCount,
     DateTime? endDate,
+    List<Duration> reminderOffsets = const [],
+    @Deprecated('Use reminderOffsets to support multiple reminders.')
     Duration? reminderOffset,
   }) async {
+    final effectiveReminderOffsets = reminderOffsets.isNotEmpty
+        ? reminderOffsets
+        : reminderOffset == null
+        ? const <Duration>[]
+        : [reminderOffset];
     final commitment = Commitment.create(
       title: title,
       now: startAt,
@@ -126,17 +133,15 @@ class CreateCommitmentPlan {
       schedule: schedule,
       through: through,
     );
-    final reminders = reminderOffset == null
-        ? const <ReminderRule>[]
-        : occurrences
-              .map(
-                (occurrence) => ReminderRule.beforeOccurrence(
-                  occurrenceId: occurrence.id,
-                  offset: reminderOffset,
-                  title: title,
-                ),
-              )
-              .toList(growable: false);
+    final reminders = [
+      for (final occurrence in occurrences)
+        for (final offset in effectiveReminderOffsets)
+          ReminderRule.beforeOccurrence(
+            occurrenceId: occurrence.id,
+            offset: offset,
+            title: title,
+          ),
+    ];
     final plan = CommitmentPlan(
       commitment: commitment,
       cycle: cycle,
@@ -147,10 +152,12 @@ class CreateCommitmentPlan {
     await commitments.save(commitment);
     await plans.save(plan);
     if (reminderService != null) {
-      for (var index = 0; index < occurrences.length; index++) {
-        final occurrence = occurrences[index];
+      for (final reminder in reminders) {
+        final occurrence = occurrences.firstWhere(
+          (item) => item.id == reminder.occurrenceId,
+        );
         await reminderService!.schedule(
-          rule: reminders[index],
+          rule: reminder,
           occurrenceStart: occurrence.currentScheduledAt as DateTime,
         );
       }

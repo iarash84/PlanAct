@@ -15,11 +15,13 @@ class TodayPage extends StatelessWidget {
     required this.scheduledDates,
     required this.onAdd,
     required this.onCommitmentTap,
+    required this.onCommitmentDelete,
   });
   final List<Commitment> commitments;
   final Map<String, List<DateTime>> scheduledDates;
   final VoidCallback onAdd;
   final ValueChanged<Commitment> onCommitmentTap;
+  final ValueChanged<Commitment> onCommitmentDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +83,7 @@ class TodayPage extends StatelessWidget {
               commitment: item,
               scheduledDates: scheduledDates[item.id.value] ?? const [],
               onTap: () => onCommitmentTap(item),
+              onDelete: () => onCommitmentDelete(item),
             ),
           ),
         const SizedBox(height: PlanActSpacing.xl),

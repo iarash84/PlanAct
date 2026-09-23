@@ -85,7 +85,7 @@ class _HomeShellState extends State<HomeShell> {
       frequency: draft.frequency,
       weekdays: draft.weekdays,
       occurrenceCount: draft.occurrenceCount,
-      reminderOffset: draft.reminderOffset,
+      reminderOffsets: draft.reminderOffsets,
     );
     final commitment = plan.commitment;
     if (plan.occurrences.isNotEmpty) {
@@ -152,6 +152,45 @@ class _HomeShellState extends State<HomeShell> {
     };
     await _repository.save(updated);
     await _refresh();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('وضعیت «${commitment.title}» تغییر کرد.'),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'بازگردانی',
+            onPressed: () async {
+              await _repository.save(commitment);
+              await _refresh();
+            },
+          ),
+        ),
+      );
+  }
+
+  Future<void> _deleteCommitment(Commitment commitment) async {
+    if (commitment.status == CommitmentStatus.archived) return;
+    final previous = commitment;
+    await _repository.save(commitment.archive());
+    await _refresh();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('تعهد بایگانی شد.'),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: 'بازگردانی',
+            onPressed: () async {
+              await _repository.save(previous);
+              await _refresh();
+            },
+          ),
+        ),
+      );
   }
 
   @override
@@ -162,6 +201,7 @@ class _HomeShellState extends State<HomeShell> {
         scheduledDates: _scheduledDates,
         onAdd: _showCapture,
         onCommitmentTap: _changeStatus,
+        onCommitmentDelete: _deleteCommitment,
       ),
       CalendarPage(commitments: _commitments, scheduledDates: _scheduledDates),
       const _MorePage(),

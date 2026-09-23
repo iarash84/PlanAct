@@ -9,11 +9,13 @@ class PlanActCommitmentRow extends StatelessWidget {
     required this.commitment,
     this.scheduledDates = const [],
     this.onTap,
+    this.onDelete,
   });
 
   final Commitment commitment;
   final List<DateTime> scheduledDates;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class PlanActCommitmentRow extends StatelessWidget {
         'بایگانی‌شده',
       ),
     };
-    return Semantics(
+    final content = Semantics(
       button: onTap != null,
       label: commitment.title,
       child: InkWell(
@@ -81,6 +83,25 @@ class PlanActCommitmentRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+    if (onDelete == null) return content;
+    return Dismissible(
+      key: ValueKey(commitment.id.value),
+      direction: DismissDirection.startToEnd,
+      confirmDismiss: (_) async {
+        onDelete!();
+        return false;
+      },
+      background: Container(
+        alignment: AlignmentDirectional.centerStart,
+        padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.lg),
+        color: Theme.of(context).colorScheme.errorContainer,
+        child: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.onErrorContainer,
+        ),
+      ),
+      child: content,
     );
   }
 }

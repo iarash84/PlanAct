@@ -13,8 +13,10 @@ class CalendarPage extends StatefulWidget {
     required this.commitments,
     required this.scheduledDates,
   });
+
   final List<Commitment> commitments;
   final Map<String, List<DateTime>> scheduledDates;
+
   @override
   State<CalendarPage> createState() => _CalendarPageState();
 }
@@ -34,103 +36,93 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final today = JalaliDate.now();
-    final scheduled = widget.scheduledDates.values
-        .expand((dates) => dates.map(JalaliDate.fromDateTime))
-        .toList();
     final holidays = _holidayProvider.holidaysForMonth(
       _month.year,
       _month.month,
     );
     final leading = _month.weekDay - 1;
-    final selectedItems = <Commitment>[];
-    for (final item in widget.commitments) {
-      final dates = widget.scheduledDates[item.id.value] ?? const <DateTime>[];
-      if (dates.any((date) => JalaliDate.fromDateTime(date) == _selectedDay)) {
-        selectedItems.add(item);
-      }
-    }
+    final cellCount = ((leading + _month.monthLength + 6) ~/ 7) * 7;
+    final selectedItems = _commitmentsFor(_selectedDay);
+
     return ListView(
-      padding: const EdgeInsets.all(PlanActSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+        PlanActSpacing.md,
+        PlanActSpacing.sm,
+        PlanActSpacing.md,
+        PlanActSpacing.xl,
+      ),
       children: [
-        Row(
-          children: [
-            IconButton(
-              tooltip: 'ماه قبل',
-              onPressed: () => setState(() {
-                _month = _month.addMonths(-1);
-              }),
-              icon: const Icon(Icons.chevron_right),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  PersianDateFormatter.month(_month),
-                  style: Theme.of(context).textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: 'ماه بعد',
-              onPressed: () => setState(() {
-                _month = _month.addMonths(1);
-              }),
-              icon: const Icon(Icons.chevron_left),
-            ),
-            IconButton(
-              tooltip: 'امروز',
-              onPressed: () => setState(() {
-                _month = JalaliDate(today.year, today.month, 1);
-                _selectedDay = today;
-              }),
-              icon: const Icon(Icons.today),
-            ),
-          ],
+        _CalendarHeader(
+          month: _month,
+          onPrevious: () => setState(() {
+            _month = _month.addMonths(-1);
+          }),
+          onNext: () => setState(() {
+            _month = _month.addMonths(1);
+          }),
+          onToday: () => setState(() {
+            _month = JalaliDate(today.year, today.month, 1);
+            _selectedDay = today;
+          }),
         ),
         const SizedBox(height: PlanActSpacing.md),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: PersianDateFormatter.weekdayNames
-              .map((name) => Text(name.substring(0, 1)))
+              .map(
+                (name) => Expanded(
+                  child: Center(
+                    child: Text(
+                      name,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              )
               .toList(),
         ),
-        const SizedBox(height: PlanActSpacing.sm),
-        GridView.count(
+        const SizedBox(height: PlanActSpacing.xs),
+        GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 7,
-          children: [
-            for (var i = 0; i < leading; i++) const SizedBox.shrink(),
-            for (var day = 1; day <= _month.monthLength; day++)
-              _CalendarDay(
-                day: day,
-                selected:
-                    _selectedDay == JalaliDate(_month.year, _month.month, day),
-                isToday: today == JalaliDate(_month.year, _month.month, day),
-                highlighted: scheduled.any(
-                  (date) =>
-                      date.year == _month.year &&
-                      date.month == _month.month &&
-                      date.day == day,
-                ),
-                holiday: holidays.any((holiday) => holiday.date.day == day),
-                onTap: () => setState(
-                  () =>
-                      _selectedDay = JalaliDate(_month.year, _month.month, day),
-                ),
-              ),
-          ],
+          itemCount: cellCount,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            crossAxisSpacing: 3,
+            mainAxisSpacing: 3,
+            childAspectRatio: .72,
+          ),
+          itemBuilder: (context, index) {
+            final day = index - leading + 1;
+            if (day < 1 || day > _month.monthLength) {
+              return const SizedBox.shrink();
+            }
+            final date = JalaliDate(_month.year, _month.month, day);
+            final items = _commitmentsFor(date);
+            return _CalendarDay(
+              date: date,
+              selected: _selectedDay == date,
+              isToday: today == date,
+              holiday: holidays.any((holiday) => holiday.date == date),
+              commitments: items,
+              onTap: () => setState(() => _selectedDay = date),
+            );
+          },
         ),
-        const SizedBox(height: PlanActSpacing.xl),
+        const SizedBox(height: PlanActSpacing.lg),
         Text(
           PersianDateFormatter.relative(_selectedDay),
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: PlanActSpacing.sm),
         if (selectedItems.isEmpty)
-          const Text('برای این روز برنامه‌ای ثبت نشده.')
+          const Text('برای این روز تعهدی ثبت نشده است.')
         else
           ...selectedItems.map(
             (item) => PlanActCommitmentRow(
@@ -141,53 +133,158 @@ class _CalendarPageState extends State<CalendarPage> {
       ],
     );
   }
+
+  List<Commitment> _commitmentsFor(JalaliDate date) => widget.commitments.where(
+    (item) {
+      final dates = widget.scheduledDates[item.id.value] ?? const <DateTime>[];
+      return dates.any((value) => JalaliDate.fromDateTime(value) == date);
+    },
+  ).toList();
+}
+
+class _CalendarHeader extends StatelessWidget {
+  const _CalendarHeader({
+    required this.month,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onToday,
+  });
+
+  final JalaliDate month;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onToday;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        IconButton(
+          tooltip: 'ماه قبل',
+          onPressed: onPrevious,
+          icon: const Icon(Icons.chevron_left),
+        ),
+        Expanded(
+          child: Text(
+            PersianDateFormatter.month(month),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        IconButton(
+          tooltip: 'ماه بعد',
+          onPressed: onNext,
+          icon: const Icon(Icons.chevron_right),
+        ),
+        IconButton(
+          tooltip: 'امروز',
+          onPressed: onToday,
+          icon: const Icon(Icons.today_outlined),
+        ),
+      ],
+    );
+  }
 }
 
 class _CalendarDay extends StatelessWidget {
   const _CalendarDay({
-    required this.day,
+    required this.date,
     required this.selected,
     required this.isToday,
-    required this.highlighted,
     required this.holiday,
+    required this.commitments,
     required this.onTap,
   });
-  final int day;
+
+  final JalaliDate date;
   final bool selected;
   final bool isToday;
-  final bool highlighted;
   final bool holiday;
+  final List<Commitment> commitments;
   final VoidCallback onTap;
+
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(32),
-    child: Container(
-      margin: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: selected ? Theme.of(context).colorScheme.primary : null,
-        shape: BoxShape.circle,
-        border: isToday
-            ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
-            : null,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            PersianNumbers.format(day),
-            style: TextStyle(
-              color: selected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : holiday
-                  ? Theme.of(context).colorScheme.error
-                  : null,
-              fontWeight: highlighted || selected ? FontWeight.bold : null,
-            ),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Material(
+      color: selected
+          ? scheme.primaryContainer
+          : scheme.surfaceContainerHighest.withValues(alpha: .38),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(4, 5, 4, 3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: isToday
+                ? Border.all(color: scheme.primary, width: 2)
+                : null,
           ),
-          if (highlighted) const Text('•', style: TextStyle(height: .4)),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                PersianNumbers.format(date.day),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: selected || isToday
+                      ? FontWeight.bold
+                      : FontWeight.w600,
+                  color: holiday ? scheme.error : null,
+                ),
+              ),
+              const SizedBox(height: 4),
+              ...commitments.take(2).map((item) => _CommitmentChip(item: item)),
+              if (commitments.length > 2)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    '+${PersianNumbers.format(commitments.length - 2)}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
+}
+
+class _CommitmentChip extends StatelessWidget {
+  const _CommitmentChip({required this.item});
+
+  final Commitment item;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 22,
+      margin: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      alignment: Alignment.centerRight,
+      child: Text(
+        item.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: scheme.onTertiaryContainer,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
 }

@@ -20,7 +20,7 @@ class CommitmentDraft {
     this.dayOfMonth,
     this.occurrenceCount,
     this.endDate,
-    this.reminderOffset,
+    this.reminderOffsets = const [],
     this.attachmentIds = const [],
   });
   final String title;
@@ -34,7 +34,7 @@ class CommitmentDraft {
   final int? dayOfMonth;
   final int? occurrenceCount;
   final DateTime? endDate;
-  final Duration? reminderOffset;
+  final List<Duration> reminderOffsets;
   final List<String> attachmentIds;
 }
 
@@ -59,7 +59,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   RecurrenceFrequency _frequency = RecurrenceFrequency.weekly;
   final Set<int> _weekdays = {};
   int? _occurrenceCount;
-  Duration? _reminderOffset;
+  final Set<Duration> _reminderOffsets = {};
   final List<String> _attachmentIds = [];
 
   @override
@@ -108,7 +108,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         frequency: _frequency,
         weekdays: Set.unmodifiable(_weekdays),
         occurrenceCount: _occurrenceCount,
-        reminderOffset: _reminderOffset,
+        reminderOffsets: List.unmodifiable(_reminderOffsets),
         attachmentIds: List.unmodifiable(_attachmentIds),
         scheduledDates: [
           DateTime(
@@ -219,37 +219,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                         onChanged: (value) =>
                             setState(() => _frequency = value!),
                       ),
-                    DropdownButton<Duration?>(
-                      value: _reminderOffset,
-                      hint: const Text('یادآوری'),
-                      items: const [
-                        DropdownMenuItem(
-                          value: null,
-                          child: Text('بدون یادآوری'),
-                        ),
-                        DropdownMenuItem(
-                          value: Duration(minutes: 5),
-                          child: Text('۵ دقیقه قبل'),
-                        ),
-                        DropdownMenuItem(
-                          value: Duration(minutes: 15),
-                          child: Text('۱۵ دقیقه قبل'),
-                        ),
-                        DropdownMenuItem(
-                          value: Duration(hours: 1),
-                          child: Text('۱ ساعت قبل'),
-                        ),
-                        DropdownMenuItem(
-                          value: Duration(days: 1),
-                          child: Text('۱ روز قبل'),
-                        ),
-                        DropdownMenuItem(
-                          value: Duration(days: 2),
-                          child: Text('۲ روز قبل'),
-                        ),
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _reminderOffset = value),
+                    _ReminderSelector(
+                      selected: _reminderOffsets,
+                      onChanged: (value) => setState(() {
+                        _reminderOffsets
+                          ..clear()
+                          ..addAll(value);
+                      }),
                     ),
                   ],
                 ),
@@ -508,4 +484,52 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
       ),
     );
   }
+}
+
+class _ReminderSelector extends StatelessWidget {
+  const _ReminderSelector({required this.selected, required this.onChanged});
+
+  final Set<Duration> selected;
+  final ValueChanged<Set<Duration>> onChanged;
+
+  static const options = <MapEntry<Duration, String>>[
+    MapEntry(Duration(minutes: 5), '۵ دقیقه قبل'),
+    MapEntry(Duration(minutes: 10), '۱۰ دقیقه قبل'),
+    MapEntry(Duration(minutes: 15), '۱۵ دقیقه قبل'),
+    MapEntry(Duration(minutes: 30), '۳۰ دقیقه قبل'),
+    MapEntry(Duration(hours: 1), '۱ ساعت قبل'),
+    MapEntry(Duration(days: 1), '۱ روز قبل'),
+    MapEntry(Duration(days: 2), '۲ روز قبل'),
+    MapEntry(Duration(days: 7), '۱ هفته قبل'),
+  ];
+
+  @override
+  Widget build(BuildContext context) => PopupMenuButton<Duration>(
+    tooltip: 'یادآوری‌ها',
+    onSelected: (value) {
+      final next = {...selected};
+      if (!next.add(value)) next.remove(value);
+      onChanged(next);
+    },
+    itemBuilder: (context) => options
+        .map(
+          (option) => CheckedPopupMenuItem<Duration>(
+            value: option.key,
+            checked: selected.contains(option.key),
+            child: Text(option.value),
+          ),
+        )
+        .toList(),
+    child: InputDecorator(
+      decoration: const InputDecoration(
+        labelText: 'یادآوری‌ها',
+        suffixIcon: Icon(Icons.notifications_none),
+      ),
+      child: Text(
+        selected.isEmpty
+            ? 'انتخاب چند یادآوری'
+            : '${PersianNumbers.format(selected.length)} یادآوری انتخاب شده',
+      ),
+    ),
+  );
 }
