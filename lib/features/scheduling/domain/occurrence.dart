@@ -41,7 +41,9 @@ class Occurrence {
 
   Occurrence reschedule(Object newScheduledAt) {
     if (status == OccurrenceStatus.completed) {
-      throw const ValidationError('A completed occurrence cannot be rescheduled');
+      throw const ValidationError(
+        'A completed occurrence cannot be rescheduled',
+      );
     }
     return Occurrence(
       id: id,
@@ -155,7 +157,9 @@ class OccurrenceGenerator {
         final selectedWeekdays = rule.weekdays.isEmpty
             ? {schedule.startDate.toUtcDateForCalculation().weekday}
             : rule.weekdays;
-        if (!selectedWeekdays.contains(date.toUtcDateForCalculation().weekday)) {
+        if (!selectedWeekdays.contains(
+          date.toUtcDateForCalculation().weekday,
+        )) {
           return false;
         }
         return days >= 0 && days ~/ 7 % rule.interval == 0;

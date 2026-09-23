@@ -56,7 +56,9 @@ class DriftInboxRepository implements InboxRepository {
 
   @override
   Future<void> saveImport(StagedImport item) async {
-    await database.into(database.stagedImports).insertOnConflictUpdate(
+    await database
+        .into(database.stagedImports)
+        .insertOnConflictUpdate(
           db.StagedImportsCompanion(
             id: Value(item.id.value),
             rawText: Value(item.rawText),
@@ -72,7 +74,9 @@ class DriftInboxRepository implements InboxRepository {
 
   @override
   Future<void> saveSuggestion(InboxSuggestion suggestion) async {
-    await database.into(database.inboxSuggestions).insertOnConflictUpdate(
+    await database
+        .into(database.inboxSuggestions)
+        .insertOnConflictUpdate(
           db.InboxSuggestionsCompanion(
             id: Value(suggestion.id.value),
             stagedImportId: Value(suggestion.stagedImportId.value),

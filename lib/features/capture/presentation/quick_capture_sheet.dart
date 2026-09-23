@@ -166,9 +166,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                   ActionChip(
                     avatar: const Icon(Icons.calendar_today_outlined, size: 18),
                     label: Text(
-                      PersianDateFormatter.date(
-                        JalaliDate.fromDateTime(_date),
-                      ),
+                      PersianDateFormatter.date(JalaliDate.fromDateTime(_date)),
                     ),
                     onPressed: _pickDate,
                   ),
