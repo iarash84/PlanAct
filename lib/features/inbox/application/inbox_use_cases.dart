@@ -15,6 +15,40 @@ abstract interface class InboxRepository {
   Future<void> saveSuggestion(InboxSuggestion suggestion);
 }
 
+/// Normalizes an external source into a staged import. Adapters must not write
+/// to finance repositories or any final ledger.
+abstract interface class ImportSourceAdapter {
+  ImportSource get source;
+  Future<InboxSuggestion> stage({
+    required InboxUseCases useCases,
+    required String rawText,
+    required String sourceKey,
+    required String currency,
+    DateTime? importedAt,
+  });
+}
+
+class SmsImportAdapter implements ImportSourceAdapter {
+  const SmsImportAdapter();
+
+  @override
+  ImportSource get source => ImportSource.sms;
+
+  @override
+  Future<InboxSuggestion> stage({
+    required InboxUseCases useCases,
+    required String rawText,
+    required String sourceKey,
+    required String currency,
+    DateTime? importedAt,
+  }) => useCases.stageSms(
+    rawText: rawText,
+    sourceKey: sourceKey,
+    currency: currency,
+    importedAt: importedAt,
+  );
+}
+
 class InMemoryInboxRepository implements InboxRepository {
   final Map<StableId, StagedImport> _imports = {};
   final Map<StableId, InboxSuggestion> _suggestions = {};
@@ -154,7 +188,26 @@ class InboxUseCases {
     return suggestion;
   }
 
+  Future<InboxSuggestion> edit(
+    InboxSuggestion suggestion,
+    TransactionDraft draft,
+  ) async {
+    if (suggestion.status == SuggestionStatus.confirmed ||
+        suggestion.status == SuggestionStatus.rejected) {
+      throw const ValidationError('Resolved suggestions cannot be edited');
+    }
+    if (draft.stagedImportId != suggestion.stagedImportId) {
+      throw const ValidationError('Draft does not belong to this import');
+    }
+    final edited = suggestion.withDraft(draft);
+    await repository.saveSuggestion(edited);
+    return edited;
+  }
+
   Future<void> reject(InboxSuggestion suggestion) async {
+    if (suggestion.status == SuggestionStatus.confirmed) {
+      throw const ValidationError('Confirmed suggestions cannot be rejected');
+    }
     await repository.saveSuggestion(
       suggestion.withStatus(SuggestionStatus.rejected),
     );
@@ -165,13 +218,29 @@ class InboxUseCases {
     await repository.saveImport(staged.withStatus(StagedItemStatus.rejected));
   }
 
+  Future<void> rollback(InboxSuggestion suggestion) async {
+    final storedSuggestion = (await repository.listSuggestions()).firstWhere(
+      (item) => item.id == suggestion.id,
+      orElse: () => suggestion,
+    );
+    if (storedSuggestion.status != SuggestionStatus.rejected) {
+      throw const ValidationError('Only rejected imports can be rolled back');
+    }
+    final imports = await repository.listImports();
+    final staged = imports.firstWhere(
+      (item) => item.id == storedSuggestion.stagedImportId,
+    );
+    await repository.saveImport(staged.withStatus(StagedItemStatus.rolledBack));
+  }
+
   Future<AccountEntry> confirm({
     required InboxSuggestion suggestion,
     required FinancialAccount account,
     required FinanceRepository finance,
   }) async {
-    if (suggestion.status == SuggestionStatus.rejected) {
-      throw const ValidationError('Rejected suggestions cannot be confirmed');
+    if (suggestion.status == SuggestionStatus.rejected ||
+        suggestion.status == SuggestionStatus.confirmed) {
+      throw const ValidationError('Resolved suggestions cannot be confirmed');
     }
     if (account.status != FinancialAccountStatus.active) {
       throw const ValidationError('Archived accounts cannot receive imports');
