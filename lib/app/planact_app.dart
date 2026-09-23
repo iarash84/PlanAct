@@ -169,7 +169,29 @@ class _HomeShellState extends State<HomeShell> {
     final titles = ['امروز', 'تقویم', 'بیشتر'];
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_selectedIndex]),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Transform.scale(
+                  scale: 1.14,
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(titles[_selectedIndex]),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'افزودن تعهد',
