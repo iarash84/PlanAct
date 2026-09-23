@@ -55,8 +55,9 @@ class AccountEntry {
     this.note,
     this.transferGroupId,
   }) {
-    if (amount.minorUnits == 0)
+    if (amount.minorUnits == 0) {
       throw const ValidationError('Entry amount cannot be zero');
+    }
   }
   final StableId id;
   final StableId accountId;

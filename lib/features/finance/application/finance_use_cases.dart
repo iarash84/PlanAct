@@ -66,8 +66,9 @@ class FinanceUseCases {
   }) async {
     _assertActive(from);
     _assertActive(to);
-    if (from.id == to.id)
+    if (from.id == to.id) {
       throw const ValidationError('Transfer accounts must differ');
+    }
     _assertCurrency(from, amount);
     _assertCurrency(to, amount);
     final group = StableId.generate(timestamp: occurredAt);
