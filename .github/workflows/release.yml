@@ -34,15 +34,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify tag matches app version
+      - name: Read release version from tag
         shell: bash
         run: |
-          app_version="$(sed -n 's/^version: //p' pubspec.yaml | cut -d+ -f1)"
-          tag_version="${GITHUB_REF_NAME#v}"
-          if [ "$app_version" != "$tag_version" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match pubspec version $app_version"
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tag must have the form vX.Y.Z, got: $GITHUB_REF_NAME"
             exit 1
           fi
+          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
 
       - name: Analyze
         run: flutter analyze
@@ -51,7 +51,7 @@ jobs:
         run: flutter test
 
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --build-name="$RELEASE_VERSION" --build-number="$GITHUB_RUN_NUMBER"
 
       - name: Rename release artifact
         shell: bash

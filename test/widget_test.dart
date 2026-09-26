@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/startup_splash.dart';
-import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/main.dart';
 
@@ -37,8 +36,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تکرارشونده').last);
     await tester.pumpAndSettle();
-    const weekdayLabels = ['ش', 'ی', 'د', 'س', 'چ', 'ج', 'پ'];
-    final todayLabel = weekdayLabels[JalaliDate.now().weekDay - 1];
+    // Recurrence weekdays use Dart's DateTime convention (Sunday = 1).
+    const weekdayLabelsByDartWeekday = ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'];
+    final todayLabel = weekdayLabelsByDartWeekday[DateTime.now().weekday - 1];
     await tester.scrollUntilVisible(
       find.widgetWithText(FilterChip, todayLabel),
       300,
