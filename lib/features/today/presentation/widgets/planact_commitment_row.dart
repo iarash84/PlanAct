@@ -78,7 +78,7 @@ class PlanActCommitmentRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_left, size: 20),
+              const SizedBox.shrink(),
             ],
           ),
         ),

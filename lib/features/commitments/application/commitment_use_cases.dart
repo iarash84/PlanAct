@@ -74,11 +74,65 @@ class ArchiveCommitment {
   final CommitmentRepository repository;
 
   Future<Commitment> call(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) {
-      throw NotFoundError('Commitment was not found');
-    }
+    final current = await _load(id);
     final updated = current.archive();
+    await repository.save(updated);
+    return updated;
+  }
+
+  Future<Commitment> _load(StableId id) async {
+    final current = await repository.findById(id);
+    if (current == null) throw NotFoundError('Commitment was not found');
+    return current;
+  }
+}
+
+class CompleteCommitment {
+  const CompleteCommitment(this.repository);
+
+  final CommitmentRepository repository;
+
+  Future<Commitment> call(StableId id) async {
+    final current = await repository.findById(id);
+    if (current == null) throw NotFoundError('Commitment was not found');
+    final updated = current.complete();
+    await repository.save(updated);
+    return updated;
+  }
+}
+
+class CancelCommitment {
+  const CancelCommitment(this.repository);
+
+  final CommitmentRepository repository;
+
+  Future<Commitment> call(StableId id) async {
+    final current = await repository.findById(id);
+    if (current == null) throw NotFoundError('Commitment was not found');
+    final updated = current.cancel();
+    await repository.save(updated);
+    return updated;
+  }
+}
+
+class UpdateCommitmentMetadata {
+  const UpdateCommitmentMetadata(this.repository);
+
+  final CommitmentRepository repository;
+
+  Future<Commitment> call({
+    required StableId commitmentId,
+    required String title,
+    required String? description,
+    required CommitmentPriority priority,
+  }) async {
+    final current = await repository.findById(commitmentId);
+    if (current == null) throw NotFoundError('Commitment was not found');
+    final updated = current.updateMetadata(
+      title: title,
+      description: description,
+      priority: priority,
+    );
     await repository.save(updated);
     return updated;
   }

@@ -19,7 +19,7 @@ void main() {
 
     await tester.tap(find.text('ثبت اولین تعهد'));
     await tester.pumpAndSettle();
-    expect(find.text('تعهد جدید'), findsNWidgets(2));
+    expect(find.text('تعهد جدید'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('commitment-title-field')),

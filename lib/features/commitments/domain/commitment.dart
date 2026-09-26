@@ -93,6 +93,24 @@ class Commitment {
     return _copyWith(status: CommitmentStatus.archived);
   }
 
+  Commitment updateMetadata({
+    required String title,
+    String? description,
+    CommitmentPriority? priority,
+  }) {
+    return Commitment(
+      id: id,
+      title: title,
+      createdAt: createdAt,
+      status: status,
+      kind: kind,
+      priority: priority ?? this.priority,
+      description: description,
+      tags: tags,
+      attachmentIds: attachmentIds,
+    );
+  }
+
   Commitment _copyWith({required CommitmentStatus status}) {
     return Commitment(
       id: id,

@@ -503,23 +503,55 @@ class _ReminderSelector extends StatelessWidget {
     MapEntry(Duration(days: 7), '۱ هفته قبل'),
   ];
 
-  @override
-  Widget build(BuildContext context) => PopupMenuButton<Duration>(
-    tooltip: 'یادآوری‌ها',
-    onSelected: (value) {
-      final next = {...selected};
-      if (!next.add(value)) next.remove(value);
-      onChanged(next);
-    },
-    itemBuilder: (context) => options
-        .map(
-          (option) => CheckedPopupMenuItem<Duration>(
-            value: option.key,
-            checked: selected.contains(option.key),
-            child: Text(option.value),
+  Future<void> _openSelector(BuildContext context) async {
+    final draft = {...selected};
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('یادآوری‌ها'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options.map((option) {
+                final checked = draft.contains(option.key);
+                return CheckboxListTile(
+                  value: checked,
+                  title: Text(option.value),
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (value) => setState(() {
+                    if (value == true) {
+                      draft.add(option.key);
+                    } else {
+                      draft.remove(option.key);
+                    }
+                  }),
+                );
+              }).toList(),
+            ),
           ),
-        )
-        .toList(),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('انصراف'),
+            ),
+            FilledButton(
+              onPressed: () {
+                onChanged(draft);
+                Navigator.of(context).pop();
+              },
+              child: const Text('تأیید'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: () => _openSelector(context),
+    borderRadius: BorderRadius.circular(8),
     child: InputDecorator(
       decoration: const InputDecoration(
         labelText: 'یادآوری‌ها',

@@ -12,10 +12,12 @@ class CalendarPage extends StatefulWidget {
     super.key,
     required this.commitments,
     required this.scheduledDates,
+    this.onCommitmentTap,
   });
 
   final List<Commitment> commitments;
   final Map<String, List<DateTime>> scheduledDates;
+  final ValueChanged<Commitment>? onCommitmentTap;
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -128,6 +130,9 @@ class _CalendarPageState extends State<CalendarPage> {
             (item) => PlanActCommitmentRow(
               commitment: item,
               scheduledDates: widget.scheduledDates[item.id.value] ?? const [],
+              onTap: widget.onCommitmentTap == null
+                  ? null
+                  : () => widget.onCommitmentTap!(item),
             ),
           ),
       ],
