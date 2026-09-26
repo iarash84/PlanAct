@@ -132,6 +132,40 @@ void main() {
   });
 
   test(
+    'persists a commitment without a schedule and preserves archive state',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'planact-archive-',
+      );
+      final path = '${directory.path}${Platform.pathSeparator}planact.sqlite';
+      final firstDatabase = db.AppDatabase(NativeDatabase(File(path)));
+      final repository = DriftCommitmentRepository(firstDatabase);
+      final created = Commitment.create(
+        title: 'تعهد بدون زمان‌بندی',
+        now: DateTime.utc(2026, 9, 22),
+      );
+
+      await repository.save(created);
+      await repository.save(created.archive());
+      await firstDatabase.close();
+
+      final secondDatabase = db.AppDatabase(NativeDatabase(File(path)));
+      final restored = await DriftCommitmentRepository(secondDatabase)
+          .findById(created.id);
+
+      expect(restored?.title, created.title);
+      expect(restored?.status, CommitmentStatus.archived);
+      expect(
+        await secondDatabase.select(secondDatabase.scheduleDefinitions).get(),
+        isEmpty,
+      );
+
+      await secondDatabase.close();
+      await directory.delete(recursive: true);
+    },
+  );
+
+  test(
     'round-trips reconciliation matches and allocations through Drift',
     () async {
       final repository = DriftReconciliationRepository(database);

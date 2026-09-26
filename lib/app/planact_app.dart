@@ -14,9 +14,10 @@ import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 
 class PlanActApp extends StatelessWidget {
-  const PlanActApp({super.key, this.repository});
+  const PlanActApp({super.key, this.repository, this.planRepository});
 
   final CommitmentRepository? repository;
+  final CommitmentPlanRepository? planRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -30,15 +31,16 @@ class PlanActApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: HomeShell(repository: repository),
+      home: HomeShell(repository: repository, planRepository: planRepository),
     );
   }
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.repository});
+  const HomeShell({super.key, this.repository, this.planRepository});
 
   final CommitmentRepository? repository;
+  final CommitmentPlanRepository? planRepository;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -48,9 +50,10 @@ class _HomeShellState extends State<HomeShell> {
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
   late final CommitmentPlanRepository _planRepository =
-      _repository is DriftCommitmentRepository
-      ? DriftCommitmentPlanRepository(_repository.database)
-      : InMemoryCommitmentPlanRepository();
+      widget.planRepository ??
+      (_repository is DriftCommitmentRepository
+          ? DriftCommitmentPlanRepository(_repository.database)
+          : InMemoryCommitmentPlanRepository());
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
@@ -97,9 +100,10 @@ class _HomeShellState extends State<HomeShell> {
       builder: (_) => const QuickCaptureSheet(),
     );
     if (draft == null || draft.title.trim().isEmpty) return;
-    final startAt = draft.scheduledDates.isEmpty
-        ? DateTime.now()
-        : draft.scheduledDates.first;
+    if (draft.scheduledDates.isEmpty) {
+      return;
+    }
+    final startAt = draft.scheduledDates.first;
     await _createCommitmentPlan(
       title: draft.title,
       startAt: startAt,
