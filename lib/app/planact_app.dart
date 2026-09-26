@@ -100,24 +100,36 @@ class _HomeShellState extends State<HomeShell> {
       builder: (_) => const QuickCaptureSheet(),
     );
     if (draft == null || draft.title.trim().isEmpty) return;
-    if (draft.scheduledDates.isEmpty) {
-      return;
+    if (draft.scheduledDates.isEmpty) return;
+    try {
+      final startAt = draft.scheduledDates.first;
+      await _createCommitmentPlan(
+        title: draft.title,
+        startAt: startAt,
+        kind: draft.kind,
+        priority: draft.priority,
+        description: draft.description,
+        tags: draft.tags,
+        attachmentIds: draft.attachmentIds,
+        frequency: draft.frequency,
+        weekdays: draft.weekdays,
+        occurrenceCount: draft.occurrenceCount,
+        reminderOffsets: draft.reminderOffsets,
+      );
+      await _refresh();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('ثبت تعهد انجام نشد؛ دوباره تلاش کنید.'),
+          action: SnackBarAction(label: 'بستن', onPressed: _hideSnackBar),
+        ),
+      );
     }
-    final startAt = draft.scheduledDates.first;
-    await _createCommitmentPlan(
-      title: draft.title,
-      startAt: startAt,
-      kind: draft.kind,
-      priority: draft.priority,
-      description: draft.description,
-      tags: draft.tags,
-      attachmentIds: draft.attachmentIds,
-      frequency: draft.frequency,
-      weekdays: draft.weekdays,
-      occurrenceCount: draft.occurrenceCount,
-      reminderOffsets: draft.reminderOffsets,
-    );
-    await _refresh();
+  }
+
+  void _hideSnackBar() {
+    if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
@@ -317,20 +329,21 @@ class _HomeShellState extends State<HomeShell> {
     return '${PersianDateFormatter.date(date)} ${PersianNumbers.format(date.year)}، ${PersianNumbers.format(time)}';
   }
 
-  Future<void> _deleteCommitment(Commitment commitment) async {
+  Future<void> _archiveCommitment(Commitment commitment) async {
     if (commitment.status == CommitmentStatus.archived) return;
-    await ArchiveCommitment(_repository)(commitment.id);
-    await _refresh();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text('تعهد بایگانی شد.'),
-          duration: const Duration(seconds: 4),
-          action: null,
-        ),
+    try {
+      await ArchiveCommitment(_repository)(commitment.id);
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('تعهد بایگانی شد.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('بایگانی انجام نشد؛ دوباره تلاش کنید.')),
       );
+    }
   }
 
   @override
@@ -341,7 +354,7 @@ class _HomeShellState extends State<HomeShell> {
         scheduledDates: _scheduledDates,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
-        onCommitmentDelete: _deleteCommitment,
+        onCommitmentArchive: _archiveCommitment,
       ),
       CalendarPage(
         commitments: _commitments,

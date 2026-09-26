@@ -27,6 +27,10 @@ void main() {
     );
     await tester.tap(find.text('افزودن جزئیات'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب زمان'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TextButton).last);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('commitment-kind-dropdown')),
       300,

@@ -50,6 +50,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _controller = TextEditingController();
   final _occurrenceCountController = TextEditingController();
   bool _showOptions = false;
+  bool _submitted = false;
   DateTime _date = DateTime.now();
   TimeOfDay? _time;
   CommitmentKind _kind = CommitmentKind.oneOff;
@@ -90,7 +91,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   }
 
   void _save() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_submitted || !(_formKey.currentState?.validate() ?? false)) return;
+    if (_time == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('زمان تعهد را انتخاب کنید.')),
+      );
+      return;
+    }
+    _submitted = true;
     final title = _controller.text.trim();
     Navigator.of(context).pop(
       CommitmentDraft(
@@ -115,8 +123,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             _date.year,
             _date.month,
             _date.day,
-            _time?.hour ?? 9,
-            _time?.minute ?? 0,
+            _time!.hour,
+            _time!.minute,
           ),
         ],
       ),
@@ -185,7 +193,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                     ActionChip(
                       avatar: const Icon(Icons.schedule_outlined, size: 18),
                       label: Text(
-                        _time == null ? 'زمان' : _time!.format(context),
+                        _time == null ? 'انتخاب زمان' : _time!.format(context),
                       ),
                       onPressed: () async {
                         final picked = await showTimePicker(
