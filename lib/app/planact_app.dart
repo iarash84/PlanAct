@@ -7,6 +7,8 @@ import 'package:planact/features/commitments/application/commitment_repository.d
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
@@ -52,6 +54,7 @@ class _HomeShellState extends State<HomeShell> {
     plans: _planRepository,
   );
   int _selectedIndex = 0;
+  final FinanceRepository _financeRepository = InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
 
@@ -330,7 +333,13 @@ class _HomeShellState extends State<HomeShell> {
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
       ),
-      const _MorePage(),
+      _MorePage(
+        onFinanceTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => FinancePage(repository: _financeRepository),
+          ),
+        ),
+      ),
     ];
     final titles = ['امروز', 'تقویم', 'بیشتر'];
     return Scaffold(
@@ -592,9 +601,23 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
 };
 
 class _MorePage extends StatelessWidget {
-  const _MorePage();
+  const _MorePage({required this.onFinanceTap});
+
+  final VoidCallback onFinanceTap;
 
   @override
-  Widget build(BuildContext context) =>
-      const Center(child: Text('ابزارهای بیشتر در نسخهٔ بعدی اضافه می‌شوند.'));
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: const Text('مدیریت مالی'),
+              subtitle: const Text('ثبت و پیگیری هزینه‌ها و ماندهٔ حساب‌ها'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: onFinanceTap,
+            ),
+          ),
+        ],
+      );
 }
