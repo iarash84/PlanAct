@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -79,6 +83,54 @@ void main() {
       );
     },
   );
+  test('round-trips a commitment plan after a database restart', () async {
+    final directory = await Directory.systemTemp.createTemp('planact-restart-');
+    final path = '${directory.path}${Platform.pathSeparator}planact.sqlite';
+    final firstDatabase = db.AppDatabase(NativeDatabase(File(path)));
+    final commitments = DriftCommitmentRepository(firstDatabase);
+    final plans = DriftCommitmentPlanRepository(firstDatabase);
+    final start = DateTime(2026, 9, 22, 18, 30);
+    final created =
+        await CreateCommitmentPlan(commitments: commitments, plans: plans).call(
+          title: 'کلاس پایدار',
+          startAt: start,
+          kind: CommitmentKind.recurring,
+          frequency: RecurrenceFrequency.weekly,
+          weekdays: {2},
+          occurrenceCount: 3,
+        );
+    await firstDatabase.close();
+
+    final secondDatabase = db.AppDatabase(NativeDatabase(File(path)));
+    final restoredCommitment = await DriftCommitmentRepository(secondDatabase)
+        .findById(created.commitment.id);
+    final restored = await DriftCommitmentPlanRepository(secondDatabase)
+        .findByCommitmentId(created.commitment.id);
+
+    expect(restoredCommitment?.title, created.commitment.title);
+    expect(restored?.schedule.mode, ScheduleMode.fixedCount);
+    expect(restored?.schedule.startDate, created.schedule.startDate);
+    expect(restored?.schedule.localTime, created.schedule.localTime);
+    expect(
+      restored?.schedule.recurrenceRule?.frequency,
+      RecurrenceFrequency.weekly,
+    );
+    expect(restored?.schedule.recurrenceRule?.weekdays, {2});
+    expect(restored?.schedule.occurrenceCount, 3);
+    final restoredByKey = {
+      for (final item in restored!.occurrences) item.occurrenceKey: item,
+    };
+    for (final expected in created.occurrences) {
+      expect(
+        restoredByKey[expected.occurrenceKey]?.currentScheduledAt,
+        expected.currentScheduledAt,
+      );
+    }
+
+    await secondDatabase.close();
+    await directory.delete(recursive: true);
+  });
+
   test(
     'round-trips reconciliation matches and allocations through Drift',
     () async {

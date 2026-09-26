@@ -29,6 +29,8 @@ class DriftCommitmentRepository implements CommitmentRepository {
 
   final db.AppDatabase _database;
 
+  db.AppDatabase get database => _database;
+
   @override
   Future<Commitment?> findById(StableId id) async {
     final row = await (_database.select(

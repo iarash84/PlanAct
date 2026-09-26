@@ -382,3 +382,425 @@ When instructions conflict, use this order:
 5. Existing implementation conventions.
 
 If there is still a conflict, preserve data/history and choose the least irreversible option.
+
+## Production State and Persistence
+
+Production behavior must never depend on transient in-memory state when that state is expected to survive application restart.
+
+Any domain information that affects future user-visible behavior must have a durable source of truth.
+
+Examples include, where applicable:
+
+* commitment scheduling
+* recurrence configuration
+* user-modified occurrence state
+* financial records
+* archive state
+* automation configuration
+* other user-created durable data
+
+In-memory repositories are acceptable only for:
+
+* tests
+* fixtures
+* isolated previews
+* explicitly temporary state
+
+Presentation-layer caches, maps, providers, controllers, or widget state must never become the authoritative source of durable domain information.
+
+After a cold restart, the application must be able to reconstruct the same user-visible state from persistent domain data.
+
+---
+
+## No Hidden Semantic Defaults
+
+Never silently invent meaningful user data.
+
+Do not automatically assign important values such as:
+
+* time
+* date
+* amount
+* recurrence
+* status
+* category
+* reminder
+* destructive behavior
+
+unless the product explicitly defines that value as a visible and documented default.
+
+If the user has not selected a time, do not silently convert that absence into an arbitrary time such as `09:00`.
+
+Defaults that affect behavior must be:
+
+* explicitly defined
+* consistent
+* visible or understandable to the user
+* represented correctly in the domain model
+
+Absence of a value and a default value are not interchangeable unless the domain explicitly defines them as equivalent.
+
+---
+
+## Semantic UI Correctness
+
+Visual language must always match the actual domain action.
+
+Icons, labels, colors, animations, confirmations, and feedback must communicate the same semantic operation.
+
+Examples:
+
+* Archive must use archive semantics, not delete semantics.
+* Delete styling must only represent actual deletion.
+* A reversible action should offer Undo where appropriate.
+* Irreversible actions require stronger confirmation.
+* Navigation arrows and directional controls must follow the same RTL convention across the application.
+
+Do not use a destructive visual style for a non-destructive action.
+
+Callback, method, and component names should also reflect the real semantic action.
+
+Prefer `onArchive` over `onDelete` when the operation archives an item.
+
+---
+
+## Archived and Historical Data
+
+Archived domain objects must have explicitly defined behavior.
+
+For every feature involving archival, verify:
+
+* whether archived objects appear in Today
+* whether they appear in Calendar
+* whether they contribute to Attention
+* whether they appear in search/history
+* whether they can be restored
+* whether their historical occurrences remain visible
+
+Do not allow each screen to independently invent archive behavior.
+
+Archive semantics belong in the domain/application layer.
+
+---
+
+## User Action Feedback
+
+Every meaningful user action must produce appropriate feedback.
+
+For each action, consider applicable states:
+
+* idle
+* pressed
+* loading
+* success
+* failure
+* disabled
+* undo/recovery
+
+Async actions must not fail silently.
+
+Errors must be:
+
+* visible
+* understandable
+* actionable where possible
+* written in natural Persian for user-facing UI
+
+Do not swallow exceptions simply to keep the UI responsive.
+
+Technical error details may be logged, but user-facing feedback must remain human-readable.
+
+---
+
+## Core Journey Quality
+
+Critical product journeys must be treated as complete flows rather than independent screens.
+
+For PlanAct, interactions such as:
+
+Create
+→ schedule
+→ display
+→ change status
+→ undo
+→ archive
+→ undo
+
+must remain semantically and visually coherent from beginning to end.
+
+When modifying any step in a critical journey, check the effects on all downstream screens and states.
+
+Do not optimize a single screen at the expense of flow consistency.
+
+---
+
+## Today Screen Semantics
+
+The Today screen is a primary decision surface, not merely a list of today's records.
+
+Its sections must be derived from real application/domain state.
+
+Sections such as:
+
+* Today
+* Attention
+* Next
+
+must not remain placeholder UI once corresponding domain information exists.
+
+The classification of an item into Today, Attention, Next, archived, completed, overdue, or other states must be centralized and testable.
+
+Avoid duplicating classification rules inside widgets.
+
+---
+
+## Design System First
+
+Repeated visual decisions must be centralized.
+
+Do not repeatedly introduce arbitrary:
+
+* colors
+* font sizes
+* font weights
+* paddings
+* gaps
+* corner radii
+* elevations
+* animation durations
+* animation curves
+
+inside feature widgets.
+
+If a visual value or pattern can reasonably occur in multiple places, implement it through:
+
+* ThemeData
+* ColorScheme
+* TextTheme
+* component themes
+* PlanAct design tokens
+* reusable PlanAct components
+
+Prefer extending the design system over solving the same visual problem locally.
+
+---
+
+## Typography
+
+PlanAct is Persian-first.
+
+Typography must therefore be intentionally designed for Persian readability.
+
+Text hierarchy must be semantic and reusable.
+
+Do not assign arbitrary font sizes directly inside feature widgets when a suitable semantic typography token exists.
+
+Typography should distinguish roles such as:
+
+* screen title
+* section title
+* primary content
+* secondary content
+* metadata
+* label
+* action
+* amount/status where applicable
+
+RTL, text scaling, and mixed Persian/Latin content must remain usable.
+
+---
+
+## Semantic Colors
+
+Colors must represent meaning consistently.
+
+Define semantic roles such as appropriate:
+
+* primary
+* secondary
+* surface
+* success
+* warning
+* error
+* attention
+* archived
+* disabled
+* selected
+
+Do not use arbitrary colors inside feature widgets.
+
+Do not communicate status using color alone.
+
+Color meaning must remain consistent in light and dark themes.
+
+---
+
+## Motion System
+
+Motion is part of the interaction system.
+
+Animation must communicate:
+
+* state change
+* continuity
+* hierarchy
+* insertion/removal
+* expansion/collapse
+* success/failure
+* navigation context
+
+Do not add animation purely for decoration.
+
+Animation durations and curves must come from centralized PlanAct motion tokens.
+
+Prefer lightweight implicit Flutter animations for simple transitions, including where appropriate:
+
+* `AnimatedSize`
+* `AnimatedSwitcher`
+* `AnimatedContainer`
+* `AnimatedOpacity`
+
+Use explicit animation controllers only when the interaction requires them.
+
+Avoid independently invented animation durations inside feature widgets.
+
+---
+
+## Progressive Disclosure
+
+Complex forms should reveal optional complexity progressively.
+
+Do not overwhelm users with all configuration fields at once when they are not required.
+
+Expanded and collapsed states should maintain:
+
+* visual continuity
+* keyboard behavior
+* focus
+* scroll position where practical
+
+Related controls should be visually and semantically grouped.
+
+For example, recurrence configuration should behave as one coherent section rather than unrelated fields scattered through the form.
+
+---
+
+## UI State Completeness
+
+A screen or component is not complete when only the happy path works.
+
+Consider all applicable states:
+
+* initial
+* content
+* empty
+* partial
+* loading
+* refreshing
+* saving
+* success
+* error
+* disabled
+* archived
+
+Do not introduce placeholder sections when real domain data is already available.
+
+Do not leave async operations without a defined loading and failure experience.
+
+---
+
+## Accessibility
+
+Visual polish must not reduce usability.
+
+Always verify:
+
+* adequate touch targets
+* readable contrast
+* text scaling
+* RTL behavior
+* semantic labels
+* icon-only button descriptions
+* keyboard/focus behavior where applicable
+* status communication beyond color
+
+Do not make interactive elements artificially small for visual compactness.
+
+---
+
+## RTL Consistency
+
+RTL behavior must be intentional and consistent across the entire application.
+
+Use directional Flutter APIs where appropriate.
+
+Do not manually reverse layouts as a substitute for correct RTL support.
+
+Directional icons, including:
+
+* previous/next
+* forward/back
+* expand/collapse
+* navigation
+
+must use a single consistent semantic convention throughout PlanAct.
+
+When introducing a new directional interaction, compare it with existing PlanAct conventions before implementation.
+
+---
+
+## Changes to Shared UI
+
+Before creating a new visual component, inspect existing shared components and themes.
+
+If an equivalent pattern already exists:
+
+* reuse it, or
+* improve the shared implementation
+
+Do not create near-duplicate implementations inside separate feature folders.
+
+If a new reusable pattern is introduced, consider whether it belongs in the shared design system.
+
+---
+
+## Required Validation for Feature Changes
+
+For any meaningful feature or UI change, check:
+
+1. Does the state survive restart if it should?
+2. Is the domain still the source of truth?
+3. Are there hidden semantic defaults?
+4. Does the visual language match the actual action?
+5. Are RTL semantics correct?
+6. Are loading/error/empty states handled?
+7. Is Undo or confirmation required?
+8. Does the implementation reuse the design system?
+9. Are new arbitrary design values being introduced?
+10. Does the change affect another part of the core user journey?
+11. Are relevant tests present?
+
+A change should not be considered complete until applicable items are addressed.
+
+---
+
+## Testing Expectations
+
+Changes affecting persistence must include restart/reinitialization tests where practical.
+
+Changes affecting domain classification must include unit tests.
+
+Changes affecting critical UI interactions should include widget tests where practical.
+
+Tests must validate behavior, not merely implementation details.
+
+In-memory tests are not sufficient proof of persistence behavior.
+
+After meaningful changes run:
+
+* `dart format`
+* `flutter analyze`
+* relevant unit tests
+* relevant widget/integration tests
+
+Do not report a task as complete when analysis or relevant tests fail.

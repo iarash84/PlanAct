@@ -47,8 +47,10 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
-  late final InMemoryCommitmentPlanRepository _planRepository =
-      InMemoryCommitmentPlanRepository();
+  late final CommitmentPlanRepository _planRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftCommitmentPlanRepository(_repository.database)
+      : InMemoryCommitmentPlanRepository();
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
@@ -66,7 +68,24 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _refresh() async {
     final items = await _repository.list();
-    if (mounted) setState(() => _commitments = items);
+    final schedules = <String, List<DateTime>>{};
+    for (final item in items) {
+      final plan = await _planRepository.findByCommitmentId(item.id);
+      if (plan == null) continue;
+      schedules[item.id.value] = [
+        for (final occurrence in plan.occurrences)
+          if (occurrence.currentScheduledAt is DateTime)
+            occurrence.currentScheduledAt as DateTime,
+      ];
+    }
+    if (mounted) {
+      setState(() {
+        _commitments = items;
+        _scheduledDates
+          ..clear()
+          ..addAll(schedules);
+      });
+    }
   }
 
   Future<void> _showCapture() async {
@@ -81,7 +100,7 @@ class _HomeShellState extends State<HomeShell> {
     final startAt = draft.scheduledDates.isEmpty
         ? DateTime.now()
         : draft.scheduledDates.first;
-    final plan = await _createCommitmentPlan(
+    await _createCommitmentPlan(
       title: draft.title,
       startAt: startAt,
       kind: draft.kind,
@@ -94,14 +113,6 @@ class _HomeShellState extends State<HomeShell> {
       occurrenceCount: draft.occurrenceCount,
       reminderOffsets: draft.reminderOffsets,
     );
-    final commitment = plan.commitment;
-    if (plan.occurrences.isNotEmpty) {
-      _scheduledDates[commitment.id.value] = [
-        for (final occurrence in plan.occurrences)
-          if (occurrence.currentScheduledAt is DateTime)
-            occurrence.currentScheduledAt as DateTime,
-      ];
-    }
     await _refresh();
   }
 
@@ -607,17 +618,17 @@ class _MorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.account_balance_wallet_outlined),
-              title: const Text('مدیریت مالی'),
-              subtitle: const Text('ثبت و پیگیری هزینه‌ها و ماندهٔ حساب‌ها'),
-              trailing: const Icon(Icons.chevron_left),
-              onTap: onFinanceTap,
-            ),
-          ),
-        ],
-      );
+    padding: const EdgeInsets.all(16),
+    children: [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.account_balance_wallet_outlined),
+          title: const Text('مدیریت مالی'),
+          subtitle: const Text('ثبت و پیگیری هزینه‌ها و ماندهٔ حساب‌ها'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onFinanceTap,
+        ),
+      ),
+    ],
+  );
 }
