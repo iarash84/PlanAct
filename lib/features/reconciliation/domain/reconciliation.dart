@@ -129,7 +129,8 @@ class ReconciliationScorer {
       );
     }
 
-    final status = availableAmount.minorUnits < expectation.amount && score >= 40
+    final status =
+        availableAmount.minorUnits < expectation.amount && score >= 40
         ? ReconciliationSuggestionStatus.partial
         : score >= 80
         ? ReconciliationSuggestionStatus.suggested

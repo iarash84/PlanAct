@@ -2,7 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
-import 'package:planact/features/reminders/application/drift_reminder_repository.dart';
+import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 
 void main() {
