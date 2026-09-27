@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
 class FinancePage extends StatefulWidget {
-  const FinancePage({super.key, required this.repository});
+  const FinancePage({
+    super.key,
+    required this.repository,
+    this.expectationRepository,
+  });
 
   final FinanceRepository repository;
+  final FinancialExpectationRepository? expectationRepository;
 
   @override
   State<FinancePage> createState() => _FinancePageState();
@@ -15,6 +21,10 @@ class FinancePage extends StatefulWidget {
 
 class _FinancePageState extends State<FinancePage> {
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
+  FinancialExpectationUseCases? get _expectations =>
+      widget.expectationRepository == null
+      ? null
+      : FinancialExpectationUseCases(widget.expectationRepository!);
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
   bool _loading = true;
@@ -93,10 +103,10 @@ class _FinancePageState extends State<FinancePage> {
                 initialValue: account,
                 decoration: const InputDecoration(labelText: 'حساب'),
                 items: _accounts
-                    .map((item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item.name),
-                        ))
+                    .map(
+                      (item) =>
+                          DropdownMenuItem(value: item, child: Text(item.name)),
+                    )
                     .toList(),
                 onChanged: (value) {
                   if (value != null) setDialogState(() => account = value);
@@ -146,15 +156,17 @@ class _FinancePageState extends State<FinancePage> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _money(Money money) => '${_digits(money.minorUnits.abs())} ${money.currency}';
+  String _money(Money money) =>
+      '${_digits(money.minorUnits.abs())} ${money.currency}';
 
   String _digits(int value) => value.toString().replaceAllMapped(
-        RegExp(r'(?<=\d)(?=(\d{3})+(?!\d))'),
-        (match) => ',',
-      );
+    RegExp(r'(?<=\d)(?=(\d{3})+(?!\d))'),
+    (match) => ',',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +187,10 @@ class _FinancePageState extends State<FinancePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('حساب‌ها', style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        'حساب‌ها',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       IconButton(
                         onPressed: _addAccount,
                         tooltip: 'افزودن حساب',
@@ -184,13 +199,21 @@ class _FinancePageState extends State<FinancePage> {
                     ],
                   ),
                   if (_accounts.isEmpty)
-                    const Card(child: ListTile(title: Text('هنوز حسابی ثبت نشده است.'))),
+                    const Card(
+                      child: ListTile(title: Text('هنوز حسابی ثبت نشده است.')),
+                    ),
                   for (final account in _accounts)
                     Card(
                       child: ListTile(
-                        leading: const CircleAvatar(child: Icon(Icons.account_balance_wallet)),
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.account_balance_wallet),
+                        ),
                         title: Text(account.name),
-                        subtitle: Text(account.status == FinancialAccountStatus.active ? 'فعال' : 'بایگانی‌شده'),
+                        subtitle: Text(
+                          account.status == FinancialAccountStatus.active
+                              ? 'فعال'
+                              : 'بایگانی‌شده',
+                        ),
                         trailing: FutureBuilder<Money>(
                           future: _finance.balance(account),
                           builder: (context, snapshot) => Text(
@@ -201,13 +224,41 @@ class _FinancePageState extends State<FinancePage> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  Text('آخرین هزینه‌ها', style: Theme.of(context).textTheme.titleLarge),
-                  if (_entries.where((entry) => entry.type == AccountEntryType.expense).isEmpty)
-                    const Card(child: ListTile(title: Text('هزینه‌ای ثبت نشده است.'))),
-                  for (final entry in _entries
+                  if (_expectations != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      'انتظارهای مالی',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const Card(
+                      child: ListTile(
+                        leading: Icon(Icons.info_outline),
+                        title: Text(
+                          'انتظار مالی برای هر نوبت از بخش تعهد ثبت می‌شود.',
+                        ),
+                        subtitle: Text(
+                          'مبلغ، ارز و حساب اختیاری هستند و بدون انتخاب شما ساخته نمی‌شوند.',
+                        ),
+                      ),
+                    ),
+                  ],
+                  Text(
+                    'آخرین هزینه‌ها',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  if (_entries
                       .where((entry) => entry.type == AccountEntryType.expense)
-                      .toList()
-                    ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt)))
+                      .isEmpty)
+                    const Card(
+                      child: ListTile(title: Text('هزینه‌ای ثبت نشده است.')),
+                    ),
+                  for (final entry
+                      in _entries
+                          .where(
+                            (entry) => entry.type == AccountEntryType.expense,
+                          )
+                          .toList()
+                        ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt)))
                     Card(
                       child: ListTile(
                         leading: const Icon(Icons.remove_circle_outline),

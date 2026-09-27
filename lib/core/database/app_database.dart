@@ -238,6 +238,27 @@ class MatchAllocations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class FinancialExpectations extends Table {
+  TextColumn get id => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
+  IntColumn get direction => integer()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text().nullable()();
+  TextColumn get accountId =>
+      text().nullable().references(FinancialAccounts, #id)();
+  IntColumn get status => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {occurrenceId},
+  ];
+}
+
 class StagedImports extends Table {
   TextColumn get id => text()();
   TextColumn get rawText => text()();
@@ -287,6 +308,7 @@ class InboxSuggestions extends Table {
     AccountEntries,
     TransactionMatches,
     MatchAllocations,
+    FinancialExpectations,
     StagedImports,
     InboxSuggestions,
   ],
@@ -297,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -356,6 +378,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 10) {
         await m.createTable(stagedImports);
         await m.createTable(inboxSuggestions);
+      }
+      if (from < 11) {
+        await m.createTable(financialExpectations);
       }
       await _writeSchemaMetadata();
     },

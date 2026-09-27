@@ -26,7 +26,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '10');
+    expect(await database.readMetadata('schema_version'), '11');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);

@@ -8,7 +8,13 @@ import 'package:planact/features/commitments/application/commitment_plan_use_cas
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
+import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/data/drift_finance_repository.dart';
+import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
+import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
@@ -59,9 +65,16 @@ class _HomeShellState extends State<HomeShell> {
     plans: _planRepository,
   );
   int _selectedIndex = 0;
-  final FinanceRepository _financeRepository = InMemoryFinanceRepository();
+  late final FinanceRepository _financeRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftFinanceRepository(_repository.database)
+      : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
+  late final FinancialExpectationRepository _expectationRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftFinancialExpectationRepository(_repository.database)
+      : InMemoryFinancialExpectationRepository();
 
   @override
   void initState() {
@@ -206,6 +219,8 @@ class _HomeShellState extends State<HomeShell> {
                         builder: (_) => CommitmentDetailsPage(
                           commitment: commitment,
                           repository: _repository,
+                          planRepository: _planRepository,
+                          expectationRepository: _expectationRepository,
                           onSaved: _refresh,
                         ),
                       ),
@@ -364,7 +379,10 @@ class _HomeShellState extends State<HomeShell> {
       _MorePage(
         onFinanceTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => FinancePage(repository: _financeRepository),
+            builder: (_) => FinancePage(
+              repository: _financeRepository,
+              expectationRepository: _expectationRepository,
+            ),
           ),
         ),
       ),
@@ -464,10 +482,14 @@ class CommitmentDetailsPage extends StatefulWidget {
     super.key,
     required this.commitment,
     required this.repository,
+    required this.planRepository,
+    required this.expectationRepository,
     required this.onSaved,
   });
   final Commitment commitment;
   final CommitmentRepository repository;
+  final CommitmentPlanRepository planRepository;
+  final FinancialExpectationRepository expectationRepository;
   final Future<void> Function() onSaved;
   @override
   State<CommitmentDetailsPage> createState() => _CommitmentDetailsPageState();
@@ -596,6 +618,35 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             },
           ),
           const SizedBox(height: 24),
+          FutureBuilder<CommitmentPlan?>(
+            future: widget.planRepository.findByCommitmentId(
+              widget.commitment.id,
+            ),
+            builder: (context, snapshot) {
+              final occurrences = snapshot.data?.occurrences ?? const [];
+              if (occurrences.isEmpty) return const SizedBox.shrink();
+              final useCases = FinancialExpectationUseCases(
+                widget.expectationRepository,
+              );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text('انتظار مالی نوبت‌ها'),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (final occurrence in occurrences)
+                    _FinancialExpectationOccurrenceRow(
+                      occurrence: occurrence,
+                      useCases: useCases,
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 24),
           FilledButton(
             onPressed: _saving ? null : _save,
             child: _saving
@@ -606,6 +657,68 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       ),
     ),
   );
+}
+
+class _FinancialExpectationOccurrenceRow extends StatefulWidget {
+  const _FinancialExpectationOccurrenceRow({
+    required this.occurrence,
+    required this.useCases,
+  });
+
+  final Occurrence occurrence;
+  final FinancialExpectationUseCases useCases;
+
+  @override
+  State<_FinancialExpectationOccurrenceRow> createState() =>
+      _FinancialExpectationOccurrenceRowState();
+}
+
+class _FinancialExpectationOccurrenceRowState
+    extends State<_FinancialExpectationOccurrenceRow> {
+  bool _expanded = false;
+  List<FinancialAccount> _accounts = const [];
+  bool _loadingAccounts = false;
+
+  Future<void> _expand(bool expanded) async {
+    setState(() => _expanded = expanded);
+    if (!expanded || _loadingAccounts || _accounts.isNotEmpty) return;
+    setState(() => _loadingAccounts = true);
+    try {
+      final accounts = await widget.useCases.repository.listAccounts();
+      if (mounted) setState(() => _accounts = accounts);
+    } finally {
+      if (mounted) setState(() => _loadingAccounts = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheduled = widget.occurrence.currentScheduledAt;
+    final dateLabel = scheduled is DateTime
+        ? PersianDateFormatter.date(JalaliDate.fromDateTime(scheduled))
+        : 'تاریخ نوبت مشخص نشده است';
+    return Card(
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        onExpansionChanged: _expand,
+        title: Text(dateLabel),
+        subtitle: const Text('برای ثبت یا ویرایش انتظار مالی باز کنید'),
+        children: [
+          if (_expanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: _loadingAccounts
+                  ? const LinearProgressIndicator()
+                  : FinancialExpectationEditor(
+                      occurrenceId: widget.occurrence.id,
+                      useCases: widget.useCases,
+                      accounts: _accounts,
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 String _statusLabel(CommitmentStatus status) => switch (status) {
