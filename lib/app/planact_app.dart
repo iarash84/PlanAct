@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/app_settings.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -18,17 +19,38 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/settings/presentation/settings_page.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 
-class PlanActApp extends StatelessWidget {
+class PlanActApp extends StatefulWidget {
   const PlanActApp({super.key, this.repository, this.planRepository});
 
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
+
+  @override
+  State<PlanActApp> createState() => _PlanActAppState();
+}
+
+class _PlanActAppState extends State<PlanActApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+  AppSettings? _settings;
+
+  @override
+  void initState() {
+    super.initState();
+    final repository = widget.repository;
+    if (repository is DriftCommitmentRepository) {
+      _settings = AppSettings(repository.database);
+      _settings!.readThemeMode().then((mode) {
+        if (mounted) setState(() => _themeMode = mode);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,27 +59,49 @@ class PlanActApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: PlanActTheme.light(),
       darkTheme: PlanActTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: _themeMode,
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: HomeShell(repository: repository, planRepository: planRepository),
+      home: HomeShell(
+        repository: widget.repository,
+        planRepository: widget.planRepository,
+        settings: _settings,
+        themeMode: _themeMode,
+        onThemeModeChanged: (mode) async {
+          setState(() => _themeMode = mode);
+          await _settings?.writeThemeMode(mode);
+        },
+      ),
     );
   }
 }
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.repository, this.planRepository});
+  const HomeShell({
+    super.key,
+    this.repository,
+    this.planRepository,
+    this.settings,
+    this.themeMode = ThemeMode.system,
+    this.onThemeModeChanged = _ignoreThemeChange,
+  });
+
+  static void _ignoreThemeChange(ThemeMode _) {}
 
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
+  final AppSettings? settings;
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
 }
 
 class _HomeShellState extends State<HomeShell> {
+  late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
   late final CommitmentPlanRepository _planRepository =
@@ -393,6 +437,13 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   @override
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
       TodayPage(
@@ -408,24 +459,29 @@ class _HomeShellState extends State<HomeShell> {
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
       ),
+      FinancePage(
+        repository: _financeRepository,
+        expectationRepository: _expectationRepository,
+      ),
       _MorePage(
-        onFinanceTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => FinancePage(
-              repository: _financeRepository,
-              expectationRepository: _expectationRepository,
-            ),
-          ),
-        ),
         onInboxTap: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) =>
                 InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
           ),
         ),
+        onSettingsTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => SettingsPage(
+              settings: widget.settings,
+              themeMode: widget.themeMode,
+              onThemeModeChanged: widget.onThemeModeChanged,
+            ),
+          ),
+        ),
       ),
     ];
-    final titles = ['امروز', 'تقویم', 'بیشتر'];
+    final titles = ['امروز', 'تقویم', 'مدیریت مالی', 'بیشتر'];
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -483,7 +539,13 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ],
       ),
-      body: SafeArea(child: pages[_selectedIndex]),
+      body: SafeArea(
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (index) => setState(() => _selectedIndex = index),
+          children: pages,
+        ),
+      ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               tooltip: 'افزودن تعهد',
@@ -493,8 +555,14 @@ class _HomeShellState extends State<HomeShell> {
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+          );
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.today_outlined),
@@ -505,6 +573,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'تقویم',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'مالی',
           ),
           NavigationDestination(icon: Icon(Icons.more_horiz), label: 'بیشتر'),
         ],
@@ -780,10 +853,10 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
 };
 
 class _MorePage extends StatelessWidget {
-  const _MorePage({required this.onFinanceTap, required this.onInboxTap});
+  const _MorePage({required this.onInboxTap, required this.onSettingsTap});
 
-  final VoidCallback onFinanceTap;
   final VoidCallback onInboxTap;
+  final VoidCallback onSettingsTap;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -800,11 +873,11 @@ class _MorePage extends StatelessWidget {
       ),
       Card(
         child: ListTile(
-          leading: const Icon(Icons.account_balance_wallet_outlined),
-          title: const Text('مدیریت مالی'),
-          subtitle: const Text('ثبت و پیگیری هزینه‌ها و ماندهٔ حساب‌ها'),
+          leading: const Icon(Icons.settings_outlined),
+          title: const Text('تنظیمات'),
+          subtitle: const Text('تنظیمات عمومی برنامه'),
           trailing: const Icon(Icons.chevron_left),
-          onTap: onFinanceTap,
+          onTap: onSettingsTap,
         ),
       ),
     ],

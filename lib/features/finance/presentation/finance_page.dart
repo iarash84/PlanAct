@@ -59,15 +59,29 @@ class _FinancePageState extends State<FinancePage> {
 
   Future<void> _addAccount() async {
     final name = TextEditingController();
+    final opening = TextEditingController();
     try {
       final result = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('افزودن حساب'),
-          content: TextField(
-            controller: name,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'نام حساب'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: name,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'نام حساب'),
+              ),
+              TextField(
+                controller: opening,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'موجودی اولیه (اختیاری)',
+                  suffixText: 'تومان',
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
@@ -81,22 +95,30 @@ class _FinancePageState extends State<FinancePage> {
           ],
         ),
       );
+      final value = int.tryParse(opening.text.replaceAll(',', '').trim());
       if (result == null || result.isEmpty) return;
+      if (opening.text.trim().isNotEmpty && value == null) {
+        _showMessage('موجودی اولیه معتبر نیست.');
+        return;
+      }
+      final account = FinancialAccount(
+        id: StableId.generate(),
+        name: result,
+        currency: 'تومان',
+        type: FinancialAccountType.cash,
+      );
       await _finance.createAccount(
-        FinancialAccount(
-          id: StableId.generate(),
-          name: result,
-          currency: 'تومان',
-          type: FinancialAccountType.cash,
-        ),
+        account,
+        openingBalance: value == null || value == 0
+            ? null
+            : Money(minorUnits: value, currency: account.currency),
       );
       await _refresh();
     } catch (_) {
-      if (mounted) {
-        _showMessage('افزودن حساب انجام نشد. دوباره تلاش کنید.');
-      }
+      if (mounted) _showMessage('افزودن حساب انجام نشد. دوباره تلاش کنید.');
     } finally {
       name.dispose();
+      opening.dispose();
     }
   }
 

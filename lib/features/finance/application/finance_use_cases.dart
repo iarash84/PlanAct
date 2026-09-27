@@ -8,6 +8,10 @@ abstract interface class FinanceRepository {
   Future<List<AccountEntry>> listEntries();
   Future<void> saveAccount(FinancialAccount account);
   Future<void> saveEntry(AccountEntry entry);
+  Future<void> createAccount(
+    FinancialAccount account, {
+    AccountEntry? openingBalance,
+  });
 }
 
 class InMemoryFinanceRepository implements FinanceRepository {
@@ -26,14 +30,41 @@ class InMemoryFinanceRepository implements FinanceRepository {
   @override
   Future<void> saveEntry(AccountEntry entry) async =>
       _entries[entry.id] = entry;
+
+  @override
+  Future<void> createAccount(
+    FinancialAccount account, {
+    AccountEntry? openingBalance,
+  }) async {
+    _accounts[account.id] = account;
+    if (openingBalance != null) _entries[openingBalance.id] = openingBalance;
+  }
 }
 
 class FinanceUseCases {
   FinanceUseCases(this.repository);
   final FinanceRepository repository;
 
-  Future<void> createAccount(FinancialAccount account) =>
-      repository.saveAccount(account);
+  Future<void> createAccount(
+    FinancialAccount account, {
+    Money? openingBalance,
+    DateTime? occurredAt,
+  }) {
+    if (openingBalance != null) {
+      _assertCurrency(account, openingBalance);
+    }
+    final entry = openingBalance == null || openingBalance.minorUnits == 0
+        ? null
+        : AccountEntry(
+            id: StableId.generate(timestamp: occurredAt),
+            accountId: account.id,
+            type: AccountEntryType.openingBalance,
+            amount: openingBalance,
+            occurredAt: (occurredAt ?? DateTime.now()).toUtc(),
+            note: 'موجودی اولیه',
+          );
+    return repository.createAccount(account, openingBalance: entry);
+  }
 
   Future<AccountEntry> record({
     required FinancialAccount account,

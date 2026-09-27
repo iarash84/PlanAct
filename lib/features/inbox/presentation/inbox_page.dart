@@ -18,6 +18,7 @@ class _InboxPageState extends State<InboxPage> {
   List<InboxSuggestion> _items = const [];
   List<FinancialAccount> _accounts = const [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -26,20 +27,30 @@ class _InboxPageState extends State<InboxPage> {
   }
 
   Future<void> _reload() async {
-    final suggestions = await widget.inbox.repository.listSuggestions();
-    final accounts = await widget.finance.listAccounts();
-    if (!mounted) return;
-    setState(() {
-      _items = suggestions
-          .where(
-            (item) =>
-                item.status == SuggestionStatus.pending ||
-                item.status == SuggestionStatus.edited,
-          )
-          .toList();
-      _accounts = accounts;
-      _loading = false;
-    });
+    if (mounted) setState(() => _loading = true);
+    try {
+      final suggestions = await widget.inbox.repository.listSuggestions();
+      final accounts = await widget.finance.listAccounts();
+      if (!mounted) return;
+      setState(() {
+        _items = suggestions
+            .where(
+              (item) =>
+                  item.status == SuggestionStatus.pending ||
+                  item.status == SuggestionStatus.edited,
+            )
+            .toList();
+        _accounts = accounts;
+        _error = null;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'بارگذاری صندوق ورودی انجام نشد.';
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _accept(InboxSuggestion suggestion) async {
@@ -87,8 +98,43 @@ class _InboxPageState extends State<InboxPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: 280,
+              child: _InboxStateCard(
+                icon: Icons.cloud_off_outlined,
+                title: 'صندوق ورودی در دسترس نیست',
+                message: _error!,
+                actionLabel: 'تلاش دوباره',
+                onAction: _reload,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     if (_items.isEmpty) {
-      return const Center(child: Text('ورودی برای بررسی وجود ندارد.'));
+      return RefreshIndicator(
+        onRefresh: _reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: const [
+            SizedBox(
+              height: 320,
+              child: _InboxStateCard(
+                icon: Icons.inbox_outlined,
+                title: 'صندوق ورودی خالی است',
+                message: 'پیام‌های بانکی واردشده برای بررسی در اینجا نمایش داده می‌شوند.',
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return RefreshIndicator(
       onRefresh: _reload,
@@ -156,4 +202,41 @@ class _InboxPageState extends State<InboxPage> {
     ParseQuality.low => 'پایین',
     ParseQuality.unsupported => 'پشتیبانی‌نشده',
   };
+}
+
+class _InboxStateCard extends StatelessWidget {
+  const _InboxStateCard({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(height: 16),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(message, textAlign: TextAlign.center),
+          if (actionLabel != null) ...[
+            const SizedBox(height: 16),
+            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
+        ],
+      ),
+    ),
+  );
 }

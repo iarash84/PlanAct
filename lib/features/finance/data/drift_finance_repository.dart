@@ -51,32 +51,49 @@ class DriftFinanceRepository implements FinanceRepository {
   @override
   Future<void> saveAccount(FinancialAccount account) => database
       .into(database.financialAccounts)
-      .insertOnConflictUpdate(
-        db.FinancialAccountsCompanion(
-          id: Value(account.id.value),
-          name: Value(account.name),
-          currency: Value(account.currency),
-          type: Value(account.type.index),
-          status: Value(account.status.index),
-        ),
-      );
+      .insertOnConflictUpdate(_accountCompanion(account));
+
+  @override
+  Future<void> createAccount(
+    FinancialAccount account, {
+    AccountEntry? openingBalance,
+  }) => database.transaction(() async {
+    await database
+        .into(database.financialAccounts)
+        .insert(_accountCompanion(account));
+    if (openingBalance != null) {
+      await database
+          .into(database.accountEntries)
+          .insert(_entryCompanion(openingBalance));
+    }
+  });
 
   @override
   Future<void> saveEntry(AccountEntry entry) => database
       .into(database.accountEntries)
-      .insertOnConflictUpdate(
-        db.AccountEntriesCompanion(
-          id: Value(entry.id.value),
-          accountId: Value(entry.accountId.value),
-          type: Value(entry.type.index),
-          minorUnits: Value(entry.amount.minorUnits),
-          currency: Value(entry.amount.currency),
-          occurredAt: Value(entry.occurredAt.toUtc()),
-          referenceId: Value(entry.referenceId),
-          note: Value(entry.note),
-          category: Value(entry.category),
-          source: Value(entry.source.index),
-          transferGroupId: Value(entry.transferGroupId?.value),
-        ),
+      .insertOnConflictUpdate(_entryCompanion(entry));
+
+  db.FinancialAccountsCompanion _accountCompanion(FinancialAccount account) =>
+      db.FinancialAccountsCompanion(
+        id: Value(account.id.value),
+        name: Value(account.name),
+        currency: Value(account.currency),
+        type: Value(account.type.index),
+        status: Value(account.status.index),
+      );
+
+  db.AccountEntriesCompanion _entryCompanion(AccountEntry entry) =>
+      db.AccountEntriesCompanion(
+        id: Value(entry.id.value),
+        accountId: Value(entry.accountId.value),
+        type: Value(entry.type.index),
+        minorUnits: Value(entry.amount.minorUnits),
+        currency: Value(entry.amount.currency),
+        occurredAt: Value(entry.occurredAt.toUtc()),
+        referenceId: Value(entry.referenceId),
+        note: Value(entry.note),
+        category: Value(entry.category),
+        source: Value(entry.source.index),
+        transferGroupId: Value(entry.transferGroupId?.value),
       );
 }

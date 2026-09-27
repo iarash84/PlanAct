@@ -408,6 +408,12 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<void> writeMetadata(String key, String value) async {
+    await into(schemaMetadata).insertOnConflictUpdate(
+      SchemaMetadataCompanion.insert(key: key, value: value),
+    );
+  }
+
   Future<String?> readMetadata(String key) async {
     final row = await (select(
       schemaMetadata,
