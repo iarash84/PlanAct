@@ -21,10 +21,16 @@ class _MemoryStorage implements BackupStorage {
 }
 
 class _RebuildHook implements BackupRebuildHook {
+  _RebuildHook({this.shouldFail = false});
+
+  final bool shouldFail;
   var calls = 0;
 
   @override
-  Future<void> rebuild() async => calls++;
+  Future<void> rebuild() async {
+    calls++;
+    if (shouldFail) throw StateError('rebuild failed');
+  }
 }
 
 void main() {
@@ -80,4 +86,23 @@ void main() {
       expect(hook.calls, 1);
     },
   );
+
+  test('rolls back the live payload when rebuild fails', () async {
+    final storage = _MemoryStorage(Uint8List.fromList([0]));
+    final service = BackupService(
+      storage: storage,
+      validator: validator,
+      rebuildHook: _RebuildHook(shouldFail: true),
+    );
+    final package = await service.create(
+      payload: Uint8List.fromList([9, 8]),
+      appVersion: '1.0.0',
+      createdAt: DateTime.utc(2026, 9, 22),
+    );
+
+    await expectLater(service.restore(package), throwsStateError);
+
+    expect(storage.safety, orderedEquals([0]));
+    expect(storage.current, orderedEquals([0]));
+  });
 }

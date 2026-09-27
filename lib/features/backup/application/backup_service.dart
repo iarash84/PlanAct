@@ -46,7 +46,14 @@ class BackupService {
     validator.validate(package);
     final current = await storage.readCurrent();
     await storage.writeSafetySnapshot(current);
-    await storage.writeCurrent(package.payload);
-    await rebuildHook.rebuild();
+    try {
+      await storage.writeCurrent(package.payload);
+      await rebuildHook.rebuild();
+    } catch (_) {
+      // A failed rebuild must not leave the live state pointing at a backup
+      // whose derived state could not be reconstructed.
+      await storage.writeCurrent(current);
+      rethrow;
+    }
   }
 }
