@@ -8,6 +8,9 @@ import 'package:planact/features/commitments/application/commitment_plan_use_cas
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
+import 'package:planact/features/inbox/presentation/inbox_page.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -75,6 +78,12 @@ class _HomeShellState extends State<HomeShell> {
       _repository is DriftCommitmentRepository
       ? DriftFinancialExpectationRepository(_repository.database)
       : InMemoryFinancialExpectationRepository();
+
+  late final InboxUseCases _inboxUseCases = InboxUseCases(
+    _repository is DriftCommitmentRepository
+        ? DriftInboxRepository(_repository.database)
+        : InMemoryInboxRepository(),
+  );
 
   @override
   void initState() {
@@ -383,6 +392,12 @@ class _HomeShellState extends State<HomeShell> {
               repository: _financeRepository,
               expectationRepository: _expectationRepository,
             ),
+          ),
+        ),
+        onInboxTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) =>
+                InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
           ),
         ),
       ),
@@ -742,14 +757,24 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
 };
 
 class _MorePage extends StatelessWidget {
-  const _MorePage({required this.onFinanceTap});
+  const _MorePage({required this.onFinanceTap, required this.onInboxTap});
 
   final VoidCallback onFinanceTap;
+  final VoidCallback onInboxTap;
 
   @override
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.inbox_outlined),
+          title: const Text('صندوق ورودی'),
+          subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onInboxTap,
+        ),
+      ),
       Card(
         child: ListTile(
           leading: const Icon(Icons.account_balance_wallet_outlined),

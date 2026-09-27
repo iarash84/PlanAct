@@ -2,13 +2,17 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 
-/// Origin of an imported item. Adapters should normalize raw input before
-/// creating a staged item and must never write directly to the ledger.
+/// Origin of an imported item. Adapters normalize raw input before staging and
+/// must never write directly to the ledger.
 enum ImportSource { sms, file, manual }
 
 enum StagedItemStatus { pending, confirmed, rejected, rolledBack }
 
-enum SuggestionStatus { pending, confirmed, edited, rejected }
+enum SuggestionStatus { pending, confirmed, edited, rejected, duplicate }
+
+enum TransactionDirection { incoming, outgoing, unknown }
+
+enum ParseQuality { high, medium, low, unsupported }
 
 class ImportProvenance {
   ImportProvenance({
@@ -38,6 +42,9 @@ class StagedImport {
   });
 
   final StableId id;
+
+  /// Retained locally only. Platform adapters should provide a minimized or
+  /// redacted body when the provider can do so; never log this value.
   final String rawText;
   final String fingerprint;
   final ImportProvenance provenance;
@@ -61,6 +68,12 @@ class TransactionDraft {
     required this.type,
     this.merchant,
     this.reference,
+    this.direction = TransactionDirection.unknown,
+    this.bank,
+    this.accountHint,
+    this.balance,
+    this.quality = ParseQuality.low,
+    this.confidence = 0,
   });
 
   final StableId id;
@@ -70,6 +83,12 @@ class TransactionDraft {
   final String type;
   final String? merchant;
   final String? reference;
+  final TransactionDirection direction;
+  final String? bank;
+  final String? accountHint;
+  final Money? balance;
+  final ParseQuality quality;
+  final int confidence;
 }
 
 class InboxSuggestion {
