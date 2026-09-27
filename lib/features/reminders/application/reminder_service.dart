@@ -80,6 +80,9 @@ class ReminderService {
   }
 
   /// Rebuilds platform notifications after restart and removes stale ones.
+  ///
+  /// The persisted UTC instant is the sole scheduling source of truth. The
+  /// platform adapter only translates it into an Android alarm.
   Future<void> reconcile({required DateTime now}) async {
     final rules = await repository.listRules();
     final instances = await repository.listInstances();
