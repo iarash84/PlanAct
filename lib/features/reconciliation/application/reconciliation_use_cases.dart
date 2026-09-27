@@ -1,11 +1,58 @@
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/finance/domain/financial_expectation.dart';
+import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 
 abstract interface class ReconciliationRepository {
   Future<List<TransactionMatch>> list();
   Future<void> save(TransactionMatch match);
+}
+
+class ReconciliationEngine {
+  const ReconciliationEngine({this.scorer = const ReconciliationScorer()});
+
+  final ReconciliationScorer scorer;
+
+  List<ReconciliationCandidate> findCandidates({
+    required AccountEntry transaction,
+    required Iterable<FinancialExpectation> expectations,
+    required Map<StableId, DateTime> expectedDates,
+    required Iterable<TransactionMatch> existingMatches,
+  }) {
+    final used = <StableId, int>{};
+    for (final match in existingMatches.where(
+      (item) => item.status == MatchStatus.active,
+    )) {
+      for (final allocation in match.allocations) {
+        used[match.transactionId] =
+            (used[match.transactionId] ?? 0) + allocation.amount.minorUnits;
+      }
+    }
+    final available = Money(
+      minorUnits: transaction.amount.minorUnits - (used[transaction.id] ?? 0),
+      currency: transaction.amount.currency,
+    );
+    if (available.minorUnits <= 0) return const [];
+    return expectations
+        .where((item) => item.status == FinancialExpectationStatus.active)
+        .map((item) {
+          final candidate = scorer.score(
+            transaction: transaction,
+            expectation: item,
+            expectedAt: expectedDates[item.occurrenceId] ?? item.createdAt,
+            availableAmount: available,
+          );
+          return candidate;
+        })
+        .whereType<ReconciliationCandidate>()
+        .where(
+          (item) => item.status != ReconciliationSuggestionStatus.noCandidate,
+        )
+        .toList(growable: false)
+      ..sort((a, b) => b.score.compareTo(a.score));
+  }
 }
 
 class InMemoryReconciliationRepository implements ReconciliationRepository {
@@ -20,8 +67,23 @@ class InMemoryReconciliationRepository implements ReconciliationRepository {
 }
 
 class ReconciliationUseCases {
-  ReconciliationUseCases(this.repository);
+  ReconciliationUseCases(
+    this.repository, {
+    this.engine = const ReconciliationEngine(),
+  });
   final ReconciliationRepository repository;
+  final ReconciliationEngine engine;
+
+  Future<List<ReconciliationCandidate>> candidates({
+    required AccountEntry transaction,
+    required Iterable<FinancialExpectation> expectations,
+    required Map<StableId, DateTime> expectedDates,
+  }) async => engine.findCandidates(
+    transaction: transaction,
+    expectations: expectations,
+    expectedDates: expectedDates,
+    existingMatches: await repository.list(),
+  );
 
   Future<TransactionMatch> match({
     required StableId transactionId,
@@ -55,6 +117,21 @@ class ReconciliationUseCases {
     await repository.save(result);
     return result;
   }
+
+  Future<void> reject(TransactionMatch match) async {
+    await repository.save(
+      TransactionMatch(
+        id: match.id,
+        transactionId: match.transactionId,
+        transactionAmount: match.transactionAmount,
+        createdAt: match.createdAt,
+        allocations: match.allocations,
+        status: MatchStatus.reversed,
+      ),
+    );
+  }
+
+  Future<void> unmatch(TransactionMatch match) => reject(match);
 
   Future<TransactionMatch> correct({
     required TransactionMatch original,
