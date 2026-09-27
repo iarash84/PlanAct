@@ -42,6 +42,8 @@ class FinanceUseCases {
     required DateTime occurredAt,
     String? referenceId,
     String? note,
+    String? category,
+    AccountEntrySource source = AccountEntrySource.manual,
   }) async {
     _assertActive(account);
     _assertCurrency(account, amount);
@@ -53,6 +55,8 @@ class FinanceUseCases {
       occurredAt: occurredAt.toUtc(),
       referenceId: referenceId,
       note: note,
+      category: category,
+      source: source,
     );
     await repository.saveEntry(entry);
     return entry;

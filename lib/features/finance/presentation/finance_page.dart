@@ -4,6 +4,7 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/domain/finance_reports.dart';
 
 class FinancePage extends StatefulWidget {
   const FinancePage({
@@ -28,6 +29,8 @@ class _FinancePageState extends State<FinancePage> {
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
   bool _loading = true;
+  String? _categoryFilter;
+  AccountEntryType? _typeFilter;
 
   @override
   void initState() {
@@ -149,6 +152,7 @@ class _FinancePageState extends State<FinancePage> {
       amount: Money(minorUnits: value, currency: account.currency),
       occurredAt: DateTime.now(),
       note: note.text.trim().isEmpty ? null : note.text.trim(),
+      category: 'عمومی',
     );
     amount.dispose();
     note.dispose();
@@ -168,6 +172,86 @@ class _FinancePageState extends State<FinancePage> {
     (match) => ',',
   );
 
+  List<AccountEntry> get _filteredEntries {
+    final entries =
+        _entries
+            .where((entry) => _typeFilter == null || entry.type == _typeFilter)
+            .where(
+              (entry) =>
+                  _categoryFilter == null || entry.category == _categoryFilter,
+            )
+            .toList()
+          ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+    return entries;
+  }
+
+  Widget _buildSummary() {
+    final currency = _accounts.isEmpty ? 'تومان' : _accounts.first.currency;
+    final summary = cashFlowSummary(_entries, currency);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'جریان نقدی این داده‌ها',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text('ورودی: ${_digits(summary.incoming)} $currency'),
+            Text('خروجی: ${_digits(summary.outgoing)} $currency'),
+            Text('خالص: ${_digits(summary.net.abs())} $currency'),
+            const SizedBox(height: 8),
+            const Text(
+              'این گزارش فقط بر اساس تراکنش‌های ثبت‌شده روی دستگاه است.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    final categories = _entries
+        .map((entry) => entry.category)
+        .whereType<String>()
+        .toSet()
+        .toList();
+    return Wrap(
+      spacing: 8,
+      children: [
+        DropdownButton<AccountEntryType?>(
+          value: _typeFilter,
+          hint: const Text('نوع'),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('همه تراکنش‌ها')),
+            DropdownMenuItem(
+              value: AccountEntryType.income,
+              child: Text('ورودی'),
+            ),
+            DropdownMenuItem(
+              value: AccountEntryType.expense,
+              child: Text('خروجی'),
+            ),
+          ],
+          onChanged: (value) => setState(() => _typeFilter = value),
+        ),
+        DropdownButton<String?>(
+          value: _categoryFilter,
+          hint: const Text('دسته‌بندی'),
+          items: [
+            const DropdownMenuItem(value: null, child: Text('همه دسته‌ها')),
+            ...categories.map(
+              (item) => DropdownMenuItem(value: item, child: Text(item)),
+            ),
+          ],
+          onChanged: (value) => setState(() => _categoryFilter = value),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,6 +268,10 @@ class _FinancePageState extends State<FinancePage> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  _buildSummary(),
+                  const SizedBox(height: 12),
+                  _buildFilters(),
+                  const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -243,27 +331,28 @@ class _FinancePageState extends State<FinancePage> {
                     ),
                   ],
                   Text(
-                    'آخرین هزینه‌ها',
+                    'آخرین تراکنش‌ها',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  if (_entries
-                      .where((entry) => entry.type == AccountEntryType.expense)
-                      .isEmpty)
+                  if (_filteredEntries.isEmpty)
                     const Card(
                       child: ListTile(title: Text('هزینه‌ای ثبت نشده است.')),
                     ),
-                  for (final entry
-                      in _entries
-                          .where(
-                            (entry) => entry.type == AccountEntryType.expense,
-                          )
-                          .toList()
-                        ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt)))
+                  for (final entry in _filteredEntries)
                     Card(
                       child: ListTile(
-                        leading: const Icon(Icons.remove_circle_outline),
+                        leading: Icon(
+                          entry.type == AccountEntryType.income
+                              ? Icons.add_circle_outline
+                              : Icons.remove_circle_outline,
+                        ),
                         title: Text(_money(entry.amount)),
-                        subtitle: Text(entry.note ?? 'بدون شرح'),
+                        subtitle: Text(
+                          [
+                            if (entry.category != null) entry.category!,
+                            entry.note ?? 'بدون شرح',
+                          ].join(' · '),
+                        ),
                       ),
                     ),
                 ],

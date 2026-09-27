@@ -6,6 +6,8 @@ enum FinancialAccountType { bank, cash, digitalWallet, credit }
 
 enum FinancialAccountStatus { active, archived }
 
+enum AccountEntrySource { manual, sms, import }
+
 enum AccountEntryType {
   openingBalance,
   income,
@@ -53,6 +55,8 @@ class AccountEntry {
     required this.occurredAt,
     this.referenceId,
     this.note,
+    this.category,
+    this.source = AccountEntrySource.manual,
     this.transferGroupId,
   }) {
     if (amount.minorUnits == 0) {
@@ -66,6 +70,8 @@ class AccountEntry {
   final DateTime occurredAt;
   final String? referenceId;
   final String? note;
+  final String? category;
+  final AccountEntrySource source;
   final StableId? transferGroupId;
 
   Money get signedAmount {

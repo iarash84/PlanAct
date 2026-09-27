@@ -17,7 +17,7 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
     if (_initialized) return;
     tz_data.initializeTimeZones();
     final localTimezone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(localTimezone));
+    tz.setLocalLocation(tz.getLocation(localTimezone.identifier));
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(const InitializationSettings(android: android));

@@ -38,6 +38,8 @@ class DriftFinanceRepository implements FinanceRepository {
             occurredAt: row.occurredAt.toUtc(),
             referenceId: row.referenceId,
             note: row.note,
+            category: row.category,
+            source: AccountEntrySource.values[row.source],
             transferGroupId: row.transferGroupId == null
                 ? null
                 : StableId.parse(row.transferGroupId!),
@@ -72,6 +74,8 @@ class DriftFinanceRepository implements FinanceRepository {
           occurredAt: Value(entry.occurredAt.toUtc()),
           referenceId: Value(entry.referenceId),
           note: Value(entry.note),
+          category: Value(entry.category),
+          source: Value(entry.source.index),
           transferGroupId: Value(entry.transferGroupId?.value),
         ),
       );

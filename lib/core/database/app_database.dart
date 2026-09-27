@@ -207,6 +207,8 @@ class AccountEntries extends Table {
   DateTimeColumn get occurredAt => dateTime()();
   TextColumn get referenceId => text().nullable()();
   TextColumn get note => text().nullable()();
+  TextColumn get category => text().nullable()();
+  IntColumn get source => integer().withDefault(const Constant(0))();
   TextColumn get transferGroupId => text().nullable()();
 
   @override
@@ -319,7 +321,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -381,6 +383,14 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 11) {
         await m.createTable(financialExpectations);
+      }
+      if (from < 12) {
+        await customStatement(
+          'ALTER TABLE account_entries ADD COLUMN category TEXT',
+        );
+        await customStatement(
+          'ALTER TABLE account_entries ADD COLUMN source INTEGER NOT NULL DEFAULT 0',
+        );
       }
       await _writeSchemaMetadata();
     },

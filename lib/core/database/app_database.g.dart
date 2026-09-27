@@ -7302,6 +7302,27 @@ class $AccountEntriesTable extends AccountEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<int> source = GeneratedColumn<int>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _transferGroupIdMeta = const VerificationMeta(
     'transferGroupId',
   );
@@ -7323,6 +7344,8 @@ class $AccountEntriesTable extends AccountEntries
     occurredAt,
     referenceId,
     note,
+    category,
+    source,
     transferGroupId,
   ];
   @override
@@ -7397,6 +7420,18 @@ class $AccountEntriesTable extends AccountEntries
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
     if (data.containsKey('transfer_group_id')) {
       context.handle(
         _transferGroupIdMeta,
@@ -7447,6 +7482,14 @@ class $AccountEntriesTable extends AccountEntries
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source'],
+      )!,
       transferGroupId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}transfer_group_id'],
@@ -7469,6 +7512,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
   final DateTime occurredAt;
   final String? referenceId;
   final String? note;
+  final String? category;
+  final int source;
   final String? transferGroupId;
   const AccountEntry({
     required this.id,
@@ -7479,6 +7524,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
     required this.occurredAt,
     this.referenceId,
     this.note,
+    this.category,
+    required this.source,
     this.transferGroupId,
   });
   @override
@@ -7496,6 +7543,10 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['source'] = Variable<int>(source);
     if (!nullToAbsent || transferGroupId != null) {
       map['transfer_group_id'] = Variable<String>(transferGroupId);
     }
@@ -7514,6 +7565,10 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           ? const Value.absent()
           : Value(referenceId),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      source: Value(source),
       transferGroupId: transferGroupId == null && nullToAbsent
           ? const Value.absent()
           : Value(transferGroupId),
@@ -7534,6 +7589,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
       occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
       referenceId: serializer.fromJson<String?>(json['referenceId']),
       note: serializer.fromJson<String?>(json['note']),
+      category: serializer.fromJson<String?>(json['category']),
+      source: serializer.fromJson<int>(json['source']),
       transferGroupId: serializer.fromJson<String?>(json['transferGroupId']),
     );
   }
@@ -7549,6 +7606,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
       'occurredAt': serializer.toJson<DateTime>(occurredAt),
       'referenceId': serializer.toJson<String?>(referenceId),
       'note': serializer.toJson<String?>(note),
+      'category': serializer.toJson<String?>(category),
+      'source': serializer.toJson<int>(source),
       'transferGroupId': serializer.toJson<String?>(transferGroupId),
     };
   }
@@ -7562,6 +7621,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
     DateTime? occurredAt,
     Value<String?> referenceId = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<String?> category = const Value.absent(),
+    int? source,
     Value<String?> transferGroupId = const Value.absent(),
   }) => AccountEntry(
     id: id ?? this.id,
@@ -7572,6 +7633,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
     occurredAt: occurredAt ?? this.occurredAt,
     referenceId: referenceId.present ? referenceId.value : this.referenceId,
     note: note.present ? note.value : this.note,
+    category: category.present ? category.value : this.category,
+    source: source ?? this.source,
     transferGroupId: transferGroupId.present
         ? transferGroupId.value
         : this.transferGroupId,
@@ -7592,6 +7655,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           ? data.referenceId.value
           : this.referenceId,
       note: data.note.present ? data.note.value : this.note,
+      category: data.category.present ? data.category.value : this.category,
+      source: data.source.present ? data.source.value : this.source,
       transferGroupId: data.transferGroupId.present
           ? data.transferGroupId.value
           : this.transferGroupId,
@@ -7609,6 +7674,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           ..write('occurredAt: $occurredAt, ')
           ..write('referenceId: $referenceId, ')
           ..write('note: $note, ')
+          ..write('category: $category, ')
+          ..write('source: $source, ')
           ..write('transferGroupId: $transferGroupId')
           ..write(')'))
         .toString();
@@ -7624,6 +7691,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
     occurredAt,
     referenceId,
     note,
+    category,
+    source,
     transferGroupId,
   );
   @override
@@ -7638,6 +7707,8 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           other.occurredAt == this.occurredAt &&
           other.referenceId == this.referenceId &&
           other.note == this.note &&
+          other.category == this.category &&
+          other.source == this.source &&
           other.transferGroupId == this.transferGroupId);
 }
 
@@ -7650,6 +7721,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
   final Value<DateTime> occurredAt;
   final Value<String?> referenceId;
   final Value<String?> note;
+  final Value<String?> category;
+  final Value<int> source;
   final Value<String?> transferGroupId;
   final Value<int> rowid;
   const AccountEntriesCompanion({
@@ -7661,6 +7734,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
     this.occurredAt = const Value.absent(),
     this.referenceId = const Value.absent(),
     this.note = const Value.absent(),
+    this.category = const Value.absent(),
+    this.source = const Value.absent(),
     this.transferGroupId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7673,6 +7748,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
     required DateTime occurredAt,
     this.referenceId = const Value.absent(),
     this.note = const Value.absent(),
+    this.category = const Value.absent(),
+    this.source = const Value.absent(),
     this.transferGroupId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -7690,6 +7767,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
     Expression<DateTime>? occurredAt,
     Expression<String>? referenceId,
     Expression<String>? note,
+    Expression<String>? category,
+    Expression<int>? source,
     Expression<String>? transferGroupId,
     Expression<int>? rowid,
   }) {
@@ -7702,6 +7781,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
       if (occurredAt != null) 'occurred_at': occurredAt,
       if (referenceId != null) 'reference_id': referenceId,
       if (note != null) 'note': note,
+      if (category != null) 'category': category,
+      if (source != null) 'source': source,
       if (transferGroupId != null) 'transfer_group_id': transferGroupId,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7716,6 +7797,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
     Value<DateTime>? occurredAt,
     Value<String?>? referenceId,
     Value<String?>? note,
+    Value<String?>? category,
+    Value<int>? source,
     Value<String?>? transferGroupId,
     Value<int>? rowid,
   }) {
@@ -7728,6 +7811,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
       occurredAt: occurredAt ?? this.occurredAt,
       referenceId: referenceId ?? this.referenceId,
       note: note ?? this.note,
+      category: category ?? this.category,
+      source: source ?? this.source,
       transferGroupId: transferGroupId ?? this.transferGroupId,
       rowid: rowid ?? this.rowid,
     );
@@ -7760,6 +7845,12 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<int>(source.value);
+    }
     if (transferGroupId.present) {
       map['transfer_group_id'] = Variable<String>(transferGroupId.value);
     }
@@ -7780,6 +7871,8 @@ class AccountEntriesCompanion extends UpdateCompanion<AccountEntry> {
           ..write('occurredAt: $occurredAt, ')
           ..write('referenceId: $referenceId, ')
           ..write('note: $note, ')
+          ..write('category: $category, ')
+          ..write('source: $source, ')
           ..write('transferGroupId: $transferGroupId, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -16637,6 +16730,8 @@ typedef $$AccountEntriesTableCreateCompanionBuilder =
       required DateTime occurredAt,
       Value<String?> referenceId,
       Value<String?> note,
+      Value<String?> category,
+      Value<int> source,
       Value<String?> transferGroupId,
       Value<int> rowid,
     });
@@ -16650,6 +16745,8 @@ typedef $$AccountEntriesTableUpdateCompanionBuilder =
       Value<DateTime> occurredAt,
       Value<String?> referenceId,
       Value<String?> note,
+      Value<String?> category,
+      Value<int> source,
       Value<String?> transferGroupId,
       Value<int> rowid,
     });
@@ -16722,6 +16819,16 @@ class $$AccountEntriesTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get source => $composableBuilder(
+    column: $table.source,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16798,6 +16905,16 @@ class $$AccountEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get transferGroupId => $composableBuilder(
     column: $table.transferGroupId,
     builder: (column) => ColumnOrderings(column),
@@ -16862,6 +16979,12 @@ class $$AccountEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
 
   GeneratedColumn<String> get transferGroupId => $composableBuilder(
     column: $table.transferGroupId,
@@ -16931,6 +17054,8 @@ class $$AccountEntriesTableTableManager
                 Value<DateTime> occurredAt = const Value.absent(),
                 Value<String?> referenceId = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int> source = const Value.absent(),
                 Value<String?> transferGroupId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountEntriesCompanion(
@@ -16942,6 +17067,8 @@ class $$AccountEntriesTableTableManager
                 occurredAt: occurredAt,
                 referenceId: referenceId,
                 note: note,
+                category: category,
+                source: source,
                 transferGroupId: transferGroupId,
                 rowid: rowid,
               ),
@@ -16955,6 +17082,8 @@ class $$AccountEntriesTableTableManager
                 required DateTime occurredAt,
                 Value<String?> referenceId = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int> source = const Value.absent(),
                 Value<String?> transferGroupId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountEntriesCompanion.insert(
@@ -16966,6 +17095,8 @@ class $$AccountEntriesTableTableManager
                 occurredAt: occurredAt,
                 referenceId: referenceId,
                 note: note,
+                category: category,
+                source: source,
                 transferGroupId: transferGroupId,
                 rowid: rowid,
               ),
