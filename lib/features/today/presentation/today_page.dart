@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -131,7 +132,7 @@ class _Summary extends StatelessWidget {
     padding: const EdgeInsets.all(PlanActSpacing.lg),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: PlanActRadius.card,
     ),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -175,14 +176,14 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     children: [
       Container(
-        width: 4,
+        width: PlanActSpacing.xs,
         height: 22,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: PlanActRadius.chip,
         ),
       ),
-      const SizedBox(width: 8),
+      const SizedBox(width: PlanActSpacing.sm),
       Text(
         title,
         style: Theme.of(context).textTheme.titleLarge
