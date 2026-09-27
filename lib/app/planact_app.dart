@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
@@ -18,6 +19,7 @@ import 'package:planact/features/finance/data/drift_financial_expectation_reposi
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
@@ -74,6 +76,8 @@ class _HomeShellState extends State<HomeShell> {
       : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
+  TodayDashboard? _todayDashboard;
+  final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
       ? DriftFinancialExpectationRepository(_repository.database)
@@ -94,21 +98,39 @@ class _HomeShellState extends State<HomeShell> {
   Future<void> _refresh() async {
     final items = await _repository.list();
     final schedules = <String, List<DateTime>>{};
+    final plans = <StableId, List<Occurrence>>{};
     for (final item in items) {
       final plan = await _planRepository.findByCommitmentId(item.id);
       if (plan == null) continue;
+      plans[item.id] = plan.occurrences;
       schedules[item.id.value] = [
         for (final occurrence in plan.occurrences)
           if (occurrence.currentScheduledAt is DateTime)
             occurrence.currentScheduledAt as DateTime,
       ];
     }
+    final expectations = await _expectationRepository.listExpectations();
+    final matches = await _expectationRepository.listMatches();
+    final accounts = await _financeRepository.listAccounts();
+    final entries = await _financeRepository.listEntries();
+    final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+    final dashboard = _attentionEngine.build(
+      now: DateTime.now(),
+      commitments: items,
+      plans: plans,
+      expectations: expectations,
+      matches: matches,
+      inboxSuggestions: inboxSuggestions,
+      entries: entries,
+      accounts: accounts,
+    );
     if (mounted) {
       setState(() {
         _commitments = items;
         _scheduledDates
           ..clear()
           ..addAll(schedules);
+        _todayDashboard = dashboard;
       });
     }
   }
@@ -376,6 +398,7 @@ class _HomeShellState extends State<HomeShell> {
       TodayPage(
         commitments: _commitments,
         scheduledDates: _scheduledDates,
+        dashboard: _todayDashboard,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,

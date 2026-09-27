@@ -5,6 +5,7 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/today/application/attention_engine.dart';
 
 import 'widgets/planact_commitment_row.dart';
 
@@ -13,12 +14,14 @@ class TodayPage extends StatelessWidget {
     super.key,
     required this.commitments,
     required this.scheduledDates,
+    this.dashboard,
     required this.onAdd,
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
   });
   final List<Commitment> commitments;
   final Map<String, List<DateTime>> scheduledDates;
+  final TodayDashboard? dashboard;
   final VoidCallback onAdd;
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
@@ -26,10 +29,15 @@ class TodayPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final today = JalaliDate.now();
-    final todayItems = commitments.where((commitment) {
-      final dates = scheduledDates[commitment.id.value] ?? const <DateTime>[];
-      return dates.any((date) => JalaliDate.fromDateTime(date) == today);
-    }).toList();
+    final todayItems =
+        dashboard?.today ??
+        commitments.where((commitment) {
+          final dates =
+              scheduledDates[commitment.id.value] ?? const <DateTime>[];
+          return dates.any((date) => JalaliDate.fromDateTime(date) == today);
+        }).toList();
+    final attentionItems = dashboard?.attention ?? const <AttentionItem>[];
+    final nextItems = dashboard?.next ?? const <Commitment>[];
     final completedCount = todayItems
         .where((item) => item.status == CommitmentStatus.completed)
         .length;
@@ -71,7 +79,10 @@ class TodayPage extends StatelessWidget {
           color: PlanActColors.attention,
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        _AttentionState(hasItems: attentionCount > 0),
+        if (attentionItems.isEmpty)
+          const _AttentionState(hasItems: false)
+        else
+          ...attentionItems.map((item) => _AttentionItemCard(item: item)),
         const SizedBox(height: PlanActSpacing.xl),
         const _SectionHeader(title: 'امروز', color: PlanActColors.primary),
         const SizedBox(height: PlanActSpacing.sm),
@@ -89,9 +100,17 @@ class TodayPage extends StatelessWidget {
         const SizedBox(height: PlanActSpacing.xl),
         const _SectionHeader(title: 'بعدی', color: PlanActColors.info),
         const SizedBox(height: PlanActSpacing.sm),
-        const Text(
-          'برنامه‌های آینده پس از ثبت زمان‌بندی اینجا نمایش داده می‌شوند.',
-        ),
+        if (nextItems.isEmpty)
+          const Text('مورد مهمی برای نمایش در آینده نزدیک نیست.')
+        else
+          ...nextItems.map(
+            (item) => PlanActCommitmentRow(
+              commitment: item,
+              scheduledDates: scheduledDates[item.id.value] ?? const [],
+              onTap: () => onCommitmentTap(item),
+              onArchive: () => onCommitmentArchive(item),
+            ),
+          ),
       ],
     );
   }
@@ -170,6 +189,20 @@ class _SectionHeader extends StatelessWidget {
             ?.copyWith(fontWeight: FontWeight.bold),
       ),
     ],
+  );
+}
+
+class _AttentionItemCard extends StatelessWidget {
+  const _AttentionItemCard({required this.item});
+  final AttentionItem item;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: const Icon(Icons.priority_high),
+      title: Text(item.title),
+      subtitle: Text(item.explanation),
+    ),
   );
 }
 

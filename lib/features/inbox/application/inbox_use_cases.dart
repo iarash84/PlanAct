@@ -202,6 +202,15 @@ class InboxUseCases {
   final InboxRepository repository;
   final LocalSmsParser parser;
 
+  Future<List<InboxSuggestion>> listPendingSuggestions() async =>
+      (await repository.listSuggestions())
+          .where(
+            (item) =>
+                item.status == SuggestionStatus.pending ||
+                item.status == SuggestionStatus.edited,
+          )
+          .toList(growable: false);
+
   Future<InboxSuggestion> stageSms({
     required String rawText,
     required String sourceKey,
