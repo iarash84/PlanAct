@@ -39,51 +39,65 @@ class _FinancePageState extends State<FinancePage> {
   }
 
   Future<void> _refresh() async {
-    final accounts = await widget.repository.listAccounts();
-    final entries = await widget.repository.listEntries();
-    if (mounted) {
-      setState(() {
-        _accounts = accounts;
-        _entries = entries;
-        _loading = false;
-      });
+    try {
+      final accounts = await widget.repository.listAccounts();
+      final entries = await widget.repository.listEntries();
+      if (mounted) {
+        setState(() {
+          _accounts = accounts;
+          _entries = entries;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _loading = false);
+        _showMessage('بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.');
+      }
     }
   }
 
   Future<void> _addAccount() async {
     final name = TextEditingController();
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('افزودن حساب'),
-        content: TextField(
-          controller: name,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'نام حساب'),
+    try {
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('افزودن حساب'),
+          content: TextField(
+            controller: name,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'نام حساب'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('انصراف'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, name.text.trim()),
+              child: const Text('افزودن'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('انصراف'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, name.text.trim()),
-            child: const Text('افزودن'),
-          ),
-        ],
-      ),
-    );
-    name.dispose();
-    if (result == null || result.isEmpty) return;
-    await _finance.createAccount(
-      FinancialAccount(
-        id: StableId.generate(),
-        name: result,
-        currency: 'تومان',
-        type: FinancialAccountType.cash,
-      ),
-    );
-    await _refresh();
+      );
+      if (result == null || result.isEmpty) return;
+      await _finance.createAccount(
+        FinancialAccount(
+          id: StableId.generate(),
+          name: result,
+          currency: 'تومان',
+          type: FinancialAccountType.cash,
+        ),
+      );
+      await _refresh();
+    } catch (_) {
+      if (mounted) {
+        _showMessage('افزودن حساب انجام نشد. دوباره تلاش کنید.');
+      }
+    } finally {
+      name.dispose();
+    }
   }
 
   Future<void> _addExpense() async {

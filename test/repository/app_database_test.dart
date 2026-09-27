@@ -13,6 +13,8 @@ import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/finance/data/drift_finance_repository.dart';
+import 'package:planact/features/finance/domain/finance.dart';
 
 void main() {
   late db.AppDatabase database;
@@ -47,6 +49,26 @@ void main() {
     );
     expect(await database.select(database.reminderRules).get(), isEmpty);
     expect(await database.select(database.reminderInstances).get(), isEmpty);
+  });
+
+  test('persists a newly created financial account through Drift', () async {
+    final repository = DriftFinanceRepository(database);
+    final account = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 27)),
+      name: 'حساب نقدی',
+      currency: 'تومان',
+      type: FinancialAccountType.cash,
+    );
+
+    await repository.saveAccount(account);
+    final stored = await repository.listAccounts();
+
+    expect(stored, hasLength(1));
+    expect(stored.single.id, account.id);
+    expect(stored.single.name, account.name);
+    expect(stored.single.currency, account.currency);
+    expect(stored.single.type, FinancialAccountType.cash);
+    expect(stored.single.status, FinancialAccountStatus.active);
   });
 
   test(
