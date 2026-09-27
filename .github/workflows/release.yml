@@ -12,7 +12,7 @@ jobs:
   release:
     name: Build and publish Android release
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -28,21 +28,37 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.47.5'
           cache: true
 
       - name: Install dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
-      - name: Read release version from tag
+      - name: Validate release version
         shell: bash
         run: |
+          set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must have the form vX.Y.Z, got: $GITHUB_REF_NAME"
+            echo "Release tag must have the form vX.Y.Z, got: $GITHUB_REF_NAME" >&2
             exit 1
           fi
-          echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
+
+          pubspec_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+$/\1/p' pubspec.yaml)"
+          if [[ "$pubspec_version" != "$version" ]]; then
+            echo "Tag version $version must match pubspec.yaml version $pubspec_version" >&2
+            exit 1
+          fi
+
+          if [[ ! "$GITHUB_RUN_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid GitHub Actions run number: $GITHUB_RUN_NUMBER" >&2
+            exit 1
+          fi
+
+          {
+            echo "RELEASE_VERSION=$version"
+            echo "RELEASE_BUILD_NUMBER=$GITHUB_RUN_NUMBER"
+          } >> "$GITHUB_ENV"
 
       - name: Analyze
         run: flutter analyze
@@ -50,34 +66,163 @@ jobs:
       - name: Test
         run: flutter test
 
-      - name: Build split Android APKs
-        run: flutter build apk --release --split-per-abi --build-name="$RELEASE_VERSION" --build-number="$GITHUB_RUN_NUMBER"
-
-      - name: Package release artifacts
+      - name: Prepare release signing keystore
         shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
+          SYMBOLS_ENCRYPTION_PASSPHRASE: ${{ secrets.SYMBOLS_ENCRYPTION_PASSPHRASE }}
         run: |
           set -euo pipefail
-          release_dir="release-assets"
-          mkdir -p "$release_dir"
+          for secret_name in \
+            ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD \
+            ANDROID_SIGNING_CERT_SHA256 \
+            SYMBOLS_ENCRYPTION_PASSPHRASE; do
+            if [[ -z "${!secret_name}" ]]; then
+              echo "Missing GitHub secret $secret_name; refusing to publish an unsigned or unverifiable release." >&2
+              exit 1
+            fi
+          done
+          if [[ ! "$ANDROID_SIGNING_CERT_SHA256" =~ ^([[:xdigit:]]{64}|([[:xdigit:]]{2}:){31}[[:xdigit:]]{2})$ ]]; then
+            echo "ANDROID_SIGNING_CERT_SHA256 must be a 64-character SHA-256 fingerprint, optionally colon-separated." >&2
+            exit 1
+          fi
 
-          for abi in armeabi-v7a arm64-v8a x86_64; do
+          keystore_path="$RUNNER_TEMP/planact-release.jks"
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          if [[ ! -s "$keystore_path" ]]; then
+            echo "The decoded Android keystore is empty or invalid." >&2
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+
+      - name: Build Universal APK
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets build/symbols/universal
+          flutter build apk --release --obfuscate \
+            --split-debug-info=build/symbols/universal \
+            --build-name="$RELEASE_VERSION" \
+            --build-number="$RELEASE_BUILD_NUMBER"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "release-assets/PlanAct-${GITHUB_REF_NAME}-universal.apk"
+
+      - name: Build ABI-split APKs
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/symbols/split
+          flutter build apk --release --split-per-abi --obfuscate \
+            --split-debug-info=build/symbols/split \
+            --build-name="$RELEASE_VERSION" \
+            --build-number="$RELEASE_BUILD_NUMBER"
+
+          for abi in arm64-v8a armeabi-v7a x86_64; do
             cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" \
-              "$release_dir/PlanAct-${GITHUB_REF_NAME}-${abi}.apk"
+              "release-assets/PlanAct-${GITHUB_REF_NAME}-${abi}.apk"
           done
 
+      - name: Validate APKs and create checksums
+        shell: bash
+        env:
+          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          expected_package="com.example.planact"
+          certificate_digest=""
+
+          while IFS=' ' read -r variant abi; do
+            apk="release-assets/PlanAct-${GITHUB_REF_NAME}-${variant}.apk"
+            digest="$(bash .github/scripts/validate_android_release.sh \
+              "$apk" "$abi" "$expected_package" "$RELEASE_VERSION" "$RELEASE_BUILD_NUMBER" \
+              "$ANDROID_SIGNING_CERT_SHA256")"
+            if [[ -z "$certificate_digest" ]]; then
+              certificate_digest="$digest"
+            elif [[ "$certificate_digest" != "$digest" ]]; then
+              echo "APK signing certificates do not match." >&2
+              exit 1
+            fi
+          done <<'EOF'
+          universal all
+          arm64-v8a arm64-v8a
+          armeabi-v7a armeabi-v7a
+          x86_64 x86_64
+          EOF
+
+          printf '%s\n' "$certificate_digest" > release-assets/SIGNING-CERTIFICATE-SHA256.txt
           (
-            cd "$release_dir"
+            cd release-assets
             sha256sum ./*.apk > SHA256SUMS.txt
           )
 
-          zip -9 -j "PlanAct-${GITHUB_REF_NAME}-android-apks.zip" \
-            "$release_dir"/*.apk "$release_dir/SHA256SUMS.txt"
+      - name: Prepare encrypted symbol archive
+        shell: bash
+        env:
+          SYMBOLS_ENCRYPTION_PASSPHRASE: ${{ secrets.SYMBOLS_ENCRYPTION_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$SYMBOLS_ENCRYPTION_PASSPHRASE" ]]; then
+            echo "Missing GitHub secret SYMBOLS_ENCRYPTION_PASSPHRASE for protected symbol storage." >&2
+            exit 1
+          fi
+
+          for variant in universal split; do
+            if [[ ! -d "build/symbols/$variant" ]] || \
+              ! find "build/symbols/$variant" -type f -size +0c -print -quit | grep -q .; then
+              echo "Obfuscation symbols are missing for $variant." >&2
+              exit 1
+            fi
+          done
+
+          archive="$RUNNER_TEMP/PlanAct-${GITHUB_REF_NAME}-symbols.tar.gz"
+          encrypted="$archive.gpg"
+          passphrase_file="$RUNNER_TEMP/planact-symbols-passphrase"
+          umask 077
+          tar -czf "$archive" -C build/symbols universal split
+          printf '%s' "$SYMBOLS_ENCRYPTION_PASSPHRASE" > "$passphrase_file"
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase-file "$passphrase_file" \
+            --symmetric --cipher-algo AES256 \
+            --output "$encrypted" "$archive"
+          rm -f "$passphrase_file" "$archive"
+
+      - name: Upload encrypted obfuscation symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlanAct-${{ github.ref_name }}-symbols-encrypted
+          path: ${{ runner.temp }}/PlanAct-${{ github.ref_name }}-symbols.tar.gz.gpg
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          body: |
+            Android APK downloads:
+            - Universal: recommended for most users; no ABI selection required.
+            - arm64-v8a: most current Android phones.
+            - armeabi-v7a: older 32-bit ARM devices.
+            - x86_64: primarily emulators and specialized x86 devices.
+
+            Verify downloads with `SHA256SUMS.txt`. Obfuscation symbols are not included in this release.
           files: |
             release-assets/*.apk
             release-assets/SHA256SUMS.txt
-            PlanAct-${{ github.ref_name }}-android-apks.zip
+            release-assets/SIGNING-CERTIFICATE-SHA256.txt
