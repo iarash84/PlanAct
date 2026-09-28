@@ -20,7 +20,9 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
     tz.setLocalLocation(tz.getLocation(localTimezone.identifier));
 
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(const InitializationSettings(android: android));
+    await _plugin.initialize(
+      settings: const InitializationSettings(android: android),
+    );
     _initialized = true;
   }
 
@@ -46,11 +48,11 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
     }
     final id = _notificationId(instance);
     await _plugin.zonedSchedule(
-      id,
-      'یادآوری پلن‌اکت',
-      'زمان انجام یک تعهد فرا رسیده است.',
-      tz.TZDateTime.from(scheduledAt, tz.local),
-      const NotificationDetails(
+      id: id,
+      title: 'یادآوری پلن‌اکت',
+      body: 'زمان انجام یک تعهد فرا رسیده است.',
+      scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'planact_reminders',
           'یادآوری‌ها',
@@ -68,7 +70,7 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
   @override
   Future<void> cancel(ReminderInstance instance) async {
     await initialize();
-    await _plugin.cancel(_notificationId(instance));
+    await _plugin.cancel(id: _notificationId(instance));
   }
 
   int _notificationId(ReminderInstance instance) =>
