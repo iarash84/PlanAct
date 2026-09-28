@@ -202,14 +202,27 @@ class InboxUseCases {
   final InboxRepository repository;
   final LocalSmsParser parser;
 
-  Future<List<InboxSuggestion>> listPendingSuggestions() async =>
-      (await repository.listSuggestions())
-          .where(
-            (item) =>
-                item.status == SuggestionStatus.pending ||
-                item.status == SuggestionStatus.edited,
-          )
-          .toList(growable: false);
+  Future<List<InboxSuggestion>> listPendingSuggestions() async {
+    await expireRawText();
+    return (await repository.listSuggestions())
+        .where(
+          (item) =>
+              item.status == SuggestionStatus.pending ||
+              item.status == SuggestionStatus.edited,
+        )
+        .toList(growable: false);
+  }
+
+  Future<void> expireRawText({DateTime? now}) async {
+    final at = (now ?? DateTime.now()).toUtc();
+    for (final item in await repository.listImports()) {
+      if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
+      final deadline = item.retentionUntil;
+      if (deadline != null && !at.isBefore(deadline)) {
+        await repository.saveImport(item.expireRawText());
+      }
+    }
+  }
 
   Future<InboxSuggestion> stageSms({
     required String rawText,
@@ -236,6 +249,8 @@ class InboxUseCases {
       throw const ValidationError('This source item was already imported');
     }
     final parsed = parser.parse(text: normalized, currency: currency);
+    final imported = (importedAt ?? DateTime.now()).toUtc();
+    final retentionUntil = imported.add(const Duration(days: 30));
     final staged = StagedImport(
       id: _stableImportId(fingerprint, importedAt),
       rawText: normalized,
@@ -243,8 +258,9 @@ class InboxUseCases {
       provenance: ImportProvenance(
         source: ImportSource.sms,
         sourceKey: sourceKey,
-        importedAt: (importedAt ?? DateTime.now()).toUtc(),
+        importedAt: imported,
       ),
+      retentionUntil: retentionUntil,
     );
     final draft = TransactionDraft(
       id: _stableImportId('$fingerprint:draft', parsed.occurredAt),

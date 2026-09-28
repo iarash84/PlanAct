@@ -10,12 +10,15 @@ class BankSmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-        messages.forEachIndexed { index, sms ->
-            val body = sms.messageBody ?: return@forEachIndexed
-            val receivedAt = System.currentTimeMillis()
-            val key = "android-received:${sha256((sms.originatingAddress ?: "") + receivedAt + index + body)}"
-            SmsBridge.publish(context, sms.originatingAddress ?: "", body, receivedAt, key)
-        }
+        if (messages.isEmpty()) return
+        // The Android API can deliver one multipart SMS as several PDUs. Join it
+        // once, filter before crossing the Flutter boundary, and never log raw
+        // content or sender identifiers.
+        val body = messages.joinToString(separator = "") { it.messageBody.orEmpty() }.trim()
+        if (body.isEmpty()) return
+        val receivedAt = System.currentTimeMillis()
+        val key = "android-received:${sha256(receivedAt.toString() + body)}"
+        SmsBridge.publish(context, "", body, receivedAt, key)
     }
 
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")

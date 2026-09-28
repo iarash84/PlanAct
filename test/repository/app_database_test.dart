@@ -29,7 +29,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '12');
+    expect(await database.readMetadata('schema_version'), '13');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -50,6 +50,36 @@ void main() {
     );
     expect(await database.select(database.reminderRules).get(), isEmpty);
     expect(await database.select(database.reminderInstances).get(), isEmpty);
+  });
+
+  test('persists SMS retention metadata across database restart', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'planact-retention-',
+    );
+    final path = '${directory.path}${Platform.pathSeparator}planact.sqlite';
+    final first = db.AppDatabase(NativeDatabase(File(path)));
+    final repository = DriftInboxRepository(first);
+    final importedAt = DateTime.utc(2026, 1, 1);
+    final item = StagedImport(
+      id: StableId.generate(timestamp: importedAt),
+      rawText: 'sensitive amount 1000',
+      fingerprint: 'fingerprint-retention',
+      provenance: ImportProvenance(
+        source: ImportSource.sms,
+        sourceKey: 'restart-sms',
+        importedAt: importedAt,
+      ),
+      retentionUntil: importedAt.add(const Duration(days: 30)),
+    );
+    await repository.saveImport(item);
+    await first.close();
+
+    final second = db.AppDatabase(NativeDatabase(File(path)));
+    final restored = (await DriftInboxRepository(second).listImports()).single;
+    expect(restored.retentionUntil, item.retentionUntil);
+    expect(restored.fingerprint, item.fingerprint);
+    await second.close();
+    await Directory(directory.path).delete(recursive: true);
   });
 
   test('persists a newly created financial account through Drift', () async {

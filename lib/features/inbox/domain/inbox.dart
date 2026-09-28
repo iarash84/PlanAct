@@ -8,6 +8,8 @@ enum ImportSource { sms, file, manual }
 
 enum StagedItemStatus { pending, confirmed, rejected, rolledBack }
 
+enum RawTextRetentionStatus { pending, confirmed, rejected, expired }
+
 enum SuggestionStatus { pending, confirmed, edited, rejected, duplicate }
 
 enum TransactionDirection { incoming, outgoing, unknown }
@@ -39,16 +41,21 @@ class StagedImport {
     required this.fingerprint,
     required this.provenance,
     this.status = StagedItemStatus.pending,
+    this.retentionStatus = RawTextRetentionStatus.pending,
+    this.retentionUntil,
+    this.lastDecisionAt,
   });
 
   final StableId id;
 
-  /// Retained locally only. Platform adapters should provide a minimized or
-  /// redacted body when the provider can do so; never log this value.
+  /// Retained locally only until retentionUntil; never log or export without consent.
   final String rawText;
   final String fingerprint;
   final ImportProvenance provenance;
   final StagedItemStatus status;
+  final RawTextRetentionStatus retentionStatus;
+  final DateTime? retentionUntil;
+  final DateTime? lastDecisionAt;
 
   StagedImport withStatus(StagedItemStatus next) => StagedImport(
     id: id,
@@ -56,6 +63,24 @@ class StagedImport {
     fingerprint: fingerprint,
     provenance: provenance,
     status: next,
+    retentionStatus: next == StagedItemStatus.confirmed
+        ? RawTextRetentionStatus.confirmed
+        : next == StagedItemStatus.rejected
+        ? RawTextRetentionStatus.rejected
+        : retentionStatus,
+    retentionUntil: retentionUntil,
+    lastDecisionAt: DateTime.now().toUtc(),
+  );
+
+  StagedImport expireRawText() => StagedImport(
+    id: id,
+    rawText: '',
+    fingerprint: fingerprint,
+    provenance: provenance,
+    status: status,
+    retentionStatus: RawTextRetentionStatus.expired,
+    retentionUntil: retentionUntil,
+    lastDecisionAt: lastDecisionAt,
   );
 }
 

@@ -265,6 +265,9 @@ class StagedImports extends Table {
   TextColumn get id => text()();
   TextColumn get rawText => text()();
   TextColumn get fingerprint => text()();
+  IntColumn get retentionStatus => integer().withDefault(const Constant(0))();
+  DateTimeColumn get retentionUntil => dateTime().nullable()();
+  DateTimeColumn get lastDecisionAt => dateTime().nullable()();
   IntColumn get source => integer()();
   TextColumn get sourceKey => text()();
   DateTimeColumn get importedAt => dateTime()();
@@ -321,7 +324,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -390,6 +393,17 @@ class AppDatabase extends _$AppDatabase {
         );
         await customStatement(
           'ALTER TABLE account_entries ADD COLUMN source INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+      if (from < 13) {
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN retention_status INTEGER NOT NULL DEFAULT 0',
+        );
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN retention_until INTEGER',
+        );
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN last_decision_at INTEGER',
         );
       }
       await _writeSchemaMetadata();

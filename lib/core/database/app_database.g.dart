@@ -9392,6 +9392,42 @@ class $StagedImportsTable extends StagedImports
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _retentionStatusMeta = const VerificationMeta(
+    'retentionStatus',
+  );
+  @override
+  late final GeneratedColumn<int> retentionStatus = GeneratedColumn<int>(
+    'retention_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _retentionUntilMeta = const VerificationMeta(
+    'retentionUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retentionUntil =
+      GeneratedColumn<DateTime>(
+        'retention_until',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastDecisionAtMeta = const VerificationMeta(
+    'lastDecisionAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastDecisionAt =
+      GeneratedColumn<DateTime>(
+        'last_decision_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
   late final GeneratedColumn<int> source = GeneratedColumn<int>(
@@ -9448,6 +9484,9 @@ class $StagedImportsTable extends StagedImports
     id,
     rawText,
     fingerprint,
+    retentionStatus,
+    retentionUntil,
+    lastDecisionAt,
     source,
     sourceKey,
     importedAt,
@@ -9489,6 +9528,33 @@ class $StagedImportsTable extends StagedImports
       );
     } else if (isInserting) {
       context.missing(_fingerprintMeta);
+    }
+    if (data.containsKey('retention_status')) {
+      context.handle(
+        _retentionStatusMeta,
+        retentionStatus.isAcceptableOrUnknown(
+          data['retention_status']!,
+          _retentionStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('retention_until')) {
+      context.handle(
+        _retentionUntilMeta,
+        retentionUntil.isAcceptableOrUnknown(
+          data['retention_until']!,
+          _retentionUntilMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_decision_at')) {
+      context.handle(
+        _lastDecisionAtMeta,
+        lastDecisionAt.isAcceptableOrUnknown(
+          data['last_decision_at']!,
+          _lastDecisionAtMeta,
+        ),
+      );
     }
     if (data.containsKey('source')) {
       context.handle(
@@ -9554,6 +9620,18 @@ class $StagedImportsTable extends StagedImports
         DriftSqlType.string,
         data['${effectivePrefix}fingerprint'],
       )!,
+      retentionStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retention_status'],
+      )!,
+      retentionUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retention_until'],
+      ),
+      lastDecisionAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_decision_at'],
+      ),
       source: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}source'],
@@ -9587,6 +9665,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
   final String id;
   final String rawText;
   final String fingerprint;
+  final int retentionStatus;
+  final DateTime? retentionUntil;
+  final DateTime? lastDecisionAt;
   final int source;
   final String sourceKey;
   final DateTime importedAt;
@@ -9596,6 +9677,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
     required this.id,
     required this.rawText,
     required this.fingerprint,
+    required this.retentionStatus,
+    this.retentionUntil,
+    this.lastDecisionAt,
     required this.source,
     required this.sourceKey,
     required this.importedAt,
@@ -9608,6 +9692,13 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
     map['id'] = Variable<String>(id);
     map['raw_text'] = Variable<String>(rawText);
     map['fingerprint'] = Variable<String>(fingerprint);
+    map['retention_status'] = Variable<int>(retentionStatus);
+    if (!nullToAbsent || retentionUntil != null) {
+      map['retention_until'] = Variable<DateTime>(retentionUntil);
+    }
+    if (!nullToAbsent || lastDecisionAt != null) {
+      map['last_decision_at'] = Variable<DateTime>(lastDecisionAt);
+    }
     map['source'] = Variable<int>(source);
     map['source_key'] = Variable<String>(sourceKey);
     map['imported_at'] = Variable<DateTime>(importedAt);
@@ -9621,6 +9712,13 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
       id: Value(id),
       rawText: Value(rawText),
       fingerprint: Value(fingerprint),
+      retentionStatus: Value(retentionStatus),
+      retentionUntil: retentionUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retentionUntil),
+      lastDecisionAt: lastDecisionAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastDecisionAt),
       source: Value(source),
       sourceKey: Value(sourceKey),
       importedAt: Value(importedAt),
@@ -9638,6 +9736,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
       id: serializer.fromJson<String>(json['id']),
       rawText: serializer.fromJson<String>(json['rawText']),
       fingerprint: serializer.fromJson<String>(json['fingerprint']),
+      retentionStatus: serializer.fromJson<int>(json['retentionStatus']),
+      retentionUntil: serializer.fromJson<DateTime?>(json['retentionUntil']),
+      lastDecisionAt: serializer.fromJson<DateTime?>(json['lastDecisionAt']),
       source: serializer.fromJson<int>(json['source']),
       sourceKey: serializer.fromJson<String>(json['sourceKey']),
       importedAt: serializer.fromJson<DateTime>(json['importedAt']),
@@ -9652,6 +9753,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
       'id': serializer.toJson<String>(id),
       'rawText': serializer.toJson<String>(rawText),
       'fingerprint': serializer.toJson<String>(fingerprint),
+      'retentionStatus': serializer.toJson<int>(retentionStatus),
+      'retentionUntil': serializer.toJson<DateTime?>(retentionUntil),
+      'lastDecisionAt': serializer.toJson<DateTime?>(lastDecisionAt),
       'source': serializer.toJson<int>(source),
       'sourceKey': serializer.toJson<String>(sourceKey),
       'importedAt': serializer.toJson<DateTime>(importedAt),
@@ -9664,6 +9768,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
     String? id,
     String? rawText,
     String? fingerprint,
+    int? retentionStatus,
+    Value<DateTime?> retentionUntil = const Value.absent(),
+    Value<DateTime?> lastDecisionAt = const Value.absent(),
     int? source,
     String? sourceKey,
     DateTime? importedAt,
@@ -9673,6 +9780,13 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
     id: id ?? this.id,
     rawText: rawText ?? this.rawText,
     fingerprint: fingerprint ?? this.fingerprint,
+    retentionStatus: retentionStatus ?? this.retentionStatus,
+    retentionUntil: retentionUntil.present
+        ? retentionUntil.value
+        : this.retentionUntil,
+    lastDecisionAt: lastDecisionAt.present
+        ? lastDecisionAt.value
+        : this.lastDecisionAt,
     source: source ?? this.source,
     sourceKey: sourceKey ?? this.sourceKey,
     importedAt: importedAt ?? this.importedAt,
@@ -9686,6 +9800,15 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
       fingerprint: data.fingerprint.present
           ? data.fingerprint.value
           : this.fingerprint,
+      retentionStatus: data.retentionStatus.present
+          ? data.retentionStatus.value
+          : this.retentionStatus,
+      retentionUntil: data.retentionUntil.present
+          ? data.retentionUntil.value
+          : this.retentionUntil,
+      lastDecisionAt: data.lastDecisionAt.present
+          ? data.lastDecisionAt.value
+          : this.lastDecisionAt,
       source: data.source.present ? data.source.value : this.source,
       sourceKey: data.sourceKey.present ? data.sourceKey.value : this.sourceKey,
       importedAt: data.importedAt.present
@@ -9704,6 +9827,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
           ..write('id: $id, ')
           ..write('rawText: $rawText, ')
           ..write('fingerprint: $fingerprint, ')
+          ..write('retentionStatus: $retentionStatus, ')
+          ..write('retentionUntil: $retentionUntil, ')
+          ..write('lastDecisionAt: $lastDecisionAt, ')
           ..write('source: $source, ')
           ..write('sourceKey: $sourceKey, ')
           ..write('importedAt: $importedAt, ')
@@ -9718,6 +9844,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
     id,
     rawText,
     fingerprint,
+    retentionStatus,
+    retentionUntil,
+    lastDecisionAt,
     source,
     sourceKey,
     importedAt,
@@ -9731,6 +9860,9 @@ class StagedImport extends DataClass implements Insertable<StagedImport> {
           other.id == this.id &&
           other.rawText == this.rawText &&
           other.fingerprint == this.fingerprint &&
+          other.retentionStatus == this.retentionStatus &&
+          other.retentionUntil == this.retentionUntil &&
+          other.lastDecisionAt == this.lastDecisionAt &&
           other.source == this.source &&
           other.sourceKey == this.sourceKey &&
           other.importedAt == this.importedAt &&
@@ -9742,6 +9874,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
   final Value<String> id;
   final Value<String> rawText;
   final Value<String> fingerprint;
+  final Value<int> retentionStatus;
+  final Value<DateTime?> retentionUntil;
+  final Value<DateTime?> lastDecisionAt;
   final Value<int> source;
   final Value<String> sourceKey;
   final Value<DateTime> importedAt;
@@ -9752,6 +9887,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
     this.id = const Value.absent(),
     this.rawText = const Value.absent(),
     this.fingerprint = const Value.absent(),
+    this.retentionStatus = const Value.absent(),
+    this.retentionUntil = const Value.absent(),
+    this.lastDecisionAt = const Value.absent(),
     this.source = const Value.absent(),
     this.sourceKey = const Value.absent(),
     this.importedAt = const Value.absent(),
@@ -9763,6 +9901,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
     required String id,
     required String rawText,
     required String fingerprint,
+    this.retentionStatus = const Value.absent(),
+    this.retentionUntil = const Value.absent(),
+    this.lastDecisionAt = const Value.absent(),
     required int source,
     required String sourceKey,
     required DateTime importedAt,
@@ -9781,6 +9922,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
     Expression<String>? id,
     Expression<String>? rawText,
     Expression<String>? fingerprint,
+    Expression<int>? retentionStatus,
+    Expression<DateTime>? retentionUntil,
+    Expression<DateTime>? lastDecisionAt,
     Expression<int>? source,
     Expression<String>? sourceKey,
     Expression<DateTime>? importedAt,
@@ -9792,6 +9936,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
       if (id != null) 'id': id,
       if (rawText != null) 'raw_text': rawText,
       if (fingerprint != null) 'fingerprint': fingerprint,
+      if (retentionStatus != null) 'retention_status': retentionStatus,
+      if (retentionUntil != null) 'retention_until': retentionUntil,
+      if (lastDecisionAt != null) 'last_decision_at': lastDecisionAt,
       if (source != null) 'source': source,
       if (sourceKey != null) 'source_key': sourceKey,
       if (importedAt != null) 'imported_at': importedAt,
@@ -9805,6 +9952,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
     Value<String>? id,
     Value<String>? rawText,
     Value<String>? fingerprint,
+    Value<int>? retentionStatus,
+    Value<DateTime?>? retentionUntil,
+    Value<DateTime?>? lastDecisionAt,
     Value<int>? source,
     Value<String>? sourceKey,
     Value<DateTime>? importedAt,
@@ -9816,6 +9966,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
       id: id ?? this.id,
       rawText: rawText ?? this.rawText,
       fingerprint: fingerprint ?? this.fingerprint,
+      retentionStatus: retentionStatus ?? this.retentionStatus,
+      retentionUntil: retentionUntil ?? this.retentionUntil,
+      lastDecisionAt: lastDecisionAt ?? this.lastDecisionAt,
       source: source ?? this.source,
       sourceKey: sourceKey ?? this.sourceKey,
       importedAt: importedAt ?? this.importedAt,
@@ -9836,6 +9989,15 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
     }
     if (fingerprint.present) {
       map['fingerprint'] = Variable<String>(fingerprint.value);
+    }
+    if (retentionStatus.present) {
+      map['retention_status'] = Variable<int>(retentionStatus.value);
+    }
+    if (retentionUntil.present) {
+      map['retention_until'] = Variable<DateTime>(retentionUntil.value);
+    }
+    if (lastDecisionAt.present) {
+      map['last_decision_at'] = Variable<DateTime>(lastDecisionAt.value);
     }
     if (source.present) {
       map['source'] = Variable<int>(source.value);
@@ -9864,6 +10026,9 @@ class StagedImportsCompanion extends UpdateCompanion<StagedImport> {
           ..write('id: $id, ')
           ..write('rawText: $rawText, ')
           ..write('fingerprint: $fingerprint, ')
+          ..write('retentionStatus: $retentionStatus, ')
+          ..write('retentionUntil: $retentionUntil, ')
+          ..write('lastDecisionAt: $lastDecisionAt, ')
           ..write('source: $source, ')
           ..write('sourceKey: $sourceKey, ')
           ..write('importedAt: $importedAt, ')
@@ -18386,6 +18551,9 @@ typedef $$StagedImportsTableCreateCompanionBuilder =
       required String id,
       required String rawText,
       required String fingerprint,
+      Value<int> retentionStatus,
+      Value<DateTime?> retentionUntil,
+      Value<DateTime?> lastDecisionAt,
       required int source,
       required String sourceKey,
       required DateTime importedAt,
@@ -18398,6 +18566,9 @@ typedef $$StagedImportsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> rawText,
       Value<String> fingerprint,
+      Value<int> retentionStatus,
+      Value<DateTime?> retentionUntil,
+      Value<DateTime?> lastDecisionAt,
       Value<int> source,
       Value<String> sourceKey,
       Value<DateTime> importedAt,
@@ -18456,6 +18627,21 @@ class $$StagedImportsTableFilterComposer
 
   ColumnFilters<String> get fingerprint => $composableBuilder(
     column: $table.fingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get retentionStatus => $composableBuilder(
+    column: $table.retentionStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retentionUntil => $composableBuilder(
+    column: $table.retentionUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastDecisionAt => $composableBuilder(
+    column: $table.lastDecisionAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18534,6 +18720,21 @@ class $$StagedImportsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get retentionStatus => $composableBuilder(
+    column: $table.retentionStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retentionUntil => $composableBuilder(
+    column: $table.retentionUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastDecisionAt => $composableBuilder(
+    column: $table.lastDecisionAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get source => $composableBuilder(
     column: $table.source,
     builder: (column) => ColumnOrderings(column),
@@ -18577,6 +18778,21 @@ class $$StagedImportsTableAnnotationComposer
 
   GeneratedColumn<String> get fingerprint => $composableBuilder(
     column: $table.fingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get retentionStatus => $composableBuilder(
+    column: $table.retentionStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get retentionUntil => $composableBuilder(
+    column: $table.retentionUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastDecisionAt => $composableBuilder(
+    column: $table.lastDecisionAt,
     builder: (column) => column,
   );
 
@@ -18656,6 +18872,9 @@ class $$StagedImportsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> rawText = const Value.absent(),
                 Value<String> fingerprint = const Value.absent(),
+                Value<int> retentionStatus = const Value.absent(),
+                Value<DateTime?> retentionUntil = const Value.absent(),
+                Value<DateTime?> lastDecisionAt = const Value.absent(),
                 Value<int> source = const Value.absent(),
                 Value<String> sourceKey = const Value.absent(),
                 Value<DateTime> importedAt = const Value.absent(),
@@ -18666,6 +18885,9 @@ class $$StagedImportsTableTableManager
                 id: id,
                 rawText: rawText,
                 fingerprint: fingerprint,
+                retentionStatus: retentionStatus,
+                retentionUntil: retentionUntil,
+                lastDecisionAt: lastDecisionAt,
                 source: source,
                 sourceKey: sourceKey,
                 importedAt: importedAt,
@@ -18678,6 +18900,9 @@ class $$StagedImportsTableTableManager
                 required String id,
                 required String rawText,
                 required String fingerprint,
+                Value<int> retentionStatus = const Value.absent(),
+                Value<DateTime?> retentionUntil = const Value.absent(),
+                Value<DateTime?> lastDecisionAt = const Value.absent(),
                 required int source,
                 required String sourceKey,
                 required DateTime importedAt,
@@ -18688,6 +18913,9 @@ class $$StagedImportsTableTableManager
                 id: id,
                 rawText: rawText,
                 fingerprint: fingerprint,
+                retentionStatus: retentionStatus,
+                retentionUntil: retentionUntil,
+                lastDecisionAt: lastDecisionAt,
                 source: source,
                 sourceKey: sourceKey,
                 importedAt: importedAt,

@@ -131,7 +131,14 @@ class BackupValidator {
       throw const ValidationError('Backup payload is too large');
     }
     final metadata = package.encryptionMetadata;
-    const required = ['algorithm', 'nonce', 'tag', 'kdf', 'keyId'];
+    const required = [
+      'algorithm',
+      'nonce',
+      'tag',
+      'kdf',
+      'keyId',
+      'rawTextPolicy',
+    ];
     if (required.any(
       (key) => metadata[key] == null || metadata[key]!.isEmpty,
     )) {
@@ -143,6 +150,10 @@ class BackupValidator {
         metadata['kdf'] != backupKdf ||
         metadata['keyId'] != backupKeyId) {
       throw const ValidationError('Backup encryption metadata is unsupported');
+    }
+    if (metadata['rawTextPolicy'] != 'redacted' &&
+        metadata['rawTextPolicy'] != 'consented-encrypted') {
+      throw const ValidationError('Backup raw text policy is unsupported');
     }
     try {
       if (base64Decode(metadata['nonce']!).length != 12 ||

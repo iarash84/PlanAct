@@ -19,6 +19,9 @@ class DriftInboxRepository implements InboxRepository {
             id: StableId.parse(row.id),
             rawText: row.rawText,
             fingerprint: row.fingerprint,
+            retentionStatus: RawTextRetentionStatus.values[row.retentionStatus],
+            retentionUntil: row.retentionUntil?.toUtc(),
+            lastDecisionAt: row.lastDecisionAt?.toUtc(),
             provenance: ImportProvenance(
               source: ImportSource.values[row.source],
               sourceKey: row.sourceKey,
@@ -68,6 +71,9 @@ class DriftInboxRepository implements InboxRepository {
             importedAt: Value(item.provenance.importedAt.toUtc()),
             adapterVersion: Value(item.provenance.adapterVersion),
             status: Value(item.status.index),
+            retentionStatus: Value(item.retentionStatus.index),
+            retentionUntil: Value(item.retentionUntil?.toUtc()),
+            lastDecisionAt: Value(item.lastDecisionAt?.toUtc()),
           ),
         );
   }

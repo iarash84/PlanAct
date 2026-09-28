@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 class AndroidSmsMessage {
   const AndroidSmsMessage({
     required this.sourceKey,
-    required this.address,
+    this.address = '',
     required this.body,
     required this.receivedAt,
   });

@@ -229,4 +229,28 @@ void main() {
     );
     expect(await finance.listEntries(), hasLength(1));
   });
+
+  test(
+    'expires raw text while preserving fingerprint and decision metadata',
+    () async {
+      final inbox = InMemoryInboxRepository();
+      final useCases = InboxUseCases(inbox);
+      final importedAt = DateTime.utc(2026, 1, 1);
+      await useCases.stageSms(
+        rawText: 'amount 1000 2026-01-01',
+        sourceKey: 'sms-retention',
+        currency: 'IRR',
+        importedAt: importedAt,
+      );
+
+      await useCases.expireRawText(
+        now: importedAt.add(const Duration(days: 31)),
+      );
+      final stored = (await inbox.listImports()).single;
+      expect(stored.rawText, isEmpty);
+      expect(stored.fingerprint, isNotEmpty);
+      expect(stored.retentionStatus, RawTextRetentionStatus.expired);
+      expect(stored.retentionUntil, importedAt.add(const Duration(days: 30)));
+    },
+  );
 }

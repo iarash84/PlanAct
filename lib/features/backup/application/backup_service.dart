@@ -40,6 +40,7 @@ class BackupService {
     required String appVersion,
     required DateTime createdAt,
     List<String> attachmentManifest = const [],
+    bool includeSensitiveRawText = false,
   }) async {
     if (payload.isEmpty || payload.length > validator.maxPayloadBytes) {
       throw const ValidationError('Backup payload is empty or too large');
@@ -70,6 +71,9 @@ class BackupService {
         'tag': _encode(encrypted.tag),
         'kdf': backupKdf,
         'keyId': backupKeyId,
+        'rawTextPolicy': includeSensitiveRawText
+            ? 'consented-encrypted'
+            : 'redacted',
       },
     );
     validator.validate(package);
