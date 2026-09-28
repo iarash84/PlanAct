@@ -64,10 +64,13 @@ class DriftReconciliationRepository implements ReconciliationRepository {
               correctedMatchId: Value(match.correctedMatchId?.value),
             ),
           );
+      await (database.delete(
+        database.matchAllocations,
+      )..where((table) => table.matchId.equals(match.id.value))).go();
       for (final allocation in match.allocations) {
         await database
             .into(database.matchAllocations)
-            .insertOnConflictUpdate(
+            .insert(
               db.MatchAllocationsCompanion(
                 id: Value(allocation.id.value),
                 matchId: Value(allocation.matchId.value),

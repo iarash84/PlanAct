@@ -8,6 +8,10 @@ abstract interface class FinanceRepository {
   Future<List<AccountEntry>> listEntries();
   Future<void> saveAccount(FinancialAccount account);
   Future<void> saveEntry(AccountEntry entry);
+  Future<void> saveTransfer({
+    required AccountEntry outgoing,
+    required AccountEntry incoming,
+  });
   Future<void> createAccount(
     FinancialAccount account, {
     AccountEntry? openingBalance,
@@ -30,6 +34,23 @@ class InMemoryFinanceRepository implements FinanceRepository {
   @override
   Future<void> saveEntry(AccountEntry entry) async =>
       _entries[entry.id] = entry;
+
+  @override
+  Future<void> saveTransfer({
+    required AccountEntry outgoing,
+    required AccountEntry incoming,
+  }) async {
+    final previous = Map<StableId, AccountEntry>.from(_entries);
+    try {
+      _entries[outgoing.id] = outgoing;
+      _entries[incoming.id] = incoming;
+    } catch (_) {
+      _entries
+        ..clear()
+        ..addAll(previous);
+      rethrow;
+    }
+  }
 
   @override
   Future<void> createAccount(
@@ -123,8 +144,7 @@ class FinanceUseCases {
       occurredAt: occurredAt.toUtc(),
       transferGroupId: group,
     );
-    await repository.saveEntry(outgoing);
-    await repository.saveEntry(incoming);
+    await repository.saveTransfer(outgoing: outgoing, incoming: incoming);
     return (outgoing, incoming);
   }
 

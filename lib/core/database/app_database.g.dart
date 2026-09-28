@@ -5142,6 +5142,9 @@ class $ReminderRulesTable extends ReminderRules
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES occurrences (id)',
+    ),
   );
   static const VerificationMeta _anchorMeta = const VerificationMeta('anchor');
   @override
@@ -5676,6 +5679,9 @@ class $ReminderInstancesTable extends ReminderInstances
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES occurrences (id)',
+    ),
   );
   static const VerificationMeta _scheduledAtMeta = const VerificationMeta(
     'scheduledAt',
@@ -5807,6 +5813,10 @@ class $ReminderInstancesTable extends ReminderInstances
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {ruleId, occurrenceId, scheduledAt},
+  ];
   @override
   ReminderInstance map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -7905,6 +7915,9 @@ class $TransactionMatchesTable extends TransactionMatches
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_entries (id)',
+    ),
   );
   static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
     'minorUnits',
@@ -8397,6 +8410,9 @@ class $MatchAllocationsTable extends MatchAllocations
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES occurrences (id)',
+    ),
   );
   static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
     'minorUnits',
@@ -12768,6 +12784,45 @@ final class $$OccurrencesTableReferences
     );
   }
 
+  static MultiTypedResultKey<$ReminderRulesTable, List<ReminderRule>>
+  _reminderRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.reminderRules,
+    aliasName: 'occurrences__id__reminder_rules__occurrence_id',
+  );
+
+  $$ReminderRulesTableProcessedTableManager get reminderRulesRefs {
+    final manager = $$ReminderRulesTableTableManager(
+      $_db,
+      $_db.reminderRules,
+    ).filter((f) => f.occurrenceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_reminderRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ReminderInstancesTable, List<ReminderInstance>>
+  _reminderInstancesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.reminderInstances,
+        aliasName: 'occurrences__id__reminder_instances__occurrence_id',
+      );
+
+  $$ReminderInstancesTableProcessedTableManager get reminderInstancesRefs {
+    final manager = $$ReminderInstancesTableTableManager(
+      $_db,
+      $_db.reminderInstances,
+    ).filter((f) => f.occurrenceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _reminderInstancesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$ActualsTable, List<Actual>> _actualsRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
@@ -12782,6 +12837,26 @@ final class $$OccurrencesTableReferences
     ).filter((f) => f.occurrenceId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_actualsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MatchAllocationsTable, List<MatchAllocation>>
+  _matchAllocationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.matchAllocations,
+    aliasName: 'occurrences__id__match_allocations__occurrence_id',
+  );
+
+  $$MatchAllocationsTableProcessedTableManager get matchAllocationsRefs {
+    final manager = $$MatchAllocationsTableTableManager(
+      $_db,
+      $_db.matchAllocations,
+    ).filter((f) => f.occurrenceId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _matchAllocationsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -12903,6 +12978,56 @@ class $$OccurrencesTableFilterComposer
     return composer;
   }
 
+  Expression<bool> reminderRulesRefs(
+    Expression<bool> Function($$ReminderRulesTableFilterComposer f) f,
+  ) {
+    final $$ReminderRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderRules,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.reminderRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> reminderInstancesRefs(
+    Expression<bool> Function($$ReminderInstancesTableFilterComposer f) f,
+  ) {
+    final $$ReminderInstancesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderInstances,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderInstancesTableFilterComposer(
+            $db: $db,
+            $table: $db.reminderInstances,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<bool> actualsRefs(
     Expression<bool> Function($$ActualsTableFilterComposer f) f,
   ) {
@@ -12919,6 +13044,31 @@ class $$OccurrencesTableFilterComposer
           }) => $$ActualsTableFilterComposer(
             $db: $db,
             $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> matchAllocationsRefs(
+    Expression<bool> Function($$MatchAllocationsTableFilterComposer f) f,
+  ) {
+    final $$MatchAllocationsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchAllocations,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchAllocationsTableFilterComposer(
+            $db: $db,
+            $table: $db.matchAllocations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13134,6 +13284,57 @@ class $$OccurrencesTableAnnotationComposer
     return composer;
   }
 
+  Expression<T> reminderRulesRefs<T extends Object>(
+    Expression<T> Function($$ReminderRulesTableAnnotationComposer a) f,
+  ) {
+    final $$ReminderRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reminderRules,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReminderRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reminderRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> reminderInstancesRefs<T extends Object>(
+    Expression<T> Function($$ReminderInstancesTableAnnotationComposer a) f,
+  ) {
+    final $$ReminderInstancesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.reminderInstances,
+          getReferencedColumn: (t) => t.occurrenceId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ReminderInstancesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.reminderInstances,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> actualsRefs<T extends Object>(
     Expression<T> Function($$ActualsTableAnnotationComposer a) f,
   ) {
@@ -13150,6 +13351,31 @@ class $$OccurrencesTableAnnotationComposer
           }) => $$ActualsTableAnnotationComposer(
             $db: $db,
             $table: $db.actuals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> matchAllocationsRefs<T extends Object>(
+    Expression<T> Function($$MatchAllocationsTableAnnotationComposer a) f,
+  ) {
+    final $$MatchAllocationsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchAllocations,
+      getReferencedColumn: (t) => t.occurrenceId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchAllocationsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.matchAllocations,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13202,7 +13428,10 @@ class $$OccurrencesTableTableManager
           PrefetchHooks Function({
             bool cycleId,
             bool scheduleDefinitionId,
+            bool reminderRulesRefs,
+            bool reminderInstancesRefs,
             bool actualsRefs,
+            bool matchAllocationsRefs,
             bool financialExpectationsRefs,
           })
         > {
@@ -13277,13 +13506,19 @@ class $$OccurrencesTableTableManager
               ({
                 cycleId = false,
                 scheduleDefinitionId = false,
+                reminderRulesRefs = false,
+                reminderInstancesRefs = false,
                 actualsRefs = false,
+                matchAllocationsRefs = false,
                 financialExpectationsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
+                    if (reminderRulesRefs) db.reminderRules,
+                    if (reminderInstancesRefs) db.reminderInstances,
                     if (actualsRefs) db.actuals,
+                    if (matchAllocationsRefs) db.matchAllocations,
                     if (financialExpectationsRefs) db.financialExpectations,
                   ],
                   addJoins:
@@ -13329,6 +13564,48 @@ class $$OccurrencesTableTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
+                      if (reminderRulesRefs)
+                        await $_getPrefetchedData<
+                          Occurrence,
+                          $OccurrencesTable,
+                          ReminderRule
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OccurrencesTableReferences
+                              ._reminderRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OccurrencesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reminderRulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.occurrenceId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (reminderInstancesRefs)
+                        await $_getPrefetchedData<
+                          Occurrence,
+                          $OccurrencesTable,
+                          ReminderInstance
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OccurrencesTableReferences
+                              ._reminderInstancesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OccurrencesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reminderInstancesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.occurrenceId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (actualsRefs)
                         await $_getPrefetchedData<
                           Occurrence,
@@ -13344,6 +13621,27 @@ class $$OccurrencesTableTableManager
                                 table,
                                 p0,
                               ).actualsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.occurrenceId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (matchAllocationsRefs)
+                        await $_getPrefetchedData<
+                          Occurrence,
+                          $OccurrencesTable,
+                          MatchAllocation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$OccurrencesTableReferences
+                              ._matchAllocationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$OccurrencesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).matchAllocationsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.occurrenceId == item.id,
@@ -13394,7 +13692,10 @@ typedef $$OccurrencesTableProcessedTableManager =
       PrefetchHooks Function({
         bool cycleId,
         bool scheduleDefinitionId,
+        bool reminderRulesRefs,
+        bool reminderInstancesRefs,
         bool actualsRefs,
+        bool matchAllocationsRefs,
         bool financialExpectationsRefs,
       })
     >;
@@ -15022,6 +15323,24 @@ final class $$ReminderRulesTableReferences
     super.$_typedResult,
   );
 
+  static $OccurrencesTable _occurrenceIdTable(_$AppDatabase db) => db
+      .occurrences
+      .createAlias('reminder_rules__occurrence_id__occurrences__id');
+
+  $$OccurrencesTableProcessedTableManager get occurrenceId {
+    final $_column = $_itemColumn<String>('occurrence_id')!;
+
+    final manager = $$OccurrencesTableTableManager(
+      $_db,
+      $_db.occurrences,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_occurrenceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
   static MultiTypedResultKey<$ReminderInstancesTable, List<ReminderInstance>>
   _reminderInstancesRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
@@ -15058,11 +15377,6 @@ class $$ReminderRulesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get anchor => $composableBuilder(
     column: $table.anchor,
     builder: (column) => ColumnFilters(column),
@@ -15092,6 +15406,29 @@ class $$ReminderRulesTableFilterComposer
     column: $table.enabled,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$OccurrencesTableFilterComposer get occurrenceId {
+    final $$OccurrencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableFilterComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> reminderInstancesRefs(
     Expression<bool> Function($$ReminderInstancesTableFilterComposer f) f,
@@ -15133,11 +15470,6 @@ class $$ReminderRulesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get anchor => $composableBuilder(
     column: $table.anchor,
     builder: (column) => ColumnOrderings(column),
@@ -15167,6 +15499,29 @@ class $$ReminderRulesTableOrderingComposer
     column: $table.enabled,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$OccurrencesTableOrderingComposer get occurrenceId {
+    final $$OccurrencesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableOrderingComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ReminderRulesTableAnnotationComposer
@@ -15180,11 +15535,6 @@ class $$ReminderRulesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<int> get anchor =>
       $composableBuilder(column: $table.anchor, builder: (column) => column);
@@ -15207,6 +15557,29 @@ class $$ReminderRulesTableAnnotationComposer
 
   GeneratedColumn<bool> get enabled =>
       $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  $$OccurrencesTableAnnotationComposer get occurrenceId {
+    final $$OccurrencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> reminderInstancesRefs<T extends Object>(
     Expression<T> Function($$ReminderInstancesTableAnnotationComposer a) f,
@@ -15248,7 +15621,10 @@ class $$ReminderRulesTableTableManager
           $$ReminderRulesTableUpdateCompanionBuilder,
           (ReminderRule, $$ReminderRulesTableReferences),
           ReminderRule,
-          PrefetchHooks Function({bool reminderInstancesRefs})
+          PrefetchHooks Function({
+            bool occurrenceId,
+            bool reminderInstancesRefs,
+          })
         > {
   $$ReminderRulesTableTableManager(_$AppDatabase db, $ReminderRulesTable table)
     : super(
@@ -15313,38 +15689,70 @@ class $$ReminderRulesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({reminderInstancesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (reminderInstancesRefs) db.reminderInstances,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (reminderInstancesRefs)
-                    await $_getPrefetchedData<
-                      ReminderRule,
-                      $ReminderRulesTable,
-                      ReminderInstance
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ReminderRulesTableReferences
-                          ._reminderInstancesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$ReminderRulesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).reminderInstancesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.ruleId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({occurrenceId = false, reminderInstancesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (reminderInstancesRefs) db.reminderInstances,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (occurrenceId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.occurrenceId,
+                            referencedTable: $$ReminderRulesTableReferences
+                                ._occurrenceIdTable(db),
+                            referencedColumn: $$ReminderRulesTableReferences
+                                ._occurrenceIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (reminderInstancesRefs)
+                        await $_getPrefetchedData<
+                          ReminderRule,
+                          $ReminderRulesTable,
+                          ReminderInstance
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ReminderRulesTableReferences
+                              ._reminderInstancesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ReminderRulesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).reminderInstancesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.ruleId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -15361,7 +15769,7 @@ typedef $$ReminderRulesTableProcessedTableManager =
       $$ReminderRulesTableUpdateCompanionBuilder,
       (ReminderRule, $$ReminderRulesTableReferences),
       ReminderRule,
-      PrefetchHooks Function({bool reminderInstancesRefs})
+      PrefetchHooks Function({bool occurrenceId, bool reminderInstancesRefs})
     >;
 typedef $$ReminderInstancesTableCreateCompanionBuilder =
     ReminderInstancesCompanion Function({
@@ -15415,6 +15823,24 @@ final class $$ReminderInstancesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $OccurrencesTable _occurrenceIdTable(_$AppDatabase db) => db
+      .occurrences
+      .createAlias('reminder_instances__occurrence_id__occurrences__id');
+
+  $$OccurrencesTableProcessedTableManager get occurrenceId {
+    final $_column = $_itemColumn<String>('occurrence_id')!;
+
+    final manager = $$OccurrencesTableTableManager(
+      $_db,
+      $_db.occurrences,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_occurrenceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $$ReminderInstancesTableFilterComposer
@@ -15428,11 +15854,6 @@ class $$ReminderInstancesTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15478,6 +15899,29 @@ class $$ReminderInstancesTableFilterComposer
     );
     return composer;
   }
+
+  $$OccurrencesTableFilterComposer get occurrenceId {
+    final $$OccurrencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableFilterComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ReminderInstancesTableOrderingComposer
@@ -15491,11 +15935,6 @@ class $$ReminderInstancesTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -15541,6 +15980,29 @@ class $$ReminderInstancesTableOrderingComposer
     );
     return composer;
   }
+
+  $$OccurrencesTableOrderingComposer get occurrenceId {
+    final $$OccurrencesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableOrderingComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ReminderInstancesTableAnnotationComposer
@@ -15554,11 +16016,6 @@ class $$ReminderInstancesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<DateTime> get scheduledAt => $composableBuilder(
     column: $table.scheduledAt,
@@ -15600,6 +16057,29 @@ class $$ReminderInstancesTableAnnotationComposer
     );
     return composer;
   }
+
+  $$OccurrencesTableAnnotationComposer get occurrenceId {
+    final $$OccurrencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$ReminderInstancesTableTableManager
@@ -15615,7 +16095,7 @@ class $$ReminderInstancesTableTableManager
           $$ReminderInstancesTableUpdateCompanionBuilder,
           (ReminderInstance, $$ReminderInstancesTableReferences),
           ReminderInstance,
-          PrefetchHooks Function({bool ruleId})
+          PrefetchHooks Function({bool ruleId, bool occurrenceId})
         > {
   $$ReminderInstancesTableTableManager(
     _$AppDatabase db,
@@ -15681,7 +16161,7 @@ class $$ReminderInstancesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({ruleId = false}) {
+          prefetchHooksCallback: ({ruleId = false, occurrenceId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -15712,6 +16192,17 @@ class $$ReminderInstancesTableTableManager
                             .id,
                       ) as T;
                     }
+                    if (occurrenceId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.occurrenceId,
+                        referencedTable: $$ReminderInstancesTableReferences
+                            ._occurrenceIdTable(db),
+                        referencedColumn: $$ReminderInstancesTableReferences
+                            ._occurrenceIdTable(db)
+                            .id,
+                      ) as T;
+                    }
 
                     return state;
                   },
@@ -15736,7 +16227,7 @@ typedef $$ReminderInstancesTableProcessedTableManager =
       $$ReminderInstancesTableUpdateCompanionBuilder,
       (ReminderInstance, $$ReminderInstancesTableReferences),
       ReminderInstance,
-      PrefetchHooks Function({bool ruleId})
+      PrefetchHooks Function({bool ruleId, bool occurrenceId})
     >;
 typedef $$ActualsTableCreateCompanionBuilder = ActualsCompanion Function({
   required String id,
@@ -16941,6 +17432,27 @@ final class $$AccountEntriesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$TransactionMatchesTable, List<TransactionMatche>>
+  _transactionMatchesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.transactionMatches,
+        aliasName: 'account_entries__id__transaction_matches__transaction_id',
+      );
+
+  $$TransactionMatchesTableProcessedTableManager get transactionMatchesRefs {
+    final manager = $$TransactionMatchesTableTableManager(
+      $_db,
+      $_db.transactionMatches,
+    ).filter((f) => f.transactionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _transactionMatchesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$AccountEntriesTableFilterComposer
@@ -17023,6 +17535,31 @@ class $$AccountEntriesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> transactionMatchesRefs(
+    Expression<bool> Function($$TransactionMatchesTableFilterComposer f) f,
+  ) {
+    final $$TransactionMatchesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.transactionMatches,
+      getReferencedColumn: (t) => t.transactionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TransactionMatchesTableFilterComposer(
+            $db: $db,
+            $table: $db.transactionMatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -17179,6 +17716,32 @@ class $$AccountEntriesTableAnnotationComposer
         );
     return composer;
   }
+
+  Expression<T> transactionMatchesRefs<T extends Object>(
+    Expression<T> Function($$TransactionMatchesTableAnnotationComposer a) f,
+  ) {
+    final $$TransactionMatchesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.transactionMatches,
+          getReferencedColumn: (t) => t.transactionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$TransactionMatchesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.transactionMatches,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$AccountEntriesTableTableManager
@@ -17194,7 +17757,7 @@ class $$AccountEntriesTableTableManager
           $$AccountEntriesTableUpdateCompanionBuilder,
           (AccountEntry, $$AccountEntriesTableReferences),
           AccountEntry,
-          PrefetchHooks Function({bool accountId})
+          PrefetchHooks Function({bool accountId, bool transactionMatchesRefs})
         > {
   $$AccountEntriesTableTableManager(
     _$AppDatabase db,
@@ -17273,45 +17836,70 @@ class $$AccountEntriesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({accountId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (accountId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.accountId,
-                        referencedTable: $$AccountEntriesTableReferences
-                            ._accountIdTable(db),
-                        referencedColumn: $$AccountEntriesTableReferences
-                            ._accountIdTable(db)
-                            .id,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({accountId = false, transactionMatchesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (transactionMatchesRefs) db.transactionMatches,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (accountId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.accountId,
+                            referencedTable: $$AccountEntriesTableReferences
+                                ._accountIdTable(db),
+                            referencedColumn: $$AccountEntriesTableReferences
+                                ._accountIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (transactionMatchesRefs)
+                        await $_getPrefetchedData<
+                          AccountEntry,
+                          $AccountEntriesTable,
+                          TransactionMatche
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountEntriesTableReferences
+                              ._transactionMatchesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountEntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).transactionMatchesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.transactionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -17328,7 +17916,7 @@ typedef $$AccountEntriesTableProcessedTableManager =
       $$AccountEntriesTableUpdateCompanionBuilder,
       (AccountEntry, $$AccountEntriesTableReferences),
       AccountEntry,
-      PrefetchHooks Function({bool accountId})
+      PrefetchHooks Function({bool accountId, bool transactionMatchesRefs})
     >;
 typedef $$TransactionMatchesTableCreateCompanionBuilder =
     TransactionMatchesCompanion Function({
@@ -17366,6 +17954,24 @@ final class $$TransactionMatchesTableReferences
     super.$_typedResult,
   );
 
+  static $AccountEntriesTable _transactionIdTable(_$AppDatabase db) => db
+      .accountEntries
+      .createAlias('transaction_matches__transaction_id__account_entries__id');
+
+  $$AccountEntriesTableProcessedTableManager get transactionId {
+    final $_column = $_itemColumn<String>('transaction_id')!;
+
+    final manager = $$AccountEntriesTableTableManager(
+      $_db,
+      $_db.accountEntries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
   static MultiTypedResultKey<$MatchAllocationsTable, List<MatchAllocation>>
   _matchAllocationsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.matchAllocations,
@@ -17401,11 +18007,6 @@ class $$TransactionMatchesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get transactionId => $composableBuilder(
-    column: $table.transactionId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get minorUnits => $composableBuilder(
     column: $table.minorUnits,
     builder: (column) => ColumnFilters(column),
@@ -17430,6 +18031,29 @@ class $$TransactionMatchesTableFilterComposer
     column: $table.correctedMatchId,
     builder: (column) => ColumnFilters(column),
   );
+
+  $$AccountEntriesTableFilterComposer get transactionId {
+    final $$AccountEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<bool> matchAllocationsRefs(
     Expression<bool> Function($$MatchAllocationsTableFilterComposer f) f,
@@ -17471,11 +18095,6 @@ class $$TransactionMatchesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get transactionId => $composableBuilder(
-    column: $table.transactionId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get minorUnits => $composableBuilder(
     column: $table.minorUnits,
     builder: (column) => ColumnOrderings(column),
@@ -17500,6 +18119,29 @@ class $$TransactionMatchesTableOrderingComposer
     column: $table.correctedMatchId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  $$AccountEntriesTableOrderingComposer get transactionId {
+    final $$AccountEntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$TransactionMatchesTableAnnotationComposer
@@ -17513,11 +18155,6 @@ class $$TransactionMatchesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get transactionId => $composableBuilder(
-    column: $table.transactionId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<int> get minorUnits => $composableBuilder(
     column: $table.minorUnits,
@@ -17537,6 +18174,29 @@ class $$TransactionMatchesTableAnnotationComposer
     column: $table.correctedMatchId,
     builder: (column) => column,
   );
+
+  $$AccountEntriesTableAnnotationComposer get transactionId {
+    final $$AccountEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 
   Expression<T> matchAllocationsRefs<T extends Object>(
     Expression<T> Function($$MatchAllocationsTableAnnotationComposer a) f,
@@ -17577,7 +18237,10 @@ class $$TransactionMatchesTableTableManager
           $$TransactionMatchesTableUpdateCompanionBuilder,
           (TransactionMatche, $$TransactionMatchesTableReferences),
           TransactionMatche,
-          PrefetchHooks Function({bool matchAllocationsRefs})
+          PrefetchHooks Function({
+            bool transactionId,
+            bool matchAllocationsRefs,
+          })
         > {
   $$TransactionMatchesTableTableManager(
     _$AppDatabase db,
@@ -17645,38 +18308,71 @@ class $$TransactionMatchesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({matchAllocationsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (matchAllocationsRefs) db.matchAllocations,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (matchAllocationsRefs)
-                    await $_getPrefetchedData<
-                      TransactionMatche,
-                      $TransactionMatchesTable,
-                      MatchAllocation
-                    >(
-                      currentTable: table,
-                      referencedTable: $$TransactionMatchesTableReferences
-                          ._matchAllocationsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$TransactionMatchesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).matchAllocationsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.matchId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({transactionId = false, matchAllocationsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (matchAllocationsRefs) db.matchAllocations,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (transactionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.transactionId,
+                            referencedTable: $$TransactionMatchesTableReferences
+                                ._transactionIdTable(db),
+                            referencedColumn:
+                                $$TransactionMatchesTableReferences
+                                    ._transactionIdTable(db)
+                                    .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (matchAllocationsRefs)
+                        await $_getPrefetchedData<
+                          TransactionMatche,
+                          $TransactionMatchesTable,
+                          MatchAllocation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TransactionMatchesTableReferences
+                              ._matchAllocationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TransactionMatchesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).matchAllocationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.matchId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -17693,7 +18389,7 @@ typedef $$TransactionMatchesTableProcessedTableManager =
       $$TransactionMatchesTableUpdateCompanionBuilder,
       (TransactionMatche, $$TransactionMatchesTableReferences),
       TransactionMatche,
-      PrefetchHooks Function({bool matchAllocationsRefs})
+      PrefetchHooks Function({bool transactionId, bool matchAllocationsRefs})
     >;
 typedef $$MatchAllocationsTableCreateCompanionBuilder =
     MatchAllocationsCompanion Function({
@@ -17742,6 +18438,24 @@ final class $$MatchAllocationsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $OccurrencesTable _occurrenceIdTable(_$AppDatabase db) => db
+      .occurrences
+      .createAlias('match_allocations__occurrence_id__occurrences__id');
+
+  $$OccurrencesTableProcessedTableManager get occurrenceId {
+    final $_column = $_itemColumn<String>('occurrence_id')!;
+
+    final manager = $$OccurrencesTableTableManager(
+      $_db,
+      $_db.occurrences,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_occurrenceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $$MatchAllocationsTableFilterComposer
@@ -17755,11 +18469,6 @@ class $$MatchAllocationsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17800,6 +18509,29 @@ class $$MatchAllocationsTableFilterComposer
     );
     return composer;
   }
+
+  $$OccurrencesTableFilterComposer get occurrenceId {
+    final $$OccurrencesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableFilterComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MatchAllocationsTableOrderingComposer
@@ -17813,11 +18545,6 @@ class $$MatchAllocationsTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17858,6 +18585,29 @@ class $$MatchAllocationsTableOrderingComposer
     );
     return composer;
   }
+
+  $$OccurrencesTableOrderingComposer get occurrenceId {
+    final $$OccurrencesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableOrderingComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MatchAllocationsTableAnnotationComposer
@@ -17871,11 +18621,6 @@ class $$MatchAllocationsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get occurrenceId => $composableBuilder(
-    column: $table.occurrenceId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<int> get minorUnits => $composableBuilder(
     column: $table.minorUnits,
@@ -17911,6 +18656,29 @@ class $$MatchAllocationsTableAnnotationComposer
         );
     return composer;
   }
+
+  $$OccurrencesTableAnnotationComposer get occurrenceId {
+    final $$OccurrencesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.occurrenceId,
+      referencedTable: $db.occurrences,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OccurrencesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.occurrences,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$MatchAllocationsTableTableManager
@@ -17926,7 +18694,7 @@ class $$MatchAllocationsTableTableManager
           $$MatchAllocationsTableUpdateCompanionBuilder,
           (MatchAllocation, $$MatchAllocationsTableReferences),
           MatchAllocation,
-          PrefetchHooks Function({bool matchId})
+          PrefetchHooks Function({bool matchId, bool occurrenceId})
         > {
   $$MatchAllocationsTableTableManager(
     _$AppDatabase db,
@@ -17985,7 +18753,7 @@ class $$MatchAllocationsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({matchId = false}) {
+          prefetchHooksCallback: ({matchId = false, occurrenceId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -18016,6 +18784,17 @@ class $$MatchAllocationsTableTableManager
                             .id,
                       ) as T;
                     }
+                    if (occurrenceId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.occurrenceId,
+                        referencedTable: $$MatchAllocationsTableReferences
+                            ._occurrenceIdTable(db),
+                        referencedColumn: $$MatchAllocationsTableReferences
+                            ._occurrenceIdTable(db)
+                            .id,
+                      ) as T;
+                    }
 
                     return state;
                   },
@@ -18040,7 +18819,7 @@ typedef $$MatchAllocationsTableProcessedTableManager =
       $$MatchAllocationsTableUpdateCompanionBuilder,
       (MatchAllocation, $$MatchAllocationsTableReferences),
       MatchAllocation,
-      PrefetchHooks Function({bool matchId})
+      PrefetchHooks Function({bool matchId, bool occurrenceId})
     >;
 typedef $$FinancialExpectationsTableCreateCompanionBuilder =
     FinancialExpectationsCompanion Function({

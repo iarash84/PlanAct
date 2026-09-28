@@ -186,15 +186,9 @@ class TransactionMatch {
     )) {
       throw const ValidationError('Match currencies must be equal');
     }
-    final allocated = allocations.fold(
-      0,
-      (sum, item) => sum + item.amount.minorUnits,
-    );
-    if (allocated > transactionAmount.minorUnits) {
-      throw const ValidationError(
-        'Allocations cannot exceed transaction amount',
-      );
-    }
+    // Allocations may exceed the transaction amount: the excess is retained as
+    // an explicit overpayment/credit projection instead of being discarded.
+    // Negative allocation values remain forbidden by MatchAllocation.
   }
 
   final StableId id;
@@ -211,8 +205,16 @@ class TransactionMatch {
     minorUnits: transactionAmount.minorUnits - allocatedMinorUnits,
     currency: transactionAmount.currency,
   );
+  Money get overpayment => Money(
+    minorUnits: allocatedMinorUnits > transactionAmount.minorUnits
+        ? allocatedMinorUnits - transactionAmount.minorUnits
+        : 0,
+    currency: transactionAmount.currency,
+  );
   bool get isFull => remaining.minorUnits == 0;
-  bool get isPartial => allocatedMinorUnits > 0 && !isFull;
+  bool get isPartial =>
+      allocatedMinorUnits > 0 &&
+      allocatedMinorUnits < transactionAmount.minorUnits;
   bool get isOverpayment => allocatedMinorUnits > transactionAmount.minorUnits;
 }
 

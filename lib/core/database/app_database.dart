@@ -140,7 +140,7 @@ class ReplacementOccurrences extends Table {
 
 class ReminderRules extends Table {
   TextColumn get id => text()();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   IntColumn get anchor => integer()();
   IntColumn get offsetSeconds => integer()();
   DateTimeColumn get absoluteAt => dateTime().nullable()();
@@ -155,7 +155,7 @@ class ReminderRules extends Table {
 class ReminderInstances extends Table {
   TextColumn get id => text()();
   TextColumn get ruleId => text().references(ReminderRules, #id)();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   DateTimeColumn get scheduledAt => dateTime()();
   IntColumn get status => integer()();
   DateTimeColumn get snoozedUntil => dateTime().nullable()();
@@ -163,6 +163,11 @@ class ReminderInstances extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {ruleId, occurrenceId, scheduledAt},
+  ];
 }
 
 class Actuals extends Table {
@@ -217,7 +222,7 @@ class AccountEntries extends Table {
 
 class TransactionMatches extends Table {
   TextColumn get id => text()();
-  TextColumn get transactionId => text()();
+  TextColumn get transactionId => text().references(AccountEntries, #id)();
   IntColumn get minorUnits => integer()();
   TextColumn get currency => text()();
   DateTimeColumn get createdAt => dateTime()();
@@ -231,7 +236,7 @@ class TransactionMatches extends Table {
 class MatchAllocations extends Table {
   TextColumn get id => text()();
   TextColumn get matchId => text().references(TransactionMatches, #id)();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   IntColumn get minorUnits => integer()();
   TextColumn get currency => text()();
   IntColumn get type => integer()();
@@ -326,7 +331,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -406,6 +411,19 @@ class AppDatabase extends _$AppDatabase {
         );
         await customStatement(
           'ALTER TABLE staged_imports ADD COLUMN last_decision_at INTEGER',
+        );
+      }
+      if (from < 14) {
+        // These indexes make logical reminder identity and reconciliation child
+        // replacement efficient. Existing rows are preserved; FK declarations
+        // are enforced for databases created with the current schema.
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS reminder_instances_logical_identity '
+          'ON reminder_instances(rule_id, occurrence_id, scheduled_at)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS match_allocations_match_id '
+          'ON match_allocations(match_id)',
         );
       }
       await _writeSchemaMetadata();

@@ -34,7 +34,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '13');
+    expect(await database.readMetadata('schema_version'), '14');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -226,20 +226,84 @@ void main() {
   test(
     'round-trips reconciliation matches and allocations through Drift',
     () async {
+      final finance = DriftFinanceRepository(database);
+      final account = FinancialAccount(
+        id: StableId.generate(timestamp: DateTime.utc(2026, 9, 19)),
+        name: 'حساب تطبیق',
+        currency: 'IRR',
+        type: FinancialAccountType.bank,
+      );
+      await finance.saveAccount(account);
+      final transactionId = StableId.generate(
+        timestamp: DateTime.utc(2026, 9, 20),
+      );
+      await finance.saveEntry(
+        AccountEntry(
+          id: transactionId,
+          accountId: account.id,
+          type: AccountEntryType.expense,
+          amount: const Money(minorUnits: 1000, currency: 'IRR'),
+          occurredAt: DateTime.utc(2026, 9, 20),
+        ),
+      );
+      final commitment = Commitment.create(
+        title: 'تعهد تطبیق',
+        now: DateTime.utc(2026, 9, 18),
+      );
+      await DriftCommitmentRepository(database).save(commitment);
+      final cycle = await database
+          .into(database.commitmentCycles)
+          .insertReturning(
+            db.CommitmentCyclesCompanion.insert(
+              id: StableId.generate(timestamp: DateTime.utc(2026, 9, 18)).value,
+              commitmentId: commitment.id.value,
+              cycleType: 0,
+              startDate: DateTime.utc(2026, 9, 18),
+              consumedUnits: 0,
+              completionRule: 0,
+              status: 0,
+            ),
+          );
+      final schedule = await database
+          .into(database.scheduleDefinitions)
+          .insertReturning(
+            db.ScheduleDefinitionsCompanion.insert(
+              id: StableId.generate(timestamp: DateTime.utc(2026, 9, 18, 1))
+                  .value,
+              cycleId: cycle.id,
+              mode: 0,
+              timeSemantics: 2,
+              startDate: '2026-09-18',
+              version: 1,
+              effectiveFrom: '2026-09-18',
+              generationHorizonDays: 90,
+            ),
+          );
+      final occurrenceId = StableId.generate(
+        timestamp: DateTime.utc(2026, 9, 18, 2),
+      );
+      await database
+          .into(database.occurrences)
+          .insert(
+            db.OccurrencesCompanion.insert(
+              id: occurrenceId.value,
+              cycleId: cycle.id,
+              scheduleDefinitionId: schedule.id,
+              occurrenceKey: 'test-occurrence',
+              timeSemantics: 2,
+              originalScheduledValue: 'instant:2026-09-18T00:00:00.000Z',
+              currentScheduledValue: 'instant:2026-09-18T00:00:00.000Z',
+              status: 0,
+              isManualOverride: false,
+            ),
+          );
       final repository = DriftReconciliationRepository(database);
       final matchId = StableId.generate(timestamp: DateTime.utc(2026, 9, 21));
       final correctedMatchId = StableId.generate(
         timestamp: DateTime.utc(2026, 9, 22),
       );
-      final transactionId = StableId.generate(
-        timestamp: DateTime.utc(2026, 9, 20),
-      );
-      final occurrenceA = StableId.generate(
-        timestamp: DateTime.utc(2026, 9, 23),
-      );
-      final occurrenceB = StableId.generate(
-        timestamp: DateTime.utc(2026, 9, 24),
-      );
+      final occurrenceA = occurrenceId;
+      final occurrenceB = occurrenceId;
 
       final match = TransactionMatch(
         id: matchId,

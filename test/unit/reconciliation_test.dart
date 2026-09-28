@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
@@ -34,7 +33,7 @@ void main() {
     },
   );
 
-  test('supports full matching and rejects over-allocation', () async {
+  test('supports full matching and models overpayment as credit', () async {
     final repository = InMemoryReconciliationRepository();
     final useCases = ReconciliationUseCases(repository);
     final full = await useCases.match(
@@ -49,19 +48,18 @@ void main() {
     );
     expect(full.isFull, isTrue);
 
-    expect(
-      () => useCases.match(
-        transactionId: transactionId,
-        transactionAmount: const Money(minorUnits: 500, currency: 'IRR'),
-        createdAt: DateTime.utc(2026, 2, 6),
-        occurrenceIds: [occurrenceA, occurrenceB],
-        allocations: const [
-          Money(minorUnits: 400, currency: 'IRR'),
-          Money(minorUnits: 300, currency: 'IRR'),
-        ],
-      ),
-      throwsA(isA<ValidationError>()),
+    final overpaid = await useCases.match(
+      transactionId: transactionId,
+      transactionAmount: const Money(minorUnits: 500, currency: 'IRR'),
+      createdAt: DateTime.utc(2026, 2, 6),
+      occurrenceIds: [occurrenceA, occurrenceB],
+      allocations: const [
+        Money(minorUnits: 400, currency: 'IRR'),
+        Money(minorUnits: 300, currency: 'IRR'),
+      ],
     );
+    expect(overpaid.isOverpayment, isTrue);
+    expect(overpaid.overpayment, const Money(minorUnits: 200, currency: 'IRR'));
   });
 
   test('corrects a match without deleting original history', () async {

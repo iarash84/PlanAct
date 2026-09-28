@@ -69,9 +69,38 @@ class DriftFinanceRepository implements FinanceRepository {
   });
 
   @override
-  Future<void> saveEntry(AccountEntry entry) => database
-      .into(database.accountEntries)
-      .insertOnConflictUpdate(_entryCompanion(entry));
+  Future<void> saveTransfer({
+    required AccountEntry outgoing,
+    required AccountEntry incoming,
+  }) => database.transaction(() async {
+    await saveEntry(outgoing);
+    await saveEntry(incoming);
+  });
+
+  @override
+  Future<void> saveEntry(AccountEntry entry) async {
+    final existing = await (database.select(
+      database.accountEntries,
+    )..where((table) => table.id.equals(entry.id.value))).getSingleOrNull();
+    if (existing != null) {
+      final same =
+          existing.accountId == entry.accountId.value &&
+          existing.type == entry.type.index &&
+          existing.minorUnits == entry.amount.minorUnits &&
+          existing.currency == entry.amount.currency &&
+          existing.occurredAt.toUtc() == entry.occurredAt.toUtc() &&
+          existing.referenceId == entry.referenceId &&
+          existing.note == entry.note &&
+          existing.category == entry.category &&
+          existing.source == entry.source.index &&
+          existing.transferGroupId == entry.transferGroupId?.value;
+      if (!same) {
+        throw StateError('Financial ledger entries are immutable');
+      }
+      return;
+    }
+    await database.into(database.accountEntries).insert(_entryCompanion(entry));
+  }
 
   db.FinancialAccountsCompanion _accountCompanion(FinancialAccount account) =>
       db.FinancialAccountsCompanion(

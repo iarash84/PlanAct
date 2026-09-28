@@ -37,19 +37,35 @@ class DriftReminderRepository implements ReminderRepository {
       );
 
   @override
-  Future<void> saveInstance(ReminderInstance instance) => database
-      .into(database.reminderInstances)
-      .insertOnConflictUpdate(
-        db.ReminderInstancesCompanion(
-          id: Value(instance.id.value),
-          ruleId: Value(instance.ruleId.value),
-          occurrenceId: Value(instance.occurrenceId.value),
-          scheduledAt: Value(instance.scheduledAt.toUtc()),
-          status: Value(instance.status.index),
-          snoozedUntil: Value(instance.snoozedUntil?.toUtc()),
-          platformNotificationId: Value(instance.platformNotificationId),
-        ),
+  Future<void> saveInstance(ReminderInstance instance) async {
+    final scheduledAt = instance.scheduledAt.toUtc();
+    await database.transaction(() async {
+      final existing =
+          await (database.select(database.reminderInstances)..where(
+                (table) =>
+                    table.ruleId.equals(instance.ruleId.value) &
+                    table.occurrenceId.equals(instance.occurrenceId.value) &
+                    table.scheduledAt.equals(scheduledAt),
+              ))
+              .getSingleOrNull();
+      final companion = db.ReminderInstancesCompanion(
+        id: Value(existing?.id ?? instance.id.value),
+        ruleId: Value(instance.ruleId.value),
+        occurrenceId: Value(instance.occurrenceId.value),
+        scheduledAt: Value(scheduledAt),
+        status: Value(instance.status.index),
+        snoozedUntil: Value(instance.snoozedUntil?.toUtc()),
+        platformNotificationId: Value(instance.platformNotificationId),
       );
+      if (existing == null) {
+        await database.into(database.reminderInstances).insert(companion);
+      } else {
+        await (database.update(
+          database.reminderInstances,
+        )..where((table) => table.id.equals(existing.id))).write(companion);
+      }
+    });
+  }
 
   ReminderRule _rule(db.ReminderRule row) => ReminderRule(
     id: StableId.parse(row.id),

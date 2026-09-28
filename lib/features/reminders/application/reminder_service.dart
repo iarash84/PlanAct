@@ -44,18 +44,14 @@ class ReminderService {
       rule: rule,
       occurrenceStart: occurrenceStart,
     );
-    final duplicate = existing.any(
+    final duplicate = existing.where(
       (item) =>
           item.ruleId == rule.id &&
-          item.scheduledAt == scheduled.scheduledAt &&
+          item.occurrenceId == rule.occurrenceId &&
+          item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc() &&
           item.status != ReminderInstanceStatus.cancelled,
     );
-    if (duplicate) {
-      return existing.firstWhere(
-        (item) =>
-            item.ruleId == rule.id && item.scheduledAt == scheduled.scheduledAt,
-      );
-    }
+    if (duplicate.isNotEmpty) return duplicate.first;
     await repository.saveInstance(scheduled);
     if (rule.enabled) await platform.schedule(scheduled);
     return scheduled;
