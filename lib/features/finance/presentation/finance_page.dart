@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
@@ -21,6 +22,7 @@ class FinancePage extends StatefulWidget {
 }
 
 class _FinancePageState extends State<FinancePage> {
+  static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
   FinancialExpectationUseCases? get _expectations =>
       widget.expectationRepository == null
@@ -49,7 +51,11 @@ class _FinancePageState extends State<FinancePage> {
           _loading = false;
         });
       }
-    } catch (_) {
+    } catch (error) {
+      _logger.error(
+        'Finance refresh failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
       if (mounted) {
         setState(() => _loading = false);
         _showMessage('بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.');
@@ -114,7 +120,11 @@ class _FinancePageState extends State<FinancePage> {
             : Money(minorUnits: value, currency: account.currency),
       );
       await _refresh();
-    } catch (_) {
+    } catch (error) {
+      _logger.error(
+        'Finance account creation failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
       if (mounted) _showMessage('افزودن حساب انجام نشد. دوباره تلاش کنید.');
     } finally {
       name.dispose();

@@ -28,10 +28,33 @@ class AppLogger {
 
   void _write(LogLevel level, String message, Map<String, Object?> fields) {
     final safeFields = fields.map(
-      (key, value) => MapEntry(key, _isSensitive(key) ? '[REDACTED]' : value),
+      (key, value) =>
+          MapEntry(key, _isSensitive(key) ? '[REDACTED]' : _safeValue(value)),
     );
     final suffix = safeFields.isEmpty ? '' : ' $safeFields';
-    sink('$message$suffix', name: 'planact', level: level.index + 1);
+    sink(
+      '${_sanitize(message)}$suffix',
+      name: 'planact',
+      level: level.index + 1,
+    );
+  }
+
+  static Object? _safeValue(Object? value) {
+    if (value == null || value is num || value is bool) return value;
+    if (value is String && value.length <= 32) return value;
+    return '[REDACTED]';
+  }
+
+  static String _sanitize(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('sms') ||
+        lower.contains('account') ||
+        lower.contains('amount') ||
+        lower.contains('stack') ||
+        lower.contains('exception')) {
+      return '[REDACTED_DIAGNOSTIC]';
+    }
+    return message.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
   static bool _isSensitive(String key) {

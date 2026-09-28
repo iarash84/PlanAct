@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
@@ -15,6 +16,7 @@ class InboxPage extends StatefulWidget {
 }
 
 class _InboxPageState extends State<InboxPage> {
+  static const _logger = AppLogger();
   List<InboxSuggestion> _items = const [];
   List<FinancialAccount> _accounts = const [];
   bool _loading = true;
@@ -44,7 +46,11 @@ class _InboxPageState extends State<InboxPage> {
         _error = null;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error) {
+      _logger.error(
+        'Inbox reload failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
       if (!mounted) return;
       setState(() {
         _error = 'بارگذاری صندوق ورودی انجام نشد.';
