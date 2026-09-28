@@ -69,12 +69,22 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug remains debuggable and uses the machine-local debug key only.
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
         release {
+            // Never fall back to the debug key; verifyReleaseSigning fails first.
             if (releaseSigningConfigured) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }
