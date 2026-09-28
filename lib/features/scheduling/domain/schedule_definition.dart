@@ -227,6 +227,12 @@ class ScheduleDefinition {
     if (mode == ScheduleMode.oneOff && recurrenceRule != null) {
       throw const ValidationError('One-off schedules cannot recur');
     }
+    if (mode != ScheduleMode.oneOff &&
+        timeSemantics == TimeSemantics.fixedInstant) {
+      throw const ValidationError(
+        'Recurring schedules cannot use a single fixed instant',
+      );
+    }
     if (mode != ScheduleMode.oneOff && recurrenceRule == null) {
       throw const ValidationError(
         'Recurring schedules require a recurrence rule',

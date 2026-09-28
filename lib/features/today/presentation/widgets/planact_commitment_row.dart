@@ -9,13 +9,13 @@ class PlanActCommitmentRow extends StatelessWidget {
     required this.commitment,
     this.scheduledDates = const [],
     this.onTap,
-    this.onDelete,
+    this.onArchive,
   });
 
   final Commitment commitment;
   final List<DateTime> scheduledDates;
   final VoidCallback? onTap;
-  final VoidCallback? onDelete;
+  final VoidCallback? onArchive;
 
   @override
   Widget build(BuildContext context) {
@@ -84,21 +84,22 @@ class PlanActCommitmentRow extends StatelessWidget {
         ),
       ),
     );
-    if (onDelete == null) return content;
+    if (onArchive == null) return content;
     return Dismissible(
       key: ValueKey(commitment.id.value),
       direction: DismissDirection.startToEnd,
       confirmDismiss: (_) async {
-        onDelete!();
+        onArchive!();
         return false;
       },
       background: Container(
         alignment: AlignmentDirectional.centerStart,
         padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.lg),
-        color: Theme.of(context).colorScheme.errorContainer,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         child: Icon(
-          Icons.delete_outline,
-          color: Theme.of(context).colorScheme.onErrorContainer,
+          Icons.archive_outlined,
+          semanticLabel: 'بایگانی',
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
       child: content,

@@ -20,6 +20,30 @@ void main() {
   );
   final repository = InMemoryFinanceRepository();
 
+  test('creates an opening balance as a ledger entry', () async {
+    final useCases = FinanceUseCases(InMemoryFinanceRepository());
+    final account = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 1, 6)),
+      name: 'حساب افتتاحیه',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+
+    await useCases.createAccount(
+      account,
+      openingBalance: const Money(minorUnits: 12500, currency: 'IRR'),
+      occurredAt: DateTime.utc(2026, 1, 6),
+    );
+
+    expect(
+      await useCases.balance(account),
+      const Money(minorUnits: 12500, currency: 'IRR'),
+    );
+    final entries = await useCases.repository.listEntries();
+    expect(entries.single.type, AccountEntryType.openingBalance);
+    expect(entries.single.note, 'موجودی اولیه');
+  });
+
   test('rebuilds account balance from append-only entries', () async {
     final useCases = FinanceUseCases(repository);
     await useCases.createAccount(account);

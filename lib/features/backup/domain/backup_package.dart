@@ -4,15 +4,48 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:planact/core/errors/app_error.dart';
 
+const backupFormatVersion = 1;
+const backupAlgorithm = 'AES-256-GCM';
+const backupKdf = 'external-key-storage';
+const backupKeyId = 'backup-key-v1';
+
+abstract interface class BackupKeyStorage {
+  Future<Uint8List> loadKey(String keyId);
+}
+
+abstract interface class BackupEncryptor {
+  Future<EncryptedBackupPayload> encrypt({
+    required Uint8List plaintext,
+    required Uint8List key,
+    required Uint8List nonce,
+    required Uint8List associatedData,
+  });
+
+  Future<Uint8List> decrypt({
+    required Uint8List ciphertext,
+    required Uint8List key,
+    required Uint8List nonce,
+    required Uint8List tag,
+    required Uint8List associatedData,
+  });
+}
+
+class EncryptedBackupPayload {
+  const EncryptedBackupPayload({required this.ciphertext, required this.tag});
+  final Uint8List ciphertext;
+  final Uint8List tag;
+}
+
 class BackupPackage {
   BackupPackage({
     required this.schemaVersion,
     required this.appVersion,
     required this.createdAt,
     required this.payload,
-    this.encryptionMetadata = const {},
+    required this.encryptionMetadata,
     this.attachmentManifest = const [],
     String? checksum,
+    this.formatVersion = backupFormatVersion,
   }) : checksum = checksum ?? _checksum(payload);
 
   final int schemaVersion;
@@ -22,8 +55,10 @@ class BackupPackage {
   final Map<String, String> encryptionMetadata;
   final List<String> attachmentManifest;
   final String checksum;
+  final int formatVersion;
 
   Map<String, Object?> toJson() => {
+    'formatVersion': formatVersion,
     'schemaVersion': schemaVersion,
     'appVersion': appVersion,
     'createdAt': createdAt.toUtc().toIso8601String(),
@@ -34,48 +69,104 @@ class BackupPackage {
   };
 
   factory BackupPackage.fromJson(Map<String, Object?> json) {
-    final payload = Uint8List.fromList(
-      base64Decode(json['payload']! as String),
-    );
-    return BackupPackage(
-      schemaVersion: json['schemaVersion']! as int,
-      appVersion: json['appVersion']! as String,
-      createdAt: DateTime.parse(json['createdAt']! as String),
-      payload: payload,
-      encryptionMetadata: Map<String, String>.from(
+    try {
+      final metadata = Map<String, String>.from(
         json['encryptionMetadata']! as Map,
-      ),
-      attachmentManifest: List<String>.from(
-        json['attachmentManifest']! as List,
-      ),
-      checksum: json['checksum']! as String,
-    );
+      );
+      return BackupPackage(
+        formatVersion: json['formatVersion']! as int,
+        schemaVersion: json['schemaVersion']! as int,
+        appVersion: json['appVersion']! as String,
+        createdAt: DateTime.parse(json['createdAt']! as String),
+        payload: Uint8List.fromList(base64Decode(json['payload']! as String)),
+        encryptionMetadata: metadata,
+        attachmentManifest: List<String>.from(
+          json['attachmentManifest']! as List,
+        ),
+        checksum: json['checksum']! as String,
+      );
+    } catch (_) {
+      throw const ValidationError('Backup JSON is malformed or incomplete');
+    }
   }
 
   String encode() => jsonEncode(toJson());
 
-  static BackupPackage decode(String value) =>
-      BackupPackage.fromJson(jsonDecode(value) as Map<String, Object?>);
+  static BackupPackage decode(String value) {
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is! Map) throw const FormatException();
+      return BackupPackage.fromJson(Map<String, Object?>.from(decoded));
+    } catch (_) {
+      throw const ValidationError('Backup JSON is malformed or incomplete');
+    }
+  }
 
   static String _checksum(Uint8List bytes) => sha256.convert(bytes).toString();
 }
 
 class BackupValidator {
-  const BackupValidator({required this.currentSchemaVersion});
+  const BackupValidator({
+    required this.currentSchemaVersion,
+    this.maxPayloadBytes = 50 * 1024 * 1024,
+  });
   final int currentSchemaVersion;
+  final int maxPayloadBytes;
 
   void validate(BackupPackage package) {
-    if (package.schemaVersion > currentSchemaVersion) {
+    if (package.formatVersion != backupFormatVersion) {
       throw ValidationError(
-        'Backup schema ${package.schemaVersion} is newer than supported schema $currentSchemaVersion',
+        'Unsupported backup format version: ${package.formatVersion}',
+      );
+    }
+    if (package.schemaVersion != currentSchemaVersion) {
+      throw ValidationError(
+        'Backup schema ${package.schemaVersion} is incompatible with schema $currentSchemaVersion',
       );
     }
     if (package.payload.isEmpty) {
       throw const ValidationError('Backup payload cannot be empty');
     }
-    final expected = BackupPackage._checksum(package.payload);
-    if (package.checksum != expected) {
-      throw const ValidationError('Backup checksum is invalid');
+    if (package.payload.length > maxPayloadBytes) {
+      throw const ValidationError('Backup payload is too large');
+    }
+    final metadata = package.encryptionMetadata;
+    const required = [
+      'algorithm',
+      'nonce',
+      'tag',
+      'kdf',
+      'keyId',
+      'rawTextPolicy',
+    ];
+    if (required.any(
+      (key) => metadata[key] == null || metadata[key]!.isEmpty,
+    )) {
+      throw const ValidationError(
+        'Backup encryption metadata is missing or invalid',
+      );
+    }
+    if (metadata['algorithm'] != backupAlgorithm ||
+        metadata['kdf'] != backupKdf ||
+        metadata['keyId'] != backupKeyId) {
+      throw const ValidationError('Backup encryption metadata is unsupported');
+    }
+    if (metadata['rawTextPolicy'] != 'redacted' &&
+        metadata['rawTextPolicy'] != 'consented-encrypted') {
+      throw const ValidationError('Backup raw text policy is unsupported');
+    }
+    try {
+      if (base64Decode(metadata['nonce']!).length != 12 ||
+          base64Decode(metadata['tag']!).length != 16) {
+        throw const FormatException();
+      }
+    } catch (_) {
+      throw const ValidationError(
+        'Backup nonce or authentication tag is invalid',
+      );
+    }
+    if (package.checksum != BackupPackage._checksum(package.payload)) {
+      throw const ValidationError('Backup integrity checksum is invalid');
     }
   }
 }

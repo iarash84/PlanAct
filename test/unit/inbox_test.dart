@@ -26,6 +26,36 @@ void main() {
   });
 
   test(
+    'parses incoming Persian SMS as income without fabricating direction',
+    () {
+      final parsed = const LocalSmsParser().parse(
+        text: 'واریز مبلغ: ۱۲،۵۰۰ بانک: نمونه 2026-09-20 کارت: ****1234',
+        currency: 'IRR',
+      );
+      expect(parsed.amount.minorUnits, 12500);
+      expect(parsed.direction, TransactionDirection.incoming);
+      expect(parsed.accountHint, '****1234');
+    },
+  );
+
+  test('supports duplicate source keys after a rescan', () async {
+    final inbox = InMemoryInboxRepository();
+    final useCases = InboxUseCases(inbox);
+    final first = await useCases.stageSms(
+      rawText: 'amount 1000 2026-09-20',
+      sourceKey: 'android-sms:42',
+      currency: 'IRR',
+    );
+    final second = await useCases.stageSms(
+      rawText: 'amount 1000 2026-09-20',
+      sourceKey: 'android-sms:42',
+      currency: 'IRR',
+    );
+    expect(second.id, first.id);
+    expect(await inbox.listSuggestions(), hasLength(1));
+  });
+
+  test(
     'rejects duplicate raw source without creating a second suggestion',
     () async {
       final inbox = InMemoryInboxRepository();
@@ -199,4 +229,28 @@ void main() {
     );
     expect(await finance.listEntries(), hasLength(1));
   });
+
+  test(
+    'expires raw text while preserving fingerprint and decision metadata',
+    () async {
+      final inbox = InMemoryInboxRepository();
+      final useCases = InboxUseCases(inbox);
+      final importedAt = DateTime.utc(2026, 1, 1);
+      await useCases.stageSms(
+        rawText: 'amount 1000 2026-01-01',
+        sourceKey: 'sms-retention',
+        currency: 'IRR',
+        importedAt: importedAt,
+      );
+
+      await useCases.expireRawText(
+        now: importedAt.add(const Duration(days: 31)),
+      );
+      final stored = (await inbox.listImports()).single;
+      expect(stored.rawText, isEmpty);
+      expect(stored.fingerprint, isNotEmpty);
+      expect(stored.retentionStatus, RawTextRetentionStatus.expired);
+      expect(stored.retentionUntil, importedAt.add(const Duration(days: 30)));
+    },
+  );
 }

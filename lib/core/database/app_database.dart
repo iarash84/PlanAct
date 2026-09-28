@@ -140,7 +140,7 @@ class ReplacementOccurrences extends Table {
 
 class ReminderRules extends Table {
   TextColumn get id => text()();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   IntColumn get anchor => integer()();
   IntColumn get offsetSeconds => integer()();
   DateTimeColumn get absoluteAt => dateTime().nullable()();
@@ -155,7 +155,7 @@ class ReminderRules extends Table {
 class ReminderInstances extends Table {
   TextColumn get id => text()();
   TextColumn get ruleId => text().references(ReminderRules, #id)();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   DateTimeColumn get scheduledAt => dateTime()();
   IntColumn get status => integer()();
   DateTimeColumn get snoozedUntil => dateTime().nullable()();
@@ -163,6 +163,11 @@ class ReminderInstances extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {ruleId, occurrenceId, scheduledAt},
+  ];
 }
 
 class Actuals extends Table {
@@ -207,6 +212,8 @@ class AccountEntries extends Table {
   DateTimeColumn get occurredAt => dateTime()();
   TextColumn get referenceId => text().nullable()();
   TextColumn get note => text().nullable()();
+  TextColumn get category => text().nullable()();
+  IntColumn get source => integer().withDefault(const Constant(0))();
   TextColumn get transferGroupId => text().nullable()();
 
   @override
@@ -215,7 +222,7 @@ class AccountEntries extends Table {
 
 class TransactionMatches extends Table {
   TextColumn get id => text()();
-  TextColumn get transactionId => text()();
+  TextColumn get transactionId => text().references(AccountEntries, #id)();
   IntColumn get minorUnits => integer()();
   TextColumn get currency => text()();
   DateTimeColumn get createdAt => dateTime()();
@@ -229,7 +236,7 @@ class TransactionMatches extends Table {
 class MatchAllocations extends Table {
   TextColumn get id => text()();
   TextColumn get matchId => text().references(TransactionMatches, #id)();
-  TextColumn get occurrenceId => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
   IntColumn get minorUnits => integer()();
   TextColumn get currency => text()();
   IntColumn get type => integer()();
@@ -238,10 +245,34 @@ class MatchAllocations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+class FinancialExpectations extends Table {
+  TextColumn get id => text()();
+  TextColumn get occurrenceId => text().references(Occurrences, #id)();
+  IntColumn get direction => integer()();
+  IntColumn get minorUnits => integer()();
+  TextColumn get currency => text().nullable()();
+  TextColumn get accountId =>
+      text().nullable().references(FinancialAccounts, #id)();
+  IntColumn get status => integer()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {occurrenceId},
+  ];
+}
+
 class StagedImports extends Table {
   TextColumn get id => text()();
   TextColumn get rawText => text()();
   TextColumn get fingerprint => text()();
+  IntColumn get retentionStatus => integer().withDefault(const Constant(0))();
+  DateTimeColumn get retentionUntil => dateTime().nullable()();
+  DateTimeColumn get lastDecisionAt => dateTime().nullable()();
   IntColumn get source => integer()();
   TextColumn get sourceKey => text()();
   DateTimeColumn get importedAt => dateTime()();
@@ -287,6 +318,7 @@ class InboxSuggestions extends Table {
     AccountEntries,
     TransactionMatches,
     MatchAllocations,
+    FinancialExpectations,
     StagedImports,
     InboxSuggestions,
   ],
@@ -294,10 +326,12 @@ class InboxSuggestions extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
+  /// Test-only constructor. Production code must create one instance in its
+  /// composition root and pass it to repositories.
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -357,6 +391,41 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(stagedImports);
         await m.createTable(inboxSuggestions);
       }
+      if (from < 11) {
+        await m.createTable(financialExpectations);
+      }
+      if (from < 12) {
+        await customStatement(
+          'ALTER TABLE account_entries ADD COLUMN category TEXT',
+        );
+        await customStatement(
+          'ALTER TABLE account_entries ADD COLUMN source INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+      if (from < 13) {
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN retention_status INTEGER NOT NULL DEFAULT 0',
+        );
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN retention_until INTEGER',
+        );
+        await customStatement(
+          'ALTER TABLE staged_imports ADD COLUMN last_decision_at INTEGER',
+        );
+      }
+      if (from < 14) {
+        // These indexes make logical reminder identity and reconciliation child
+        // replacement efficient. Existing rows are preserved; FK declarations
+        // are enforced for databases created with the current schema.
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS reminder_instances_logical_identity '
+          'ON reminder_instances(rule_id, occurrence_id, scheduled_at)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS match_allocations_match_id '
+          'ON match_allocations(match_id)',
+        );
+      }
       await _writeSchemaMetadata();
     },
     beforeOpen: (details) async {
@@ -370,6 +439,12 @@ class AppDatabase extends _$AppDatabase {
         key: 'schema_version',
         value: schemaVersion.toString(),
       ),
+    );
+  }
+
+  Future<void> writeMetadata(String key, String value) async {
+    await into(schemaMetadata).insertOnConflictUpdate(
+      SchemaMetadataCompanion.insert(key: key, value: value),
     );
   }
 

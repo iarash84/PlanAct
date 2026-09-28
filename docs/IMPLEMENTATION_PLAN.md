@@ -78,12 +78,18 @@ Gate: کاربر می‌تواند بدون دیدن پیچیدگی Domain یک 
 
 Gate: هر occurrence resolved نتیجه قابل توضیح و history پایدار دارد.
 
+## وضعیت اجرای milestoneهای زیرساختی
+
+M7 تا M12 در برنامهٔ توسعه هستند و در وضعیت فعلی نباید production-ready تلقی شوند. برخی اجزای domain/data آن‌ها در کد و تست وجود دارد، اما جریان کامل محصول، migrationهای تاریخی، restore امن و release gate هنوز تکمیل نشده است.
+
 ## Milestone M7 — Security, Backup/Restore & Release Hardening
 
 - `P25` — Backup package + validation + atomic restore + reminder rebuild hook.
 - `P26` — Migration fixtures، secure storage/privacy hardening، failure recovery.
 
 Gate: Core Beta می‌تواند داده واقعی کاربر را با ریسک معقول نگه دارد.
+
+Status: **Implemented but incomplete / planned hardening** — backup contract و تست‌های domain موجودند، اما مسیر کامل production restore و release hardening هنوز باید تکمیل و verify شود.
 
 ## Milestone M8 — Finance Ledger
 
@@ -93,12 +99,16 @@ Gate: Core Beta می‌تواند داده واقعی کاربر را با ری�
 
 Gate: bank→wallet transfer در expense/income دوباره‌شماری نمی‌شود و balance قابل rebuild است.
 
+Status: **Implemented but incomplete** — ledger و transfer محلی پیاده‌سازی شده‌اند؛ UI، correction chain کامل و release hardening جداگانه باقی است.
+
 ## Milestone M9 — Financial Reconciliation
 
 - `P30` — TransactionMatch many-to-many + allocation rules.
 - `P31` — Financial planned-vs-actual + manual matching UI/history.
 
 Gate: partial/full/over/corrected matching قابل توضیح و تست‌شده است.
+
+Status: **Domain/data layer implemented; UI incomplete** — semantics و persistence پایه تست شده‌اند، اما جریان کامل کاربر هنوز milestone است.
 
 ## Milestone M10 — Inbox, Import & SMS Parsing
 

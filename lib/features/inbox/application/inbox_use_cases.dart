@@ -73,28 +73,69 @@ class ParsedSms {
   const ParsedSms({
     required this.amount,
     required this.occurredAt,
+    required this.direction,
+    required this.quality,
+    required this.confidence,
     this.merchant,
     this.reference,
+    this.bank,
+    this.accountHint,
+    this.balance,
   });
 
   final Money amount;
   final DateTime occurredAt;
+  final TransactionDirection direction;
+  final ParseQuality quality;
+  final int confidence;
   final String? merchant;
   final String? reference;
+  final String? bank;
+  final String? accountHint;
+  final Money? balance;
 }
 
-class LocalSmsParser {
-  const LocalSmsParser();
+abstract interface class SmsFormatParser {
+  ParsedSms? tryParse({required String text, required String currency});
+}
+
+class LocalSmsParser implements SmsFormatParser {
+  const LocalSmsParser({this.parsers = const [GenericBankSmsParser()]});
+
+  final List<SmsFormatParser> parsers;
 
   ParsedSms parse({required String text, required String currency}) {
+    for (final parser in parsers) {
+      final result = parser.tryParse(text: text, currency: currency);
+      if (result != null) return result;
+    }
+    throw const ValidationError('SMS amount could not be parsed');
+  }
+
+  @override
+  ParsedSms? tryParse({required String text, required String currency}) {
+    try {
+      return parse(text: text, currency: currency);
+    } on ValidationError {
+      return null;
+    }
+  }
+}
+
+/// Explainable fallback for common Persian/English bank notification labels.
+/// Bank-specific parsers can be added without changing staging or UI.
+class GenericBankSmsParser implements SmsFormatParser {
+  const GenericBankSmsParser();
+
+  @override
+  ParsedSms? tryParse({required String text, required String currency}) {
     final amountMatch = RegExp(
-      r'(?:مبلغ|amount)\s*[:：]?\s*([0-9۰-۹,]+)',
+      r'(?:مبلغ|amount|برداشت|واریز|purchase|withdrawal|deposit)\s*[:：]?\s*([۰-۹0-9][۰-۹0-9,،]*)',
       caseSensitive: false,
     ).firstMatch(text);
-    if (amountMatch == null) {
-      throw const ValidationError('SMS amount could not be parsed');
-    }
+    if (amountMatch == null) return null;
     final amount = _digits(amountMatch.group(1)!);
+    if (amount <= 0) return null;
     final dateMatch = RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
         .firstMatch(text);
     final occurredAt = dateMatch == null
@@ -104,40 +145,55 @@ class LocalSmsParser {
             int.parse(dateMatch.group(2)!),
             int.parse(dateMatch.group(3)!),
           );
+    final lower = text.toLowerCase();
+    final incoming = RegExp(r'واریز|وصول|deposit|credit|received')
+        .hasMatch(lower);
+    final outgoing = RegExp(r'برداشت|خرید|پرداخت|withdrawal|purchase|debit')
+        .hasMatch(lower);
+    final direction = incoming && !outgoing
+        ? TransactionDirection.incoming
+        : outgoing && !incoming
+        ? TransactionDirection.outgoing
+        : TransactionDirection.unknown;
     final reference = RegExp(
-      r'(?:پیگیری|ref|reference)\s*[:#]?\s*([\w-]+)',
+      r'(?:پیگیری|ref|reference|شناسه)\s*[:#]?\s*([\w-]+)',
       caseSensitive: false,
     ).firstMatch(text)?.group(1);
+    final card = RegExp(
+      r'(?:کارت|card)\s*[:：#]?\s*([0-9۰-۹* -]{4,})',
+      caseSensitive: false,
+    ).firstMatch(text)?.group(1)?.trim();
     return ParsedSms(
       amount: Money(minorUnits: amount, currency: currency),
       occurredAt: occurredAt,
+      direction: direction,
+      quality: direction == TransactionDirection.unknown
+          ? ParseQuality.medium
+          : ParseQuality.high,
+      confidence: direction == TransactionDirection.unknown ? 55 : 80,
       merchant: _merchant(text),
       reference: reference,
+      accountHint: card,
+      bank: _bank(text),
     );
   }
 
   int _digits(String value) => int.parse(
     value
-        .replaceAll(',', '')
-        .replaceAll('۰', '0')
-        .replaceAll('۱', '1')
-        .replaceAll('۲', '2')
-        .replaceAll('۳', '3')
-        .replaceAll('۴', '4')
-        .replaceAll('۵', '5')
-        .replaceAll('۶', '6')
-        .replaceAll('۷', '7')
-        .replaceAll('۸', '8')
-        .replaceAll('۹', '9'),
+        .replaceAll(RegExp(r'[,،]'), '')
+        .replaceAllMapped(
+          RegExp(r'[۰-۹]'),
+          (m) => String.fromCharCode(m.group(0)!.codeUnitAt(0) - 1728),
+        ),
   );
-
-  String? _merchant(String text) {
-    final match = RegExp(
-      r'(?:فروشگاه|merchant)\s*[:：]\s*([^\n]+)',
-      caseSensitive: false,
-    ).firstMatch(text);
-    return match?.group(1)?.trim();
-  }
+  String? _merchant(String text) => RegExp(
+    r'(?:فروشگاه|merchant|پذیرنده)\s*[:：]\s*([^\n]+)',
+    caseSensitive: false,
+  ).firstMatch(text)?.group(1)?.trim();
+  String? _bank(String text) => RegExp(
+    r'(?:بانک|bank)\s*[:：]?\s*([^\n]+)',
+    caseSensitive: false,
+  ).firstMatch(text)?.group(1)?.trim();
 }
 
 class InboxUseCases {
@@ -146,40 +202,85 @@ class InboxUseCases {
   final InboxRepository repository;
   final LocalSmsParser parser;
 
+  Future<List<InboxSuggestion>> listPendingSuggestions() async {
+    await expireRawText();
+    return (await repository.listSuggestions())
+        .where(
+          (item) =>
+              item.status == SuggestionStatus.pending ||
+              item.status == SuggestionStatus.edited,
+        )
+        .toList(growable: false);
+  }
+
+  Future<void> expireRawText({DateTime? now}) async {
+    final at = (now ?? DateTime.now()).toUtc();
+    for (final item in await repository.listImports()) {
+      if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
+      final deadline = item.retentionUntil;
+      if (deadline != null && !at.isBefore(deadline)) {
+        await repository.saveImport(item.expireRawText());
+      }
+    }
+  }
+
   Future<InboxSuggestion> stageSms({
     required String rawText,
     required String sourceKey,
     required String currency,
     DateTime? importedAt,
   }) async {
-    final fingerprint = sha256.convert(utf8.encode(rawText.trim())).toString();
+    final normalized = rawText.trim();
+    final fingerprint = sha256.convert(utf8.encode(normalized)).toString();
     final existing = await repository.listImports();
-    final duplicate = existing.where((item) => item.fingerprint == fingerprint);
-    if (duplicate.isNotEmpty) {
+    final sourceDuplicate = existing.where(
+      (item) => item.provenance.sourceKey == sourceKey,
+    );
+    if (sourceDuplicate.isNotEmpty) {
+      final stagedId = sourceDuplicate.first.id;
+      return (await repository.listSuggestions()).firstWhere(
+        (item) => item.stagedImportId == stagedId,
+      );
+    }
+    final fingerprintDuplicate = existing.where(
+      (item) => item.fingerprint == fingerprint,
+    );
+    if (fingerprintDuplicate.isNotEmpty) {
       throw const ValidationError('This source item was already imported');
     }
-    final parsed = parser.parse(text: rawText, currency: currency);
+    final parsed = parser.parse(text: normalized, currency: currency);
+    final imported = (importedAt ?? DateTime.now()).toUtc();
+    final retentionUntil = imported.add(const Duration(days: 30));
     final staged = StagedImport(
-      id: StableId.generate(timestamp: importedAt),
-      rawText: rawText,
+      id: _stableImportId(fingerprint, importedAt),
+      rawText: normalized,
       fingerprint: fingerprint,
       provenance: ImportProvenance(
         source: ImportSource.sms,
         sourceKey: sourceKey,
-        importedAt: (importedAt ?? DateTime.now()).toUtc(),
+        importedAt: imported,
       ),
+      retentionUntil: retentionUntil,
     );
     final draft = TransactionDraft(
-      id: StableId.generate(timestamp: parsed.occurredAt),
+      id: _stableImportId('$fingerprint:draft', parsed.occurredAt),
       stagedImportId: staged.id,
       amount: parsed.amount,
       occurredAt: parsed.occurredAt,
-      type: 'expense',
+      type: parsed.direction == TransactionDirection.incoming
+          ? 'income'
+          : 'expense',
       merchant: parsed.merchant,
       reference: parsed.reference,
+      direction: parsed.direction,
+      bank: parsed.bank,
+      accountHint: parsed.accountHint,
+      balance: parsed.balance,
+      quality: parsed.quality,
+      confidence: parsed.confidence,
     );
     final suggestion = InboxSuggestion(
-      id: StableId.generate(timestamp: importedAt),
+      id: _stableImportId('$fingerprint:suggestion', importedAt),
       stagedImportId: staged.id,
       draft: draft,
     );
@@ -253,7 +354,9 @@ class InboxUseCases {
     final entry = AccountEntry(
       id: StableId.generate(timestamp: suggestion.draft.occurredAt),
       accountId: account.id,
-      type: AccountEntryType.expense,
+      type: suggestion.draft.direction == TransactionDirection.incoming
+          ? AccountEntryType.income
+          : AccountEntryType.expense,
       amount: suggestion.draft.amount,
       occurredAt: suggestion.draft.occurredAt.toUtc(),
       referenceId: suggestion.draft.reference,
@@ -268,5 +371,19 @@ class InboxUseCases {
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.confirmed));
     return entry;
+  }
+
+  StableId _stableImportId(String input, DateTime? timestamp) {
+    final digest = sha256.convert(utf8.encode(input)).bytes;
+    final millis = (timestamp ?? DateTime.now()).toUtc().millisecondsSinceEpoch;
+    final hex =
+        millis.toRadixString(16).padLeft(12, '0').substring(0, 12) +
+        digest
+            .take(10)
+            .map((value) => value.toRadixString(16).padLeft(2, '0'))
+            .join();
+    final value =
+        '${hex.substring(0, 8)}-${hex.substring(8, 12)}-7${hex.substring(12, 15)}-8${hex.substring(15, 18)}-${hex.substring(18, 30)}';
+    return StableId.parse(value);
   }
 }

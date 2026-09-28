@@ -2,7 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
-import 'package:planact/features/sessions/application/session_repositories.dart';
+import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
 import 'package:planact/features/sessions/domain/replacement.dart';
 import 'package:planact/features/sessions/domain/session_policy.dart';

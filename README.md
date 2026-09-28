@@ -124,6 +124,18 @@
 - اطلاعات حساس در لاگ‌های عادی ثبت نمی‌شوند
 - تصمیم‌های مهم مالی، تاریخی و مربوط به اعتبار نیازمند کنترل و تأیید کاربر هستند
 
+## وضعیت اجرایی قابلیت‌ها
+
+این فهرست وضعیت واقعی implementation فعلی را از چشم‌انداز و برنامهٔ آینده جدا می‌کند:
+
+- **Production-ready در هستهٔ محلی:** مدل تعهدها، تولید رخدادهای bounded و idempotent، reminder persistence/rebuild پایه، دفترکل مالی محلی و محاسبهٔ قابل‌بازسازی موجودی.
+- **Implemented but incomplete:** تطبیق مالی چندبه‌چند، Inbox/SMS staging، داشبورد Today و جریان‌های UI مرتبط.
+- **Domain/data layer only:** بخش‌هایی از reconciliation correction/overpayment، برخی policyهای session و قراردادهای backup/restore.
+- **Experimental:** امتیازدهی deterministic برای پیشنهاد تطبیق و automationهای محلی.
+- **Planned:** رمزنگاری کامل backup، adapter هوش مصنوعی روی دستگاه، automation پیشرفته و release hardening کامل.
+
+مواردی که در بخش‌های بالا با «پشتیبانی» توصیف شده‌اند، به معنی وجود مدل یا مسیر محلی فعلی است و لزوماً به معنی تکمیل همهٔ جریان‌های UI، migrationهای قدیمی یا آمادهٔ انتشار production نیست.
+
 ## فناوری‌های استفاده‌شده
 
 - <span dir="ltr"><strong>Flutter</strong></span> برای ساخت رابط کاربری چندسکویی
