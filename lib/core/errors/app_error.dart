@@ -28,6 +28,12 @@ class PersistenceError extends AppError {
     : super(message, AppErrorCategory.persistence);
 }
 
+class BackupRestoreError extends PersistenceError {
+  const BackupRestoreError(super.message, {this.cause});
+
+  final Object? cause;
+}
+
 class PlatformError extends AppError {
   const PlatformError(String message)
     : super(message, AppErrorCategory.platform);

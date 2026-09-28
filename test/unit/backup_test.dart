@@ -10,12 +10,46 @@ class _MemoryStorage implements BackupStorage {
   _MemoryStorage(this.current);
   Uint8List current;
   Uint8List? safety;
+  Uint8List? temporary;
+  bool marker = false;
   @override
   Future<Uint8List> readCurrent() async => current;
   @override
-  Future<void> writeCurrent(Uint8List payload) async => current = payload;
+  Future<void> writeSafetySnapshot(Uint8List payload) async {
+    safety = Uint8List.fromList(payload);
+  }
+
   @override
-  Future<void> writeSafetySnapshot(Uint8List payload) async => safety = payload;
+  Future<void> writeTemporary(Uint8List payload) async {
+    temporary = Uint8List.fromList(payload);
+  }
+
+  @override
+  Future<void> flushTemporary() async {}
+  @override
+  Future<void> writeRecoveryMarker() async => marker = true;
+  @override
+  Future<void> replaceTemporary() async {
+    if (temporary == null) throw StateError('missing temporary');
+    current = temporary!;
+    temporary = null;
+  }
+
+  @override
+  Future<void> clearRecoveryMarker() async => marker = false;
+  @override
+  Future<void> recoverIfNeeded() async {
+    if (marker && safety != null) {
+      current = Uint8List.fromList(safety!);
+      marker = false;
+    }
+  }
+
+  @override
+  Future<void> restoreSafetySnapshot() async {
+    if (safety == null) throw StateError('missing safety snapshot');
+    current = Uint8List.fromList(safety!);
+  }
 }
 
 class _Keys implements BackupKeyStorage {
@@ -124,7 +158,10 @@ void main() {
       appVersion: '1',
       createdAt: DateTime.utc(2026),
     );
-    await expectLater(service.restore(package), throwsStateError);
+    await expectLater(
+      service.restore(package),
+      throwsA(isA<BackupRestoreError>()),
+    );
     expect(storage.current, orderedEquals([0]));
     expect(storage.safety, orderedEquals([0]));
   });

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' as db;
@@ -18,6 +19,10 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
 void main() {
+  // Restart tests intentionally open the same SQLite file sequentially. The
+  // old instance is closed before the new one; suppress only Drift's global
+  // duplicate-class diagnostic in this harness.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   late db.AppDatabase database;
 
   setUp(() {

@@ -4,10 +4,21 @@ import 'dart:typed_data';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/features/backup/domain/backup_package.dart';
 
+/// Storage boundary for crash-safe backup replacement.
+///
+/// Implementations must make [replaceTemporary] an atomic rename/replace at
+/// the storage boundary, and must persist the recovery marker before replacing
+/// the live file. The marker is intentionally not part of backup data.
 abstract interface class BackupStorage {
-  Future<void> writeCurrent(Uint8List payload);
   Future<Uint8List> readCurrent();
   Future<void> writeSafetySnapshot(Uint8List payload);
+  Future<void> writeTemporary(Uint8List payload);
+  Future<void> flushTemporary();
+  Future<void> writeRecoveryMarker();
+  Future<void> replaceTemporary();
+  Future<void> clearRecoveryMarker();
+  Future<void> recoverIfNeeded();
+  Future<void> restoreSafetySnapshot();
 }
 
 abstract interface class BackupRebuildHook {
@@ -96,14 +107,35 @@ class BackupService {
     if (plaintext.isEmpty || plaintext.length > validator.maxPayloadBytes) {
       throw const ValidationError('Decrypted backup payload is invalid');
     }
+
+    await storage.recoverIfNeeded();
     final current = await storage.readCurrent();
-    await storage.writeSafetySnapshot(current);
     try {
-      await storage.writeCurrent(plaintext);
+      await storage.writeSafetySnapshot(current);
+      await storage.writeTemporary(plaintext);
+      await storage.flushTemporary();
+      await storage.writeRecoveryMarker();
+      await storage.replaceTemporary();
       await rebuildHook.rebuild();
-    } catch (_) {
-      await storage.writeCurrent(current);
-      rethrow;
+      await storage.clearRecoveryMarker();
+    } catch (error, stackTrace) {
+      try {
+        await storage.restoreSafetySnapshot();
+        await storage.clearRecoveryMarker();
+      } catch (recoveryError, recoveryStackTrace) {
+        Error.throwWithStackTrace(
+          BackupRestoreError(
+            'Restore failed and recovery failed: $error; '
+            'recovery error: $recoveryError',
+            cause: recoveryError,
+          ),
+          recoveryStackTrace,
+        );
+      }
+      Error.throwWithStackTrace(
+        BackupRestoreError('Restore failed: $error', cause: error),
+        stackTrace,
+      );
     }
   }
 

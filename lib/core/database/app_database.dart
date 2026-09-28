@@ -321,6 +321,8 @@ class InboxSuggestions extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
+  /// Test-only constructor. Production code must create one instance in its
+  /// composition root and pass it to repositories.
   AppDatabase.forTesting(super.e);
 
   @override
