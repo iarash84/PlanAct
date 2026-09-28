@@ -1,7 +1,8 @@
 # AGENTS.md — Personal Commitment Manager
 
-This file is the repository-level contract for human developers and AI coding agents.
-Read it before changing code. If a task-specific prompt conflicts with this file, this file wins unless the prompt explicitly records an approved architecture decision.
+This file is the repository-level execution contract for human developers and AI coding agents.
+It defines **how PlanAct must be implemented**, while `PRD.md` defines **what product behavior must exist and why**.
+Read both files before changing product behavior. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.
 
 ## 1. Product mission
 
@@ -269,7 +270,7 @@ Restore must:
 1. validate in a temporary location,
 2. verify checksum and schema compatibility,
 3. preserve the current database if validation fails,
-4. preferably create a safety snapshot before replacement,
+4. create a safety snapshot before replacement,
 5. atomically replace the live state,
 6. rebuild derived caches and scheduled reminders afterward.
 
@@ -375,13 +376,37 @@ Do not:
 
 When instructions conflict, use this order:
 
-1. Explicit approved ADR / latest product decision.
-2. `AGENTS.md`.
-3. `docs/ARCHITECTURE_AND_DOMAIN_RULES.md`.
-4. Current milestone/task prompt.
-5. Existing implementation conventions.
+1. Explicit approved ADR / latest approved product decision.
+2. `PRD.md` for product scope, user-visible behavior, acceptance criteria, release priorities, and non-goals.
+3. `AGENTS.md` for implementation constraints, architecture rules, data-integrity rules, testing expectations, and agent workflow.
+4. `docs/ARCHITECTURE_AND_DOMAIN_RULES.md` for deeper architecture/domain detail that does not contradict items above.
+5. Current milestone/task prompt, provided it stays within approved product scope and architecture.
+6. Existing implementation conventions.
 
-If there is still a conflict, preserve data/history and choose the least irreversible option.
+Interpretation rules:
+
+- `PRD.md` owns **what/why**; `AGENTS.md` owns **how/safeguards**.
+- A task prompt may narrow scope but must not silently weaken a PRD acceptance criterion or an AGENTS data-integrity rule.
+- When `PRD.md` changes product behavior, update `AGENTS.md` in the same change if implementation rules are affected.
+- When `AGENTS.md` introduces a durable product-visible constraint, verify whether `PRD.md` also needs an update.
+- If there is still a conflict, preserve user data/history, prefer the least irreversible option, and require an explicit ADR/product decision before shipping behavior that changes semantics.
+
+## 20. PRD ↔ AGENTS consistency contract
+
+`PRD.md` and `AGENTS.md` are complementary and must evolve together.
+
+Before completing a feature that changes product behavior, verify all of the following:
+
+- Every applicable PRD acceptance criterion has an implementation path.
+- No implementation rule contradicts the PRD's product semantics.
+- A database/schema change has persistence, migration, restart, backup/restore, and test implications reviewed.
+- A new user-visible default is documented in the PRD and represented explicitly in the domain model.
+- A new archive/delete/status semantic is consistent across PRD, domain rules, UI language, and history behavior.
+- A new recurrence or scheduling behavior specifies both recurrence frequency/pattern and termination/versioning semantics.
+- A feature is not marked implemented merely because schema or UI exists; the complete product path must be wired.
+
+If a PRD requirement is intentionally deferred, the implementation/report must label it as partial rather than implemented.
+
 
 ## Production State and Persistence
 

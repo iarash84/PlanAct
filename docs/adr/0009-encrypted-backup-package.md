@@ -1,6 +1,6 @@
 # ADR 0009: مدل backup رمزنگاری‌شده
 
-- وضعیت: پیشنهادی برای فاز امنیت و پایداری؛ بدون تغییر رفتاری در این فاز
+- وضعیت: پذیرفته و پیاده‌سازی‌شده در فاز امنیت backup
 - تاریخ: 2026-09-28
 
 ## تصمیم
@@ -13,6 +13,7 @@ Restore باید ابتدا package را در محل موقت validate/decrypt �
 
 ## پیامدها
 
-- پیاده‌سازی آینده به adapter رمزنگاری و secure storage نیاز دارد؛ dependency جدید در این فاز اضافه نمی‌شود.
-- backupهای قدیمی باید با migration/compatibility policy صریح پشتیبانی یا با خطای قابل‌فهم رد شوند.
+- abstractionهای domain برای encryption و key storage تعریف شده‌اند؛ adapterها خارج از domain تزریق می‌شوند.
+- الگوریتم این فاز AES-256-GCM با nonce دوازده‌بایتی و tag شانزده‌بایتی است؛ کلید در package ذخیره نمی‌شود.
+- فقط format version 1 و schema دقیقاً جاری پذیرفته می‌شود؛ backupهای قدیمی بدون migration مستند عمداً رد می‌شوند.
 - کلید گمشده یا metadata نامعتبر باید restore را متوقف کند، نه اینکه به payload خام fallback شود.

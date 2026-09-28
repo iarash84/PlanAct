@@ -5,6 +5,23 @@
 **Current application version:** `0.1.7+2`
 **Status:** Living Document / Active Development
 
+## Document Governance
+
+This document defines **what PlanAct must do and why**: product scope, user-visible behavior, acceptance criteria, priorities, and non-goals.
+
+`AGENTS.md` is the companion implementation contract and defines **how the product must be built safely**: architecture boundaries, persistence/data-integrity rules, coding constraints, testing expectations, and AI-agent workflow.
+
+For conflicts, the repository source-of-truth order is:
+
+1. Explicit approved ADR / latest approved product decision.
+2. `PRD.md` for product behavior and scope.
+3. `AGENTS.md` for implementation constraints and safeguards.
+4. `docs/ARCHITECTURE_AND_DOMAIN_RULES.md`.
+5. Current milestone/task prompt.
+6. Existing implementation conventions.
+
+A task may narrow scope, but it must not silently weaken product acceptance criteria or data-integrity guarantees. Product-visible semantic changes must update this PRD; durable implementation constraints affected by those changes must be reflected in `AGENTS.md` in the same change.
+
 ---
 
 ## 1. Product Overview
@@ -320,6 +337,13 @@ Termination:
 
 سیستم نباید برای recurrence نامحدود، بی‌نهایت occurrence در دیتابیس ایجاد کند.
 
+برای جلوگیری از ابهام، recurrence دو بُعد مستقل دارد و هر دو باید در domain مشخص باشند:
+
+- **Pattern/Frequency:** مانند Daily، Weekly، Monthly، Yearly یا الگوی دستی/ترکیبی.
+- **Termination/Materialization:** بدون پایان با generation horizon، تا تاریخ مشخص، تعداد مشخص، یا package/manual semantics.
+
+ویرایش recurrence باید با versioning/history rules در `AGENTS.md` سازگار باشد و گذشته را silently بازنویسی نکند.
+
 ---
 
 # 9. Schedule Editing
@@ -570,7 +594,7 @@ Restore باید:
 
 1. فایل را validate کند.
 2. compatibility را بررسی کند.
-3. قبل از restore یک safety snapshot ایجاد کند.
+3. قبل از جایگزینی داده‌ی live، یک safety snapshot معتبر از وضعیت فعلی ایجاد کند.
 4. داده را atomically جایگزین کند.
 5. derived state را rebuild کند.
 6. reminderها را مجدداً synchronize کند.
@@ -644,6 +668,8 @@ In-memory repositoryها می‌توانند برای testing استفاده ش�
 هر feature تنها زمانی «Implemented» محسوب شود که حداقل این زنجیره کامل باشد:
 
 **Domain → Repository/Persistence → Application Use Case → UI → Error Handling → Tests**
+
+برای featureهایی که state پایدار دارند، این زنجیره همچنین باید **restart persistence، migration impact، backup/restore impact** و در صورت نیاز **platform integration** را پوشش دهد. وجود schema، domain object یا UI به‌تنهایی فقط foundation/partial implementation محسوب می‌شود.
 
 ---
 
@@ -876,7 +902,20 @@ Release نباید در صورت شکست این موارد ساخته شود.
 
 ---
 
-# 33. Product North Star
+# 33. PRD ↔ Implementation Contract
+
+برای جلوگیری از divergence بین محصول و پیاده‌سازی:
+
+1. `PRD.md` مرجع رفتار محصول، acceptance criteria، scope، priorities و non-goals است.
+2. `AGENTS.md` مرجع محدودیت‌های معماری، data integrity، persistence، testing و روش کار coding agent است.
+3. تغییر semantic در رفتار کاربر باید در PRD ثبت شود؛ تغییر durable در معماری/قواعد پیاده‌سازی باید در AGENTS ثبت شود.
+4. هیچ task promptی نباید بدون تصمیم صریح، acceptance criteria یا guaranteeهای integrity را تضعیف کند.
+5. اگر requirementی فقط بخشی از زنجیره‌ی implementation را دارد، وضعیت آن باید `Partial` باشد نه `Implemented`.
+6. در تعارض حل‌نشده، حفظ data/history و انتخاب کم‌برگشت‌ناپذیرترین مسیر اولویت دارد تا تصمیم صریح ثبت شود.
+
+---
+
+# 34. Product North Star
 
 PlanAct باید بتواند برای هر تعهد مهم کاربر یک timeline قابل توضیح ارائه کند:
 
