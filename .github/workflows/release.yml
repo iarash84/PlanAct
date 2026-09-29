@@ -96,9 +96,22 @@ jobs:
 
           keystore_path="$RUNNER_TEMP/planact-release.jks"
           umask 077
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          # Decode the secret and validate it before Gradle starts. A malformed
+          # base64 value or a wrong keystore password otherwise surfaces much
+          # later as the opaque KeytoolException "final block not properly padded".
+          if ! printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"; then
+            echo "ANDROID_KEYSTORE_BASE64 is not valid base64. Re-encode the original .jks file without encrypting or wrapping it." >&2
+            exit 1
+          fi
           if [[ ! -s "$keystore_path" ]]; then
-            echo "The decoded Android keystore is empty or invalid." >&2
+            echo "The decoded Android keystore is empty." >&2
+            exit 1
+          fi
+          if ! keytool -list -keystore "$keystore_path" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -alias "$ANDROID_KEY_ALIAS" \
+              >/dev/null 2>&1; then
+            echo "The decoded keystore cannot be opened with ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS. Verify that the GitHub secrets match the original .jks file; do not rotate the release key accidentally." >&2
             exit 1
           fi
           echo "ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
