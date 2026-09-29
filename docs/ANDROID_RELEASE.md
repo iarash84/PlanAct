@@ -30,7 +30,7 @@ Read the certificate fingerprint with `keytool -list -v -keystore path/to/planac
 
 Update `pubspec.yaml` to the intended `X.Y.Z+N` version, commit that change, then push a matching `vX.Y.Z` tag. The workflow checks the tag against `pubspec.yaml`, uses the tag as `versionName`, and uses the monotonically increasing GitHub Actions run number as `versionCode`. Re-running a workflow run retains its number; a new run receives a higher number.
 
-Flutter is pinned to 3.47.5. CI runs dependency resolution with the checked-in lockfile, analyze, tests, Universal and ABI-split builds, APK validation, and SHA-256 checksum generation. R8 and resource shrinking remain disabled; Flutter Dart obfuscation is enabled. Universal and split builds write to separate symbol directories. Their symbol files are encrypted with the CI-only passphrase and retained as a 90-day Actions artifact, not attached to the public Release.
+Flutter is pinned to 3.47.5 in both CI and release workflows. CI runs dependency resolution with the checked-in lockfile, analyze, tests, Universal and ABI-split builds, APK validation, and SHA-256 checksum generation. Android R8 minification and resource shrinking are enabled for release builds; Flutter Dart obfuscation is also enabled. Universal and split builds write to separate symbol directories. Their symbol files are encrypted with the CI-only passphrase and retained as a 90-day Actions artifact, not attached to the public Release. Re-running a failed release replaces that tag's encrypted symbols artifact.
 
 Release assets:
 

@@ -114,6 +114,23 @@ jobs:
             echo "The decoded keystore cannot be opened with ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS. Verify that the GitHub secrets match the original .jks file; do not rotate the release key accidentally." >&2
             exit 1
           fi
+          validation_keystore="$RUNNER_TEMP/planact-release-validation.jks"
+          if ! keytool -importkeystore -noprompt \
+              -srckeystore "$keystore_path" \
+              -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -srcalias "$ANDROID_KEY_ALIAS" \
+              -srckeypass "$ANDROID_KEY_PASSWORD" \
+              -destkeystore "$validation_keystore" \
+              -deststoretype JKS \
+              -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -destalias "$ANDROID_KEY_ALIAS" \
+              -destkeypass "$ANDROID_KEY_PASSWORD" \
+              >/dev/null 2>&1; then
+            rm -f "$validation_keystore"
+            echo "The keystore and alias are valid, but the private key cannot be unlocked with ANDROID_KEY_PASSWORD. Verify that this GitHub secret matches the original release key; do not rotate the release key accidentally." >&2
+            exit 1
+          fi
+          rm -f "$validation_keystore"
           echo "ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
 
       - name: Build Universal APK
@@ -222,6 +239,7 @@ jobs:
           path: ${{ runner.temp }}/PlanAct-${{ github.ref_name }}-symbols.tar.gz.gpg
           if-no-files-found: error
           retention-days: 90
+          overwrite: true
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
