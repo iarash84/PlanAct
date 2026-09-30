@@ -286,6 +286,15 @@ class _HomeShellState extends State<HomeShell> {
                       _applyStatus(commitment, CommitmentStatus.archived);
                     },
                   ),
+                if (commitment.status == CommitmentStatus.archived)
+                  ListTile(
+                    leading: const Icon(Icons.unarchive_outlined),
+                    title: const Text('بازگردانی از بایگانی'),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _restoreCommitment(commitment);
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text('جزئیات و ویرایش'),
@@ -337,6 +346,24 @@ class _HomeShellState extends State<HomeShell> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('ذخیرهٔ وضعیت انجام نشد؛ دوباره تلاش کنید.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _restoreCommitment(Commitment commitment) async {
+    try {
+      await RestoreCommitment(_repository)(commitment.id);
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعهد از بایگانی بازگردانی شد.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('بازگردانی تعهد انجام نشد؛ دوباره تلاش کنید.'),
         ),
       );
     }
@@ -466,20 +493,11 @@ class _HomeShellState extends State<HomeShell> {
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
-        onInboxTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) =>
-                InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
-          ),
-        ),
-        onSettingsTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => SettingsPage(
-              settings: widget.settings,
-              themeMode: widget.themeMode,
-              onThemeModeChanged: widget.onThemeModeChanged,
-            ),
-          ),
+        inbox: InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
+        settings: SettingsPage(
+          settings: widget.settings,
+          themeMode: widget.themeMode,
+          onThemeModeChanged: widget.onThemeModeChanged,
         ),
       ),
     ];
@@ -854,34 +872,69 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
   CommitmentPriority.urgent => 'فوری',
 };
 
-class _MorePage extends StatelessWidget {
-  const _MorePage({required this.onInboxTap, required this.onSettingsTap});
+class _MorePage extends StatefulWidget {
+  const _MorePage({required this.inbox, required this.settings});
 
-  final VoidCallback onInboxTap;
-  final VoidCallback onSettingsTap;
+  final Widget inbox;
+  final Widget settings;
 
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(16),
-    children: [
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.inbox_outlined),
-          title: const Text('صندوق ورودی'),
-          subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onInboxTap,
+  State<_MorePage> createState() => _MorePageState();
+}
+
+class _MorePageState extends State<_MorePage> {
+  Widget? _child;
+  String? _title;
+
+  void _open(String title, Widget child) {
+    setState(() {
+      _title = title;
+      _child = child;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = _child;
+    if (child != null) {
+      return Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.arrow_back),
+            title: Text(_title!),
+            onTap: () => setState(() {
+              _child = null;
+              _title = null;
+            }),
+          ),
+          const Divider(height: 1),
+          Expanded(child: child),
+        ],
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.inbox_outlined),
+            title: const Text('صندوق ورودی'),
+            subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => _open('صندوق ورودی', widget.inbox),
+          ),
         ),
-      ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.settings_outlined),
-          title: const Text('تنظیمات'),
-          subtitle: const Text('تنظیمات عمومی برنامه'),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onSettingsTap,
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('تنظیمات'),
+            subtitle: const Text('تنظیمات عمومی برنامه'),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => _open('تنظیمات', widget.settings),
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

@@ -152,6 +152,83 @@ class FinanceUseCases {
     await repository.saveAccount(account.archive());
   }
 
+  Future<void> restore(FinancialAccount account) async {
+    await repository.saveAccount(account.restore());
+  }
+
+  Future<void> updateAccount({
+    required FinancialAccount account,
+    required String name,
+    FinancialAccountType? type,
+  }) async {
+    await repository.saveAccount(account.update(name: name, type: type));
+  }
+
+  /// Corrects an immutable ledger entry by recording an opposite-signed
+  /// reversal followed by the corrected entry. The original remains auditable.
+  Future<AccountEntry> correctEntry({
+    required AccountEntry original,
+    required FinancialAccount account,
+    required AccountEntryType type,
+    required Money amount,
+    required DateTime occurredAt,
+    String? note,
+    String? category,
+  }) async {
+    _assertActive(account);
+    _assertCurrency(account, amount);
+    final reversal = AccountEntry(
+      id: StableId.generate(timestamp: occurredAt),
+      accountId: account.id,
+      type: original.signedAmount.minorUnits > 0
+          ? AccountEntryType.expense
+          : AccountEntryType.income,
+      amount: original.amount,
+      occurredAt: occurredAt.toUtc(),
+      referenceId: original.id.value,
+      note: 'اصلاح تراکنش ${original.id.value}',
+      source: AccountEntrySource.manual,
+    );
+    final corrected = AccountEntry(
+      id: StableId.generate(
+        timestamp: occurredAt.add(const Duration(microseconds: 1)),
+      ),
+      accountId: account.id,
+      type: type,
+      amount: amount,
+      occurredAt: occurredAt.toUtc(),
+      referenceId: original.id.value,
+      note: note,
+      category: category,
+      source: AccountEntrySource.manual,
+    );
+    await repository.saveEntry(reversal);
+    await repository.saveEntry(corrected);
+    return corrected;
+  }
+
+  Future<AccountEntry> voidEntry({
+    required AccountEntry original,
+    required FinancialAccount account,
+    DateTime? occurredAt,
+  }) async {
+    _assertActive(account);
+    final reversal = AccountEntry(
+      id: StableId.generate(timestamp: occurredAt),
+      accountId: account.id,
+      type: original.signedAmount.minorUnits > 0
+          ? AccountEntryType.expense
+          : AccountEntryType.income,
+      amount: original.amount,
+      occurredAt: (occurredAt ?? DateTime.now()).toUtc(),
+      referenceId: original.id.value,
+      note: 'حذف امن تراکنش ${original.id.value}',
+      source: AccountEntrySource.manual,
+    );
+    await repository.saveEntry(reversal);
+    return reversal;
+  }
+
   Future<Money> balance(FinancialAccount account) async =>
       rebuildBalance(account, await repository.listEntries());
 

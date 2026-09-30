@@ -25,6 +25,11 @@ class AttentionItem {
     required this.title,
     required this.explanation,
     required this.urgency,
+    this.amountMinorUnits,
+    this.currency,
+    this.occurredAt,
+    this.accountName,
+    this.description,
   });
 
   final String id;
@@ -32,6 +37,11 @@ class AttentionItem {
   final String title;
   final String explanation;
   final int urgency;
+  final int? amountMinorUnits;
+  final String? currency;
+  final DateTime? occurredAt;
+  final String? accountName;
+  final String? description;
 }
 
 class FinancialSnapshot {
@@ -210,14 +220,22 @@ class AttentionEngine {
     final unmatched = entries.where(
       (entry) => !matchedTransactionIds.contains(entry.id),
     );
+    final accountNames = {
+      for (final account in accounts) account.id: account.name,
+    };
     for (final entry in unmatched) {
       attention.add(
         AttentionItem(
           id: 'transaction:${entry.id.value}',
           reason: AttentionReason.unmatchedTransaction,
-          title: 'تراکنش بدون تطبیق',
-          explanation: 'یک تراکنش بانکی نیاز به بررسی و تطبیق دارد.',
+          title: 'تراکنش نیازمند بررسی',
+          explanation: 'این تراکنش هنوز به تعهد یا پرداختی مرتبط نشده است.',
           urgency: 65,
+          amountMinorUnits: entry.amount.minorUnits,
+          currency: entry.amount.currency,
+          occurredAt: entry.occurredAt,
+          accountName: accountNames[entry.accountId],
+          description: entry.note ?? entry.category,
         ),
       );
     }

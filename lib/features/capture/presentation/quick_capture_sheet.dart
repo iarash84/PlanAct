@@ -51,6 +51,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _occurrenceCountController = TextEditingController();
   bool _showOptions = false;
   bool _submitted = false;
+  String? _formError;
   DateTime _date = DateTime.now();
   TimeOfDay? _time;
   CommitmentKind _kind = CommitmentKind.oneOff;
@@ -93,9 +94,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   void _save() {
     if (_submitted || !(_formKey.currentState?.validate() ?? false)) return;
     if (_time == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('زمان تعهد را انتخاب کنید.')),
-      );
+      setState(() => _formError = 'زمان تعهد را انتخاب کنید.');
       return;
     }
     _submitted = true;
@@ -152,6 +151,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                 style: Theme.of(context).textTheme.headlineSmall
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
+              if (_formError != null) ...[
+                const SizedBox(height: PlanActSpacing.sm),
+                Text(
+                  _formError!,
+                  key: const ValueKey('commitment-form-error'),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
               const SizedBox(height: PlanActSpacing.lg),
               TextFormField(
                 key: const ValueKey('commitment-title-field'),

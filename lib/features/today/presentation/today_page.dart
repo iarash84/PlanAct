@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -198,13 +199,31 @@ class _AttentionItemCard extends StatelessWidget {
   final AttentionItem item;
 
   @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: const Icon(Icons.priority_high),
-      title: Text(item.title),
-      subtitle: Text(item.explanation),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final details = <String>[
+      if (item.amountMinorUnits != null)
+        '${MoneyInputFormatter.format(item.amountMinorUnits!)} ${item.currency ?? ''}',
+      if (item.occurredAt != null) _date(item.occurredAt!),
+      if (item.accountName != null) 'حساب: ${item.accountName}',
+      if (item.description != null) item.description!,
+      item.explanation,
+    ];
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.priority_high),
+        title: Text(item.title),
+        subtitle: Text(details.join(' · ')),
+        trailing: item.reason == AttentionReason.unmatchedTransaction
+            ? const Chip(label: Text('بررسی'))
+            : null,
+      ),
+    );
+  }
+
+  String _date(DateTime value) {
+    final local = value.toLocal();
+    return '${local.year}/${local.month}/${local.day} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
 }
 
 class _AttentionState extends StatelessWidget {

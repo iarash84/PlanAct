@@ -8,6 +8,8 @@ enum FinancialAccountStatus { active, archived }
 
 enum AccountEntrySource { manual, sms, import }
 
+enum TransferMethod { cardToCard, sheba, pol, satna, paya }
+
 enum AccountEntryType {
   openingBalance,
   income,
@@ -44,6 +46,23 @@ class FinancialAccount {
     type: type,
     status: FinancialAccountStatus.archived,
   );
+
+  FinancialAccount restore() => FinancialAccount(
+    id: id,
+    name: name,
+    currency: currency,
+    type: type,
+    status: FinancialAccountStatus.active,
+  );
+
+  FinancialAccount update({required String name, FinancialAccountType? type}) =>
+      FinancialAccount(
+        id: id,
+        name: name,
+        currency: currency,
+        type: type ?? this.type,
+        status: status,
+      );
 }
 
 class AccountEntry {

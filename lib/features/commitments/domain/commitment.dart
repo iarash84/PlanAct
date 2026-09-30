@@ -93,6 +93,15 @@ class Commitment {
     return _copyWith(status: CommitmentStatus.archived);
   }
 
+  Commitment restore() {
+    if (status != CommitmentStatus.archived) {
+      throw const ValidationError(
+        'Only an archived commitment can be restored',
+      );
+    }
+    return _copyWith(status: CommitmentStatus.active);
+  }
+
   Commitment updateMetadata({
     required String title,
     String? description,
