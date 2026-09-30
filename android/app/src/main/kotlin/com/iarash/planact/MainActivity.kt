@@ -1,4 +1,4 @@
-package com.example.planact
+package com.iarash.planact
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

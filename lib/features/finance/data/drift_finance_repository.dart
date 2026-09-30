@@ -72,9 +72,11 @@ class DriftFinanceRepository implements FinanceRepository {
   Future<void> saveTransfer({
     required AccountEntry outgoing,
     required AccountEntry incoming,
+    AccountEntry? fee,
   }) => database.transaction(() async {
     await saveEntry(outgoing);
     await saveEntry(incoming);
+    if (fee != null) await saveEntry(fee);
   });
 
   @override

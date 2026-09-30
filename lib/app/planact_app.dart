@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -22,6 +23,7 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/settings/presentation/about_page.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
@@ -48,6 +50,10 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
+  bool _appLockEnabled = false;
+  late final AppLockController _appLockController = AppLockController(
+    authenticator: LocalAppAuthenticator(),
+  );
 
   @override
   void initState() {
@@ -58,7 +64,21 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
+      _settings!.readAppLockEnabled().then((enabled) {
+        if (mounted) setState(() => _appLockEnabled = enabled);
+      });
     }
+  }
+
+  Future<void> _setAppLock(bool enabled) async {
+    if (enabled) {
+      final enabledAfterAuth = await _appLockController.enable();
+      if (!enabledAfterAuth) return;
+    } else {
+      _appLockController.disable();
+    }
+    await _settings?.writeAppLockEnabled(enabled);
+    if (mounted) setState(() => _appLockEnabled = enabled);
   }
 
   @override
@@ -73,15 +93,22 @@ class _PlanActAppState extends State<PlanActApp> {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: HomeShell(
-        repository: widget.repository,
-        planRepository: widget.planRepository,
-        settings: _settings,
-        themeMode: _themeMode,
-        onThemeModeChanged: (mode) async {
-          setState(() => _themeMode = mode);
-          await _settings?.writeThemeMode(mode);
-        },
+      home: AppLockGate(
+        enabled: _appLockEnabled,
+        controller: _appLockController,
+        child: HomeShell(
+          repository: widget.repository,
+          planRepository: widget.planRepository,
+          settings: _settings,
+          themeMode: _themeMode,
+          appLockEnabled: _appLockEnabled,
+          appLockController: _appLockController,
+          onAppLockChanged: _setAppLock,
+          onThemeModeChanged: (mode) async {
+            setState(() => _themeMode = mode);
+            await _settings?.writeThemeMode(mode);
+          },
+        ),
       ),
     );
   }
@@ -94,15 +121,22 @@ class HomeShell extends StatefulWidget {
     this.planRepository,
     this.settings,
     this.themeMode = ThemeMode.system,
+    this.appLockEnabled = false,
+    this.appLockController,
+    this.onAppLockChanged = _ignoreAppLockChange,
     this.onThemeModeChanged = _ignoreThemeChange,
   });
 
   static void _ignoreThemeChange(ThemeMode _) {}
+  static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
   final ThemeMode themeMode;
+  final bool appLockEnabled;
+  final AppLockController? appLockController;
+  final Future<void> Function(bool enabled) onAppLockChanged;
   final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
@@ -685,7 +719,12 @@ class _HomeShellState extends State<HomeShell> {
         settings: SettingsPage(
           settings: widget.settings,
           themeMode: widget.themeMode,
+          appLockEnabled: widget.appLockEnabled,
+          appLockController: widget.appLockController,
+          onAppLockChanged: widget.onAppLockChanged,
           onThemeModeChanged: widget.onThemeModeChanged,
+          onAbout: () => Navigator.of(context)
+              .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
         ),
       ),
     ];

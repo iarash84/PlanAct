@@ -1,4 +1,4 @@
-package com.example.planact
+package com.iarash.planact
 
 import android.content.BroadcastReceiver
 import android.content.Context

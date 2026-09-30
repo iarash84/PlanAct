@@ -43,7 +43,7 @@ After downloading the APKs and checksum file into the same folder, verify them w
 
 ## Existing installations
 
-Previous Release builds selected Gradle's machine-specific debug signing config. Debug certificates are not a stable production identity, and changing to the permanent release key means those APKs cannot be updated in place. Before replacing an older installation, export a PlanAct backup and verify that it can be restored; then uninstall the old package and install the new signed APK. The application ID remains `com.example.planact` to preserve the identity of already-installed builds where signature compatibility permits.
+Previous Release builds selected Gradle's machine-specific debug signing config. Debug certificates are not a stable production identity, and changing to the permanent release key means those APKs cannot be updated in place. The application ID is now `com.iarash.planact`, which is a new Android application identity and cannot upgrade an installation using the previous `com.example.planact` ID. Before switching, export a PlanAct backup and verify that it can be restored; then uninstall the old package and install the new signed APK.
 
 ## Device installation diagnostics
 

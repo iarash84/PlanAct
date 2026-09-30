@@ -174,7 +174,7 @@ jobs:
           ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           set -euo pipefail
-          expected_package="com.example.planact"
+          expected_package="com.iarash.planact"
           certificate_digest=""
 
           while IFS=' ' read -r variant abi; do

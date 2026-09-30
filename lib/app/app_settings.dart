@@ -5,6 +5,7 @@ class AppSettings {
   AppSettings(this.database);
   final AppDatabase database;
   static const _themeKey = 'theme_mode';
+  static const _appLockKey = 'app_lock_enabled';
 
   Future<ThemeMode> readThemeMode() async {
     final value = await database.readMetadata(_themeKey);
@@ -21,4 +22,10 @@ class AppSettings {
         ThemeMode.dark => 'dark',
         ThemeMode.system => 'system',
       });
+
+  Future<bool> readAppLockEnabled() async =>
+      (await database.readMetadata(_appLockKey)) == 'true';
+
+  Future<void> writeAppLockEnabled(bool enabled) =>
+      database.writeMetadata(_appLockKey, enabled.toString());
 }
