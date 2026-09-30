@@ -22,11 +22,15 @@ import 'package:planact/features/finance/data/drift_financial_expectation_reposi
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
+import 'package:planact/features/scheduling/application/occurrence_actions.dart';
+import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
+import 'package:planact/features/commitments/application/commitment_draft.dart';
+import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({super.key, this.repository, this.planRepository});
@@ -111,9 +115,15 @@ class _HomeShellState extends State<HomeShell> {
       (_repository is DriftCommitmentRepository
           ? DriftCommitmentPlanRepository(_repository.database)
           : InMemoryCommitmentPlanRepository());
+  late final EntitlementPlanRepository? _entitlementRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftEntitlementPlanRepository(_repository.database)
+      : null;
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
+    entitlements: _entitlementRepository,
+    financialExpectations: _expectationUseCases,
   );
   int _selectedIndex = 0;
   late final FinanceRepository _financeRepository =
@@ -128,6 +138,8 @@ class _HomeShellState extends State<HomeShell> {
       _repository is DriftCommitmentRepository
       ? DriftFinancialExpectationRepository(_repository.database)
       : InMemoryFinancialExpectationRepository();
+  late final FinancialExpectationUseCases _expectationUseCases =
+      FinancialExpectationUseCases(_expectationRepository);
 
   late final InboxUseCases _inboxUseCases = InboxUseCases(
     _repository is DriftCommitmentRepository
@@ -204,7 +216,13 @@ class _HomeShellState extends State<HomeShell> {
         frequency: draft.frequency,
         weekdays: draft.weekdays,
         occurrenceCount: draft.occurrenceCount,
+        endDate: draft.endDate,
         reminderOffsets: draft.reminderOffsets,
+        entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
+            ? draft.entitlementUnits
+            : null,
+        financialDirection: draft.financialMeaning.expectationDirection,
+        financialAmount: draft.financialAmount,
       );
       await _refresh();
     } catch (_) {
@@ -307,6 +325,21 @@ class _HomeShellState extends State<HomeShell> {
                           repository: _repository,
                           planRepository: _planRepository,
                           expectationRepository: _expectationRepository,
+                          occurrenceExecutor: PersistedOccurrenceActionExecutor(
+                            plans: _planRepository,
+                            replacements:
+                                _repository is DriftCommitmentRepository
+                                ? DriftReplacementRepository(
+                                    _repository.database,
+                                  )
+                                : null,
+                            policyRepository:
+                                _repository is DriftCommitmentRepository
+                                ? DriftSessionPolicyRepository(
+                                    _repository.database,
+                                  )
+                                : null,
+                          ),
                           onSaved: _refresh,
                         ),
                       ),
@@ -615,12 +648,14 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.repository,
     required this.planRepository,
     required this.expectationRepository,
+    required this.occurrenceExecutor,
     required this.onSaved,
   });
   final Commitment commitment;
   final CommitmentRepository repository;
   final CommitmentPlanRepository planRepository;
   final FinancialExpectationRepository expectationRepository;
+  final OccurrenceActionExecutor occurrenceExecutor;
   final Future<void> Function() onSaved;
   @override
   State<CommitmentDetailsPage> createState() => _CommitmentDetailsPageState();
@@ -756,12 +791,18 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             builder: (context, snapshot) {
               final occurrences = snapshot.data?.occurrences ?? const [];
               if (occurrences.isEmpty) return const SizedBox.shrink();
-              final useCases = FinancialExpectationUseCases(
-                widget.expectationRepository,
-              );
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text('نوبت‌ها'),
+                  const SizedBox(height: 8),
+                  for (final occurrence in occurrences)
+                    OccurrenceActionRow(
+                      occurrence: occurrence,
+                      executor: widget.occurrenceExecutor,
+                      onChanged: widget.onSaved,
+                    ),
+                  const SizedBox(height: 16),
                   const Text('انتظار مالی نوبت‌ها'),
                   const SizedBox(height: 8),
                   const Text(
@@ -771,7 +812,9 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                   for (final occurrence in occurrences)
                     _FinancialExpectationOccurrenceRow(
                       occurrence: occurrence,
-                      useCases: useCases,
+                      useCases: FinancialExpectationUseCases(
+                        widget.expectationRepository,
+                      ),
                     ),
                 ],
               );

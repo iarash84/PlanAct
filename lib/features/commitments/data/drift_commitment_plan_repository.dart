@@ -83,6 +83,39 @@ class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
   }
 
   @override
+  Future<void> saveOccurrence(Occurrence occurrence) async {
+    final schedule =
+        await (database.select(database.scheduleDefinitions)..where(
+              (table) => table.id.equals(occurrence.scheduleDefinitionId.value),
+            ))
+            .getSingleOrNull();
+    if (schedule == null) throw StateError('Schedule was not found.');
+    await database
+        .into(database.occurrences)
+        .insertOnConflictUpdate(
+          db.OccurrencesCompanion.insert(
+            id: occurrence.id.value,
+            cycleId: occurrence.cycleId.value,
+            scheduleDefinitionId: occurrence.scheduleDefinitionId.value,
+            occurrenceKey: occurrence.occurrenceKey,
+            timeSemantics: schedule.timeSemantics,
+            originalScheduledValue: occurrence.originalScheduledAt is LocalDate
+                ? 'date:${_date(occurrence.originalScheduledAt as LocalDate)}'
+                : _value(
+                    occurrence.originalScheduledAt,
+                    TimeSemantics.values[schedule.timeSemantics],
+                  ),
+            currentScheduledValue: _value(
+              occurrence.currentScheduledAt,
+              TimeSemantics.values[schedule.timeSemantics],
+            ),
+            status: occurrence.status.index,
+            isManualOverride: occurrence.isManualOverride,
+          ),
+        );
+  }
+
+  @override
   Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) async {
     final cycle =
         await (database.select(database.commitmentCycles)

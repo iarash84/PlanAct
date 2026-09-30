@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -69,8 +70,10 @@ class _FinancePageState extends State<FinancePage> {
 
   Future<void> _editAccount(FinancialAccount account) async {
     try {
-      final result = await showDialog<String>(
+      final result = await showModalBottomSheet<String>(
         context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
         builder: (_) => _AccountEditDialog(initialName: account.name),
       );
       if (!mounted ||
@@ -90,11 +93,19 @@ class _FinancePageState extends State<FinancePage> {
     final name = TextEditingController();
     final opening = TextEditingController();
     try {
-      final result = await showDialog<String>(
+      final result = await showModalBottomSheet<String>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('افزودن حساب'),
-          content: Column(
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (context) => PlanActFormSheet(
+          title: 'افزودن حساب',
+          primaryLabel: 'افزودن',
+          onPrimary: () {
+            if (name.text.trim().isNotEmpty) {
+              Navigator.pop(context, name.text.trim());
+            }
+          },
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
@@ -113,16 +124,6 @@ class _FinancePageState extends State<FinancePage> {
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('انصراف'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, name.text.trim()),
-              child: const Text('افزودن'),
-            ),
-          ],
         ),
       );
       final value = int.tryParse(opening.text.replaceAll(',', '').trim());
@@ -171,12 +172,25 @@ class _FinancePageState extends State<FinancePage> {
     var occurredAt = DateTime.now();
     String? formError;
     try {
-      final result = await showDialog<bool>(
+      final result = await showModalBottomSheet<bool>(
         context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
         builder: (context) => StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: Text(income ? 'ثبت درآمد / واریز' : 'ثبت هزینه'),
-            content: Column(
+          builder: (context, setDialogState) => PlanActFormSheet(
+            title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
+            primaryLabel: 'ثبت',
+            onPrimary: () {
+              final value = int.tryParse(
+                MoneyInputFormatter.normalize(amount.text),
+              );
+              if (value != null && value > 0) {
+                Navigator.pop(context, true);
+              } else {
+                setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
+              }
+            },
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<FinancialAccount>(
@@ -277,25 +291,6 @@ class _FinancePageState extends State<FinancePage> {
                   ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('انصراف'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final value = int.tryParse(
-                    MoneyInputFormatter.normalize(amount.text),
-                  );
-                  if (value == null || value <= 0) {
-                    setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
-                    return;
-                  }
-                  Navigator.pop(context, true);
-                },
-                child: const Text('ثبت'),
-              ),
-            ],
           ),
         ),
       );
@@ -623,23 +618,14 @@ class _AccountEditDialogState extends State<_AccountEditDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('ویرایش حساب'),
-    content: TextField(
+  Widget build(BuildContext context) => PlanActFormSheet(
+    title: 'ویرایش حساب',
+    onPrimary: () => Navigator.of(context).pop(_name.text.trim()),
+    child: TextField(
       controller: _name,
       autofocus: true,
       decoration: const InputDecoration(labelText: 'نام حساب'),
     ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('انصراف'),
-      ),
-      FilledButton(
-        onPressed: () => Navigator.of(context).pop(_name.text.trim()),
-        child: const Text('ذخیره'),
-      ),
-    ],
   );
 }
 
