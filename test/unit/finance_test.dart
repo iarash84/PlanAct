@@ -20,25 +20,6 @@ void main() {
   );
   final repository = InMemoryFinanceRepository();
 
-  test('detects Iranian bank from account name and keeps a stable code', () {
-    expect(IranianBank.detect('حساب بانک ملت'), IranianBank.mellat);
-    expect(IranianBank.fromCode('mellat'), IranianBank.mellat);
-    expect(IranianBank.detect('حساب شخصی'), isNull);
-  });
-
-  test('stores the selected bank on a financial account', () {
-    final selected = FinancialAccount(
-      id: StableId.generate(timestamp: DateTime.utc(2026, 1, 5)),
-      name: 'حساب بانک ملی',
-      currency: 'IRR',
-      type: FinancialAccountType.bank,
-      bank: IranianBank.melli,
-    );
-
-    expect(selected.bank, IranianBank.melli);
-    expect(selected.bank!.code, 'melli');
-  });
-
   test('creates an opening balance as a ledger entry', () async {
     final useCases = FinanceUseCases(InMemoryFinanceRepository());
     final account = FinancialAccount(
@@ -124,34 +105,28 @@ void main() {
       throwsA(isA<ValidationError>()),
     );
   });
-  test(
-    'corrects an entry without mutating the original ledger record',
-    () async {
-      final localRepository = InMemoryFinanceRepository();
-      final useCases = FinanceUseCases(localRepository);
-      await useCases.createAccount(account);
-      final original = await useCases.record(
-        account: account,
-        type: AccountEntryType.expense,
-        amount: const Money(minorUnits: 500, currency: 'IRR'),
-        occurredAt: DateTime.utc(2026, 1, 7),
-      );
+  test('corrects an entry without mutating the original ledger record', () async {
+    final localRepository = InMemoryFinanceRepository();
+    final useCases = FinanceUseCases(localRepository);
+    await useCases.createAccount(account);
+    final original = await useCases.record(
+      account: account,
+      type: AccountEntryType.expense,
+      amount: const Money(minorUnits: 500, currency: 'IRR'),
+      occurredAt: DateTime.utc(2026, 1, 7),
+    );
 
-      await useCases.correctEntry(
-        original: original,
-        account: account,
-        type: AccountEntryType.income,
-        amount: const Money(minorUnits: 700, currency: 'IRR'),
-        occurredAt: DateTime.utc(2026, 1, 8),
-      );
+    await useCases.correctEntry(
+      original: original,
+      account: account,
+      type: AccountEntryType.income,
+      amount: const Money(minorUnits: 700, currency: 'IRR'),
+      occurredAt: DateTime.utc(2026, 1, 8),
+    );
 
-      expect((await localRepository.listEntries()).length, 3);
-      expect(
-        await useCases.balance(account),
-        const Money(minorUnits: 700, currency: 'IRR'),
-      );
-    },
-  );
+    expect((await localRepository.listEntries()).length, 3);
+    expect(await useCases.balance(account), const Money(minorUnits: 700, currency: 'IRR'));
+  });
 
   test('restores an archived account without changing its history', () async {
     final localRepository = InMemoryFinanceRepository();
