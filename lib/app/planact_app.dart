@@ -133,6 +133,8 @@ class _HomeShellState extends State<HomeShell> {
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
   TodayDashboard? _todayDashboard;
+  TodayActionCenter? _todayActionCenter;
+  String? _todayError;
   final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
@@ -154,42 +156,62 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _refresh() async {
-    final items = await _repository.list();
-    final schedules = <String, List<DateTime>>{};
-    final plans = <StableId, List<Occurrence>>{};
-    for (final item in items) {
-      final plan = await _planRepository.findByCommitmentId(item.id);
-      if (plan == null) continue;
-      plans[item.id] = plan.occurrences;
-      schedules[item.id.value] = [
-        for (final occurrence in plan.occurrences)
-          if (occurrence.currentScheduledAt is DateTime)
-            occurrence.currentScheduledAt as DateTime,
-      ];
-    }
-    final expectations = await _expectationRepository.listExpectations();
-    final matches = await _expectationRepository.listMatches();
-    final accounts = await _financeRepository.listAccounts();
-    final entries = await _financeRepository.listEntries();
-    final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
-    final dashboard = _attentionEngine.build(
-      now: DateTime.now(),
-      commitments: items,
-      plans: plans,
-      expectations: expectations,
-      matches: matches,
-      inboxSuggestions: inboxSuggestions,
-      entries: entries,
-      accounts: accounts,
-    );
-    if (mounted) {
-      setState(() {
-        _commitments = items;
-        _scheduledDates
-          ..clear()
-          ..addAll(schedules);
-        _todayDashboard = dashboard;
-      });
+    try {
+      final items = await _repository.list();
+      final schedules = <String, List<DateTime>>{};
+      final plans = <StableId, List<Occurrence>>{};
+      for (final item in items) {
+        final plan = await _planRepository.findByCommitmentId(item.id);
+        if (plan == null) continue;
+        plans[item.id] = plan.occurrences;
+        schedules[item.id.value] = [
+          for (final occurrence in plan.occurrences)
+            if (occurrence.currentScheduledAt is DateTime)
+              occurrence.currentScheduledAt as DateTime,
+        ];
+      }
+      final expectations = await _expectationRepository.listExpectations();
+      final matches = await _expectationRepository.listMatches();
+      final accounts = await _financeRepository.listAccounts();
+      final entries = await _financeRepository.listEntries();
+      final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+      final dashboard = _attentionEngine.build(
+        now: DateTime.now(),
+        commitments: items,
+        plans: plans,
+        expectations: expectations,
+        matches: matches,
+        inboxSuggestions: inboxSuggestions,
+        entries: entries,
+        accounts: accounts,
+      );
+      final actionCenter = _attentionEngine.buildActionCenter(
+        now: DateTime.now(),
+        commitments: items,
+        plans: plans,
+        expectations: expectations,
+        matches: matches,
+        inboxSuggestions: inboxSuggestions,
+        entries: entries,
+        accounts: accounts,
+      );
+      if (mounted) {
+        setState(() {
+          _commitments = items;
+          _scheduledDates
+            ..clear()
+            ..addAll(schedules);
+          _todayDashboard = dashboard;
+          _todayActionCenter = actionCenter;
+          _todayError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _todayError = 'بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.',
+        );
+      }
     }
   }
 
@@ -499,7 +521,6 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   @override
-  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -512,9 +533,21 @@ class _HomeShellState extends State<HomeShell> {
         commitments: _commitments,
         scheduledDates: _scheduledDates,
         dashboard: _todayDashboard,
+        actionCenter: _todayActionCenter,
+        error: _todayError,
+        onRetry: _refresh,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
+        onReview: (item) {
+          final page = item.type == TodayActionItemType.financialReview ? 2 : 3;
+          setState(() => _selectedIndex = page);
+          _pageController.animateToPage(
+            page,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
+        },
       ),
       CalendarPage(
         commitments: _commitments,
@@ -925,33 +958,32 @@ class _MorePage extends StatefulWidget {
   State<_MorePage> createState() => _MorePageState();
 }
 
-class _MorePageState extends State<_MorePage> {
-  Widget? _child;
-  String? _title;
+enum _MoreChild { inbox, settings }
 
-  void _open(String title, Widget child) {
-    setState(() {
-      _title = title;
-      _child = child;
-    });
+class _MorePageState extends State<_MorePage> {
+  _MoreChild? _child;
+
+  void _open(_MoreChild child) {
+    setState(() => _child = child);
   }
 
   @override
   Widget build(BuildContext context) {
     final child = _child;
     if (child != null) {
+      final (title, page) = switch (child) {
+        _MoreChild.inbox => ('صندوق ورودی', widget.inbox),
+        _MoreChild.settings => ('تنظیمات', widget.settings),
+      };
       return Column(
         children: [
           ListTile(
             leading: const Icon(Icons.arrow_back),
-            title: Text(_title!),
-            onTap: () => setState(() {
-              _child = null;
-              _title = null;
-            }),
+            title: Text(title),
+            onTap: () => setState(() => _child = null),
           ),
           const Divider(height: 1),
-          Expanded(child: child),
+          Expanded(child: page),
         ],
       );
     }
@@ -965,7 +997,7 @@ class _MorePageState extends State<_MorePage> {
             title: const Text('صندوق ورودی'),
             subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
             trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open('صندوق ورودی', widget.inbox),
+            onTap: () => _open(_MoreChild.inbox),
           ),
         ),
         Card(
@@ -974,7 +1006,7 @@ class _MorePageState extends State<_MorePage> {
             title: const Text('تنظیمات'),
             subtitle: const Text('تنظیمات عمومی برنامه'),
             trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open('تنظیمات', widget.settings),
+            onTap: () => _open(_MoreChild.settings),
           ),
         ),
       ],
