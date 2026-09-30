@@ -129,6 +129,8 @@ class _HomeShellState extends State<HomeShell> {
     financialExpectations: _expectationUseCases,
   );
   int _selectedIndex = 0;
+  final GlobalKey<FinancePageState> _financePageKey =
+      GlobalKey<FinancePageState>();
   late final FinanceRepository _financeRepository =
       _repository is DriftCommitmentRepository
       ? DriftFinanceRepository(_repository.database)
@@ -305,6 +307,11 @@ class _HomeShellState extends State<HomeShell> {
     if (!mounted || result == null) return;
     if (result.moreOptions) {
       _goToFinance();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _financePageKey.currentState?.openTransactionForm(income: income);
+        }
+      });
       return;
     }
     try {
@@ -665,6 +672,7 @@ class _HomeShellState extends State<HomeShell> {
         onCommitmentTap: _showCommitmentDetails,
       ),
       FinancePage(
+        key: _financePageKey,
         repository: _financeRepository,
         expectationRepository: _expectationRepository,
       ),

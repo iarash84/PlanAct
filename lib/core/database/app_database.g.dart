@@ -9371,6 +9371,773 @@ class FinancialExpectationsCompanion
   }
 }
 
+class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normalizedLabelMeta = const VerificationMeta(
+    'normalizedLabel',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedLabel = GeneratedColumn<String>(
+    'normalized_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, label, normalizedLabel, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Tag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('normalized_label')) {
+      context.handle(
+        _normalizedLabelMeta,
+        normalizedLabel.isAcceptableOrUnknown(
+          data['normalized_label']!,
+          _normalizedLabelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedLabelMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Tag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Tag(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      normalizedLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_label'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TagsTable createAlias(String alias) {
+    return $TagsTable(attachedDatabase, alias);
+  }
+}
+
+class Tag extends DataClass implements Insertable<Tag> {
+  final String id;
+  final String label;
+  final String normalizedLabel;
+  final DateTime createdAt;
+  const Tag({
+    required this.id,
+    required this.label,
+    required this.normalizedLabel,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['label'] = Variable<String>(label);
+    map['normalized_label'] = Variable<String>(normalizedLabel);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TagsCompanion toCompanion(bool nullToAbsent) {
+    return TagsCompanion(
+      id: Value(id),
+      label: Value(label),
+      normalizedLabel: Value(normalizedLabel),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Tag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Tag(
+      id: serializer.fromJson<String>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      normalizedLabel: serializer.fromJson<String>(json['normalizedLabel']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'label': serializer.toJson<String>(label),
+      'normalizedLabel': serializer.toJson<String>(normalizedLabel),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Tag copyWith({
+    String? id,
+    String? label,
+    String? normalizedLabel,
+    DateTime? createdAt,
+  }) => Tag(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    normalizedLabel: normalizedLabel ?? this.normalizedLabel,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Tag copyWithCompanion(TagsCompanion data) {
+    return Tag(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      normalizedLabel: data.normalizedLabel.present
+          ? data.normalizedLabel.value
+          : this.normalizedLabel,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Tag(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('normalizedLabel: $normalizedLabel, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, label, normalizedLabel, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Tag &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.normalizedLabel == this.normalizedLabel &&
+          other.createdAt == this.createdAt);
+}
+
+class TagsCompanion extends UpdateCompanion<Tag> {
+  final Value<String> id;
+  final Value<String> label;
+  final Value<String> normalizedLabel;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TagsCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.normalizedLabel = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TagsCompanion.insert({
+    required String id,
+    required String label,
+    required String normalizedLabel,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       label = Value(label),
+       normalizedLabel = Value(normalizedLabel),
+       createdAt = Value(createdAt);
+  static Insertable<Tag> custom({
+    Expression<String>? id,
+    Expression<String>? label,
+    Expression<String>? normalizedLabel,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (normalizedLabel != null) 'normalized_label': normalizedLabel,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TagsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? label,
+    Value<String>? normalizedLabel,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TagsCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      normalizedLabel: normalizedLabel ?? this.normalizedLabel,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (normalizedLabel.present) {
+      map['normalized_label'] = Variable<String>(normalizedLabel.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TagsCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('normalizedLabel: $normalizedLabel, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CommitmentTagsTable extends CommitmentTags
+    with TableInfo<$CommitmentTagsTable, CommitmentTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CommitmentTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _commitmentIdMeta = const VerificationMeta(
+    'commitmentId',
+  );
+  @override
+  late final GeneratedColumn<String> commitmentId = GeneratedColumn<String>(
+    'commitment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES commitments (id)',
+    ),
+  );
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+    'tag_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tags (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [commitmentId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'commitment_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CommitmentTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('commitment_id')) {
+      context.handle(
+        _commitmentIdMeta,
+        commitmentId.isAcceptableOrUnknown(
+          data['commitment_id']!,
+          _commitmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_commitmentIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+        _tagIdMeta,
+        tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {commitmentId, tagId};
+  @override
+  CommitmentTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CommitmentTag(
+      commitmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}commitment_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  @override
+  $CommitmentTagsTable createAlias(String alias) {
+    return $CommitmentTagsTable(attachedDatabase, alias);
+  }
+}
+
+class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
+  final String commitmentId;
+  final String tagId;
+  const CommitmentTag({required this.commitmentId, required this.tagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['commitment_id'] = Variable<String>(commitmentId);
+    map['tag_id'] = Variable<String>(tagId);
+    return map;
+  }
+
+  CommitmentTagsCompanion toCompanion(bool nullToAbsent) {
+    return CommitmentTagsCompanion(
+      commitmentId: Value(commitmentId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory CommitmentTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CommitmentTag(
+      commitmentId: serializer.fromJson<String>(json['commitmentId']),
+      tagId: serializer.fromJson<String>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'commitmentId': serializer.toJson<String>(commitmentId),
+      'tagId': serializer.toJson<String>(tagId),
+    };
+  }
+
+  CommitmentTag copyWith({String? commitmentId, String? tagId}) =>
+      CommitmentTag(
+        commitmentId: commitmentId ?? this.commitmentId,
+        tagId: tagId ?? this.tagId,
+      );
+  CommitmentTag copyWithCompanion(CommitmentTagsCompanion data) {
+    return CommitmentTag(
+      commitmentId: data.commitmentId.present
+          ? data.commitmentId.value
+          : this.commitmentId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CommitmentTag(')
+          ..write('commitmentId: $commitmentId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(commitmentId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CommitmentTag &&
+          other.commitmentId == this.commitmentId &&
+          other.tagId == this.tagId);
+}
+
+class CommitmentTagsCompanion extends UpdateCompanion<CommitmentTag> {
+  final Value<String> commitmentId;
+  final Value<String> tagId;
+  final Value<int> rowid;
+  const CommitmentTagsCompanion({
+    this.commitmentId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CommitmentTagsCompanion.insert({
+    required String commitmentId,
+    required String tagId,
+    this.rowid = const Value.absent(),
+  }) : commitmentId = Value(commitmentId),
+       tagId = Value(tagId);
+  static Insertable<CommitmentTag> custom({
+    Expression<String>? commitmentId,
+    Expression<String>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (commitmentId != null) 'commitment_id': commitmentId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CommitmentTagsCompanion copyWith({
+    Value<String>? commitmentId,
+    Value<String>? tagId,
+    Value<int>? rowid,
+  }) {
+    return CommitmentTagsCompanion(
+      commitmentId: commitmentId ?? this.commitmentId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (commitmentId.present) {
+      map['commitment_id'] = Variable<String>(commitmentId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<String>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CommitmentTagsCompanion(')
+          ..write('commitmentId: $commitmentId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AccountEntryTagsTable extends AccountEntryTags
+    with TableInfo<$AccountEntryTagsTable, AccountEntryTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountEntryTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountEntryIdMeta = const VerificationMeta(
+    'accountEntryId',
+  );
+  @override
+  late final GeneratedColumn<String> accountEntryId = GeneratedColumn<String>(
+    'account_entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_entries (id)',
+    ),
+  );
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+    'tag_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tags (id)',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [accountEntryId, tagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'account_entry_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountEntryTag> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_entry_id')) {
+      context.handle(
+        _accountEntryIdMeta,
+        accountEntryId.isAcceptableOrUnknown(
+          data['account_entry_id']!,
+          _accountEntryIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accountEntryIdMeta);
+    }
+    if (data.containsKey('tag_id')) {
+      context.handle(
+        _tagIdMeta,
+        tagId.isAcceptableOrUnknown(data['tag_id']!, _tagIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountEntryId, tagId};
+  @override
+  AccountEntryTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountEntryTag(
+      accountEntryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_entry_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  @override
+  $AccountEntryTagsTable createAlias(String alias) {
+    return $AccountEntryTagsTable(attachedDatabase, alias);
+  }
+}
+
+class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
+  final String accountEntryId;
+  final String tagId;
+  const AccountEntryTag({required this.accountEntryId, required this.tagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_entry_id'] = Variable<String>(accountEntryId);
+    map['tag_id'] = Variable<String>(tagId);
+    return map;
+  }
+
+  AccountEntryTagsCompanion toCompanion(bool nullToAbsent) {
+    return AccountEntryTagsCompanion(
+      accountEntryId: Value(accountEntryId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory AccountEntryTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountEntryTag(
+      accountEntryId: serializer.fromJson<String>(json['accountEntryId']),
+      tagId: serializer.fromJson<String>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountEntryId': serializer.toJson<String>(accountEntryId),
+      'tagId': serializer.toJson<String>(tagId),
+    };
+  }
+
+  AccountEntryTag copyWith({String? accountEntryId, String? tagId}) =>
+      AccountEntryTag(
+        accountEntryId: accountEntryId ?? this.accountEntryId,
+        tagId: tagId ?? this.tagId,
+      );
+  AccountEntryTag copyWithCompanion(AccountEntryTagsCompanion data) {
+    return AccountEntryTag(
+      accountEntryId: data.accountEntryId.present
+          ? data.accountEntryId.value
+          : this.accountEntryId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountEntryTag(')
+          ..write('accountEntryId: $accountEntryId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(accountEntryId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountEntryTag &&
+          other.accountEntryId == this.accountEntryId &&
+          other.tagId == this.tagId);
+}
+
+class AccountEntryTagsCompanion extends UpdateCompanion<AccountEntryTag> {
+  final Value<String> accountEntryId;
+  final Value<String> tagId;
+  final Value<int> rowid;
+  const AccountEntryTagsCompanion({
+    this.accountEntryId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountEntryTagsCompanion.insert({
+    required String accountEntryId,
+    required String tagId,
+    this.rowid = const Value.absent(),
+  }) : accountEntryId = Value(accountEntryId),
+       tagId = Value(tagId);
+  static Insertable<AccountEntryTag> custom({
+    Expression<String>? accountEntryId,
+    Expression<String>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountEntryId != null) 'account_entry_id': accountEntryId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountEntryTagsCompanion copyWith({
+    Value<String>? accountEntryId,
+    Value<String>? tagId,
+    Value<int>? rowid,
+  }) {
+    return AccountEntryTagsCompanion(
+      accountEntryId: accountEntryId ?? this.accountEntryId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountEntryId.present) {
+      map['account_entry_id'] = Variable<String>(accountEntryId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<String>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountEntryTagsCompanion(')
+          ..write('accountEntryId: $accountEntryId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StagedImportsTable extends StagedImports
     with TableInfo<$StagedImportsTable, StagedImport> {
   @override
@@ -10710,6 +11477,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $FinancialExpectationsTable financialExpectations =
       $FinancialExpectationsTable(this);
+  late final $TagsTable tags = $TagsTable(this);
+  late final $CommitmentTagsTable commitmentTags = $CommitmentTagsTable(this);
+  late final $AccountEntryTagsTable accountEntryTags = $AccountEntryTagsTable(
+    this,
+  );
   late final $StagedImportsTable stagedImports = $StagedImportsTable(this);
   late final $InboxSuggestionsTable inboxSuggestions = $InboxSuggestionsTable(
     this,
@@ -10737,6 +11509,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     transactionMatches,
     matchAllocations,
     financialExpectations,
+    tags,
+    commitmentTags,
+    accountEntryTags,
     stagedImports,
     inboxSuggestions,
   ];
@@ -10945,6 +11720,24 @@ final class $$CommitmentsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CommitmentTagsTable, List<CommitmentTag>>
+  _commitmentTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.commitmentTags,
+    aliasName: 'commitments__id__commitment_tags__commitment_id',
+  );
+
+  $$CommitmentTagsTableProcessedTableManager get commitmentTagsRefs {
+    final manager = $$CommitmentTagsTableTableManager(
+      $_db,
+      $_db.commitmentTags,
+    ).filter((f) => f.commitmentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_commitmentTagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CommitmentsTableFilterComposer
@@ -11017,6 +11810,31 @@ class $$CommitmentsTableFilterComposer
           }) => $$CommitmentCyclesTableFilterComposer(
             $db: $db,
             $table: $db.commitmentCycles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> commitmentTagsRefs(
+    Expression<bool> Function($$CommitmentTagsTableFilterComposer f) f,
+  ) {
+    final $$CommitmentTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.commitmentTags,
+      getReferencedColumn: (t) => t.commitmentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.commitmentTags,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11146,6 +11964,31 @@ class $$CommitmentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> commitmentTagsRefs<T extends Object>(
+    Expression<T> Function($$CommitmentTagsTableAnnotationComposer a) f,
+  ) {
+    final $$CommitmentTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.commitmentTags,
+      getReferencedColumn: (t) => t.commitmentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitmentTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CommitmentsTableTableManager
@@ -11161,7 +12004,10 @@ class $$CommitmentsTableTableManager
           $$CommitmentsTableUpdateCompanionBuilder,
           (Commitment, $$CommitmentsTableReferences),
           Commitment,
-          PrefetchHooks Function({bool commitmentCyclesRefs})
+          PrefetchHooks Function({
+            bool commitmentCyclesRefs,
+            bool commitmentTagsRefs,
+          })
         > {
   $$CommitmentsTableTableManager(_$AppDatabase db, $CommitmentsTable table)
     : super(
@@ -11230,40 +12076,63 @@ class $$CommitmentsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({commitmentCyclesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (commitmentCyclesRefs) db.commitmentCycles,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (commitmentCyclesRefs)
-                    await $_getPrefetchedData<
-                      Commitment,
-                      $CommitmentsTable,
-                      CommitmentCycle
-                    >(
-                      currentTable: table,
-                      referencedTable: $$CommitmentsTableReferences
-                          ._commitmentCyclesRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$CommitmentsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).commitmentCyclesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.commitmentId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({commitmentCyclesRefs = false, commitmentTagsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (commitmentCyclesRefs) db.commitmentCycles,
+                    if (commitmentTagsRefs) db.commitmentTags,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (commitmentCyclesRefs)
+                        await $_getPrefetchedData<
+                          Commitment,
+                          $CommitmentsTable,
+                          CommitmentCycle
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentsTableReferences
+                              ._commitmentCyclesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).commitmentCyclesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.commitmentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (commitmentTagsRefs)
+                        await $_getPrefetchedData<
+                          Commitment,
+                          $CommitmentsTable,
+                          CommitmentTag
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CommitmentsTableReferences
+                              ._commitmentTagsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CommitmentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).commitmentTagsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.commitmentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -11280,7 +12149,10 @@ typedef $$CommitmentsTableProcessedTableManager =
       $$CommitmentsTableUpdateCompanionBuilder,
       (Commitment, $$CommitmentsTableReferences),
       Commitment,
-      PrefetchHooks Function({bool commitmentCyclesRefs})
+      PrefetchHooks Function({
+        bool commitmentCyclesRefs,
+        bool commitmentTagsRefs,
+      })
     >;
 typedef $$CommitmentCyclesTableCreateCompanionBuilder =
     CommitmentCyclesCompanion Function({
@@ -17453,6 +18325,26 @@ final class $$AccountEntriesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$AccountEntryTagsTable, List<AccountEntryTag>>
+  _accountEntryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.accountEntryTags,
+    aliasName: 'account_entries__id__account_entry_tags__account_entry_id',
+  );
+
+  $$AccountEntryTagsTableProcessedTableManager get accountEntryTagsRefs {
+    final manager = $$AccountEntryTagsTableTableManager(
+      $_db,
+      $_db.accountEntryTags,
+    ).filter((f) => f.accountEntryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _accountEntryTagsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$AccountEntriesTableFilterComposer
@@ -17553,6 +18445,31 @@ class $$AccountEntriesTableFilterComposer
           }) => $$TransactionMatchesTableFilterComposer(
             $db: $db,
             $table: $db.transactionMatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> accountEntryTagsRefs(
+    Expression<bool> Function($$AccountEntryTagsTableFilterComposer f) f,
+  ) {
+    final $$AccountEntryTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntryTags,
+      getReferencedColumn: (t) => t.accountEntryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntryTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntryTags,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -17742,6 +18659,31 @@ class $$AccountEntriesTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> accountEntryTagsRefs<T extends Object>(
+    Expression<T> Function($$AccountEntryTagsTableAnnotationComposer a) f,
+  ) {
+    final $$AccountEntryTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntryTags,
+      getReferencedColumn: (t) => t.accountEntryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntryTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntryTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AccountEntriesTableTableManager
@@ -17757,7 +18699,11 @@ class $$AccountEntriesTableTableManager
           $$AccountEntriesTableUpdateCompanionBuilder,
           (AccountEntry, $$AccountEntriesTableReferences),
           AccountEntry,
-          PrefetchHooks Function({bool accountId, bool transactionMatchesRefs})
+          PrefetchHooks Function({
+            bool accountId,
+            bool transactionMatchesRefs,
+            bool accountEntryTagsRefs,
+          })
         > {
   $$AccountEntriesTableTableManager(
     _$AppDatabase db,
@@ -17837,11 +18783,16 @@ class $$AccountEntriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({accountId = false, transactionMatchesRefs = false}) {
+              ({
+                accountId = false,
+                transactionMatchesRefs = false,
+                accountEntryTagsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionMatchesRefs) db.transactionMatches,
+                    if (accountEntryTagsRefs) db.accountEntryTags,
                   ],
                   addJoins:
                       <
@@ -17896,6 +18847,27 @@ class $$AccountEntriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (accountEntryTagsRefs)
+                        await $_getPrefetchedData<
+                          AccountEntry,
+                          $AccountEntriesTable,
+                          AccountEntryTag
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountEntriesTableReferences
+                              ._accountEntryTagsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountEntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).accountEntryTagsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountEntryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -17916,7 +18888,11 @@ typedef $$AccountEntriesTableProcessedTableManager =
       $$AccountEntriesTableUpdateCompanionBuilder,
       (AccountEntry, $$AccountEntriesTableReferences),
       AccountEntry,
-      PrefetchHooks Function({bool accountId, bool transactionMatchesRefs})
+      PrefetchHooks Function({
+        bool accountId,
+        bool transactionMatchesRefs,
+        bool accountEntryTagsRefs,
+      })
     >;
 typedef $$TransactionMatchesTableCreateCompanionBuilder =
     TransactionMatchesCompanion Function({
@@ -19325,6 +20301,1086 @@ typedef $$FinancialExpectationsTableProcessedTableManager =
       FinancialExpectation,
       PrefetchHooks Function({bool occurrenceId, bool accountId})
     >;
+typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
+  required String id,
+  required String label,
+  required String normalizedLabel,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$TagsTableUpdateCompanionBuilder = TagsCompanion Function({
+  Value<String> id,
+  Value<String> label,
+  Value<String> normalizedLabel,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $$TagsTableReferences
+    extends BaseReferences<_$AppDatabase, $TagsTable, Tag> {
+  $$TagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$CommitmentTagsTable, List<CommitmentTag>>
+  _commitmentTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.commitmentTags,
+    aliasName: 'tags__id__commitment_tags__tag_id',
+  );
+
+  $$CommitmentTagsTableProcessedTableManager get commitmentTagsRefs {
+    final manager = $$CommitmentTagsTableTableManager(
+      $_db,
+      $_db.commitmentTags,
+    ).filter((f) => f.tagId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_commitmentTagsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$AccountEntryTagsTable, List<AccountEntryTag>>
+  _accountEntryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.accountEntryTags,
+    aliasName: 'tags__id__account_entry_tags__tag_id',
+  );
+
+  $$AccountEntryTagsTableProcessedTableManager get accountEntryTagsRefs {
+    final manager = $$AccountEntryTagsTableTableManager(
+      $_db,
+      $_db.accountEntryTags,
+    ).filter((f) => f.tagId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _accountEntryTagsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedLabel => $composableBuilder(
+    column: $table.normalizedLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> commitmentTagsRefs(
+    Expression<bool> Function($$CommitmentTagsTableFilterComposer f) f,
+  ) {
+    final $$CommitmentTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.commitmentTags,
+      getReferencedColumn: (t) => t.tagId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.commitmentTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> accountEntryTagsRefs(
+    Expression<bool> Function($$AccountEntryTagsTableFilterComposer f) f,
+  ) {
+    final $$AccountEntryTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntryTags,
+      getReferencedColumn: (t) => t.tagId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntryTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntryTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedLabel => $composableBuilder(
+    column: $table.normalizedLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TagsTable> {
+  $$TagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get normalizedLabel => $composableBuilder(
+    column: $table.normalizedLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> commitmentTagsRefs<T extends Object>(
+    Expression<T> Function($$CommitmentTagsTableAnnotationComposer a) f,
+  ) {
+    final $$CommitmentTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.commitmentTags,
+      getReferencedColumn: (t) => t.tagId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitmentTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> accountEntryTagsRefs<T extends Object>(
+    Expression<T> Function($$AccountEntryTagsTableAnnotationComposer a) f,
+  ) {
+    final $$AccountEntryTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.accountEntryTags,
+      getReferencedColumn: (t) => t.tagId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntryTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntryTags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TagsTable,
+          Tag,
+          $$TagsTableFilterComposer,
+          $$TagsTableOrderingComposer,
+          $$TagsTableAnnotationComposer,
+          $$TagsTableCreateCompanionBuilder,
+          $$TagsTableUpdateCompanionBuilder,
+          (Tag, $$TagsTableReferences),
+          Tag,
+          PrefetchHooks Function({
+            bool commitmentTagsRefs,
+            bool accountEntryTagsRefs,
+          })
+        > {
+  $$TagsTableTableManager(_$AppDatabase db, $TagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String> normalizedLabel = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TagsCompanion(
+                id: id,
+                label: label,
+                normalizedLabel: normalizedLabel,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String label,
+                required String normalizedLabel,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TagsCompanion.insert(
+                id: id,
+                label: label,
+                normalizedLabel: normalizedLabel,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$TagsTable, Tag>(table),
+                  $$TagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({commitmentTagsRefs = false, accountEntryTagsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (commitmentTagsRefs) db.commitmentTags,
+                    if (accountEntryTagsRefs) db.accountEntryTags,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (commitmentTagsRefs)
+                        await $_getPrefetchedData<
+                          Tag,
+                          $TagsTable,
+                          CommitmentTag
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TagsTableReferences
+                              ._commitmentTagsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$TagsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).commitmentTagsRefs,
+                          referencedItemsForCurrentItem: (
+                            item,
+                            referencedItems,
+                          ) => referencedItems.where((e) => e.tagId == item.id),
+                          typedResults: items,
+                        ),
+                      if (accountEntryTagsRefs)
+                        await $_getPrefetchedData<
+                          Tag,
+                          $TagsTable,
+                          AccountEntryTag
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TagsTableReferences
+                              ._accountEntryTagsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$TagsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).accountEntryTagsRefs,
+                          referencedItemsForCurrentItem: (
+                            item,
+                            referencedItems,
+                          ) => referencedItems.where((e) => e.tagId == item.id),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$TagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TagsTable,
+      Tag,
+      $$TagsTableFilterComposer,
+      $$TagsTableOrderingComposer,
+      $$TagsTableAnnotationComposer,
+      $$TagsTableCreateCompanionBuilder,
+      $$TagsTableUpdateCompanionBuilder,
+      (Tag, $$TagsTableReferences),
+      Tag,
+      PrefetchHooks Function({
+        bool commitmentTagsRefs,
+        bool accountEntryTagsRefs,
+      })
+    >;
+typedef $$CommitmentTagsTableCreateCompanionBuilder =
+    CommitmentTagsCompanion Function({
+      required String commitmentId,
+      required String tagId,
+      Value<int> rowid,
+    });
+typedef $$CommitmentTagsTableUpdateCompanionBuilder =
+    CommitmentTagsCompanion Function({
+      Value<String> commitmentId,
+      Value<String> tagId,
+      Value<int> rowid,
+    });
+
+final class $$CommitmentTagsTableReferences
+    extends BaseReferences<_$AppDatabase, $CommitmentTagsTable, CommitmentTag> {
+  $$CommitmentTagsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $CommitmentsTable _commitmentIdTable(_$AppDatabase db) => db
+      .commitments
+      .createAlias('commitment_tags__commitment_id__commitments__id');
+
+  $$CommitmentsTableProcessedTableManager get commitmentId {
+    final $_column = $_itemColumn<String>('commitment_id')!;
+
+    final manager = $$CommitmentsTableTableManager(
+      $_db,
+      $_db.commitments,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_commitmentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TagsTable _tagIdTable(_$AppDatabase db) =>
+      db.tags.createAlias('commitment_tags__tag_id__tags__id');
+
+  $$TagsTableProcessedTableManager get tagId {
+    final $_column = $_itemColumn<String>('tag_id')!;
+
+    final manager = $$TagsTableTableManager(
+      $_db,
+      $_db.tags,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tagIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CommitmentTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $CommitmentTagsTable> {
+  $$CommitmentTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CommitmentsTableFilterComposer get commitmentId {
+    final $$CommitmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentId,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableFilterComposer get tagId {
+    final $$TagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableFilterComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CommitmentTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CommitmentTagsTable> {
+  $$CommitmentTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CommitmentsTableOrderingComposer get commitmentId {
+    final $$CommitmentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentId,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableOrderingComposer get tagId {
+    final $$TagsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableOrderingComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CommitmentTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CommitmentTagsTable> {
+  $$CommitmentTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$CommitmentsTableAnnotationComposer get commitmentId {
+    final $$CommitmentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.commitmentId,
+      referencedTable: $db.commitments,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CommitmentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableAnnotationComposer get tagId {
+    final $$TagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CommitmentTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CommitmentTagsTable,
+          CommitmentTag,
+          $$CommitmentTagsTableFilterComposer,
+          $$CommitmentTagsTableOrderingComposer,
+          $$CommitmentTagsTableAnnotationComposer,
+          $$CommitmentTagsTableCreateCompanionBuilder,
+          $$CommitmentTagsTableUpdateCompanionBuilder,
+          (CommitmentTag, $$CommitmentTagsTableReferences),
+          CommitmentTag,
+          PrefetchHooks Function({bool commitmentId, bool tagId})
+        > {
+  $$CommitmentTagsTableTableManager(
+    _$AppDatabase db,
+    $CommitmentTagsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CommitmentTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CommitmentTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CommitmentTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> commitmentId = const Value.absent(),
+                Value<String> tagId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CommitmentTagsCompanion(
+                commitmentId: commitmentId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String commitmentId,
+                required String tagId,
+                Value<int> rowid = const Value.absent(),
+              }) => CommitmentTagsCompanion.insert(
+                commitmentId: commitmentId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CommitmentTagsTable, CommitmentTag>(table),
+                  $$CommitmentTagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({commitmentId = false, tagId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (commitmentId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.commitmentId,
+                        referencedTable: $$CommitmentTagsTableReferences
+                            ._commitmentIdTable(db),
+                        referencedColumn: $$CommitmentTagsTableReferences
+                            ._commitmentIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (tagId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.tagId,
+                        referencedTable: $$CommitmentTagsTableReferences
+                            ._tagIdTable(db),
+                        referencedColumn: $$CommitmentTagsTableReferences
+                            ._tagIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CommitmentTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CommitmentTagsTable,
+      CommitmentTag,
+      $$CommitmentTagsTableFilterComposer,
+      $$CommitmentTagsTableOrderingComposer,
+      $$CommitmentTagsTableAnnotationComposer,
+      $$CommitmentTagsTableCreateCompanionBuilder,
+      $$CommitmentTagsTableUpdateCompanionBuilder,
+      (CommitmentTag, $$CommitmentTagsTableReferences),
+      CommitmentTag,
+      PrefetchHooks Function({bool commitmentId, bool tagId})
+    >;
+typedef $$AccountEntryTagsTableCreateCompanionBuilder =
+    AccountEntryTagsCompanion Function({
+      required String accountEntryId,
+      required String tagId,
+      Value<int> rowid,
+    });
+typedef $$AccountEntryTagsTableUpdateCompanionBuilder =
+    AccountEntryTagsCompanion Function({
+      Value<String> accountEntryId,
+      Value<String> tagId,
+      Value<int> rowid,
+    });
+
+final class $$AccountEntryTagsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $AccountEntryTagsTable, AccountEntryTag> {
+  $$AccountEntryTagsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountEntriesTable _accountEntryIdTable(_$AppDatabase db) => db
+      .accountEntries
+      .createAlias('account_entry_tags__account_entry_id__account_entries__id');
+
+  $$AccountEntriesTableProcessedTableManager get accountEntryId {
+    final $_column = $_itemColumn<String>('account_entry_id')!;
+
+    final manager = $$AccountEntriesTableTableManager(
+      $_db,
+      $_db.accountEntries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountEntryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TagsTable _tagIdTable(_$AppDatabase db) =>
+      db.tags.createAlias('account_entry_tags__tag_id__tags__id');
+
+  $$TagsTableProcessedTableManager get tagId {
+    final $_column = $_itemColumn<String>('tag_id')!;
+
+    final manager = $$TagsTableTableManager(
+      $_db,
+      $_db.tags,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tagIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AccountEntryTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountEntryTagsTable> {
+  $$AccountEntryTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$AccountEntriesTableFilterComposer get accountEntryId {
+    final $$AccountEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountEntryId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableFilterComposer get tagId {
+    final $$TagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableFilterComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountEntryTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountEntryTagsTable> {
+  $$AccountEntryTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$AccountEntriesTableOrderingComposer get accountEntryId {
+    final $$AccountEntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountEntryId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableOrderingComposer get tagId {
+    final $$TagsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableOrderingComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountEntryTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountEntryTagsTable> {
+  $$AccountEntryTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  $$AccountEntriesTableAnnotationComposer get accountEntryId {
+    final $$AccountEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountEntryId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TagsTableAnnotationComposer get tagId {
+    final $$TagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tagId,
+      referencedTable: $db.tags,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tags,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountEntryTagsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountEntryTagsTable,
+          AccountEntryTag,
+          $$AccountEntryTagsTableFilterComposer,
+          $$AccountEntryTagsTableOrderingComposer,
+          $$AccountEntryTagsTableAnnotationComposer,
+          $$AccountEntryTagsTableCreateCompanionBuilder,
+          $$AccountEntryTagsTableUpdateCompanionBuilder,
+          (AccountEntryTag, $$AccountEntryTagsTableReferences),
+          AccountEntryTag,
+          PrefetchHooks Function({bool accountEntryId, bool tagId})
+        > {
+  $$AccountEntryTagsTableTableManager(
+    _$AppDatabase db,
+    $AccountEntryTagsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountEntryTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountEntryTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountEntryTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> accountEntryId = const Value.absent(),
+                Value<String> tagId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountEntryTagsCompanion(
+                accountEntryId: accountEntryId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountEntryId,
+                required String tagId,
+                Value<int> rowid = const Value.absent(),
+              }) => AccountEntryTagsCompanion.insert(
+                accountEntryId: accountEntryId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AccountEntryTagsTable, AccountEntryTag>(table),
+                  $$AccountEntryTagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountEntryId = false, tagId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountEntryId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.accountEntryId,
+                        referencedTable: $$AccountEntryTagsTableReferences
+                            ._accountEntryIdTable(db),
+                        referencedColumn: $$AccountEntryTagsTableReferences
+                            ._accountEntryIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (tagId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.tagId,
+                        referencedTable: $$AccountEntryTagsTableReferences
+                            ._tagIdTable(db),
+                        referencedColumn: $$AccountEntryTagsTableReferences
+                            ._tagIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AccountEntryTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountEntryTagsTable,
+      AccountEntryTag,
+      $$AccountEntryTagsTableFilterComposer,
+      $$AccountEntryTagsTableOrderingComposer,
+      $$AccountEntryTagsTableAnnotationComposer,
+      $$AccountEntryTagsTableCreateCompanionBuilder,
+      $$AccountEntryTagsTableUpdateCompanionBuilder,
+      (AccountEntryTag, $$AccountEntryTagsTableReferences),
+      AccountEntryTag,
+      PrefetchHooks Function({bool accountEntryId, bool tagId})
+    >;
 typedef $$StagedImportsTableCreateCompanionBuilder =
     StagedImportsCompanion Function({
       required String id,
@@ -20230,6 +22286,11 @@ class $AppDatabaseManager {
       $$MatchAllocationsTableTableManager(_db, _db.matchAllocations);
   $$FinancialExpectationsTableTableManager get financialExpectations =>
       $$FinancialExpectationsTableTableManager(_db, _db.financialExpectations);
+  $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
+  $$CommitmentTagsTableTableManager get commitmentTags =>
+      $$CommitmentTagsTableTableManager(_db, _db.commitmentTags);
+  $$AccountEntryTagsTableTableManager get accountEntryTags =>
+      $$AccountEntryTagsTableTableManager(_db, _db.accountEntryTags);
   $$StagedImportsTableTableManager get stagedImports =>
       $$StagedImportsTableTableManager(_db, _db.stagedImports);
   $$InboxSuggestionsTableTableManager get inboxSuggestions =>

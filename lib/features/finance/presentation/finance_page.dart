@@ -23,10 +23,13 @@ class FinancePage extends StatefulWidget {
   final FinancialExpectationRepository? expectationRepository;
 
   @override
-  State<FinancePage> createState() => _FinancePageState();
+  State<FinancePage> createState() => FinancePageState();
 }
 
-class _FinancePageState extends State<FinancePage> {
+class FinancePageState extends State<FinancePage> {
+  Future<void> openTransactionForm({required bool income}) =>
+      income ? _addIncome() : _addExpense();
+
   static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
   FinancialExpectationUseCases? get _expectations =>
@@ -445,11 +448,6 @@ class _FinancePageState extends State<FinancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('مالی')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addExpense,
-        icon: const Icon(Icons.remove_circle_outline),
-        label: const Text('ثبت هزینه'),
-      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
