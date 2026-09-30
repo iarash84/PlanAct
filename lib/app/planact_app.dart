@@ -32,6 +32,8 @@ import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
+import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
+import 'package:planact/core/money/money.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({super.key, this.repository, this.planRepository});
@@ -261,6 +263,113 @@ class _HomeShellState extends State<HomeShell> {
 
   void _hideSnackBar() {
     if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  }
+
+  void _showMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _showQuickAdd() async {
+    final action = await QuickAddSheet.show(context);
+    if (!mounted || action == null) return;
+    switch (action) {
+      case QuickAddAction.commitment:
+        await _showCapture();
+      case QuickAddAction.expense:
+      case QuickAddAction.income:
+        await _showQuickFinancialEntry(income: action == QuickAddAction.income);
+      case QuickAddAction.transfer:
+        await _showQuickTransfer();
+    }
+  }
+
+  Future<void> _showQuickFinancialEntry({required bool income}) async {
+    final accounts = await _financeRepository.listAccounts();
+    if (!mounted) return;
+    if (accounts.isEmpty) {
+      _showMessage('ابتدا یک حساب اضافه کنید.');
+      _goToFinance();
+      return;
+    }
+    final result = await showModalBottomSheet<QuickFinancialEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) =>
+          QuickFinancialEntrySheet(accounts: accounts, income: income),
+    );
+    if (!mounted || result == null) return;
+    if (result.moreOptions) {
+      _goToFinance();
+      return;
+    }
+    try {
+      await FinanceUseCases(_financeRepository).record(
+        account: result.account!,
+        type: result.income
+            ? AccountEntryType.income
+            : AccountEntryType.expense,
+        amount: Money(
+          minorUnits: result.amount,
+          currency: result.account!.currency,
+        ),
+        occurredAt: DateTime.now(),
+        note: result.note,
+        category: result.income ? 'دریافت' : 'عمومی',
+      );
+      await _refresh();
+      if (mounted) {
+        _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
+      }
+    } catch (_) {
+      if (mounted) _showMessage('ثبت انجام نشد؛ دوباره تلاش کنید.');
+    }
+  }
+
+  Future<void> _showQuickTransfer() async {
+    final accounts = await _financeRepository.listAccounts();
+    if (!mounted) return;
+    if (accounts.length < 2) {
+      _showMessage('برای انتقال، دست‌کم دو حساب فعال لازم است.');
+      _goToFinance();
+      return;
+    }
+    final result = await showModalBottomSheet<QuickTransfer>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => QuickTransferSheet(accounts: accounts),
+    );
+    if (!mounted || result == null) return;
+    try {
+      await FinanceUseCases(_financeRepository).transfer(
+        from: result.from,
+        to: result.to,
+        amount: Money(
+          minorUnits: result.amount,
+          currency: result.from.currency,
+        ),
+        occurredAt: DateTime.now(),
+      );
+      await _refresh();
+      if (mounted) _showMessage('انتقال ثبت شد.');
+    } catch (_) {
+      if (mounted) _showMessage('ثبت انتقال انجام نشد؛ دوباره تلاش کنید.');
+    }
+  }
+
+  void _goToFinance() {
+    setState(() => _selectedIndex = 2);
+    _pageController.animateToPage(
+      2,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
@@ -637,13 +746,11 @@ class _HomeShellState extends State<HomeShell> {
           children: pages,
         ),
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              tooltip: 'افزودن تعهد',
-              onPressed: _showCapture,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'افزودن سریع',
+        onPressed: _showQuickAdd,
+        child: const Icon(Icons.add),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
