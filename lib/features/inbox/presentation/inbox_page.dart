@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
+import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/logging/app_logger.dart';
+import 'package:planact/core/money/money.dart';
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/inbox/application/android_sms_source.dart';
+import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 
 class InboxPage extends StatefulWidget {
-  const InboxPage({super.key, required this.inbox, required this.finance});
+  const InboxPage({
+    super.key,
+    required this.inbox,
+    required this.finance,
+    this.smsSource,
+  });
 
   final InboxUseCases inbox;
   final FinanceRepository finance;
+  final AndroidSmsSource? smsSource;
 
   @override
   State<InboxPage> createState() => _InboxPageState();
@@ -17,9 +31,13 @@ class InboxPage extends StatefulWidget {
 
 class _InboxPageState extends State<InboxPage> {
   static const _logger = AppLogger();
-  List<InboxSuggestion> _items = const [];
+  static const _projection = InboxReviewProjection();
+  List<InboxReviewItem> _items = const [];
   List<FinancialAccount> _accounts = const [];
   bool _loading = true;
+  bool _working = false;
+  bool? _smsAccess;
+  String? _smsError;
   String? _error;
 
   @override
@@ -31,17 +49,20 @@ class _InboxPageState extends State<InboxPage> {
   Future<void> _reload() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final suggestions = await widget.inbox.repository.listSuggestions();
+      await _syncSms();
+      final suggestions = await widget.inbox.listPendingSuggestions();
+      final imports = await widget.inbox.repository.listImports();
       final accounts = await widget.finance.listAccounts();
+      final entries = await widget.finance.listEntries();
+      final items = _projection.build(
+        suggestions: suggestions,
+        imports: imports,
+        accounts: accounts,
+        entries: entries,
+      );
       if (!mounted) return;
       setState(() {
-        _items = suggestions
-            .where(
-              (item) =>
-                  item.status == SuggestionStatus.pending ||
-                  item.status == SuggestionStatus.edited,
-            )
-            .toList();
+        _items = items;
         _accounts = accounts;
         _error = null;
         _loading = false;
@@ -53,53 +74,222 @@ class _InboxPageState extends State<InboxPage> {
       );
       if (!mounted) return;
       setState(() {
-        _error = 'بارگذاری صندوق ورودی انجام نشد.';
+        _error = 'بارگذاری صف بررسی انجام نشد.';
         _loading = false;
       });
     }
   }
 
-  Future<void> _accept(InboxSuggestion suggestion) async {
-    final active = _accounts
+  Future<void> _syncSms() async {
+    final source = widget.smsSource;
+    if (source == null) return;
+    try {
+      final access = await source.hasAccess();
+      if (!access) {
+        if (mounted) {
+          setState(() {
+            _smsAccess = false;
+            _smsError = null;
+          });
+        }
+        return;
+      }
+      final messages = await source.readRelevantMessages();
+      for (final message in messages) {
+        try {
+          await widget.inbox.stageSms(
+            rawText: message.body,
+            sourceKey: message.sourceKey,
+            currency: 'IRR',
+            importedAt: message.receivedAt,
+          );
+        } on Exception {
+          // Duplicate and unsupported messages remain governed by the staging
+          // and parser rules; one malformed message must not block the queue.
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _smsAccess = true;
+          _smsError = null;
+        });
+      }
+    } catch (error) {
+      _logger.error(
+        'SMS sync failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
+      if (mounted) {
+        setState(() {
+          _smsError = 'خواندن پیامک‌ها انجام نشد.';
+        });
+      }
+    }
+  }
+
+  Future<void> _confirm(InboxReviewItem item) async {
+    final compatible = _accounts
         .where(
           (account) =>
               account.status == FinancialAccountStatus.active &&
-              account.currency == suggestion.draft.amount.currency,
+              account.currency == item.suggestion.draft.amount.currency,
         )
         .toList();
-    if (active.length != 1) {
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('انتخاب حساب لازم است'),
-          content: Text(
-            active.isEmpty
-                ? 'حساب فعال سازگار پیدا نشد.'
-                : 'چند حساب سازگار وجود دارد؛ انتساب خودکار انجام نشد.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('بستن'),
-            ),
-          ],
-        ),
+    final account =
+        item.account ?? (compatible.length == 1 ? compatible.single : null);
+    if (account == null) {
+      await _showMessage(
+        'انتخاب حساب لازم است',
+        compatible.isEmpty
+            ? 'حساب فعال سازگار با واحد پول پیدا نشد.'
+            : 'چند حساب سازگار وجود دارد؛ ابتدا از ویرایش حساب را انتخاب کنید.',
       );
       return;
     }
-    await widget.inbox.confirm(
-      suggestion: suggestion,
-      account: active.single,
-      finance: widget.finance,
-    );
-    await _reload();
+    await _runAction(() async {
+      await widget.inbox.confirm(
+        suggestion: item.suggestion,
+        account: account,
+        finance: widget.finance,
+      );
+    });
   }
 
-  Future<void> _reject(InboxSuggestion suggestion) async {
-    await widget.inbox.reject(suggestion);
-    await _reload();
+  Future<void> _reject(InboxReviewItem item) async {
+    await _runAction(() => widget.inbox.reject(item.suggestion));
   }
+
+  Future<void> _edit(InboxReviewItem item) async {
+    final draft = item.suggestion.draft;
+    final amountController = TextEditingController(
+      text: draft.amount.minorUnits.toString(),
+    );
+    final merchantController = TextEditingController(
+      text: draft.merchant ?? '',
+    );
+    final referenceController = TextEditingController(
+      text: draft.reference ?? '',
+    );
+    var selectedDirection = draft.direction;
+    final type = await showPlanActFormSheet<String>(
+      context: context,
+      title: 'ویرایش پیشنهاد تراکنش',
+      primaryLabel: 'ذخیره و بررسی',
+      builder: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('مقادیر تشخیص‌داده‌شده از قبل وارد شده‌اند.'),
+          const SizedBox(height: PlanActSpacing.md),
+          TextField(
+            controller: amountController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [MoneyInputFormatter()],
+            decoration: const InputDecoration(labelText: 'مبلغ'),
+          ),
+          const SizedBox(height: PlanActSpacing.sm),
+          TextField(
+            controller: merchantController,
+            decoration: const InputDecoration(labelText: 'پذیرنده یا شرح'),
+          ),
+          const SizedBox(height: PlanActSpacing.sm),
+          TextField(
+            controller: referenceController,
+            decoration: const InputDecoration(labelText: 'شناسه پیگیری'),
+          ),
+          const SizedBox(height: PlanActSpacing.sm),
+          DropdownButtonFormField<TransactionDirection>(
+            initialValue: draft.direction,
+            decoration: const InputDecoration(labelText: 'نوع تراکنش'),
+            items: const [
+              DropdownMenuItem(
+                value: TransactionDirection.outgoing,
+                child: Text('هزینه / برداشت'),
+              ),
+              DropdownMenuItem(
+                value: TransactionDirection.incoming,
+                child: Text('درآمد / واریز'),
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) selectedDirection = value;
+            },
+          ),
+        ],
+      ),
+      onPrimary: () => Navigator.of(context).pop('save'),
+    );
+    if (type != 'save' || !mounted) {
+      amountController.dispose();
+      merchantController.dispose();
+      referenceController.dispose();
+      return;
+    }
+    final amount = int.tryParse(
+      amountController.text.replaceAll(',', '').replaceAll('،', ''),
+    );
+    final merchant = merchantController.text.trim();
+    final reference = referenceController.text.trim();
+    amountController.dispose();
+    merchantController.dispose();
+    referenceController.dispose();
+    if (amount == null || amount <= 0) {
+      await _showMessage('مبلغ نامعتبر است', 'مبلغ باید بزرگ‌تر از صفر باشد.');
+      return;
+    }
+    final edited = TransactionDraft(
+      id: draft.id,
+      stagedImportId: draft.stagedImportId,
+      amount: Money(minorUnits: amount, currency: draft.amount.currency),
+      occurredAt: draft.occurredAt,
+      type: selectedDirection == TransactionDirection.incoming
+          ? 'income'
+          : 'expense',
+      merchant: merchant.isEmpty ? null : merchant,
+      reference: reference.isEmpty ? null : reference,
+      direction: selectedDirection,
+      bank: draft.bank,
+      accountHint: draft.accountHint,
+      balance: draft.balance,
+      quality: draft.quality,
+      confidence: draft.confidence,
+    );
+    await _runAction(() async {
+      await widget.inbox.edit(item.suggestion, edited);
+    });
+  }
+
+  Future<void> _runAction(Future<void> Function() action) async {
+    if (_working) return;
+    setState(() => _working = true);
+    try {
+      await action();
+      await _reload();
+    } catch (error) {
+      _logger.error(
+        'Inbox action failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
+      if (mounted) {
+        await _showMessage('عملیات انجام نشد', 'اطلاعات در صف بررسی حفظ شد.');
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _showMessage(String title, String message) => showDialog<void>(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('بستن'),
+        ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -111,10 +301,10 @@ class _InboxPageState extends State<InboxPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(
-              height: 280,
+              height: 320,
               child: _InboxStateCard(
-                icon: Icons.cloud_off_outlined,
-                title: 'صندوق ورودی در دسترس نیست',
+                icon: Icons.error_outline,
+                title: 'صف بررسی در دسترس نیست',
                 message: _error!,
                 actionLabel: 'تلاش دوباره',
                 onAction: _reload,
@@ -124,89 +314,177 @@ class _InboxPageState extends State<InboxPage> {
         ),
       );
     }
-    if (_items.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: _reload,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(
-              height: 320,
+    return RefreshIndicator(
+      onRefresh: _reload,
+      child: ListView(
+        padding: const EdgeInsets.all(PlanActSpacing.md),
+        children: [
+          _SmsStatusCard(
+            access: _smsAccess,
+            error: _smsError,
+            onRefresh: _reload,
+          ),
+          const SizedBox(height: PlanActSpacing.md),
+          if (_items.isEmpty)
+            const SizedBox(
+              height: 300,
               child: _InboxStateCard(
                 icon: Icons.inbox_outlined,
-                title: 'صندوق ورودی خالی است',
-                message: 'پیام‌های بانکی واردشده برای بررسی در اینجا نمایش داده می‌شوند.',
+                title: 'صف بررسی خالی است',
+                message: 'اطلاعات واردشده و پیشنهادهای مالی برای بررسی در اینجا نمایش داده می‌شوند.',
               ),
+            )
+          else ...[
+            Text(
+              'نیازمند بررسی · ${_items.length}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: PlanActSpacing.sm),
+            for (final item in _items) ...[
+              _ReviewCard(
+                item: item,
+                busy: _working,
+                onConfirm: () => _confirm(item),
+                onEdit: () => _edit(item),
+                onReject: () => _reject(item),
+              ),
+              const SizedBox(height: PlanActSpacing.sm),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SmsStatusCard extends StatelessWidget {
+  const _SmsStatusCard({
+    required this.access,
+    required this.error,
+    required this.onRefresh,
+  });
+  final bool? access;
+  final String? error;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      leading: Icon(
+        access == true ? Icons.sms_outlined : Icons.sms_failed_outlined,
+      ),
+      title: const Text('ورود پیامک بانکی'),
+      subtitle: Text(
+        error ??
+            switch (access) {
+              true =>
+                'مجوز فعال است؛ پیامک‌های مرتبط به‌صورت محلی بررسی می‌شوند.',
+              false =>
+                'مجوز خواندن پیامک فعال نیست؛ ورود خودکار انجام نمی‌شود.',
+              null => 'وضعیت مجوز پیامک هنوز بررسی نشده است.',
+            },
+      ),
+      trailing: IconButton(
+        tooltip: 'بازخوانی',
+        onPressed: onRefresh,
+        icon: const Icon(Icons.refresh),
+      ),
+    ),
+  );
+}
+
+class _ReviewCard extends StatelessWidget {
+  const _ReviewCard({
+    required this.item,
+    required this.busy,
+    required this.onConfirm,
+    required this.onEdit,
+    required this.onReject,
+  });
+
+  final InboxReviewItem item;
+  final bool busy;
+  final VoidCallback onConfirm;
+  final VoidCallback onEdit;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final draft = item.suggestion.draft;
+    final amount = '${draft.amount.minorUnits} ${draft.amount.currency}';
+    final date = PersianDateFormatter.date(
+      JalaliDate.fromDateTime(draft.occurredAt),
+    );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(PlanActSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    draft.merchant ?? draft.type,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Text(amount, style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${item.sourceLabel} · ${_direction(draft.direction)} · $date',
+            ),
+            if (draft.bank != null) Text('بانک: ${draft.bank}'),
+            if (draft.accountHint != null)
+              Text('راهنمای حساب: ${draft.accountHint}'),
+            Text('حساب پیشنهادی: ${item.account?.name ?? 'نیازمند انتخاب'}'),
+            if (draft.reference != null)
+              Text('شناسه پیگیری: ${draft.reference}'),
+            const SizedBox(height: PlanActSpacing.sm),
+            Text(
+              'چرا این پیشنهاد؟',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            for (final reason in item.reasons) Text('• $reason'),
+            for (final warning in item.warnings)
+              Text(
+                'هشدار: $warning',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            const SizedBox(height: PlanActSpacing.sm),
+            Wrap(
+              spacing: PlanActSpacing.sm,
+              runSpacing: PlanActSpacing.xs,
+              children: [
+                FilledButton.icon(
+                  onPressed: busy ? null : onConfirm,
+                  icon: const Icon(Icons.check),
+                  label: const Text('تأیید و ثبت'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: busy ? null : onEdit,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('ویرایش'),
+                ),
+                TextButton.icon(
+                  onPressed: busy ? null : onReject,
+                  icon: const Icon(Icons.close),
+                  label: const Text('رد کردن'),
+                ),
+              ],
             ),
           ],
         ),
-      );
-    }
-    return RefreshIndicator(
-      onRefresh: _reload,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final item = _items[index];
-          final draft = item.draft;
-          final direction = draft.direction == TransactionDirection.incoming
-              ? 'واریز'
-              : draft.direction == TransactionDirection.outgoing
-              ? 'برداشت'
-              : 'جهت نامشخص';
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'پیام بانکی · $direction',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'مبلغ: ${draft.amount.minorUnits} ${draft.amount.currency}',
-                  ),
-                  if (draft.merchant != null) Text('شرح: ${draft.merchant}'),
-                  if (draft.reference != null)
-                    Text('شناسه پیگیری: ${draft.reference}'),
-                  Text(
-                    'اطمینان پردازش: ${draft.confidence}% · ${_quality(draft.quality)}',
-                  ),
-                  if (draft.accountHint != null)
-                    Text('راهنمای حساب/کارت: ${draft.accountHint}'),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => _reject(item),
-                        child: const Text('نادیده گرفتن'),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () => _accept(item),
-                        child: const Text('تأیید و ثبت'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }
 
-  String _quality(ParseQuality quality) => switch (quality) {
-    ParseQuality.high => 'بالا',
-    ParseQuality.medium => 'متوسط',
-    ParseQuality.low => 'پایین',
-    ParseQuality.unsupported => 'پشتیبانی‌نشده',
+  String _direction(TransactionDirection direction) => switch (direction) {
+    TransactionDirection.incoming => 'درآمد',
+    TransactionDirection.outgoing => 'هزینه',
+    TransactionDirection.unknown => 'نوع نامشخص',
   };
 }
 

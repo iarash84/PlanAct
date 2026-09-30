@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -559,7 +560,11 @@ class _HomeShellState extends State<HomeShell> {
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
-        inbox: InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
+        inbox: InboxPage(
+          inbox: _inboxUseCases,
+          finance: _financeRepository,
+          smsSource: AndroidSmsSource(),
+        ),
         settings: SettingsPage(
           settings: widget.settings,
           themeMode: widget.themeMode,
