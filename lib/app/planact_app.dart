@@ -123,6 +123,7 @@ class _HomeShellState extends State<HomeShell> {
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
   TodayDashboard? _todayDashboard;
+  TodayActionCenter? _todayActionCenter;
   final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
@@ -160,8 +161,19 @@ class _HomeShellState extends State<HomeShell> {
     final accounts = await _financeRepository.listAccounts();
     final entries = await _financeRepository.listEntries();
     final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+    final now = DateTime.now();
     final dashboard = _attentionEngine.build(
-      now: DateTime.now(),
+      now: now,
+      commitments: items,
+      plans: plans,
+      expectations: expectations,
+      matches: matches,
+      inboxSuggestions: inboxSuggestions,
+      entries: entries,
+      accounts: accounts,
+    );
+    final actionCenter = _attentionEngine.buildActionCenter(
+      now: now,
       commitments: items,
       plans: plans,
       expectations: expectations,
@@ -177,6 +189,7 @@ class _HomeShellState extends State<HomeShell> {
           ..clear()
           ..addAll(schedules);
         _todayDashboard = dashboard;
+        _todayActionCenter = actionCenter;
       });
     }
   }
@@ -479,9 +492,19 @@ class _HomeShellState extends State<HomeShell> {
         commitments: _commitments,
         scheduledDates: _scheduledDates,
         dashboard: _todayDashboard,
+        actionCenter: _todayActionCenter,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
+        onReview: (item) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text('این مورد نیازمند بررسی است: ${item.title}'),
+              ),
+            );
+        },
       ),
       CalendarPage(
         commitments: _commitments,

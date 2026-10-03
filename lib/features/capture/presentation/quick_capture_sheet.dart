@@ -524,25 +524,27 @@ class _ReminderSelector extends StatelessWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('یادآوری‌ها'),
+          title: const Text('یادآوری‌های این تعهد'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: options.map((option) {
-                final checked = draft.contains(option.key);
-                return CheckboxListTile(
-                  value: checked,
-                  title: Text(option.value),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (value) => setState(() {
-                    if (value == true) {
-                      draft.add(option.key);
-                    } else {
-                      draft.remove(option.key);
-                    }
-                  }),
-                );
-              }).toList(),
+              children: [
+                ...options.map((option) {
+                  final checked = draft.contains(option.key);
+                  return CheckboxListTile(
+                    value: checked,
+                    title: Text(option.value),
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (value) => setState(() {
+                      if (value == true) {
+                        draft.add(option.key);
+                      } else {
+                        draft.remove(option.key);
+                      }
+                    }),
+                  );
+                }),
+              ],
             ),
           ),
           actions: [
@@ -564,19 +566,84 @@ class _ReminderSelector extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: () => _openSelector(context),
-    borderRadius: BorderRadius.circular(8),
-    child: InputDecorator(
-      decoration: const InputDecoration(
-        labelText: 'یادآوری‌ها',
-        suffixIcon: Icon(Icons.notifications_none),
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      InkWell(
+        onTap: () => _openSelector(context),
+        borderRadius: BorderRadius.circular(8),
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'یادآوری‌های این تعهد',
+            suffixIcon: Icon(Icons.notifications_none),
+          ),
+          child: Text(
+            selected.isEmpty
+                ? 'انتخاب چند یادآوری'
+                : '${PersianNumbers.format(selected.length)} یادآوری انتخاب شده',
+          ),
+        ),
       ),
-      child: Text(
-        selected.isEmpty
-            ? 'انتخاب چند یادآوری'
-            : '${PersianNumbers.format(selected.length)} یادآوری انتخاب شده',
+      TextButton.icon(
+        onPressed: () async {
+          final minutes = await showDialog<int?>(
+            context: context,
+            builder: (_) => const _CustomReminderDialog(),
+          );
+          if (minutes != null && minutes > 0) {
+            onChanged({...selected, Duration(minutes: minutes)});
+          }
+        },
+        icon: const Icon(Icons.add_alarm_outlined),
+        label: const Text('زمان دلخواه'),
+      ),
+    ],
+  );
+}
+
+class _CustomReminderDialog extends StatefulWidget {
+  const _CustomReminderDialog();
+
+  @override
+  State<_CustomReminderDialog> createState() => _CustomReminderDialogState();
+}
+
+class _CustomReminderDialogState extends State<_CustomReminderDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('یادآوری دلخواه'),
+    content: TextField(
+      key: const ValueKey('custom-reminder-minutes-field'),
+      controller: _controller,
+      autofocus: true,
+      keyboardType: TextInputType.number,
+      decoration: const InputDecoration(
+        labelText: 'چند دقیقه قبل؟',
+        hintText: 'مثلاً ۹۰',
       ),
     ),
+    actions: [
+      TextButton(
+        key: const ValueKey('custom-reminder-cancel'),
+        onPressed: () => Navigator.pop<int?>(context),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: () {
+          final value = int.tryParse(_controller.text.trim());
+          if (value == null || value <= 0) return;
+          Navigator.pop<int?>(context, value);
+        },
+        child: const Text('افزودن'),
+      ),
+    ],
   );
 }
