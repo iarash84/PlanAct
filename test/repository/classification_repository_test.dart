@@ -82,7 +82,7 @@ void main() {
       ],
     );
     old.execute('PRAGMA user_version = 14');
-    old.dispose();
+    old.close();
     final database = AppDatabase.forTesting(NativeDatabase(file));
     final rows = await DriftTagRepository(database).list();
     expect(rows.map((tag) => tag.label).toSet(), {'آموزش', 'کار'});

@@ -51,6 +51,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  sqlite3: ^3.5.2
   build_runner: ^2.7.1
   flutter_launcher_icons: ^0.14.4
   drift_dev: ^2.28.1

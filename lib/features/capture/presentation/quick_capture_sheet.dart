@@ -194,14 +194,20 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ),
       ),
       const SizedBox(height: PlanActSpacing.md),
-      for (final item in CommitmentCategory.values)
-        RadioListTile<CommitmentCategory>(
-          value: item,
-          groupValue: _draft.category,
-          title: Text(_categoryLabel(item)),
-          onChanged: (value) =>
-              setState(() => _draft = _draft.copyWith(category: value)),
+      RadioGroup<CommitmentCategory>(
+        groupValue: _draft.category,
+        onChanged: (value) =>
+            setState(() => _draft = _draft.copyWith(category: value)),
+        child: Column(
+          children: [
+            for (final item in CommitmentCategory.values)
+              RadioListTile<CommitmentCategory>(
+                value: item,
+                title: Text(_categoryLabel(item)),
+              ),
+          ],
         ),
+      ),
     ],
   );
 
@@ -609,8 +615,16 @@ class _JalaliDatePicker extends StatefulWidget {
 }
 
 class _JalaliDatePickerState extends State<_JalaliDatePicker> {
-  late JalaliDate _selected = JalaliDate.fromDateTime(widget.initialDate);
-  late JalaliDate _month = JalaliDate(_selected.year, _selected.month, 1);
+  late JalaliDate _selected;
+  late JalaliDate _month;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = JalaliDate.fromDateTime(widget.initialDate);
+    _month = JalaliDate(_selected.year, _selected.month, 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final offset = _month.weekDay - 1;
