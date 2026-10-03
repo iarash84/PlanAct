@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Required only for user-approved reminder notifications on Android 13+. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Used by local_auth for platform biometric/device authentication. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- ReminderPlatformAdapter uses exactAllowWhileIdle for persisted exact reminders. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application

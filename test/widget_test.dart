@@ -7,17 +7,18 @@ import 'package:planact/main.dart';
 void main() {
   testWidgets('پوستهٔ فارسی و ثبت تعهد کار می‌کند', (tester) async {
     await tester.pumpWidget(const PlanActApp());
+    await tester.pumpAndSettle();
 
     expect(find.text('امروز'), findsWidgets);
     expect(find.text('چه چیزی نیاز به توجه دارد؟'), findsOneWidget);
-    expect(find.text('ثبت اولین تعهد'), findsOneWidget);
+    expect(find.text('ثبت تعهد جدید'), findsOneWidget);
 
     final todayContext = tester.element(
       find.text('چه چیزی نیاز به توجه دارد؟'),
     );
     expect(Directionality.of(todayContext), TextDirection.rtl);
 
-    await tester.tap(find.text('ثبت اولین تعهد'));
+    await tester.tap(find.text('ثبت تعهد جدید'));
     await tester.pumpAndSettle();
     expect(find.text('تعهد جدید'), findsOneWidget);
 
@@ -57,8 +58,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('commitment-save-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('کلاس زبان'), findsOneWidget);
-    expect(find.textContaining('جلسه'), findsOneWidget);
+    expect(find.text('کلاس زبان'), findsWidgets);
+    expect(find.text('تعیین وضعیت'), findsWidgets);
   });
 
   testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {

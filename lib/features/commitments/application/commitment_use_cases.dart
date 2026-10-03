@@ -87,6 +87,20 @@ class ArchiveCommitment {
   }
 }
 
+class RestoreCommitment {
+  const RestoreCommitment(this.repository);
+
+  final CommitmentRepository repository;
+
+  Future<Commitment> call(StableId id) async {
+    final current = await repository.findById(id);
+    if (current == null) throw NotFoundError('Commitment was not found');
+    final updated = current.restore();
+    await repository.save(updated);
+    return updated;
+  }
+}
+
 class CompleteCommitment {
   const CompleteCommitment(this.repository);
 

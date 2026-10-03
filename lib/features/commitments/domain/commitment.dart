@@ -1,5 +1,6 @@
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/classification/domain/tag.dart';
 
 enum CommitmentStatus { active, paused, archived, completed, cancelled }
 
@@ -20,7 +21,9 @@ class Commitment {
     List<String> attachmentIds = const [],
   }) : title = _validateTitle(title),
        tags = Set.unmodifiable(
-         tags.map((tag) => tag.trim()).where((tag) => tag.isNotEmpty),
+         {for (final tag in tags) normalizeTagKey(tag): normalizeTagLabel(tag)}
+             .values
+             .where((tag) => tag.isNotEmpty),
        ),
        attachmentIds = List.unmodifiable(attachmentIds);
 
@@ -93,6 +96,15 @@ class Commitment {
     return _copyWith(status: CommitmentStatus.archived);
   }
 
+  Commitment restore() {
+    if (status != CommitmentStatus.archived) {
+      throw const ValidationError(
+        'Only an archived commitment can be restored',
+      );
+    }
+    return _copyWith(status: CommitmentStatus.active);
+  }
+
   Commitment updateMetadata({
     required String title,
     String? description,
@@ -110,6 +122,18 @@ class Commitment {
       attachmentIds: attachmentIds,
     );
   }
+
+  Commitment withTags(Set<String> labels) => Commitment(
+    id: id,
+    title: title,
+    createdAt: createdAt,
+    status: status,
+    kind: kind,
+    priority: priority,
+    description: description,
+    tags: labels,
+    attachmentIds: attachmentIds,
+  );
 
   Commitment _copyWith({required CommitmentStatus status}) {
     return Commitment(

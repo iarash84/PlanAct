@@ -24,6 +24,20 @@ void main() {
     expect((await repository.list()), hasLength(1));
   });
 
+  test(
+    'restores an archived commitment through the restore use case',
+    () async {
+      final created = await CreateCommitment(repository)
+          .call(title: 'کلاس موسیقی');
+      await ArchiveCommitment(repository).call(created.id);
+
+      final restored = await RestoreCommitment(repository).call(created.id);
+
+      expect(restored.status, CommitmentStatus.active);
+      expect((await repository.list()).single.status, CommitmentStatus.active);
+    },
+  );
+
   test('reports a missing commitment without mutating storage', () async {
     final missingId = createdId();
 

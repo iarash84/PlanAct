@@ -1,4 +1,5 @@
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/classification/domain/tag.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
@@ -9,6 +10,7 @@ class FinanceFilter {
     this.to,
     this.type,
     this.category,
+    this.tag,
     this.matched,
   });
 
@@ -17,6 +19,7 @@ class FinanceFilter {
   final DateTime? to;
   final AccountEntryType? type;
   final String? category;
+  final Tag? tag;
   final bool? matched;
 }
 
@@ -24,6 +27,7 @@ List<AccountEntry> filterEntries(
   Iterable<AccountEntry> entries,
   FinanceFilter filter, {
   Set<String> matchedEntryIds = const {},
+  Map<String, Set<Tag>> tagsByEntry = const {},
 }) => entries
     .where((entry) {
       if (filter.accountId != null &&
@@ -42,6 +46,10 @@ List<AccountEntry> filterEntries(
       if (filter.category != null && entry.category != filter.category) {
         return false;
       }
+      if (filter.tag != null &&
+          !(tagsByEntry[entry.id.value] ?? const {}).contains(filter.tag)) {
+        return false;
+      }
       if (filter.matched != null &&
           matchedEntryIds.contains(entry.id.value) != filter.matched) {
         return false;
@@ -49,6 +57,13 @@ List<AccountEntry> filterEntries(
       return true;
     })
     .toList(growable: false);
+
+class GroupedTotal {
+  const GroupedTotal({required this.key, required this.minorUnits});
+
+  final String key;
+  final int minorUnits;
+}
 
 class CashFlowSummary {
   const CashFlowSummary({
@@ -83,6 +98,35 @@ CashFlowSummary cashFlowSummary(
     outgoing: outgoing,
     currency: currency,
   );
+}
+
+List<GroupedTotal> groupFinancialEntries(
+  Iterable<AccountEntry> entries, {
+  required String currency,
+  String? Function(AccountEntry entry)? keyOf,
+}) {
+  final totals = <String, int>{};
+  for (final entry in entries) {
+    if (entry.amount.currency != currency) continue;
+    final key = keyOf?.call(entry) ?? entry.category ?? 'بدون دسته‌بندی';
+    if (entry.type == AccountEntryType.income ||
+        entry.type == AccountEntryType.refund) {
+      totals.update(
+        key,
+        (value) => value + entry.amount.minorUnits,
+        ifAbsent: () => entry.amount.minorUnits,
+      );
+    } else if (entry.type == AccountEntryType.expense) {
+      totals.update(
+        key,
+        (value) => value - entry.amount.minorUnits,
+        ifAbsent: () => -entry.amount.minorUnits,
+      );
+    }
+  }
+  return totals.entries
+      .map((entry) => GroupedTotal(key: entry.key, minorUnits: entry.value))
+      .toList(growable: false);
 }
 
 class PlannedActualSummary {

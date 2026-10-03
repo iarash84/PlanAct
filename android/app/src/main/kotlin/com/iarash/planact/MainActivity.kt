@@ -1,4 +1,4 @@
-package com.example.planact
+package com.iarash.planact
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -15,5 +15,14 @@ class MainActivity : FlutterActivity() {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink) { SmsBridge.attach(events) }
                 override fun onCancel(arguments: Any?) { }
             })
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        SmsBridge.onRequestPermissionsResult(this, requestCode)
     }
 }

@@ -1,6 +1,6 @@
 # Flutter and plugin entry points are discovered by Android/plugin registries.
 -keep class io.flutter.** { *; }
--keep class com.example.planact.BankSmsReceiver { *; }
+-keep class com.iarash.planact.BankSmsReceiver { *; }
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 
 # Flutter's Android embedding references Play Store deferred-component APIs.

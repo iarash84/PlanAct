@@ -19,6 +19,7 @@ class DriftFinanceRepository implements FinanceRepository {
             name: row.name,
             currency: row.currency,
             type: FinancialAccountType.values[row.type],
+            bank: IranianBank.fromCode(row.bankCode),
             status: FinancialAccountStatus.values[row.status],
           ),
         )
@@ -72,9 +73,11 @@ class DriftFinanceRepository implements FinanceRepository {
   Future<void> saveTransfer({
     required AccountEntry outgoing,
     required AccountEntry incoming,
+    AccountEntry? fee,
   }) => database.transaction(() async {
     await saveEntry(outgoing);
     await saveEntry(incoming);
+    if (fee != null) await saveEntry(fee);
   });
 
   @override
@@ -108,6 +111,7 @@ class DriftFinanceRepository implements FinanceRepository {
         name: Value(account.name),
         currency: Value(account.currency),
         type: Value(account.type.index),
+        bankCode: Value(account.bank?.code),
         status: Value(account.status.index),
       );
 

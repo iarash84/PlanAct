@@ -1,4 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/classification/domain/tag.dart'
+    show normalizeTagLabel, normalizeTagKey;
 
 part 'app_database.g.dart';
 
@@ -197,6 +200,7 @@ class FinancialAccounts extends Table {
   TextColumn get name => text()();
   TextColumn get currency => text()();
   IntColumn get type => integer()();
+  TextColumn get bankCode => text().nullable()();
   IntColumn get status => integer()();
 
   @override
@@ -266,6 +270,32 @@ class FinancialExpectations extends Table {
   ];
 }
 
+class Tags extends Table {
+  TextColumn get id => text()();
+  TextColumn get label => text()();
+  TextColumn get normalizedLabel => text().unique()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class CommitmentTags extends Table {
+  TextColumn get commitmentId => text().references(Commitments, #id)();
+  TextColumn get tagId => text().references(Tags, #id)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {commitmentId, tagId};
+}
+
+class AccountEntryTags extends Table {
+  TextColumn get accountEntryId => text().references(AccountEntries, #id)();
+  TextColumn get tagId => text().references(Tags, #id)();
+
+  @override
+  Set<Column<Object>> get primaryKey => {accountEntryId, tagId};
+}
+
 class StagedImports extends Table {
   TextColumn get id => text()();
   TextColumn get rawText => text()();
@@ -319,6 +349,9 @@ class InboxSuggestions extends Table {
     TransactionMatches,
     MatchAllocations,
     FinancialExpectations,
+    Tags,
+    CommitmentTags,
+    AccountEntryTags,
     StagedImports,
     InboxSuggestions,
   ],
@@ -331,7 +364,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -425,6 +458,70 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS match_allocations_match_id '
           'ON match_allocations(match_id)',
         );
+      }
+      if (from < 16) {
+        await customStatement(
+          'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
+        );
+      }
+      if (from < 15) {
+        await customStatement(
+          'CREATE TABLE IF NOT EXISTS tags ('
+          'id TEXT NOT NULL PRIMARY KEY, '
+          'label TEXT NOT NULL, '
+          'normalized_label TEXT NOT NULL UNIQUE, '
+          'created_at INTEGER NOT NULL)',
+        );
+        await customStatement(
+          'CREATE TABLE IF NOT EXISTS commitment_tags ('
+          'commitment_id TEXT NOT NULL REFERENCES commitments(id), '
+          'tag_id TEXT NOT NULL REFERENCES tags(id), '
+          'PRIMARY KEY (commitment_id, tag_id))',
+        );
+        await customStatement(
+          'CREATE TABLE IF NOT EXISTS account_entry_tags ('
+          'account_entry_id TEXT NOT NULL REFERENCES account_entries(id), '
+          'tag_id TEXT NOT NULL REFERENCES tags(id), '
+          'PRIMARY KEY (account_entry_id, tag_id))',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS tags_normalized_label ON tags(normalized_label)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS commitment_tags_tag_id ON commitment_tags(tag_id)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS account_entry_tags_tag_id ON account_entry_tags(tag_id)',
+        );
+        final legacyCommitments = await customSelect(
+          'SELECT id, tags FROM commitments WHERE tags <> \'\'',
+        ).get();
+        for (final row in legacyCommitments) {
+          final commitmentId = row.read<String>('id');
+          final legacyTags = row.read<String>('tags').split('\\n');
+          for (final label in legacyTags) {
+            final normalized = normalizeTagLabel(label);
+            if (normalized.isEmpty) continue;
+            final key = normalizeTagKey(label);
+            await customStatement(
+              'INSERT OR IGNORE INTO tags(id, label, normalized_label, created_at) VALUES (?, ?, ?, ?)',
+              [
+                StableId.generate().value,
+                normalized,
+                key,
+                DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000,
+              ],
+            );
+            final stored = await customSelect(
+              'SELECT id FROM tags WHERE normalized_label = ?',
+              variables: [Variable.withString(key)],
+            ).getSingle();
+            await customStatement(
+              'INSERT OR IGNORE INTO commitment_tags(commitment_id, tag_id) VALUES (?, ?)',
+              [commitmentId, stored.read<String>('id')],
+            );
+          }
+        }
       }
       await _writeSchemaMetadata();
     },

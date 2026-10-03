@@ -2,6 +2,7 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/domain/transfer_fee_policy.dart';
 
 abstract interface class FinanceRepository {
   Future<List<FinancialAccount>> listAccounts();
@@ -11,6 +12,7 @@ abstract interface class FinanceRepository {
   Future<void> saveTransfer({
     required AccountEntry outgoing,
     required AccountEntry incoming,
+    AccountEntry? fee,
   });
   Future<void> createAccount(
     FinancialAccount account, {
@@ -39,11 +41,13 @@ class InMemoryFinanceRepository implements FinanceRepository {
   Future<void> saveTransfer({
     required AccountEntry outgoing,
     required AccountEntry incoming,
+    AccountEntry? fee,
   }) async {
     final previous = Map<StableId, AccountEntry>.from(_entries);
     try {
       _entries[outgoing.id] = outgoing;
       _entries[incoming.id] = incoming;
+      if (fee != null) _entries[fee.id] = fee;
     } catch (_) {
       _entries
         ..clear()
@@ -119,6 +123,8 @@ class FinanceUseCases {
     required FinancialAccount to,
     required Money amount,
     required DateTime occurredAt,
+    TransferMethod method = TransferMethod.cardToCard,
+    TransferFeePolicy feePolicy = const NoTransferFeePolicy(),
   }) async {
     _assertActive(from);
     _assertActive(to);
@@ -128,6 +134,9 @@ class FinanceUseCases {
     _assertCurrency(from, amount);
     _assertCurrency(to, amount);
     final group = StableId.generate(timestamp: occurredAt);
+    final fee = feePolicy.feeFor(
+      context: TransferFeeContext(amount: amount, method: method),
+    );
     final outgoing = AccountEntry(
       id: StableId.generate(timestamp: occurredAt),
       accountId: from.id,
@@ -144,12 +153,107 @@ class FinanceUseCases {
       occurredAt: occurredAt.toUtc(),
       transferGroupId: group,
     );
-    await repository.saveTransfer(outgoing: outgoing, incoming: incoming);
+    final feeEntry = fee.minorUnits == 0
+        ? null
+        : AccountEntry(
+            id: StableId.generate(
+              timestamp: occurredAt.add(const Duration(microseconds: 1)),
+            ),
+            accountId: from.id,
+            type: AccountEntryType.expense,
+            amount: fee,
+            occurredAt: occurredAt.toUtc(),
+            transferGroupId: group,
+            note: 'کارمزد انتقال',
+            category: 'کارمزد',
+          );
+    await repository.saveTransfer(
+      outgoing: outgoing,
+      incoming: incoming,
+      fee: feeEntry,
+    );
     return (outgoing, incoming);
   }
 
   Future<void> archive(FinancialAccount account) async {
     await repository.saveAccount(account.archive());
+  }
+
+  Future<void> restore(FinancialAccount account) async {
+    await repository.saveAccount(account.restore());
+  }
+
+  Future<void> updateAccount({
+    required FinancialAccount account,
+    required String name,
+    FinancialAccountType? type,
+  }) async {
+    await repository.saveAccount(account.update(name: name, type: type));
+  }
+
+  /// Corrects an immutable ledger entry by recording an opposite-signed
+  /// reversal followed by the corrected entry. The original remains auditable.
+  Future<AccountEntry> correctEntry({
+    required AccountEntry original,
+    required FinancialAccount account,
+    required AccountEntryType type,
+    required Money amount,
+    required DateTime occurredAt,
+    String? note,
+    String? category,
+  }) async {
+    _assertActive(account);
+    _assertCurrency(account, amount);
+    final reversal = AccountEntry(
+      id: StableId.generate(timestamp: occurredAt),
+      accountId: account.id,
+      type: original.signedAmount.minorUnits > 0
+          ? AccountEntryType.expense
+          : AccountEntryType.income,
+      amount: original.amount,
+      occurredAt: occurredAt.toUtc(),
+      referenceId: original.id.value,
+      note: 'اصلاح تراکنش ${original.id.value}',
+      source: AccountEntrySource.manual,
+    );
+    final corrected = AccountEntry(
+      id: StableId.generate(
+        timestamp: occurredAt.add(const Duration(microseconds: 1)),
+      ),
+      accountId: account.id,
+      type: type,
+      amount: amount,
+      occurredAt: occurredAt.toUtc(),
+      referenceId: original.id.value,
+      note: note,
+      category: category,
+      source: AccountEntrySource.manual,
+    );
+    await repository.saveEntry(reversal);
+    await repository.saveEntry(corrected);
+    return corrected;
+  }
+
+  Future<AccountEntry> voidEntry({
+    required AccountEntry original,
+    required FinancialAccount account,
+    DateTime? occurredAt,
+  }) async {
+    _assertActive(account);
+    final reversal = AccountEntry(
+      id: StableId.generate(timestamp: occurredAt),
+      accountId: account.id,
+      type: original.signedAmount.minorUnits > 0
+          ? AccountEntryType.expense
+          : AccountEntryType.income,
+      amount: original.amount,
+      occurredAt: (occurredAt ?? DateTime.now()).toUtc(),
+      referenceId: original.id.value,
+      note: 'حذف امن تراکنش ${original.id.value}',
+      source: AccountEntrySource.manual,
+    );
+    await repository.saveEntry(reversal);
+    return reversal;
   }
 
   Future<Money> balance(FinancialAccount account) async =>
