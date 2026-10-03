@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/classification/domain/tag.dart'
-    as classification;
+    show normalizeTagLabel, normalizeTagKey;
 
 part 'app_database.g.dart';
 
@@ -200,6 +200,7 @@ class FinancialAccounts extends Table {
   TextColumn get name => text()();
   TextColumn get currency => text()();
   IntColumn get type => integer()();
+  TextColumn get bankCode => text().nullable()();
   IntColumn get status => integer()();
 
   @override
@@ -363,7 +364,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -458,6 +459,11 @@ class AppDatabase extends _$AppDatabase {
           'ON match_allocations(match_id)',
         );
       }
+      if (from < 16) {
+        await customStatement(
+          'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
+        );
+      }
       if (from < 15) {
         await customStatement(
           'CREATE TABLE IF NOT EXISTS tags ('
@@ -494,9 +500,9 @@ class AppDatabase extends _$AppDatabase {
           final commitmentId = row.read<String>('id');
           final legacyTags = row.read<String>('tags').split('\\n');
           for (final label in legacyTags) {
-            final normalized = classification.normalizeTagLabel(label);
+            final normalized = normalizeTagLabel(label);
             if (normalized.isEmpty) continue;
-            final key = classification.normalizeTagKey(label);
+            final key = normalizeTagKey(label);
             await customStatement(
               'INSERT OR IGNORE INTO tags(id, label, normalized_label, created_at) VALUES (?, ?, ?, ?)',
               [

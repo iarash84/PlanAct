@@ -95,51 +95,121 @@ class FinancePageState extends State<FinancePage> {
   Future<void> _addAccount() async {
     final name = TextEditingController();
     final opening = TextEditingController();
+    var type = FinancialAccountType.cash;
+    IranianBank? bank;
     try {
-      final result = await showModalBottomSheet<String>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (context) => PlanActFormSheet(
-          title: 'افزودن حساب',
-          primaryLabel: 'افزودن',
-          onPrimary: () {
-            if (name.text.trim().isNotEmpty) {
-              Navigator.pop(context, name.text.trim());
-            }
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: name,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'نام حساب'),
-              ),
-              TextField(
-                controller: opening,
-                keyboardType: TextInputType.number,
-                inputFormatters: const [MoneyInputFormatter()],
-                decoration: const InputDecoration(
-                  labelText: 'موجودی اولیه (اختیاری)',
-                  suffixText: 'تومان',
+      final result =
+          await showModalBottomSheet<
+            ({String name, FinancialAccountType type, IranianBank? bank})
+          >(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => StatefulBuilder(
+              builder: (context, setDialogState) => PlanActFormSheet(
+                title: 'افزودن حساب',
+                primaryLabel: 'افزودن',
+                onPrimary: () {
+                  if (name.text.trim().isNotEmpty) {
+                    Navigator.pop(context, (
+                      name: name.text.trim(),
+                      type: type,
+                      bank: bank,
+                    ));
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: name,
+                      autofocus: true,
+                      onChanged: (value) {
+                        final detected = IranianBank.detect(value);
+                        if (detected != null && bank != detected) {
+                          setDialogState(() {
+                            bank = detected;
+                            type = FinancialAccountType.bank;
+                          });
+                        }
+                      },
+                      decoration: const InputDecoration(labelText: 'نام حساب'),
+                    ),
+                    DropdownButtonFormField<FinancialAccountType>(
+                      initialValue: type,
+                      decoration: const InputDecoration(labelText: 'نوع حساب'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: FinancialAccountType.cash,
+                          child: Text('نقدی'),
+                        ),
+                        DropdownMenuItem(
+                          value: FinancialAccountType.bank,
+                          child: Text('بانکی'),
+                        ),
+                        DropdownMenuItem(
+                          value: FinancialAccountType.digitalWallet,
+                          child: Text('کیف پول'),
+                        ),
+                        DropdownMenuItem(
+                          value: FinancialAccountType.credit,
+                          child: Text('اعتباری'),
+                        ),
+                      ],
+                      onChanged: (value) => setDialogState(() {
+                        type = value ?? FinancialAccountType.cash;
+                        bank = type == FinancialAccountType.bank
+                            ? IranianBank.detect(name.text)
+                            : null;
+                      }),
+                    ),
+                    if (type == FinancialAccountType.bank)
+                      DropdownButtonFormField<IranianBank?>(
+                        initialValue: bank,
+                        decoration: const InputDecoration(
+                          labelText: 'بانک (اختیاری)',
+                        ),
+                        items: [
+                          const DropdownMenuItem<IranianBank?>(
+                            value: null,
+                            child: Text('بدون انتخاب'),
+                          ),
+                          ...IranianBank.values.map(
+                            (item) => DropdownMenuItem<IranianBank?>(
+                              value: item,
+                              child: Text(item.label),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) =>
+                            setDialogState(() => bank = value),
+                      ),
+                    TextField(
+                      controller: opening,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: const [MoneyInputFormatter()],
+                      decoration: const InputDecoration(
+                        labelText: 'موجودی اولیه (اختیاری)',
+                        suffixText: 'تومان',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      );
+            ),
+          );
       final value = int.tryParse(opening.text.replaceAll(',', '').trim());
-      if (result == null || result.isEmpty) return;
+      if (result == null || result.name.isEmpty) return;
       if (opening.text.trim().isNotEmpty && value == null) {
         _showMessage('موجودی اولیه معتبر نیست.');
         return;
       }
       final account = FinancialAccount(
         id: StableId.generate(),
-        name: result,
+        name: result.name,
         currency: 'تومان',
-        type: FinancialAccountType.cash,
+        type: result.type,
+        bank: result.bank,
       );
       await _finance.createAccount(
         account,
@@ -490,14 +560,15 @@ class FinancePageState extends State<FinancePage> {
                   for (final account in _accounts)
                     Card(
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          child: Icon(Icons.account_balance_wallet),
-                        ),
+                        leading: _BankAccountAvatar(account: account),
                         title: Text(account.name),
                         subtitle: Text(
-                          account.status == FinancialAccountStatus.active
-                              ? 'فعال'
-                              : 'بایگانی‌شده',
+                          [
+                            if (account.bank != null) account.bank!.label,
+                            account.status == FinancialAccountStatus.active
+                                ? 'فعال'
+                                : 'بایگانی‌شده',
+                          ].join(' · '),
                         ),
                         onTap: () => _editAccount(account),
                         trailing: Row(
@@ -590,6 +661,46 @@ class FinancePageState extends State<FinancePage> {
     );
   }
 }
+
+class _BankAccountAvatar extends StatelessWidget {
+  const _BankAccountAvatar({required this.account});
+
+  final FinancialAccount account;
+
+  @override
+  Widget build(BuildContext context) {
+    final bank = account.bank ?? IranianBank.detect(account.name);
+    if (bank == null) {
+      return CircleAvatar(
+        child: Icon(
+          account.type == FinancialAccountType.bank
+              ? Icons.account_balance
+              : Icons.account_balance_wallet,
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      backgroundColor: _bankColor(bank),
+      child: Text(
+        bank.label.characters.first,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+Color _bankColor(IranianBank bank) => switch (bank) {
+  IranianBank.mellat => const Color(0xffd71920),
+  IranianBank.melli => const Color(0xff087f5b),
+  IranianBank.saderat => const Color(0xff1565c0),
+  IranianBank.tejarat => const Color(0xff00838f),
+  IranianBank.pasargad => const Color(0xff6a1b9a),
+  _ => const Color(0xff455a64),
+};
 
 class _AccountEditDialog extends StatefulWidget {
   const _AccountEditDialog({required this.initialName});

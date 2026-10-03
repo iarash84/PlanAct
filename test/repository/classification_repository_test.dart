@@ -69,6 +69,9 @@ void main() {
     );
     old.execute('CREATE TABLE account_entries (id TEXT PRIMARY KEY)');
     old.execute(
+      'CREATE TABLE financial_accounts (id TEXT PRIMARY KEY, name TEXT NOT NULL, currency TEXT NOT NULL, type INTEGER NOT NULL, status INTEGER NOT NULL)',
+    );
+    old.execute(
       'INSERT INTO commitments(id, title, created_at, status, tags) VALUES (?, ?, ?, ?, ?)',
       [
         StableId.generate().value,
@@ -83,7 +86,7 @@ void main() {
     final database = AppDatabase.forTesting(NativeDatabase(file));
     final rows = await DriftTagRepository(database).list();
     expect(rows.map((tag) => tag.label).toSet(), {'آموزش', 'کار'});
-    expect(await database.readMetadata('schema_version'), '15');
+    expect(await database.readMetadata('schema_version'), '16');
     await database.close();
     await directory.delete(recursive: true);
   });

@@ -6914,6 +6914,17 @@ class $FinancialAccountsTable extends FinancialAccounts
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _bankCodeMeta = const VerificationMeta(
+    'bankCode',
+  );
+  @override
+  late final GeneratedColumn<String> bankCode = GeneratedColumn<String>(
+    'bank_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<int> status = GeneratedColumn<int>(
@@ -6924,7 +6935,14 @@ class $FinancialAccountsTable extends FinancialAccounts
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, currency, type, status];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    currency,
+    type,
+    bankCode,
+    status,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -6966,6 +6984,12 @@ class $FinancialAccountsTable extends FinancialAccounts
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
+    if (data.containsKey('bank_code')) {
+      context.handle(
+        _bankCodeMeta,
+        bankCode.isAcceptableOrUnknown(data['bank_code']!, _bankCodeMeta),
+      );
+    }
     if (data.containsKey('status')) {
       context.handle(
         _statusMeta,
@@ -6999,6 +7023,10 @@ class $FinancialAccountsTable extends FinancialAccounts
         DriftSqlType.int,
         data['${effectivePrefix}type'],
       )!,
+      bankCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bank_code'],
+      ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}status'],
@@ -7018,12 +7046,14 @@ class FinancialAccount extends DataClass
   final String name;
   final String currency;
   final int type;
+  final String? bankCode;
   final int status;
   const FinancialAccount({
     required this.id,
     required this.name,
     required this.currency,
     required this.type,
+    this.bankCode,
     required this.status,
   });
   @override
@@ -7033,6 +7063,9 @@ class FinancialAccount extends DataClass
     map['name'] = Variable<String>(name);
     map['currency'] = Variable<String>(currency);
     map['type'] = Variable<int>(type);
+    if (!nullToAbsent || bankCode != null) {
+      map['bank_code'] = Variable<String>(bankCode);
+    }
     map['status'] = Variable<int>(status);
     return map;
   }
@@ -7043,6 +7076,9 @@ class FinancialAccount extends DataClass
       name: Value(name),
       currency: Value(currency),
       type: Value(type),
+      bankCode: bankCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bankCode),
       status: Value(status),
     );
   }
@@ -7057,6 +7093,7 @@ class FinancialAccount extends DataClass
       name: serializer.fromJson<String>(json['name']),
       currency: serializer.fromJson<String>(json['currency']),
       type: serializer.fromJson<int>(json['type']),
+      bankCode: serializer.fromJson<String?>(json['bankCode']),
       status: serializer.fromJson<int>(json['status']),
     );
   }
@@ -7068,6 +7105,7 @@ class FinancialAccount extends DataClass
       'name': serializer.toJson<String>(name),
       'currency': serializer.toJson<String>(currency),
       'type': serializer.toJson<int>(type),
+      'bankCode': serializer.toJson<String?>(bankCode),
       'status': serializer.toJson<int>(status),
     };
   }
@@ -7077,12 +7115,14 @@ class FinancialAccount extends DataClass
     String? name,
     String? currency,
     int? type,
+    Value<String?> bankCode = const Value.absent(),
     int? status,
   }) => FinancialAccount(
     id: id ?? this.id,
     name: name ?? this.name,
     currency: currency ?? this.currency,
     type: type ?? this.type,
+    bankCode: bankCode.present ? bankCode.value : this.bankCode,
     status: status ?? this.status,
   );
   FinancialAccount copyWithCompanion(FinancialAccountsCompanion data) {
@@ -7091,6 +7131,7 @@ class FinancialAccount extends DataClass
       name: data.name.present ? data.name.value : this.name,
       currency: data.currency.present ? data.currency.value : this.currency,
       type: data.type.present ? data.type.value : this.type,
+      bankCode: data.bankCode.present ? data.bankCode.value : this.bankCode,
       status: data.status.present ? data.status.value : this.status,
     );
   }
@@ -7102,13 +7143,14 @@ class FinancialAccount extends DataClass
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
+          ..write('bankCode: $bankCode, ')
           ..write('status: $status')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, currency, type, status);
+  int get hashCode => Object.hash(id, name, currency, type, bankCode, status);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7117,6 +7159,7 @@ class FinancialAccount extends DataClass
           other.name == this.name &&
           other.currency == this.currency &&
           other.type == this.type &&
+          other.bankCode == this.bankCode &&
           other.status == this.status);
 }
 
@@ -7125,6 +7168,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
   final Value<String> name;
   final Value<String> currency;
   final Value<int> type;
+  final Value<String?> bankCode;
   final Value<int> status;
   final Value<int> rowid;
   const FinancialAccountsCompanion({
@@ -7132,6 +7176,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
     this.name = const Value.absent(),
     this.currency = const Value.absent(),
     this.type = const Value.absent(),
+    this.bankCode = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7140,6 +7185,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
     required String name,
     required String currency,
     required int type,
+    this.bankCode = const Value.absent(),
     required int status,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -7152,6 +7198,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
     Expression<String>? name,
     Expression<String>? currency,
     Expression<int>? type,
+    Expression<String>? bankCode,
     Expression<int>? status,
     Expression<int>? rowid,
   }) {
@@ -7160,6 +7207,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
       if (name != null) 'name': name,
       if (currency != null) 'currency': currency,
       if (type != null) 'type': type,
+      if (bankCode != null) 'bank_code': bankCode,
       if (status != null) 'status': status,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7170,6 +7218,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
     Value<String>? name,
     Value<String>? currency,
     Value<int>? type,
+    Value<String?>? bankCode,
     Value<int>? status,
     Value<int>? rowid,
   }) {
@@ -7178,6 +7227,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
       name: name ?? this.name,
       currency: currency ?? this.currency,
       type: type ?? this.type,
+      bankCode: bankCode ?? this.bankCode,
       status: status ?? this.status,
       rowid: rowid ?? this.rowid,
     );
@@ -7198,6 +7248,9 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
     if (type.present) {
       map['type'] = Variable<int>(type.value);
     }
+    if (bankCode.present) {
+      map['bank_code'] = Variable<String>(bankCode.value);
+    }
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
@@ -7214,6 +7267,7 @@ class FinancialAccountsCompanion extends UpdateCompanion<FinancialAccount> {
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('type: $type, ')
+          ..write('bankCode: $bankCode, ')
           ..write('status: $status, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -17826,6 +17880,7 @@ typedef $$FinancialAccountsTableCreateCompanionBuilder =
       required String name,
       required String currency,
       required int type,
+      Value<String?> bankCode,
       required int status,
       Value<int> rowid,
     });
@@ -17835,6 +17890,7 @@ typedef $$FinancialAccountsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> currency,
       Value<int> type,
+      Value<String?> bankCode,
       Value<int> status,
       Value<int> rowid,
     });
@@ -17925,6 +17981,11 @@ class $$FinancialAccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get bankCode => $composableBuilder(
+    column: $table.bankCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnFilters(column),
@@ -18011,6 +18072,11 @@ class $$FinancialAccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get bankCode => $composableBuilder(
+    column: $table.bankCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -18037,6 +18103,9 @@ class $$FinancialAccountsTableAnnotationComposer
 
   GeneratedColumn<int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get bankCode =>
+      $composableBuilder(column: $table.bankCode, builder: (column) => column);
 
   GeneratedColumn<int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -18133,6 +18202,7 @@ class $$FinancialAccountsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<int> type = const Value.absent(),
+                Value<String?> bankCode = const Value.absent(),
                 Value<int> status = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FinancialAccountsCompanion(
@@ -18140,6 +18210,7 @@ class $$FinancialAccountsTableTableManager
                 name: name,
                 currency: currency,
                 type: type,
+                bankCode: bankCode,
                 status: status,
                 rowid: rowid,
               ),
@@ -18149,6 +18220,7 @@ class $$FinancialAccountsTableTableManager
                 required String name,
                 required String currency,
                 required int type,
+                Value<String?> bankCode = const Value.absent(),
                 required int status,
                 Value<int> rowid = const Value.absent(),
               }) => FinancialAccountsCompanion.insert(
@@ -18156,6 +18228,7 @@ class $$FinancialAccountsTableTableManager
                 name: name,
                 currency: currency,
                 type: type,
+                bankCode: bankCode,
                 status: status,
                 rowid: rowid,
               ),

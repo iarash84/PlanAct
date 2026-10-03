@@ -34,7 +34,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '15');
+    expect(await database.readMetadata('schema_version'), '16');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -85,6 +85,30 @@ void main() {
     expect(restored.fingerprint, item.fingerprint);
     await second.close();
     await Directory(directory.path).delete(recursive: true);
+  });
+
+  test('persists bank identity across database restart', () async {
+    final directory = await Directory.systemTemp.createTemp('planact-bank-');
+    final path = '${directory.path}${Platform.pathSeparator}planact.sqlite';
+    final first = db.AppDatabase(NativeDatabase(File(path)));
+    final account = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 27)),
+      name: 'حساب حقوق',
+      currency: 'تومان',
+      type: FinancialAccountType.bank,
+      bank: IranianBank.mellat,
+    );
+    await DriftFinanceRepository(first).saveAccount(account);
+    await first.close();
+
+    final second = db.AppDatabase(NativeDatabase(File(path)));
+    final restored = (await DriftFinanceRepository(
+      second,
+    ).listAccounts()).single;
+    expect(restored.bank, IranianBank.mellat);
+    expect(restored.name, account.name);
+    await second.close();
+    await directory.delete(recursive: true);
   });
 
   test('persists a newly created financial account through Drift', () async {
