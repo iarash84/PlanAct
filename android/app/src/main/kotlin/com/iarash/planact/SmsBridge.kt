@@ -3,7 +3,12 @@ package com.iarash.planact
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.provider.Telephony
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
@@ -12,8 +17,9 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object SmsBridge {
     private val sinks = CopyOnWriteArrayList<EventChannel.EventSink>()
+    private val mainHandler = Handler(Looper.getMainLooper())
     private const val permissionRequestCode = 4101
-    private var pendingPermissionResult: MethodChannel.Result? = null
+    private const val permissionRequestedPreference = "sms_permission_requested"
     private val relevantMarkers = Regex(
         "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|کارت|بانک|\b(?:atm|pos|iban|شبا|رمز)\b|[۰-۹]{3,})"
     )
@@ -43,18 +49,38 @@ object SmsBridge {
             "requestAccess" -> {
                 if (hasAccess(activity)) {
                     result.success(true)
-                } else if (pendingPermissionResult != null) {
-                    result.error("permission_request_in_progress", "SMS permission request is already in progress", null)
+                } else if (activity.isFinishing || activity.isDestroyed) {
+                    result.error("activity_unavailable", "The activity is not available", null)
                 } else {
-                    pendingPermissionResult = result
-                    try {
-                        activity.requestPermissions(
-                            arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS),
-                            permissionRequestCode
-                        )
-                    } catch (error: Exception) {
-                        pendingPermissionResult = null
-                        result.error("permission_request_failed", "Could not request SMS permission", null)
+                    val preferences = activity.getPreferences(Context.MODE_PRIVATE)
+                    val wasRequested = preferences.getBoolean(permissionRequestedPreference, false)
+                    val permanentlyDenied = wasRequested &&
+                        !activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_SMS) &&
+                        !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS)
+                    if (permanentlyDenied) {
+                        openApplicationSettings(activity)
+                        result.success(false)
+                    } else {
+                        preferences.edit().putBoolean(permissionRequestedPreference, true).apply()
+                        // Keep the permission dialog in the activity's UI queue. This
+                        // avoids racing Flutter's just-dismissed AlertDialog and
+                        // guarantees requestPermissions runs on the main thread.
+                        mainHandler.post {
+                            if (activity.isFinishing || activity.isDestroyed) return@post
+                            try {
+                                activity.requestPermissions(
+                                    arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS),
+                                    permissionRequestCode
+                                )
+                            } catch (_: Exception) {
+                                // The Dart side will report the unavailable request
+                                // after its bounded access poll completes.
+                            }
+                        }
+                        // Do not keep a MethodChannel result pending while Android
+                        // owns the permission dialog. Some OEMs do not deliver the
+                        // legacy callback back to FlutterActivity.
+                        result.success(true)
                     }
                 }
             }
@@ -84,11 +110,15 @@ object SmsBridge {
         }
     }
 
+    private fun openApplicationSettings(activity: Activity) {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:${activity.packageName}")
+        )
+        activity.startActivity(intent)
+    }
+
     fun onRequestPermissionsResult(activity: Activity, requestCode: Int): Boolean {
-        if (requestCode != permissionRequestCode) return false
-        val pending = pendingPermissionResult ?: return true
-        pendingPermissionResult = null
-        pending.success(hasAccess(activity))
-        return true
+        return requestCode == permissionRequestCode
     }
 }

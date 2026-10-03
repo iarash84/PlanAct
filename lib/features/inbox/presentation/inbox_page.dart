@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -132,7 +135,7 @@ class _InboxPageState extends State<InboxPage> {
     if (source == null || _working) return;
     final consent = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('دسترسی به پیامک‌های بانکی'),
         content: const Text(
           'برای ورود پیامک‌های بانکی، دسترسی خواندن و دریافت پیامک لازم است. '
@@ -141,20 +144,46 @@ class _InboxPageState extends State<InboxPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('فعلاً نه'),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('ادامه'),
           ),
         ],
       ),
     );
     if (consent != true || !mounted) return;
+
+    // Do not start an Android permission transition while the Flutter dialog
+    // is still being removed. On some Android versions this leaves the
+    // activity window behind a black scrim and the platform Future pending.
+    await SchedulerBinding.instance.endOfFrame;
+    if (!mounted) return;
     setState(() => _working = true);
     try {
-      final granted = await source.requestAccess();
+      final requestStarted = await source.requestAccess().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () =>
+            throw TimeoutException('SMS permission request timed out'),
+      );
+      if (!requestStarted) {
+        if (mounted) {
+          setState(() {
+            _smsAccess = false;
+            _smsError = 'مجوز پیامک فعال نیست؛ تنظیمات برنامه را بررسی کنید.';
+          });
+        }
+        return;
+      }
+
+      var granted = await source.hasAccess();
+      final deadline = DateTime.now().add(const Duration(seconds: 25));
+      while (!granted && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        granted = await source.hasAccess();
+      }
       if (!mounted) return;
       if (granted) {
         await _reload();
@@ -171,7 +200,9 @@ class _InboxPageState extends State<InboxPage> {
       );
       if (mounted) {
         setState(
-          () => _smsError = 'درخواست دسترسی انجام نشد؛ دوباره تلاش کنید.',
+          () => _smsError = error is TimeoutException
+              ? 'درخواست مجوز پاسخ نداد. مجوز پیامک را از تنظیمات برنامه بررسی کنید.'
+              : 'درخواست دسترسی انجام نشد؛ دوباره تلاش کنید.',
         );
       }
     } finally {
