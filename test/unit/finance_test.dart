@@ -105,28 +105,34 @@ void main() {
       throwsA(isA<ValidationError>()),
     );
   });
-  test('corrects an entry without mutating the original ledger record', () async {
-    final localRepository = InMemoryFinanceRepository();
-    final useCases = FinanceUseCases(localRepository);
-    await useCases.createAccount(account);
-    final original = await useCases.record(
-      account: account,
-      type: AccountEntryType.expense,
-      amount: const Money(minorUnits: 500, currency: 'IRR'),
-      occurredAt: DateTime.utc(2026, 1, 7),
-    );
+  test(
+    'corrects an entry without mutating the original ledger record',
+    () async {
+      final localRepository = InMemoryFinanceRepository();
+      final useCases = FinanceUseCases(localRepository);
+      await useCases.createAccount(account);
+      final original = await useCases.record(
+        account: account,
+        type: AccountEntryType.expense,
+        amount: const Money(minorUnits: 500, currency: 'IRR'),
+        occurredAt: DateTime.utc(2026, 1, 7),
+      );
 
-    await useCases.correctEntry(
-      original: original,
-      account: account,
-      type: AccountEntryType.income,
-      amount: const Money(minorUnits: 700, currency: 'IRR'),
-      occurredAt: DateTime.utc(2026, 1, 8),
-    );
+      await useCases.correctEntry(
+        original: original,
+        account: account,
+        type: AccountEntryType.income,
+        amount: const Money(minorUnits: 700, currency: 'IRR'),
+        occurredAt: DateTime.utc(2026, 1, 8),
+      );
 
-    expect((await localRepository.listEntries()).length, 3);
-    expect(await useCases.balance(account), const Money(minorUnits: 700, currency: 'IRR'));
-  });
+      expect((await localRepository.listEntries()).length, 3);
+      expect(
+        await useCases.balance(account),
+        const Money(minorUnits: 700, currency: 'IRR'),
+      );
+    },
+  );
 
   test('restores an archived account without changing its history', () async {
     final localRepository = InMemoryFinanceRepository();
