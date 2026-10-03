@@ -356,6 +356,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           decoration: const InputDecoration(labelText: 'تعداد جلسات (اختیاری)'),
         ),
       ],
+      const SizedBox(height: PlanActSpacing.lg),
+      _reminderPicker(),
       const SizedBox(height: PlanActSpacing.md),
       TextButton(
         onPressed: () => setState(() => _step = 3),
@@ -363,6 +365,89 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       ),
     ],
   );
+
+  Widget _reminderPicker() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const Text('یادآوری‌های این تعهد'),
+      const SizedBox(height: PlanActSpacing.xs),
+      const Text('می‌توانید چند یادآوری، پیش از زمان هر نوبت ثبت کنید.'),
+      const SizedBox(height: PlanActSpacing.sm),
+      Wrap(
+        spacing: PlanActSpacing.sm,
+        runSpacing: PlanActSpacing.sm,
+        children: [
+          for (final minutes in const [5, 15, 30, 60, 1440])
+            FilterChip(
+              label: Text(_reminderLabel(minutes)),
+              selected: _draft.reminderOffsets.contains(
+                Duration(minutes: minutes),
+              ),
+              onSelected: (selected) => _toggleReminder(minutes, selected),
+            ),
+          ActionChip(
+            avatar: const Icon(Icons.add, size: 18),
+            label: const Text('زمان دلخواه'),
+            onPressed: _addCustomReminder,
+          ),
+        ],
+      ),
+      if (_draft.reminderOffsets.isNotEmpty) ...[
+        const SizedBox(height: PlanActSpacing.sm),
+        for (final offset in _draft.reminderOffsets)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.notifications_active_outlined),
+            title: Text(_reminderLabel(offset.inMinutes)),
+            trailing: IconButton(
+              tooltip: 'حذف یادآوری',
+              onPressed: () => setState(() {
+                final offsets = [..._draft.reminderOffsets]..remove(offset);
+                _draft = _draft.copyWith(reminderOffsets: offsets);
+              }),
+              icon: const Icon(Icons.close),
+            ),
+          ),
+      ],
+    ],
+  );
+
+  void _toggleReminder(int minutes, bool selected) {
+    final offset = Duration(minutes: minutes);
+    final offsets = [..._draft.reminderOffsets];
+    if (selected) {
+      if (!offsets.contains(offset)) offsets.add(offset);
+    } else {
+      offsets.remove(offset);
+    }
+    offsets.sort((a, b) => b.compareTo(a));
+    setState(() => _draft = _draft.copyWith(reminderOffsets: offsets));
+  }
+
+  Future<void> _addCustomReminder() async {
+    final minutes = await showDialog<int?>(
+      context: context,
+      builder: (_) => const _CustomReminderDialog(),
+    );
+    if (!mounted || minutes == null) return;
+    final offset = Duration(minutes: minutes);
+    if (_draft.reminderOffsets.contains(offset)) return;
+    final offsets = [..._draft.reminderOffsets, offset]
+      ..sort((a, b) => b.compareTo(a));
+    setState(() => _draft = _draft.copyWith(reminderOffsets: offsets));
+  }
+
+  static String _reminderLabel(int minutes) {
+    if (minutes >= 1440 && minutes % 1440 == 0) {
+      final days = minutes ~/ 1440;
+      return '$days روز قبل';
+    }
+    if (minutes >= 60 && minutes % 60 == 0) {
+      return '${minutes ~/ 60} ساعت قبل';
+    }
+    return '$minutes دقیقه قبل';
+  }
 
   Widget _entitlementStep() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -467,6 +552,53 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     CommitmentCategory.subscription => 'اشتراک / خدمت پولی',
     CommitmentCategory.other => 'سایر',
   };
+}
+
+class _CustomReminderDialog extends StatefulWidget {
+  const _CustomReminderDialog();
+
+  @override
+  State<_CustomReminderDialog> createState() => _CustomReminderDialogState();
+}
+
+class _CustomReminderDialogState extends State<_CustomReminderDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('یادآوری دلخواه'),
+    content: TextField(
+      key: const ValueKey('custom-reminder-minutes-field'),
+      controller: _controller,
+      autofocus: true,
+      keyboardType: TextInputType.number,
+      decoration: const InputDecoration(
+        labelText: 'چند دقیقه قبل؟',
+        hintText: 'مثلاً ۹۰',
+      ),
+    ),
+    actions: [
+      TextButton(
+        key: const ValueKey('custom-reminder-cancel'),
+        onPressed: () => Navigator.pop<int?>(context, null),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: () {
+          final value = int.tryParse(_controller.text.trim());
+          if (value == null || value <= 0) return;
+          Navigator.pop<int?>(context, value);
+        },
+        child: const Text('افزودن'),
+      ),
+    ],
+  );
 }
 
 class _JalaliDatePicker extends StatefulWidget {

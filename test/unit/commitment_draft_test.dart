@@ -35,4 +35,16 @@ void main() {
     expect(draft.reviewSummary(), contains('نیازمند پرداخت'));
     expect(draft.reviewSummary(), contains('۴'));
   });
+
+  test('draft preserves multiple reminder offsets independently', () {
+    const first = Duration(minutes: 15);
+    const second = Duration(hours: 1);
+    final draft = const CommitmentDraft().copyWith(
+      title: 'جلسه',
+      reminderOffsets: [first, second],
+    );
+
+    expect(draft.reminderOffsets, [first, second]);
+    expect(draft.copyWith(reminderOffsets: const []).reminderOffsets, isEmpty);
+  });
 }
