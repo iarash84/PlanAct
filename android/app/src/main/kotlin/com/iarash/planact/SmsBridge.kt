@@ -13,6 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object SmsBridge {
     private val sinks = CopyOnWriteArrayList<EventChannel.EventSink>()
     private const val permissionRequestCode = 4101
+    private var pendingPermissionResult: MethodChannel.Result? = null
     private val relevantMarkers = Regex(
         "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|کارت|بانک|\b(?:atm|pos|iban|شبا|رمز)\b|[۰-۹]{3,})"
     )
@@ -40,10 +41,21 @@ object SmsBridge {
         when (call.method) {
             "hasAccess" -> result.success(hasAccess(activity))
             "requestAccess" -> {
-                if (hasAccess(activity)) result.success(true)
-                else {
-                    activity.requestPermissions(arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS), permissionRequestCode)
-                    result.success(false)
+                if (hasAccess(activity)) {
+                    result.success(true)
+                } else if (pendingPermissionResult != null) {
+                    result.error("permission_request_in_progress", "SMS permission request is already in progress", null)
+                } else {
+                    pendingPermissionResult = result
+                    try {
+                        activity.requestPermissions(
+                            arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS),
+                            permissionRequestCode
+                        )
+                    } catch (error: Exception) {
+                        pendingPermissionResult = null
+                        result.error("permission_request_failed", "Could not request SMS permission", null)
+                    }
                 }
             }
             "readRelevant" -> {
@@ -70,5 +82,13 @@ object SmsBridge {
             }
             else -> result.notImplemented()
         }
+    }
+
+    fun onRequestPermissionsResult(activity: Activity, requestCode: Int): Boolean {
+        if (requestCode != permissionRequestCode) return false
+        val pending = pendingPermissionResult ?: return true
+        pendingPermissionResult = null
+        pending.success(hasAccess(activity))
+        return true
     }
 }

@@ -127,6 +127,58 @@ class _InboxPageState extends State<InboxPage> {
     }
   }
 
+  Future<void> _enableSms() async {
+    final source = widget.smsSource;
+    if (source == null || _working) return;
+    final consent = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('دسترسی به پیامک‌های بانکی'),
+        content: const Text(
+          'برای ورود پیامک‌های بانکی، دسترسی خواندن و دریافت پیامک لازم است. '
+          'پیامک‌های مرتبط فقط روی دستگاه بررسی و در صف بررسی ثبت می‌شوند؛ '
+          'تراکنش مالی بدون تأیید شما ثبت نمی‌شود. می‌توانید دسترسی را در تنظیمات دستگاه لغو کنید.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('فعلاً نه'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('ادامه'),
+          ),
+        ],
+      ),
+    );
+    if (consent != true || !mounted) return;
+    setState(() => _working = true);
+    try {
+      final granted = await source.requestAccess();
+      if (!mounted) return;
+      if (granted) {
+        await _reload();
+      } else {
+        setState(() {
+          _smsAccess = false;
+          _smsError = 'دسترسی پیامک داده نشد. برای فعال‌سازی دوباره تلاش کنید یا مجوز را در تنظیمات برنامه فعال کنید.';
+        });
+      }
+    } catch (error) {
+      _logger.error(
+        'SMS permission request failed',
+        fields: {'errorType': error.runtimeType.toString()},
+      );
+      if (mounted) {
+        setState(
+          () => _smsError = 'درخواست دسترسی انجام نشد؛ دوباره تلاش کنید.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
   Future<void> _confirm(InboxReviewItem item) async {
     final compatible = _accounts
         .where(
@@ -323,6 +375,10 @@ class _InboxPageState extends State<InboxPage> {
             access: _smsAccess,
             error: _smsError,
             onRefresh: _reload,
+            onEnable:
+                widget.smsSource != null && !_working && _smsAccess != true
+                ? _enableSms
+                : null,
           ),
           const SizedBox(height: PlanActSpacing.md),
           if (_items.isEmpty)
@@ -362,10 +418,12 @@ class _SmsStatusCard extends StatelessWidget {
     required this.access,
     required this.error,
     required this.onRefresh,
+    required this.onEnable,
   });
   final bool? access;
   final String? error;
   final VoidCallback onRefresh;
+  final VoidCallback? onEnable;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -379,16 +437,17 @@ class _SmsStatusCard extends StatelessWidget {
             switch (access) {
               true =>
                 'مجوز فعال است؛ پیامک‌های مرتبط به‌صورت محلی بررسی می‌شوند.',
-              false =>
-                'مجوز خواندن پیامک فعال نیست؛ ورود خودکار انجام نمی‌شود.',
+              false => 'دسترسی خواندن و دریافت پیامک فعال نیست؛ ورود خودکار انجام نمی‌شود.',
               null => 'وضعیت مجوز پیامک هنوز بررسی نشده است.',
             },
       ),
-      trailing: IconButton(
-        tooltip: 'بازخوانی',
-        onPressed: onRefresh,
-        icon: const Icon(Icons.refresh),
-      ),
+      trailing: onEnable == null
+          ? IconButton(
+              tooltip: 'بازخوانی',
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh),
+            )
+          : TextButton(onPressed: onEnable, child: const Text('فعال‌سازی')),
     ),
   );
 }
