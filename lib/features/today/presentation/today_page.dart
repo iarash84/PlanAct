@@ -71,17 +71,12 @@ class TodayPage extends StatelessWidget {
           _EmptyState(onAdd: onAdd)
         else ...[
           if (center.attention.isNotEmpty) ...[
-            const _SectionHeader(
-              title: 'نیازمند توجه',
-              color: PlanActColors.attention,
-            ),
+            _AttentionSummary(items: center.attention),
             const SizedBox(height: PlanActSpacing.sm),
-            ...center.attention.map(
-              (item) => _ActionItemCard(
-                item: item,
-                onOpen: onCommitmentTap,
-                onReview: () => onReview(item),
-              ),
+            _AttentionGroups(
+              items: center.attention,
+              onOpen: onCommitmentTap,
+              onReview: onReview,
             ),
             const SizedBox(height: PlanActSpacing.xl),
           ],
@@ -144,6 +139,66 @@ class _SectionHeader extends StatelessWidget {
   );
 }
 
+class _AttentionSummary extends StatelessWidget {
+  const _AttentionSummary({required this.items});
+
+  final List<TodayActionItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final urgentCount = items.where((item) => item.urgency >= 90).length;
+    return Text(
+      urgentCount == 0
+          ? '${items.length} مورد برای رسیدگی وجود دارد.'
+          : '${items.length} مورد برای رسیدگی؛ $urgentCount مورد فوری است.',
+      style: Theme.of(context).textTheme.bodyMedium
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+  }
+}
+
+class _AttentionGroups extends StatelessWidget {
+  const _AttentionGroups({
+    required this.items,
+    required this.onOpen,
+    required this.onReview,
+  });
+
+  final List<TodayActionItem> items;
+  final ValueChanged<Commitment> onOpen;
+  final ValueChanged<TodayActionItem> onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = <String, List<TodayActionItem>>{};
+    for (final item in items) {
+      groups.putIfAbsent(item.actionLabel, () => []).add(item);
+    }
+    final entries = groups.entries.toList();
+    return Column(
+      children: [
+        for (var index = 0; index < entries.length; index++)
+          Card(
+            margin: const EdgeInsets.only(bottom: PlanActSpacing.xs),
+            child: ExpansionTile(
+              initiallyExpanded: index == 0,
+              title: Text(entries[index].key),
+              subtitle: Text('${entries[index].value.length} مورد'),
+              children: [
+                for (final item in entries[index].value)
+                  _ActionItemCard(
+                    item: item,
+                    onOpen: onOpen,
+                    onReview: () => onReview(item),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _ActionItemCard extends StatelessWidget {
   const _ActionItemCard({
     required this.item,
@@ -180,7 +235,9 @@ class _ActionItemCard extends StatelessWidget {
               ? onReview
               : () => onOpen(item.commitment!),
           child: Text(
-            item.type == TodayActionItemType.occurrence ? 'اقدام' : 'بررسی',
+            item.type == TodayActionItemType.occurrence
+                ? 'تعیین وضعیت'
+                : item.actionLabel,
           ),
         ),
       ),

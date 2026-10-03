@@ -59,7 +59,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('کلاس زبان'), findsWidgets);
-    expect(find.text('اقدام'), findsWidgets);
+    expect(find.text('تعیین وضعیت'), findsWidgets);
   });
 
   testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {

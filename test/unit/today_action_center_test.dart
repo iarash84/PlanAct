@@ -72,6 +72,11 @@ void main() {
       expect(center.attention.single.commitment, overdue);
       expect(center.today.single.commitment, today);
       expect(center.attention.single.type, TodayActionItemType.occurrence);
+      expect(
+        center.attention.single.attentionAction,
+        AttentionAction.determineOccurrenceStatus,
+      );
+      expect(center.attention.single.actionLabel, 'تعیین وضعیت');
     },
   );
 
@@ -119,6 +124,13 @@ void main() {
     expect(
       center.attention.every((item) => item.attentionItem != null),
       isTrue,
+    );
+    expect(
+      center.attention
+          .where((item) => item.type == TodayActionItemType.inboxReview)
+          .single
+          .actionLabel,
+      'بازبینی تراکنش',
     );
   });
 

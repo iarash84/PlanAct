@@ -16,6 +16,42 @@ enum AttentionReason {
   inboxReview,
 }
 
+enum AttentionAction {
+  determineOccurrenceStatus,
+  reconcilePayment,
+  reviewExpectedIncoming,
+  classifyTransaction,
+  reviewInbox,
+  resolveReconciliation,
+}
+
+extension AttentionReasonX on AttentionReason {
+  AttentionAction get action => switch (this) {
+    AttentionReason.overdueCommitment =>
+      AttentionAction.determineOccurrenceStatus,
+    AttentionReason.overdueUnpaidExpectation =>
+      AttentionAction.reconcilePayment,
+    AttentionReason.upcomingObligation => AttentionAction.reconcilePayment,
+    AttentionReason.expectedIncomingMissing =>
+      AttentionAction.reviewExpectedIncoming,
+    AttentionReason.unmatchedTransaction => AttentionAction.classifyTransaction,
+    AttentionReason.ambiguousReconciliation =>
+      AttentionAction.resolveReconciliation,
+    AttentionReason.inboxReview => AttentionAction.reviewInbox,
+  };
+}
+
+extension AttentionActionX on AttentionAction {
+  String get label => switch (this) {
+    AttentionAction.determineOccurrenceStatus => 'تعیین وضعیت',
+    AttentionAction.reconcilePayment => 'تطبیق پرداخت',
+    AttentionAction.reviewExpectedIncoming => 'بررسی دریافت',
+    AttentionAction.classifyTransaction => 'تعیین ارتباط',
+    AttentionAction.reviewInbox => 'بازبینی تراکنش',
+    AttentionAction.resolveReconciliation => 'حل مغایرت',
+  };
+}
+
 class AttentionItem {
   const AttentionItem({
     required this.id,
@@ -40,6 +76,10 @@ class AttentionItem {
   final DateTime? occurredAt;
   final String? accountName;
   final String? description;
+
+  AttentionAction get action => reason.action;
+
+  String get actionLabel => action.label;
 }
 
 class FinancialSnapshot {
@@ -87,6 +127,7 @@ class TodayActionItem {
     required this.urgency,
     this.scheduledAt,
     this.sourceReference,
+    this.attentionAction,
     this.attentionItem,
     this.commitment,
   });
@@ -98,8 +139,11 @@ class TodayActionItem {
   final int urgency;
   final DateTime? scheduledAt;
   final String? sourceReference;
+  final AttentionAction? attentionAction;
   final AttentionItem? attentionItem;
   final Commitment? commitment;
+
+  String get actionLabel => attentionAction?.label ?? 'اقدام';
 }
 
 class TodayActionCenter {
@@ -178,6 +222,7 @@ class AttentionEngine {
               : item.occurredAt,
           sourceReference: source,
           attentionItem: item,
+          attentionAction: item.action,
           commitment: commitment,
         ),
       );
