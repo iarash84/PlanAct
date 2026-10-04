@@ -7,6 +7,7 @@ import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 
 void main() {
@@ -119,6 +120,36 @@ void main() {
       accounts: const [],
     );
 
+    expect(result.attention, isEmpty);
+  });
+
+  test('classifies all-day local-date occurrences in today and next', () {
+    final commitment = Commitment.create(title: 'تاریخ مهم', now: now);
+    final occurrence = Occurrence(
+      id: StableId.generate(timestamp: now),
+      cycleId: StableId.generate(timestamp: now),
+      scheduleDefinitionId: StableId.generate(timestamp: now),
+      occurrenceKey: 'all-day',
+      originalScheduledAt: LocalDate(2026, 9, 28),
+      currentScheduledAt: LocalDate(2026, 9, 28),
+      status: OccurrenceStatus.scheduled,
+    );
+
+    final result = const AttentionEngine().build(
+      now: DateTime(2026, 9, 27, 12),
+      commitments: [commitment],
+      plans: {
+        commitment.id: [occurrence],
+      },
+      expectations: const [],
+      matches: const [],
+      inboxSuggestions: const [],
+      entries: const [],
+      accounts: const [],
+    );
+
+    expect(result.today, isEmpty);
+    expect(result.next, contains(commitment));
     expect(result.attention, isEmpty);
   });
 

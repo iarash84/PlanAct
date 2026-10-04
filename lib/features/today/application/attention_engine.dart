@@ -5,6 +5,7 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 enum AttentionReason {
   overdueCommitment,
@@ -217,9 +218,8 @@ class AttentionEngine {
               ? item.explanation
               : 'این نوبت عقب‌افتاده است؛ وضعیت آن را ثبت کنید.',
           urgency: item.urgency,
-          scheduledAt: occurrence?.currentScheduledAt is DateTime
-              ? occurrence!.currentScheduledAt as DateTime
-              : item.occurredAt,
+          scheduledAt:
+              _dateOf(occurrence?.currentScheduledAt) ?? item.occurredAt,
           sourceReference: source,
           attentionItem: item,
           attentionAction: item.action,
@@ -474,7 +474,13 @@ class AttentionEngine {
     );
   }
 
-  DateTime? _dateOf(Object value) => value is DateTime ? value : null;
+  DateTime? _dateOf(Object? value) {
+    if (value is DateTime) return value;
+    if (value is LocalDate) {
+      return DateTime(value.year, value.month, value.day);
+    }
+    return null;
+  }
 
   bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
