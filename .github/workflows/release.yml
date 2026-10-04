@@ -1,24 +1,40 @@
 name: Release Android
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version matching pubspec.yaml, without the v prefix (for example 0.1.14)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
 jobs:
   release:
-    name: Build and publish Android release
+    name: Validate, build, and publish Android release
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_BUILD_NUMBER: ${{ github.run_number }}
+      ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
 
     steps:
-      - name: Checkout
+      - name: Checkout master
         uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -31,40 +47,41 @@ jobs:
           flutter-version: '3.47.5'
           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get --enforce-lockfile
-
-      - name: Validate release version
+      - name: Validate release version and repository state
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag must have the form vX.Y.Z, got: $GITHUB_REF_NAME" >&2
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must have the form X.Y.Z: $RELEASE_VERSION" >&2
             exit 1
           fi
-
           pubspec_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+$/\1/p' pubspec.yaml)"
-          if [[ "$pubspec_version" != "$version" ]]; then
-            echo "Tag version $version must match pubspec.yaml version $pubspec_version" >&2
+          if [[ "$pubspec_version" != "$RELEASE_VERSION" ]]; then
+            echo "Requested version $RELEASE_VERSION does not match pubspec.yaml version $pubspec_version" >&2
             exit 1
           fi
-
-          if [[ ! "$GITHUB_RUN_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
-            echo "Invalid GitHub Actions run number: $GITHUB_RUN_NUMBER" >&2
+          tag="v$RELEASE_VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists; refusing to overwrite it." >&2
             exit 1
           fi
-
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "GitHub Release $tag already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
           {
-            echo "RELEASE_VERSION=$version"
-            echo "RELEASE_BUILD_NUMBER=$GITHUB_RUN_NUMBER"
+            echo "RELEASE_TAG=$tag"
+            echo "RELEASE_BUILD_NAME=$RELEASE_VERSION"
           } >> "$GITHUB_ENV"
 
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
+      - name: Print toolchain versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+          java -version
+          (cd android && ./gradlew --version)
 
       - name: Prepare release signing keystore
         shell: bash
@@ -73,187 +90,113 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
-          SYMBOLS_ENCRYPTION_PASSPHRASE: ${{ secrets.SYMBOLS_ENCRYPTION_PASSPHRASE }}
         run: |
           set -euo pipefail
-          for secret_name in \
-            ANDROID_KEYSTORE_BASE64 \
-            ANDROID_KEYSTORE_PASSWORD \
-            ANDROID_KEY_ALIAS \
-            ANDROID_KEY_PASSWORD \
-            ANDROID_SIGNING_CERT_SHA256 \
-            SYMBOLS_ENCRYPTION_PASSPHRASE; do
+          for secret_name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD ANDROID_SIGNING_CERT_SHA256; do
             if [[ -z "${!secret_name}" ]]; then
-              echo "Missing GitHub secret $secret_name; refusing to publish an unsigned or unverifiable release." >&2
+              echo "Missing GitHub secret $secret_name." >&2
               exit 1
             fi
           done
           if [[ ! "$ANDROID_SIGNING_CERT_SHA256" =~ ^([[:xdigit:]]{64}|([[:xdigit:]]{2}:){31}[[:xdigit:]]{2})$ ]]; then
-            echo "ANDROID_SIGNING_CERT_SHA256 must be a 64-character SHA-256 fingerprint, optionally colon-separated." >&2
+            echo "ANDROID_SIGNING_CERT_SHA256 must be a SHA-256 fingerprint." >&2
             exit 1
           fi
-
           keystore_path="$RUNNER_TEMP/planact-release.jks"
           umask 077
-          # Decode the secret and validate it before Gradle starts. A malformed
-          # base64 value or a wrong keystore password otherwise surfaces much
-          # later as the opaque KeytoolException "final block not properly padded".
-          if ! printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"; then
-            echo "ANDROID_KEYSTORE_BASE64 is not valid base64. Re-encode the original .jks file without encrypting or wrapping it." >&2
-            exit 1
-          fi
-          if [[ ! -s "$keystore_path" ]]; then
-            echo "The decoded Android keystore is empty." >&2
-            exit 1
-          fi
-          if ! keytool -list -keystore "$keystore_path" \
-              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-              -alias "$ANDROID_KEY_ALIAS" \
-              >/dev/null 2>&1; then
-            echo "The decoded keystore cannot be opened with ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS. Verify that the GitHub secrets match the original .jks file; do not rotate the release key accidentally." >&2
-            exit 1
-          fi
-          validation_keystore="$RUNNER_TEMP/planact-release-validation.jks"
-          if ! keytool -importkeystore -noprompt \
-              -srckeystore "$keystore_path" \
-              -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
-              -srcalias "$ANDROID_KEY_ALIAS" \
-              -srckeypass "$ANDROID_KEY_PASSWORD" \
-              -destkeystore "$validation_keystore" \
-              -deststoretype JKS \
-              -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
-              -destalias "$ANDROID_KEY_ALIAS" \
-              -destkeypass "$ANDROID_KEY_PASSWORD" \
-              >/dev/null 2>&1; then
-            rm -f "$validation_keystore"
-            echo "The keystore and alias are valid, but the private key cannot be unlocked with ANDROID_KEY_PASSWORD. Verify that this GitHub secret matches the original release key; do not rotate the release key accidentally." >&2
-            exit 1
-          fi
-          rm -f "$validation_keystore"
-          echo "ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          [[ -s "$keystore_path" ]] || { echo 'Decoded keystore is empty.' >&2; exit 1; }
+          keytool -list -keystore "$keystore_path" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          keytool -importkeystore -noprompt \
+            -srckeystore "$keystore_path" -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -srcalias "$ANDROID_KEY_ALIAS" -srckeypass "$ANDROID_KEY_PASSWORD" \
+            -destkeystore "$RUNNER_TEMP/planact-release-validation.jks" \
+            -deststoretype JKS -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -destalias "$ANDROID_KEY_ALIAS" -destkeypass "$ANDROID_KEY_PASSWORD" >/dev/null
+          rm -f "$RUNNER_TEMP/planact-release-validation.jks"
+          {
+            echo "ANDROID_KEYSTORE_PATH=$keystore_path"
+            echo "ANDROID_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_PASSWORD=$ANDROID_KEY_PASSWORD" >> "$GITHUB_ENV"
+          } >> "$GITHUB_ENV"
 
-      - name: Build Universal APK
-        shell: bash
+      - name: Run shared validation with production signing
         env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLANACT_BUILD_NAME: ${{ inputs.version }}
+          PLANACT_BUILD_NUMBER: ${{ github.run_number }}
+        run: bash tool/ci.sh
+
+      - name: Build release APKs
+        shell: bash
         run: |
           set -euo pipefail
-          mkdir -p release-assets build/symbols/universal
+          mkdir -p release-assets build/symbols/universal build/symbols/split
           flutter build apk --release --obfuscate \
             --split-debug-info=build/symbols/universal \
-            --build-name="$RELEASE_VERSION" \
-            --build-number="$RELEASE_BUILD_NUMBER"
-          cp build/app/outputs/flutter-apk/app-release.apk \
-            "release-assets/PlanAct-${GITHUB_REF_NAME}-universal.apk"
-
-      - name: Build ABI-split APKs
-        shell: bash
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          mkdir -p build/symbols/split
+            --build-name="$RELEASE_VERSION" --build-number="$RELEASE_BUILD_NUMBER"
+          cp build/app/outputs/flutter-apk/app-release.apk "release-assets/PlanAct-${RELEASE_TAG}-universal.apk"
           flutter build apk --release --split-per-abi --obfuscate \
             --split-debug-info=build/symbols/split \
-            --build-name="$RELEASE_VERSION" \
-            --build-number="$RELEASE_BUILD_NUMBER"
-
+            --build-name="$RELEASE_VERSION" --build-number="$RELEASE_BUILD_NUMBER"
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" \
-              "release-assets/PlanAct-${GITHUB_REF_NAME}-${abi}.apk"
+            cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" "release-assets/PlanAct-${RELEASE_TAG}-${abi}.apk"
           done
 
-      - name: Validate APKs and create checksums
+      - name: Verify signed APKs and create checksums
         shell: bash
-        env:
-          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
         run: |
           set -euo pipefail
-          expected_package="com.iarash.planact"
-          certificate_digest=""
-
+          certificate_digest=''
           while IFS=' ' read -r variant abi; do
-            apk="release-assets/PlanAct-${GITHUB_REF_NAME}-${variant}.apk"
             digest="$(bash .github/scripts/validate_android_release.sh \
-              "$apk" "$abi" "$expected_package" "$RELEASE_VERSION" "$RELEASE_BUILD_NUMBER" \
+              "release-assets/PlanAct-${RELEASE_TAG}-${variant}.apk" "$abi" \
+              com.iarash.planact "$RELEASE_VERSION" "$RELEASE_BUILD_NUMBER" \
               "$ANDROID_SIGNING_CERT_SHA256")"
-            if [[ -z "$certificate_digest" ]]; then
-              certificate_digest="$digest"
-            elif [[ "$certificate_digest" != "$digest" ]]; then
-              echo "APK signing certificates do not match." >&2
-              exit 1
-            fi
+            if [[ -z "$certificate_digest" ]]; then certificate_digest="$digest"; elif [[ "$certificate_digest" != "$digest" ]]; then exit 1; fi
           done <<'EOF'
           universal all
           arm64-v8a arm64-v8a
           armeabi-v7a armeabi-v7a
           x86_64 x86_64
           EOF
-
           printf '%s\n' "$certificate_digest" > release-assets/SIGNING-CERTIFICATE-SHA256.txt
-          (
-            cd release-assets
-            sha256sum ./*.apk > SHA256SUMS.txt
-          )
+          (cd release-assets && sha256sum ./*.apk > SHA256SUMS.txt)
 
-      - name: Prepare encrypted symbol archive
+      - name: Encrypt obfuscation symbols
         shell: bash
         env:
           SYMBOLS_ENCRYPTION_PASSPHRASE: ${{ secrets.SYMBOLS_ENCRYPTION_PASSPHRASE }}
         run: |
           set -euo pipefail
-          if [[ -z "$SYMBOLS_ENCRYPTION_PASSPHRASE" ]]; then
-            echo "Missing GitHub secret SYMBOLS_ENCRYPTION_PASSPHRASE for protected symbol storage." >&2
-            exit 1
-          fi
-
+          [[ -n "$SYMBOLS_ENCRYPTION_PASSPHRASE" ]] || { echo 'Missing SYMBOLS_ENCRYPTION_PASSPHRASE.' >&2; exit 1; }
           for variant in universal split; do
-            if [[ ! -d "build/symbols/$variant" ]] || \
-              ! find "build/symbols/$variant" -type f -size +0c -print -quit | grep -q .; then
-              echo "Obfuscation symbols are missing for $variant." >&2
-              exit 1
-            fi
+            find "build/symbols/$variant" -type f -size +0c -print -quit | grep -q .
           done
-
-          archive="$RUNNER_TEMP/PlanAct-${GITHUB_REF_NAME}-symbols.tar.gz"
-          encrypted="$archive.gpg"
+          archive="$RUNNER_TEMP/PlanAct-${RELEASE_TAG}-symbols.tar.gz"
           passphrase_file="$RUNNER_TEMP/planact-symbols-passphrase"
           umask 077
           tar -czf "$archive" -C build/symbols universal split
           printf '%s' "$SYMBOLS_ENCRYPTION_PASSPHRASE" > "$passphrase_file"
-          gpg --batch --yes --pinentry-mode loopback \
-            --passphrase-file "$passphrase_file" \
-            --symmetric --cipher-algo AES256 \
-            --output "$encrypted" "$archive"
+          gpg --batch --yes --pinentry-mode loopback --passphrase-file "$passphrase_file" --symmetric --cipher-algo AES256 --output "$archive.gpg" "$archive"
           rm -f "$passphrase_file" "$archive"
 
-      - name: Upload encrypted obfuscation symbols
+      - name: Upload encrypted symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlanAct-${{ github.ref_name }}-symbols-encrypted
-          path: ${{ runner.temp }}/PlanAct-${{ github.ref_name }}-symbols.tar.gz.gpg
+          name: PlanAct-${{ env.RELEASE_TAG }}-symbols-encrypted
+          path: ${{ runner.temp }}/PlanAct-${{ env.RELEASE_TAG }}-symbols.tar.gz.gpg
           if-no-files-found: error
           retention-days: 90
-          overwrite: true
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          body: |
-            Android APK downloads:
-            - Universal: recommended for most users; no ABI selection required.
-            - arm64-v8a: most current Android phones.
-            - armeabi-v7a: older 32-bit ARM devices.
-            - x86_64: primarily emulators and specialized x86 devices.
-
-            Verify downloads with `SHA256SUMS.txt`. Obfuscation symbols are not included in this release.
-          files: |
-            release-assets/*.apk
-            release-assets/SHA256SUMS.txt
-            release-assets/SIGNING-CERTIFICATE-SHA256.txt
+      - name: Create tag and GitHub Release after successful build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" \
+            --target master \
+            --generate-notes \
+            --title "PlanAct $RELEASE_TAG" \
+            --notes "Android APKs are signed, verified, and accompanied by SHA256SUMS.txt." \
+            release-assets/*.apk release-assets/SHA256SUMS.txt release-assets/SIGNING-CERTIFICATE-SHA256.txt
