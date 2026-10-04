@@ -93,4 +93,21 @@ void main() {
       expect(adapter.cancelled.length, 1);
     },
   );
+
+  test('reconcile persists cancellation for disabled reminders', () async {
+    final disabledRule = ReminderRule.atOccurrence(
+      occurrenceId: occurrenceId,
+    ).disable();
+    final stale = await service.schedule(
+      rule: disabledRule,
+      occurrenceStart: DateTime.utc(2026, 1, 10, 18),
+    );
+
+    await service.reconcile(now: DateTime.utc(2026, 1, 9));
+
+    final persisted = (await repository.listInstances()).single;
+    expect(persisted.id, stale.id);
+    expect(persisted.status, ReminderInstanceStatus.cancelled);
+    expect(adapter.cancelled, [stale.id]);
+  });
 }

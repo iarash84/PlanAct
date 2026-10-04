@@ -93,6 +93,8 @@ class ReminderService {
       if (!enabledRuleIds.contains(instance.ruleId) ||
           !active ||
           instance.scheduledAt.isBefore(now)) {
+        final persisted = instance.cancel();
+        await repository.saveInstance(persisted);
         await platform.cancel(instance);
       } else {
         await platform.schedule(instance);
