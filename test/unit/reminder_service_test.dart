@@ -110,4 +110,21 @@ void main() {
     expect(persisted.status, ReminderInstanceStatus.cancelled);
     expect(adapter.cancelled, [stale.id]);
   });
+
+  test('cancelling a snoozed reminder clears the snooze timestamp', () async {
+    final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
+    final scheduled = await service.schedule(
+      rule: rule,
+      occurrenceStart: DateTime.utc(2026, 1, 10, 18),
+    );
+    final snoozed = await service.snooze(
+      scheduled,
+      DateTime.utc(2026, 1, 11, 9),
+    );
+
+    final cancelled = snoozed.cancel();
+
+    expect(cancelled.status, ReminderInstanceStatus.cancelled);
+    expect(cancelled.snoozedUntil, isNull);
+  });
 }

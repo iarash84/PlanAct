@@ -123,10 +123,10 @@ class ReminderInstance {
   final String? platformNotificationId;
 
   ReminderInstance cancel() =>
-      _copyWith(status: ReminderInstanceStatus.cancelled);
+      _copyWith(status: ReminderInstanceStatus.cancelled, snoozedUntil: null);
 
   ReminderInstance deliver() =>
-      _copyWith(status: ReminderInstanceStatus.delivered);
+      _copyWith(status: ReminderInstanceStatus.delivered, snoozedUntil: null);
 
   ReminderInstance snoozeUntil(DateTime instant) => _copyWith(
     status: ReminderInstanceStatus.snoozed,
