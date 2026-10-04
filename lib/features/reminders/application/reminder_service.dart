@@ -90,9 +90,12 @@ class ReminderService {
       final active =
           instance.status == ReminderInstanceStatus.scheduled ||
           instance.status == ReminderInstanceStatus.snoozed;
+      final effectiveAt = instance.status == ReminderInstanceStatus.snoozed
+          ? instance.snoozedUntil ?? instance.scheduledAt
+          : instance.scheduledAt;
       if (!enabledRuleIds.contains(instance.ruleId) ||
           !active ||
-          instance.scheduledAt.isBefore(now)) {
+          !effectiveAt.isAfter(now)) {
         final persisted = instance.cancel();
         await repository.saveInstance(persisted);
         await platform.cancel(instance);

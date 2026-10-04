@@ -111,6 +111,25 @@ void main() {
     expect(adapter.cancelled, [stale.id]);
   });
 
+  test('reconcile keeps future snoozed reminders active', () async {
+    final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
+    final scheduled = await service.schedule(
+      rule: rule,
+      occurrenceStart: DateTime.utc(2026, 1, 10, 18),
+    );
+    final snoozed = await service.snooze(
+      scheduled,
+      DateTime.utc(2026, 1, 11, 9),
+    );
+
+    adapter.scheduled.clear();
+    adapter.cancelled.clear();
+    await service.reconcile(now: DateTime.utc(2026, 1, 10, 20));
+
+    expect(adapter.scheduled, [snoozed.id]);
+    expect(adapter.cancelled, isEmpty);
+  });
+
   test('cancelling a snoozed reminder clears the snooze timestamp', () async {
     final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
     final scheduled = await service.schedule(
