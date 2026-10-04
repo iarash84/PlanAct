@@ -32,17 +32,17 @@ void main() {
   });
 
   test('free absence quota is consumed only after quota is exhausted', () {
-    final free = policy.resolve(
-      outcome: SessionOutcome.absent,
-      absenceCount: 1,
-    );
-    final charged = policy.resolve(
+    final withinQuota = policy.resolve(
       outcome: SessionOutcome.absent,
       absenceCount: 2,
     );
+    final charged = policy.resolve(
+      outcome: SessionOutcome.absent,
+      absenceCount: 3,
+    );
 
-    expect(free.consumesEntitlement, isFalse);
-    expect(free.absenceQuotaUsed, isTrue);
+    expect(withinQuota.consumesEntitlement, isFalse);
+    expect(withinQuota.absenceQuotaUsed, isTrue);
     expect(charged.consumesEntitlement, isTrue);
   });
 

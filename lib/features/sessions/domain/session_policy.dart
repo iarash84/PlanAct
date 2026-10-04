@@ -55,7 +55,7 @@ class SessionPolicy {
       SessionOutcome.lateCancelled => lateCancellationConsumes,
       SessionOutcome.noShow => noShowConsumes,
       SessionOutcome.holiday => holidayConsumes,
-      SessionOutcome.absent => absenceCount >= freeAbsenceQuota,
+      SessionOutcome.absent => absenceCount > freeAbsenceQuota,
       SessionOutcome.makeup => true,
     };
     final requiresMakeup = switch (outcome) {

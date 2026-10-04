@@ -89,7 +89,7 @@ void main() {
       }
     }
 
-    expect(const EntitlementLedger().remaining(entries), 8);
+    expect(const EntitlementLedger().remaining(entries), 9);
   });
 
   test('freeze creates a replacement and leaves the original audit trail', () {
