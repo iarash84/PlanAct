@@ -1,16 +1,5 @@
-group 'com.mr.flutter.plugin.filepicker'
-version '1.0-SNAPSHOT'
-
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-    }
-}
+group = 'com.mr.flutter.plugin.filepicker'
+version = '1.0-SNAPSHOT'
 
 rootProject.allprojects {
     repositories {
@@ -28,7 +17,7 @@ android {
         minSdk 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    lintOptions {
+    lint {
         disable 'InvalidPackage'
     }
     
@@ -39,6 +28,6 @@ android {
     }
 
     if (project.android.hasProperty("namespace")) {
-        namespace 'com.mr.flutter.plugin.filepicker' 
+        namespace = 'com.mr.flutter.plugin.filepicker'
     }
 }
