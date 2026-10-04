@@ -119,7 +119,7 @@ class OccurrenceGenerator {
         break;
       }
       if (_matches(schedule, date)) {
-        final key = '${schedule.id.value}:${date.year}-${date.month}-$index';
+        final key = '${schedule.id.value}:${date.year}-${date.month}-${date.day}';
         final previous = existingByKey[key];
         generated.add(
           previous ??

@@ -459,12 +459,10 @@ class AppDatabase extends _$AppDatabase {
           'ON match_allocations(match_id)',
         );
       }
-      if (from < 16) {
-        await customStatement(
-          'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
-        );
-      }
-      if (from < 15) {
+      // The schema-15 tag tables must be repaired for any database still at v15 or
+      // older so the 15→16 upgrade does not silently skip a partially migrated tag
+      // setup.
+      if (from <= 15) {
         await customStatement(
           'CREATE TABLE IF NOT EXISTS tags ('
           'id TEXT NOT NULL PRIMARY KEY, '
@@ -522,6 +520,11 @@ class AppDatabase extends _$AppDatabase {
             );
           }
         }
+      }
+      if (from < 16) {
+        await customStatement(
+          'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
+        );
       }
       await _writeSchemaMetadata();
     },
