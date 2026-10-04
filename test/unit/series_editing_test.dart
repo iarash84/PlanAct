@@ -53,7 +53,7 @@ void main() {
     expect(result.newSchedule?.effectiveFrom, LocalDate(2026, 1, 2));
   });
 
-  test('entire active cycle does not mutate historical occurrences', () {
+  test('entire active cycle preserves the relative spacing of future occurrences', () {
     final completed = occurrences.first.withStatus(OccurrenceStatus.completed);
     final result = const SeriesEditor().editOccurrence(
       schedule: schedule,
@@ -64,6 +64,10 @@ void main() {
     );
 
     expect(result.occurrences, hasLength(2));
+    expect(
+      result.occurrences!.map((item) => item.currentScheduledAt).toList(),
+      [LocalDate(2026, 1, 20), LocalDate(2026, 1, 21)],
+    );
     expect(result.occurrences!.every((item) => item.isManualOverride), isTrue);
     expect(completed.currentScheduledAt, LocalDate(2026, 1, 1));
   });

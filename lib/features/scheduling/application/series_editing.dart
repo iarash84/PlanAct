@@ -42,15 +42,24 @@ class SeriesEditor {
         );
         return SeriesEditResult(newSchedule: newSchedule);
       case SeriesEditScope.entireActiveCycle:
-        final historical = occurrences.where(
-          (item) =>
-              item.status == OccurrenceStatus.completed ||
-              item.status == OccurrenceStatus.cancelled ||
-              item.status == OccurrenceStatus.skipped,
-        );
+        final historical = {
+          OccurrenceStatus.completed,
+          OccurrenceStatus.cancelled,
+          OccurrenceStatus.skipped,
+        };
+        final anchor = _localDateOf(occurrence.currentScheduledAt);
+        final target = _localDateOf(newScheduledAt);
+        final deltaDays = target
+            .toUtcDateForCalculation()
+            .difference(anchor.toUtcDateForCalculation())
+            .inDays;
+
         final future = occurrences
-            .where((item) => !historical.contains(item))
-            .map((item) => item.reschedule(newScheduledAt))
+            .where((item) => !historical.contains(item.status))
+            .map((item) {
+              final current = _localDateOf(item.currentScheduledAt);
+              return item.reschedule(current.addDays(deltaDays));
+            })
             .toList(growable: false);
         return SeriesEditResult(occurrences: future);
     }
