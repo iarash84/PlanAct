@@ -176,8 +176,14 @@ bash tool/ci.sh
 
 انتشار از GitHub Actions و به‌صورت دستی از `master` انجام می‌شود؛ پس از موفقیت validation و ساخت artifact امضاشده، tag و GitHub Release ساخته می‌شوند. tag را دستی ایجاد و push نکنید. کلید خصوصی signing نباید در repository قرار بگیرد.
 
-## مجوز و انتشار
+## مجوز / License
 
-جزئیات مجوز، مدل تجاری و شرایط انتشار در مرحله انتشار رسمی محصول اعلام خواهد شد.
+PlanAct به‌صورت Source-Available / Non-Commercial منتشر می‌شود. کد منبع به‌صورت عمومی در دسترس است و افراد می‌توانند برای اهداف مجاز غیرتجاری، کد را بررسی، مطالعه، تغییر، فورک و استفاده کنند. استفاده شخصی، آموزشی، پژوهشی و پروژه‌های سرگرمی‌محور در محدوده مجوز مجاز است، اما استفاده تجاری، توزیع تجاری، فروش نسخه اصلی یا نسخه‌های تغییر یافته، یا استفاده در محصول یا سرویس تجاری بدون مجوز جداگانه از مالک حق نشر ممنوع است.
+
+PlanAct is source-available software distributed under the PolyForm Noncommercial License 1.0.0. The source code is publicly available so people may inspect, study, modify, fork, and use it for permitted non-commercial purposes. Personal, educational, research, and hobby use is allowed where permitted by the license, but commercial use, commercial distribution, sale of the software or modified versions, or incorporation into a commercial product or service requires separate permission from the copyright holder.
+
+متن کامل و authoritative مجوز رسمی در فایل `LICENSE` قرار دارد. The complete authoritative legal text is available in the `LICENSE` file.
+
+نام رسمی مجوز در مستندات پروژه به‌صورت `PolyForm Noncommercial License 1.0.0` حفظ می‌شود. The official license name is preserved as `PolyForm Noncommercial License 1.0.0`.
 
 </div>
