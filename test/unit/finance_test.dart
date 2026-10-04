@@ -20,6 +20,25 @@ void main() {
   );
   final repository = InMemoryFinanceRepository();
 
+  test('detects Iranian bank from account name and keeps a stable code', () {
+    expect(IranianBank.detect('حساب بانک ملت'), IranianBank.mellat);
+    expect(IranianBank.fromCode('mellat'), IranianBank.mellat);
+    expect(IranianBank.detect('حساب شخصی'), isNull);
+  });
+
+  test('stores the selected bank on a financial account', () {
+    final selected = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 1, 5)),
+      name: 'حساب بانک ملی',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+      bank: IranianBank.melli,
+    );
+
+    expect(selected.bank, IranianBank.melli);
+    expect(selected.bank!.code, 'melli');
+  });
+
   test('creates an opening balance as a ledger entry', () async {
     final useCases = FinanceUseCases(InMemoryFinanceRepository());
     final account = FinancialAccount(

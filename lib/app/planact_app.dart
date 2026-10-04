@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/app_lock.dart';
+import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -21,12 +23,19 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/settings/presentation/about_page.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
+import 'package:planact/features/scheduling/application/occurrence_actions.dart';
+import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
+import 'package:planact/features/commitments/application/commitment_draft.dart';
+import 'package:planact/features/sessions/data/drift_session_repositories.dart';
+import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
+import 'package:planact/core/money/money.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({super.key, this.repository, this.planRepository});
@@ -41,6 +50,10 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
+  bool _appLockEnabled = false;
+  late final AppLockController _appLockController = AppLockController(
+    authenticator: LocalAppAuthenticator(),
+  );
 
   @override
   void initState() {
@@ -51,7 +64,21 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
+      _settings!.readAppLockEnabled().then((enabled) {
+        if (mounted) setState(() => _appLockEnabled = enabled);
+      });
     }
+  }
+
+  Future<void> _setAppLock(bool enabled) async {
+    if (enabled) {
+      final enabledAfterAuth = await _appLockController.enable();
+      if (!enabledAfterAuth) return;
+    } else {
+      _appLockController.disable();
+    }
+    await _settings?.writeAppLockEnabled(enabled);
+    if (mounted) setState(() => _appLockEnabled = enabled);
   }
 
   @override
@@ -66,15 +93,22 @@ class _PlanActAppState extends State<PlanActApp> {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: HomeShell(
-        repository: widget.repository,
-        planRepository: widget.planRepository,
-        settings: _settings,
-        themeMode: _themeMode,
-        onThemeModeChanged: (mode) async {
-          setState(() => _themeMode = mode);
-          await _settings?.writeThemeMode(mode);
-        },
+      home: AppLockGate(
+        enabled: _appLockEnabled,
+        controller: _appLockController,
+        child: HomeShell(
+          repository: widget.repository,
+          planRepository: widget.planRepository,
+          settings: _settings,
+          themeMode: _themeMode,
+          appLockEnabled: _appLockEnabled,
+          appLockController: _appLockController,
+          onAppLockChanged: _setAppLock,
+          onThemeModeChanged: (mode) async {
+            setState(() => _themeMode = mode);
+            await _settings?.writeThemeMode(mode);
+          },
+        ),
       ),
     );
   }
@@ -87,15 +121,22 @@ class HomeShell extends StatefulWidget {
     this.planRepository,
     this.settings,
     this.themeMode = ThemeMode.system,
+    this.appLockEnabled = false,
+    this.appLockController,
+    this.onAppLockChanged = _ignoreAppLockChange,
     this.onThemeModeChanged = _ignoreThemeChange,
   });
 
   static void _ignoreThemeChange(ThemeMode _) {}
+  static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
   final ThemeMode themeMode;
+  final bool appLockEnabled;
+  final AppLockController? appLockController;
+  final Future<void> Function(bool enabled) onAppLockChanged;
   final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
@@ -111,11 +152,19 @@ class _HomeShellState extends State<HomeShell> {
       (_repository is DriftCommitmentRepository
           ? DriftCommitmentPlanRepository(_repository.database)
           : InMemoryCommitmentPlanRepository());
+  late final EntitlementPlanRepository? _entitlementRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftEntitlementPlanRepository(_repository.database)
+      : null;
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
+    entitlements: _entitlementRepository,
+    financialExpectations: _expectationUseCases,
   );
   int _selectedIndex = 0;
+  final GlobalKey<FinancePageState> _financePageKey =
+      GlobalKey<FinancePageState>();
   late final FinanceRepository _financeRepository =
       _repository is DriftCommitmentRepository
       ? DriftFinanceRepository(_repository.database)
@@ -124,11 +173,14 @@ class _HomeShellState extends State<HomeShell> {
   final Map<String, List<DateTime>> _scheduledDates = {};
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
+  String? _todayError;
   final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
       ? DriftFinancialExpectationRepository(_repository.database)
       : InMemoryFinancialExpectationRepository();
+  late final FinancialExpectationUseCases _expectationUseCases =
+      FinancialExpectationUseCases(_expectationRepository);
 
   late final InboxUseCases _inboxUseCases = InboxUseCases(
     _repository is DriftCommitmentRepository
@@ -143,54 +195,62 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _refresh() async {
-    final items = await _repository.list();
-    final schedules = <String, List<DateTime>>{};
-    final plans = <StableId, List<Occurrence>>{};
-    for (final item in items) {
-      final plan = await _planRepository.findByCommitmentId(item.id);
-      if (plan == null) continue;
-      plans[item.id] = plan.occurrences;
-      schedules[item.id.value] = [
-        for (final occurrence in plan.occurrences)
-          if (occurrence.currentScheduledAt is DateTime)
-            occurrence.currentScheduledAt as DateTime,
-      ];
-    }
-    final expectations = await _expectationRepository.listExpectations();
-    final matches = await _expectationRepository.listMatches();
-    final accounts = await _financeRepository.listAccounts();
-    final entries = await _financeRepository.listEntries();
-    final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
-    final now = DateTime.now();
-    final dashboard = _attentionEngine.build(
-      now: now,
-      commitments: items,
-      plans: plans,
-      expectations: expectations,
-      matches: matches,
-      inboxSuggestions: inboxSuggestions,
-      entries: entries,
-      accounts: accounts,
-    );
-    final actionCenter = _attentionEngine.buildActionCenter(
-      now: now,
-      commitments: items,
-      plans: plans,
-      expectations: expectations,
-      matches: matches,
-      inboxSuggestions: inboxSuggestions,
-      entries: entries,
-      accounts: accounts,
-    );
-    if (mounted) {
-      setState(() {
-        _commitments = items;
-        _scheduledDates
-          ..clear()
-          ..addAll(schedules);
-        _todayDashboard = dashboard;
-        _todayActionCenter = actionCenter;
-      });
+    try {
+      final items = await _repository.list();
+      final schedules = <String, List<DateTime>>{};
+      final plans = <StableId, List<Occurrence>>{};
+      for (final item in items) {
+        final plan = await _planRepository.findByCommitmentId(item.id);
+        if (plan == null) continue;
+        plans[item.id] = plan.occurrences;
+        schedules[item.id.value] = [
+          for (final occurrence in plan.occurrences)
+            if (occurrence.currentScheduledAt is DateTime)
+              occurrence.currentScheduledAt as DateTime,
+        ];
+      }
+      final expectations = await _expectationRepository.listExpectations();
+      final matches = await _expectationRepository.listMatches();
+      final accounts = await _financeRepository.listAccounts();
+      final entries = await _financeRepository.listEntries();
+      final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+      final dashboard = _attentionEngine.build(
+        now: DateTime.now(),
+        commitments: items,
+        plans: plans,
+        expectations: expectations,
+        matches: matches,
+        inboxSuggestions: inboxSuggestions,
+        entries: entries,
+        accounts: accounts,
+      );
+      final actionCenter = _attentionEngine.buildActionCenter(
+        now: DateTime.now(),
+        commitments: items,
+        plans: plans,
+        expectations: expectations,
+        matches: matches,
+        inboxSuggestions: inboxSuggestions,
+        entries: entries,
+        accounts: accounts,
+      );
+      if (mounted) {
+        setState(() {
+          _commitments = items;
+          _scheduledDates
+            ..clear()
+            ..addAll(schedules);
+          _todayDashboard = dashboard;
+          _todayActionCenter = actionCenter;
+          _todayError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _todayError = 'بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.',
+        );
+      }
     }
   }
 
@@ -217,7 +277,13 @@ class _HomeShellState extends State<HomeShell> {
         frequency: draft.frequency,
         weekdays: draft.weekdays,
         occurrenceCount: draft.occurrenceCount,
+        endDate: draft.endDate,
         reminderOffsets: draft.reminderOffsets,
+        entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
+            ? draft.entitlementUnits
+            : null,
+        financialDirection: draft.financialMeaning.expectationDirection,
+        financialAmount: draft.financialAmount,
       );
       await _refresh();
     } catch (_) {
@@ -233,6 +299,118 @@ class _HomeShellState extends State<HomeShell> {
 
   void _hideSnackBar() {
     if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  }
+
+  void _showMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _showQuickAdd() async {
+    final action = await QuickAddSheet.show(context);
+    if (!mounted || action == null) return;
+    switch (action) {
+      case QuickAddAction.commitment:
+        await _showCapture();
+      case QuickAddAction.expense:
+      case QuickAddAction.income:
+        await _showQuickFinancialEntry(income: action == QuickAddAction.income);
+      case QuickAddAction.transfer:
+        await _showQuickTransfer();
+    }
+  }
+
+  Future<void> _showQuickFinancialEntry({required bool income}) async {
+    final accounts = await _financeRepository.listAccounts();
+    if (!mounted) return;
+    if (accounts.isEmpty) {
+      _showMessage('ابتدا یک حساب اضافه کنید.');
+      _goToFinance();
+      return;
+    }
+    final result = await showModalBottomSheet<QuickFinancialEntry>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) =>
+          QuickFinancialEntrySheet(accounts: accounts, income: income),
+    );
+    if (!mounted || result == null) return;
+    if (result.moreOptions) {
+      _goToFinance();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _financePageKey.currentState?.openTransactionForm(income: income);
+        }
+      });
+      return;
+    }
+    try {
+      await FinanceUseCases(_financeRepository).record(
+        account: result.account!,
+        type: result.income
+            ? AccountEntryType.income
+            : AccountEntryType.expense,
+        amount: Money(
+          minorUnits: result.amount,
+          currency: result.account!.currency,
+        ),
+        occurredAt: DateTime.now(),
+        note: result.note,
+        category: result.income ? 'دریافت' : 'عمومی',
+      );
+      await _refresh();
+      if (mounted) {
+        _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
+      }
+    } catch (_) {
+      if (mounted) _showMessage('ثبت انجام نشد؛ دوباره تلاش کنید.');
+    }
+  }
+
+  Future<void> _showQuickTransfer() async {
+    final accounts = await _financeRepository.listAccounts();
+    if (!mounted) return;
+    if (accounts.length < 2) {
+      _showMessage('برای انتقال، دست‌کم دو حساب فعال لازم است.');
+      _goToFinance();
+      return;
+    }
+    final result = await showModalBottomSheet<QuickTransfer>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => QuickTransferSheet(accounts: accounts),
+    );
+    if (!mounted || result == null) return;
+    try {
+      await FinanceUseCases(_financeRepository).transfer(
+        from: result.from,
+        to: result.to,
+        amount: Money(
+          minorUnits: result.amount,
+          currency: result.from.currency,
+        ),
+        occurredAt: DateTime.now(),
+      );
+      await _refresh();
+      if (mounted) _showMessage('انتقال ثبت شد.');
+    } catch (_) {
+      if (mounted) _showMessage('ثبت انتقال انجام نشد؛ دوباره تلاش کنید.');
+    }
+  }
+
+  void _goToFinance() {
+    setState(() => _selectedIndex = 2);
+    _pageController.animateToPage(
+      2,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
@@ -320,6 +498,21 @@ class _HomeShellState extends State<HomeShell> {
                           repository: _repository,
                           planRepository: _planRepository,
                           expectationRepository: _expectationRepository,
+                          occurrenceExecutor: PersistedOccurrenceActionExecutor(
+                            plans: _planRepository,
+                            replacements:
+                                _repository is DriftCommitmentRepository
+                                ? DriftReplacementRepository(
+                                    _repository.database,
+                                  )
+                                : null,
+                            policyRepository:
+                                _repository is DriftCommitmentRepository
+                                ? DriftSessionPolicyRepository(
+                                    _repository.database,
+                                  )
+                                : null,
+                          ),
                           onSaved: _refresh,
                         ),
                       ),
@@ -479,7 +672,6 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   @override
-  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -493,17 +685,19 @@ class _HomeShellState extends State<HomeShell> {
         scheduledDates: _scheduledDates,
         dashboard: _todayDashboard,
         actionCenter: _todayActionCenter,
+        error: _todayError,
+        onRetry: _refresh,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
         onReview: (item) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text('این مورد نیازمند بررسی است: ${item.title}'),
-              ),
-            );
+          final page = item.type == TodayActionItemType.financialReview ? 2 : 3;
+          setState(() => _selectedIndex = page);
+          _pageController.animateToPage(
+            page,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
         },
       ),
       CalendarPage(
@@ -512,15 +706,25 @@ class _HomeShellState extends State<HomeShell> {
         onCommitmentTap: _showCommitmentDetails,
       ),
       FinancePage(
+        key: _financePageKey,
         repository: _financeRepository,
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
-        inbox: InboxPage(inbox: _inboxUseCases, finance: _financeRepository),
+        inbox: InboxPage(
+          inbox: _inboxUseCases,
+          finance: _financeRepository,
+          smsSource: AndroidSmsSource(),
+        ),
         settings: SettingsPage(
           settings: widget.settings,
           themeMode: widget.themeMode,
+          appLockEnabled: widget.appLockEnabled,
+          appLockController: widget.appLockController,
+          onAppLockChanged: widget.onAppLockChanged,
           onThemeModeChanged: widget.onThemeModeChanged,
+          onAbout: () => Navigator.of(context)
+              .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
         ),
       ),
     ];
@@ -589,13 +793,11 @@ class _HomeShellState extends State<HomeShell> {
           children: pages,
         ),
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              tooltip: 'افزودن تعهد',
-              onPressed: _showCapture,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'افزودن سریع',
+        onPressed: _showQuickAdd,
+        child: const Icon(Icons.add),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
@@ -638,12 +840,14 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.repository,
     required this.planRepository,
     required this.expectationRepository,
+    required this.occurrenceExecutor,
     required this.onSaved,
   });
   final Commitment commitment;
   final CommitmentRepository repository;
   final CommitmentPlanRepository planRepository;
   final FinancialExpectationRepository expectationRepository;
+  final OccurrenceActionExecutor occurrenceExecutor;
   final Future<void> Function() onSaved;
   @override
   State<CommitmentDetailsPage> createState() => _CommitmentDetailsPageState();
@@ -779,12 +983,18 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             builder: (context, snapshot) {
               final occurrences = snapshot.data?.occurrences ?? const [];
               if (occurrences.isEmpty) return const SizedBox.shrink();
-              final useCases = FinancialExpectationUseCases(
-                widget.expectationRepository,
-              );
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text('نوبت‌ها'),
+                  const SizedBox(height: 8),
+                  for (final occurrence in occurrences)
+                    OccurrenceActionRow(
+                      occurrence: occurrence,
+                      executor: widget.occurrenceExecutor,
+                      onChanged: widget.onSaved,
+                    ),
+                  const SizedBox(height: 16),
                   const Text('انتظار مالی نوبت‌ها'),
                   const SizedBox(height: 8),
                   const Text(
@@ -794,7 +1004,9 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                   for (final occurrence in occurrences)
                     _FinancialExpectationOccurrenceRow(
                       occurrence: occurrence,
-                      useCases: useCases,
+                      useCases: FinancialExpectationUseCases(
+                        widget.expectationRepository,
+                      ),
                     ),
                 ],
               );
@@ -905,33 +1117,32 @@ class _MorePage extends StatefulWidget {
   State<_MorePage> createState() => _MorePageState();
 }
 
-class _MorePageState extends State<_MorePage> {
-  Widget? _child;
-  String? _title;
+enum _MoreChild { inbox, settings }
 
-  void _open(String title, Widget child) {
-    setState(() {
-      _title = title;
-      _child = child;
-    });
+class _MorePageState extends State<_MorePage> {
+  _MoreChild? _child;
+
+  void _open(_MoreChild child) {
+    setState(() => _child = child);
   }
 
   @override
   Widget build(BuildContext context) {
     final child = _child;
     if (child != null) {
+      final (title, page) = switch (child) {
+        _MoreChild.inbox => ('صندوق ورودی', widget.inbox),
+        _MoreChild.settings => ('تنظیمات', widget.settings),
+      };
       return Column(
         children: [
           ListTile(
             leading: const Icon(Icons.arrow_back),
-            title: Text(_title!),
-            onTap: () => setState(() {
-              _child = null;
-              _title = null;
-            }),
+            title: Text(title),
+            onTap: () => setState(() => _child = null),
           ),
           const Divider(height: 1),
-          Expanded(child: child),
+          Expanded(child: page),
         ],
       );
     }
@@ -945,7 +1156,7 @@ class _MorePageState extends State<_MorePage> {
             title: const Text('صندوق ورودی'),
             subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
             trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open('صندوق ورودی', widget.inbox),
+            onTap: () => _open(_MoreChild.inbox),
           ),
         ),
         Card(
@@ -954,7 +1165,7 @@ class _MorePageState extends State<_MorePage> {
             title: const Text('تنظیمات'),
             subtitle: const Text('تنظیمات عمومی برنامه'),
             trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open('تنظیمات', widget.settings),
+            onTap: () => _open(_MoreChild.settings),
           ),
         ),
       ],
