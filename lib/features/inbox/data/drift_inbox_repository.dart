@@ -47,7 +47,7 @@ class DriftInboxRepository
         );
       }
       if (imports.any((item) => item.fingerprint == staged.fingerprint)) {
-        throw const ValidationError('This source item was already imported');
+        throw const DuplicateSmsImport();
       }
       await saveImport(staged);
       await saveSuggestion(suggestion);
@@ -242,23 +242,34 @@ class DriftInboxRepository
       });
 
   @override
-  Future<void> saveSuggestion(InboxSuggestion suggestion) =>
-      CommandGate.runFor(this, () async {
-        await database
-            .into(database.inboxSuggestions)
-            .insertOnConflictUpdate(
-              db.InboxSuggestionsCompanion(
-                id: Value(suggestion.id.value),
-                stagedImportId: Value(suggestion.stagedImportId.value),
-                draftId: Value(suggestion.draft.id.value),
-                minorUnits: Value(suggestion.draft.amount.minorUnits),
-                currency: Value(suggestion.draft.amount.currency),
-                occurredAt: Value(suggestion.draft.occurredAt.toUtc()),
-                type: Value(suggestion.draft.type),
-                merchant: Value(suggestion.draft.merchant),
-                reference: Value(suggestion.draft.reference),
-                status: Value(suggestion.status.index),
-              ),
-            );
-      });
+  Future<void> saveSuggestion(InboxSuggestion suggestion) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final stored =
+          await (database.select(database.inboxSuggestions)
+                ..where((table) => table.id.equals(suggestion.id.value)))
+              .getSingleOrNull();
+      if (stored != null &&
+          (stored.status == SuggestionStatus.confirmed.index ||
+              stored.status == SuggestionStatus.rejected.index)) {
+        throw const ValidationError('پیشنهاد بررسی‌شده قابل بازنویسی نیست.');
+      }
+      await database
+          .into(database.inboxSuggestions)
+          .insertOnConflictUpdate(
+            db.InboxSuggestionsCompanion(
+              id: Value(suggestion.id.value),
+              stagedImportId: Value(suggestion.stagedImportId.value),
+              draftId: Value(suggestion.draft.id.value),
+              minorUnits: Value(suggestion.draft.amount.minorUnits),
+              currency: Value(suggestion.draft.amount.currency),
+              occurredAt: Value(suggestion.draft.occurredAt.toUtc()),
+              type: Value(suggestion.draft.type),
+              merchant: Value(suggestion.draft.merchant),
+              reference: Value(suggestion.draft.reference),
+              status: Value(suggestion.status.index),
+            ),
+          );
+    }),
+  );
 }

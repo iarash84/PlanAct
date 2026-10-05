@@ -869,6 +869,8 @@ Implementation checkpoint (2026-10-05): reminders remain **partial**, not releas
 
 - staged imports
 - SMS adapter
+
+> Implementation checkpoint (2026-10-05): Priority 3 remains partial. Inbox provider rescans, receipt-time handling, ingestion feedback, and resolved-suggestion protection are implemented and validated by 256 passing tests and an isolated Android build. Background ingestion, pagination, native permission/replay evidence, and complete parser/account-selection journeys remain open. See [SMS verification](../SMS_VERIFICATION.md).
 - duplicate detection
 - user confirmation
 

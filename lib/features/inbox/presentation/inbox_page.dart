@@ -8,6 +8,7 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
+import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
@@ -33,7 +34,10 @@ class InboxPage extends StatefulWidget {
   State<InboxPage> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPage> {
+class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
+  StreamSubscription<AndroidSmsMessage>? _smsSubscription;
+  bool _reloading = false;
+  bool _reloadRequested = false;
   static const _logger = AppLogger();
   static const _projection = InboxReviewProjection();
   List<InboxReviewItem> _items = const [];
@@ -47,10 +51,44 @@ class _InboxPageState extends State<InboxPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _smsSubscription = widget.smsSource?.messages.listen(
+      (_) async {
+        // The broadcast may precede insertion by the default SMS application.
+        // Import only provider rows; never create a second broadcast identity.
+        await Future<void>.delayed(const Duration(seconds: 2));
+        if (mounted) await _reload();
+      },
+      onError: (Object error) {
+        if (mounted) {
+          setState(
+            () => _smsError =
+                'دریافت پیامک قطع شد؛ برای همگام‌سازی دوباره تلاش کنید.',
+          );
+        }
+      },
+    );
     _reload();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_working) _reload();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _smsSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _reload() async {
+    if (_reloading) {
+      _reloadRequested = true;
+      return;
+    }
+    _reloading = true;
     if (mounted) setState(() => _loading = true);
     try {
       await _syncSms();
@@ -81,6 +119,12 @@ class _InboxPageState extends State<InboxPage> {
         _error = 'بارگذاری صف بررسی انجام نشد.';
         _loading = false;
       });
+    } finally {
+      _reloading = false;
+      if (_reloadRequested && mounted) {
+        _reloadRequested = false;
+        unawaited(_reload());
+      }
     }
   }
 
@@ -99,6 +143,8 @@ class _InboxPageState extends State<InboxPage> {
         return;
       }
       final messages = await source.readRelevantMessages();
+      var unsupported = 0;
+      var failed = 0;
       for (final message in messages) {
         try {
           await widget.inbox.stageSms(
@@ -107,15 +153,22 @@ class _InboxPageState extends State<InboxPage> {
             currency: 'IRR',
             importedAt: message.receivedAt,
           );
+        } on DuplicateSmsImport {
+          // Already persisted under another provider identity (e.g. restore).
+        } on ValidationError {
+          unsupported++;
         } on Exception {
-          // Duplicate and unsupported messages remain governed by the staging
-          // and parser rules; one malformed message must not block the queue.
+          failed++;
         }
       }
       if (mounted) {
         setState(() {
           _smsAccess = true;
-          _smsError = null;
+          _smsError = failed > 0
+              ? 'ثبت برخی پیامک‌ها انجام نشد؛ دوباره تلاش کنید.'
+              : unsupported > 0
+              ? 'برخی پیامک‌ها قابل تشخیص نبودند و تراکنشی از آن‌ها ثبت نشد.'
+              : null;
         });
       }
     } catch (error) {

@@ -89,6 +89,10 @@ class InMemoryInboxRepository implements InboxRepository {
       _suggestions[suggestion.id] = suggestion;
 }
 
+class DuplicateSmsImport extends ValidationError {
+  const DuplicateSmsImport() : super('این پیامک قبلاً وارد شده است.');
+}
+
 class ParsedSms {
   const ParsedSms({
     required this.amount,
@@ -266,11 +270,28 @@ class InboxUseCases {
         );
       }
       if (existing.any((item) => item.fingerprint == fingerprint)) {
-        throw const ValidationError('This source item was already imported');
+        throw const DuplicateSmsImport();
       }
+    }
+    if (normalized.isEmpty ||
+        normalized.length > 100000 ||
+        sourceKey.trim().isEmpty) {
+      throw const ValidationError('متن یا شناسهٔ پیامک معتبر نیست.');
     }
     final parsed = parser.parse(text: normalized, currency: currency);
     final imported = (importedAt ?? DateTime.now()).toUtc();
+    // Provider receipt time is the explicit fallback for undated bank messages,
+    // not the time at which an old message happens to be imported.
+    final sourceOccurredAt =
+        importedAt != null &&
+            !RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
+                .hasMatch(normalized)
+        ? importedAt.toUtc()
+        : parsed.occurredAt;
+    final occurredAt = DateTime.fromMillisecondsSinceEpoch(
+      (sourceOccurredAt.millisecondsSinceEpoch ~/ 1000) * 1000,
+      isUtc: true,
+    );
     final retentionUntil = imported.add(const Duration(days: 30));
     final staged = StagedImport(
       id: _stableImportId(fingerprint, importedAt),
@@ -284,10 +305,10 @@ class InboxUseCases {
       retentionUntil: retentionUntil,
     );
     final draft = TransactionDraft(
-      id: _stableImportId('$fingerprint:draft', parsed.occurredAt),
+      id: _stableImportId('$fingerprint:draft', occurredAt),
       stagedImportId: staged.id,
       amount: parsed.amount,
-      occurredAt: parsed.occurredAt,
+      occurredAt: occurredAt,
       type: parsed.direction == TransactionDirection.incoming
           ? 'income'
           : 'expense',
@@ -323,6 +344,13 @@ class InboxUseCases {
     }
     if (draft.stagedImportId != suggestion.stagedImportId) {
       throw const ValidationError('Draft does not belong to this import');
+    }
+    final stored = (await repository.listSuggestions()).firstWhere(
+      (item) => item.id == suggestion.id,
+    );
+    if (stored.status == SuggestionStatus.confirmed ||
+        stored.status == SuggestionStatus.rejected) {
+      throw const ValidationError('پیشنهاد بررسی‌شده قابل ویرایش نیست.');
     }
     final edited = suggestion.withDraft(draft);
     await repository.saveSuggestion(edited);

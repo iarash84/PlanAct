@@ -16,7 +16,7 @@ class BankSmsReceiver : BroadcastReceiver() {
         // content or sender identifiers.
         val body = messages.joinToString(separator = "") { it.messageBody.orEmpty() }.trim()
         if (body.isEmpty()) return
-        val receivedAt = System.currentTimeMillis()
+        val receivedAt = messages.first().timestampMillis
         val key = "android-received:${sha256(receivedAt.toString() + body)}"
         SmsBridge.publish(context, "", body, receivedAt, key)
     }
