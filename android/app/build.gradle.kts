@@ -72,6 +72,12 @@ android {
 
     buildTypes {
         debug {
+            // Opt-in isolated verification must never replace personal data in
+            // the normal installation. Release identity remains unchanged.
+            if (providers.environmentVariable("PLANACT_ISOLATED_VERIFICATION").orNull == "true") {
+                applicationIdSuffix = ".verification"
+                versionNameSuffix = "-verification"
+            }
             // Debug remains debuggable and uses the machine-local debug key only.
             isMinifyEnabled = false
             isShrinkResources = false

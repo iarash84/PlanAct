@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
@@ -42,7 +43,15 @@ import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
 
 class PlanActApp extends StatefulWidget {
-  const PlanActApp({super.key, this.repository, this.planRepository});
+  const PlanActApp({
+    super.key,
+    this.repository,
+    this.planRepository,
+    this.backupActions,
+    this.backupMessage,
+  });
+  final BackupActions? backupActions;
+  final String? backupMessage;
 
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
@@ -138,6 +147,8 @@ class _PlanActAppState extends State<PlanActApp> {
               enabled: _appLockEnabled,
               controller: _appLockController,
               child: HomeShell(
+                backupActions: widget.backupActions,
+                backupMessage: widget.backupMessage,
                 repository: widget.repository,
                 planRepository: widget.planRepository,
                 settings: _settings,
@@ -161,6 +172,8 @@ class HomeShell extends StatefulWidget {
     this.repository,
     this.planRepository,
     this.settings,
+    this.backupActions,
+    this.backupMessage,
     this.themeMode = ThemeMode.system,
     this.appLockEnabled = false,
     this.appLockController,
@@ -174,6 +187,8 @@ class HomeShell extends StatefulWidget {
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
+  final BackupActions? backupActions;
+  final String? backupMessage;
   final ThemeMode themeMode;
   final bool appLockEnabled;
   final AppLockController? appLockController;
@@ -764,6 +779,8 @@ class _HomeShellState extends State<HomeShell> {
       _MorePage(
         onInbox: _openInbox,
         settings: SettingsPage(
+          backupActions: widget.backupActions,
+          backupMessage: widget.backupMessage,
           settings: widget.settings,
           themeMode: widget.themeMode,
           appLockEnabled: widget.appLockEnabled,

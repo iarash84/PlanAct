@@ -1,15 +1,19 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/actuals/application/actual_use_cases.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
 
-class DriftActualRepository implements ActualRepository {
+class DriftActualRepository implements CommandGateProvider, ActualRepository {
   DriftActualRepository(this.database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
 
   @override
-  Future<List<Actual>> list() async {
+  Future<List<Actual>> list() => CommandGate.runFor(this, () async {
     final actualRows = await database.select(database.actuals).get();
     final evidenceRows = await database.select(database.evidences).get();
     return actualRows
@@ -28,10 +32,10 @@ class DriftActualRepository implements ActualRepository {
           );
         })
         .toList(growable: false);
-  }
+  });
 
   @override
-  Future<void> save(Actual actual) async {
+  Future<void> save(Actual actual) => CommandGate.runFor(this, () async {
     await database.transaction(() async {
       await database
           .into(database.actuals)
@@ -58,7 +62,7 @@ class DriftActualRepository implements ActualRepository {
             );
       }
     });
-  }
+  });
 
   Evidence _evidence(db.Evidence row) => Evidence(
     id: StableId.parse(row.id),

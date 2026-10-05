@@ -1,3 +1,5 @@
+import 'package:planact/core/application/command_gate.dart';
+
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -11,16 +13,22 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 
 class DriftCommitmentPlanRepository
-    implements CommitmentPlanRepository, CommitmentPlanTransaction {
+    implements
+        CommandGateProvider,
+        CommitmentPlanRepository,
+        CommitmentPlanTransaction {
   DriftCommitmentPlanRepository(this.database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
 
   @override
   Future<T> runTransaction<T>(Future<T> Function() action) =>
-      database.transaction(action);
+      CommandGate.runFor(this, () async => database.transaction(action));
 
   @override
-  Future<void> save(CommitmentPlan plan) async {
+  Future<void> save(CommitmentPlan plan) => CommandGate.runFor(this, () async {
     await database.transaction(() async {
       await database
           .into(database.commitmentCycles)
@@ -90,10 +98,12 @@ class DriftCommitmentPlanRepository
         await reminders.saveRule(rule);
       }
     });
-  }
+  });
 
   @override
-  Future<void> saveOccurrence(Occurrence occurrence) async {
+  Future<void> saveOccurrence(
+    Occurrence occurrence,
+  ) => CommandGate.runFor(this, () async {
     final schedule =
         await (database.select(database.scheduleDefinitions)..where(
               (table) => table.id.equals(occurrence.scheduleDefinitionId.value),
@@ -123,37 +133,38 @@ class DriftCommitmentPlanRepository
             isManualOverride: occurrence.isManualOverride,
           ),
         );
-  }
+  });
 
   @override
-  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) async {
-    final cycle =
-        await (database.select(database.commitmentCycles)
-              ..where((t) => t.commitmentId.equals(commitmentId.value)))
-            .getSingleOrNull();
-    if (cycle == null) return null;
-    final schedule = await (database.select(
-      database.scheduleDefinitions,
-    )..where((t) => t.cycleId.equals(cycle.id))).getSingleOrNull();
-    if (schedule == null) return null;
-    final rows = await (database.select(
-      database.occurrences,
-    )..where((t) => t.scheduleDefinitionId.equals(schedule.id))).get();
-    final commitment = await DriftCommitmentRepository(database)
-        .findById(commitmentId);
-    if (commitment == null) return null;
-    final rules = await DriftReminderRepository(database).listRules();
-    final occurrenceIds = rows.map((row) => row.id).toSet();
-    return CommitmentPlan(
-      commitment: commitment,
-      cycle: _cycle(cycle),
-      schedule: _schedule(schedule),
-      occurrences: rows.map(_occurrence).toList(growable: false),
-      reminders: rules
-          .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
-          .toList(growable: false),
-    );
-  }
+  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) =>
+      CommandGate.runFor(this, () async {
+        final cycle =
+            await (database.select(database.commitmentCycles)
+                  ..where((t) => t.commitmentId.equals(commitmentId.value)))
+                .getSingleOrNull();
+        if (cycle == null) return null;
+        final schedule = await (database.select(
+          database.scheduleDefinitions,
+        )..where((t) => t.cycleId.equals(cycle.id))).getSingleOrNull();
+        if (schedule == null) return null;
+        final rows = await (database.select(
+          database.occurrences,
+        )..where((t) => t.scheduleDefinitionId.equals(schedule.id))).get();
+        final commitment = await DriftCommitmentRepository(database)
+            .findById(commitmentId);
+        if (commitment == null) return null;
+        final rules = await DriftReminderRepository(database).listRules();
+        final occurrenceIds = rows.map((row) => row.id).toSet();
+        return CommitmentPlan(
+          commitment: commitment,
+          cycle: _cycle(cycle),
+          schedule: _schedule(schedule),
+          occurrences: rows.map(_occurrence).toList(growable: false),
+          reminders: rules
+              .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
+              .toList(growable: false),
+        );
+      });
 
   static String _date(LocalDate value) =>
       '${value.year}-${value.month}-${value.day}';

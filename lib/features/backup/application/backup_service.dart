@@ -21,6 +21,11 @@ abstract interface class BackupStorage {
   Future<void> restoreSafetySnapshot();
 }
 
+/// Optional production boundary; validation must not open/migrate live data.
+abstract interface class BackupPayloadValidation {
+  Future<void> validatePayload(Uint8List payload);
+}
+
 abstract interface class BackupRebuildHook {
   Future<void> rebuild();
 }
@@ -108,10 +113,14 @@ class BackupService {
       throw const ValidationError('Decrypted backup payload is invalid');
     }
 
+    if (storage case final BackupPayloadValidation validation) {
+      await validation.validatePayload(plaintext);
+    }
     await storage.recoverIfNeeded();
     final current = await storage.readCurrent();
+    // A failed snapshot must never restore an older snapshot from a prior run.
+    await storage.writeSafetySnapshot(current);
     try {
-      await storage.writeSafetySnapshot(current);
       await storage.writeTemporary(plaintext);
       await storage.flushTemporary();
       await storage.writeRecoveryMarker();
@@ -121,6 +130,7 @@ class BackupService {
     } catch (error, stackTrace) {
       try {
         await storage.restoreSafetySnapshot();
+        await rebuildHook.rebuild();
         await storage.clearRecoveryMarker();
       } catch (recoveryError, recoveryStackTrace) {
         Error.throwWithStackTrace(

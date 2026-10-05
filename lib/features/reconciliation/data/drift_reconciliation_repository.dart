@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
@@ -6,12 +7,18 @@ import 'package:planact/features/reconciliation/application/reconciliation_use_c
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 
 class DriftReconciliationRepository
-    implements ReconciliationRepository, AtomicMatchCorrection {
+    implements
+        CommandGateProvider,
+        ReconciliationRepository,
+        AtomicMatchCorrection {
   DriftReconciliationRepository(this.database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
 
   @override
-  Future<List<TransactionMatch>> list() async {
+  Future<List<TransactionMatch>> list() => CommandGate.runFor(this, () async {
     final matches = await database.select(database.transactionMatches).get();
     final allocations = await database.select(database.matchAllocations).get();
     return matches
@@ -47,50 +54,57 @@ class DriftReconciliationRepository
           );
         })
         .toList(growable: false);
-  }
+  });
 
   @override
   Future<void> saveCorrection({
     required TransactionMatch original,
     required TransactionMatch corrected,
-  }) => database.transaction(() async {
-    await save(original);
-    await save(corrected);
-  });
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await save(original);
+      await save(corrected);
+    }),
+  );
 
   @override
-  Future<void> save(TransactionMatch match) async {
-    await database.transaction(() async {
-      await database
-          .into(database.transactionMatches)
-          .insertOnConflictUpdate(
-            db.TransactionMatchesCompanion(
-              id: Value(match.id.value),
-              transactionId: Value(match.transactionId.value),
-              minorUnits: Value(match.transactionAmount.minorUnits),
-              currency: Value(match.transactionAmount.currency),
-              createdAt: Value(match.createdAt.toUtc()),
-              status: Value(match.status.index),
-              correctedMatchId: Value(match.correctedMatchId?.value),
-            ),
-          );
-      await (database.delete(
-        database.matchAllocations,
-      )..where((table) => table.matchId.equals(match.id.value))).go();
-      for (final allocation in match.allocations) {
-        await database
-            .into(database.matchAllocations)
-            .insert(
-              db.MatchAllocationsCompanion(
-                id: Value(allocation.id.value),
-                matchId: Value(allocation.matchId.value),
-                occurrenceId: Value(allocation.occurrenceId.value),
-                minorUnits: Value(allocation.amount.minorUnits),
-                currency: Value(allocation.amount.currency),
-                type: Value(allocation.type.index),
-              ),
-            );
-      }
-    });
-  }
+  Future<void> save(TransactionMatch match) =>
+      CommandGate.runFor(this, () async {
+        await CommandGate.runFor(
+          this,
+          () => database.transaction(() async {
+            await database
+                .into(database.transactionMatches)
+                .insertOnConflictUpdate(
+                  db.TransactionMatchesCompanion(
+                    id: Value(match.id.value),
+                    transactionId: Value(match.transactionId.value),
+                    minorUnits: Value(match.transactionAmount.minorUnits),
+                    currency: Value(match.transactionAmount.currency),
+                    createdAt: Value(match.createdAt.toUtc()),
+                    status: Value(match.status.index),
+                    correctedMatchId: Value(match.correctedMatchId?.value),
+                  ),
+                );
+            await (database.delete(
+              database.matchAllocations,
+            )..where((table) => table.matchId.equals(match.id.value))).go();
+            for (final allocation in match.allocations) {
+              await database
+                  .into(database.matchAllocations)
+                  .insert(
+                    db.MatchAllocationsCompanion(
+                      id: Value(allocation.id.value),
+                      matchId: Value(allocation.matchId.value),
+                      occurrenceId: Value(allocation.occurrenceId.value),
+                      minorUnits: Value(allocation.amount.minorUnits),
+                      currency: Value(allocation.amount.currency),
+                      type: Value(allocation.type.index),
+                    ),
+                  );
+            }
+          }),
+        );
+      });
 }

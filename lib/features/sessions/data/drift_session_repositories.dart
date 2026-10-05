@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
@@ -26,25 +27,31 @@ abstract interface class ReplacementRepository {
   Future<void> save(ReplacementOccurrence replacement);
 }
 
-class DriftEntitlementPlanRepository implements EntitlementPlanRepository {
+class DriftEntitlementPlanRepository
+    implements CommandGateProvider, EntitlementPlanRepository {
   DriftEntitlementPlanRepository(this._database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(_database);
   final db.AppDatabase _database;
 
   @override
-  Future<EntitlementPlan?> findById(StableId id) async {
-    final row = await (_database.select(
-      _database.entitlementPlans,
-    )..where((table) => table.id.equals(id.value))).getSingleOrNull();
-    return row == null ? null : _toDomain(row);
-  }
+  Future<EntitlementPlan?> findById(StableId id) =>
+      CommandGate.runFor(this, () async {
+        final row = await (_database.select(
+          _database.entitlementPlans,
+        )..where((table) => table.id.equals(id.value))).getSingleOrNull();
+        return row == null ? null : _toDomain(row);
+      });
 
   @override
-  Future<List<EntitlementPlan>> listByCycle(StableId cycleId) async {
-    final rows = await (_database.select(
-      _database.entitlementPlans,
-    )..where((table) => table.cycleId.equals(cycleId.value))).get();
-    return rows.map(_toDomain).toList(growable: false);
-  }
+  Future<List<EntitlementPlan>> listByCycle(StableId cycleId) =>
+      CommandGate.runFor(this, () async {
+        final rows = await (_database.select(
+          _database.entitlementPlans,
+        )..where((table) => table.cycleId.equals(cycleId.value))).get();
+        return rows.map(_toDomain).toList(growable: false);
+      });
 
   @override
   Future<void> save(EntitlementPlan plan) => _database
@@ -72,19 +79,24 @@ class DriftEntitlementPlanRepository implements EntitlementPlanRepository {
   );
 }
 
-class DriftEntitlementLedgerRepository implements EntitlementLedgerRepository {
+class DriftEntitlementLedgerRepository
+    implements CommandGateProvider, EntitlementLedgerRepository {
   DriftEntitlementLedgerRepository(this._database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(_database);
   final db.AppDatabase _database;
 
   @override
-  Future<List<EntitlementLedgerEntry>> listByPlan(StableId planId) async {
-    final rows =
-        await (_database.select(_database.entitlementLedgerEntries)
-              ..where((table) => table.planId.equals(planId.value))
-              ..orderBy([(table) => OrderingTerm.asc(table.occurredAt)]))
-            .get();
-    return rows.map(_toDomain).toList(growable: false);
-  }
+  Future<List<EntitlementLedgerEntry>> listByPlan(StableId planId) =>
+      CommandGate.runFor(this, () async {
+        final rows =
+            await (_database.select(_database.entitlementLedgerEntries)
+                  ..where((table) => table.planId.equals(planId.value))
+                  ..orderBy([(table) => OrderingTerm.asc(table.occurredAt)]))
+                .get();
+        return rows.map(_toDomain).toList(growable: false);
+      });
 
   @override
   Future<void> append(EntitlementLedgerEntry entry) => _database
@@ -115,20 +127,29 @@ class DriftEntitlementLedgerRepository implements EntitlementLedgerRepository {
       );
 }
 
-class DriftSessionPolicyRepository implements SessionPolicyRepository {
+class DriftSessionPolicyRepository
+    implements CommandGateProvider, SessionPolicyRepository {
   DriftSessionPolicyRepository(this._database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(_database);
   final db.AppDatabase _database;
 
   @override
-  Future<SessionPolicy?> findByCycle(StableId cycleId) async {
-    final row = await (_database.select(
-      _database.sessionPolicies,
-    )..where((table) => table.cycleId.equals(cycleId.value))).getSingleOrNull();
-    return row == null ? null : _toDomain(row);
-  }
+  Future<SessionPolicy?> findByCycle(StableId cycleId) =>
+      CommandGate.runFor(this, () async {
+        final row =
+            await (_database.select(_database.sessionPolicies)
+                  ..where((table) => table.cycleId.equals(cycleId.value)))
+                .getSingleOrNull();
+        return row == null ? null : _toDomain(row);
+      });
 
   @override
-  Future<void> save(StableId cycleId, SessionPolicy policy) async {
+  Future<void> save(
+    StableId cycleId,
+    SessionPolicy policy,
+  ) => CommandGate.runFor(this, () async {
     final existing = await (_database.select(
       _database.sessionPolicies,
     )..where((table) => table.cycleId.equals(cycleId.value))).getSingleOrNull();
@@ -156,7 +177,7 @@ class DriftSessionPolicyRepository implements SessionPolicyRepository {
             partialUnitAllowed: Value(policy.partialUnitAllowed),
           ),
         );
-  }
+  });
 
   SessionPolicy _toDomain(db.SessionPolicy row) => SessionPolicy(
     providerCancellationConsumes: row.providerCancellationConsumes,
@@ -172,24 +193,27 @@ class DriftSessionPolicyRepository implements SessionPolicyRepository {
   );
 }
 
-class DriftReplacementRepository implements ReplacementRepository {
+class DriftReplacementRepository
+    implements CommandGateProvider, ReplacementRepository {
   DriftReplacementRepository(this._database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(_database);
   final db.AppDatabase _database;
 
   @override
-  Future<List<ReplacementOccurrence>> listByOriginal(
-    StableId occurrenceId,
-  ) async {
-    final rows =
-        await (_database.select(_database.replacementOccurrences)
-              ..where(
-                (table) =>
-                    table.originalOccurrenceId.equals(occurrenceId.value),
-              )
-              ..orderBy([(table) => OrderingTerm.asc(table.scheduledAt)]))
-            .get();
-    return rows.map(_toDomain).toList(growable: false);
-  }
+  Future<List<ReplacementOccurrence>> listByOriginal(StableId occurrenceId) =>
+      CommandGate.runFor(this, () async {
+        final rows =
+            await (_database.select(_database.replacementOccurrences)
+                  ..where(
+                    (table) =>
+                        table.originalOccurrenceId.equals(occurrenceId.value),
+                  )
+                  ..orderBy([(table) => OrderingTerm.asc(table.scheduledAt)]))
+                .get();
+        return rows.map(_toDomain).toList(growable: false);
+      });
 
   @override
   Future<void> save(ReplacementOccurrence replacement) => _database

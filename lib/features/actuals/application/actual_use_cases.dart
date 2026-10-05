@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
@@ -27,7 +28,7 @@ class RecordActual {
     required DateTime recordedAt,
     String? note,
     List<Evidence> evidence = const [],
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final actual = Actual(
       id: StableId.generate(timestamp: recordedAt),
       occurrenceId: occurrenceId,
@@ -38,7 +39,7 @@ class RecordActual {
     );
     await repository.save(actual);
     return actual;
-  }
+  });
 }
 
 class HistoryProjection {

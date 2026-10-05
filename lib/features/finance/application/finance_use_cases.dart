@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -107,7 +108,7 @@ class FinanceUseCases {
     String? note,
     String? category,
     AccountEntrySource source = AccountEntrySource.manual,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
     final entry = AccountEntry(
@@ -123,7 +124,7 @@ class FinanceUseCases {
     );
     await repository.saveEntry(entry);
     return entry;
-  }
+  });
 
   Future<(AccountEntry, AccountEntry)> transfer({
     required FinancialAccount from,
@@ -132,7 +133,7 @@ class FinanceUseCases {
     required DateTime occurredAt,
     TransferMethod method = TransferMethod.cardToCard,
     TransferFeePolicy feePolicy = const NoTransferFeePolicy(),
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(from);
     _assertActive(to);
     if (from.id == to.id) {
@@ -180,23 +181,25 @@ class FinanceUseCases {
       fee: feeEntry,
     );
     return (outgoing, incoming);
-  }
+  });
 
-  Future<void> archive(FinancialAccount account) async {
-    await repository.saveAccount(account.archive());
-  }
+  Future<void> archive(FinancialAccount account) =>
+      CommandGate.runFor(repository, () async {
+        await repository.saveAccount(account.archive());
+      });
 
-  Future<void> restore(FinancialAccount account) async {
-    await repository.saveAccount(account.restore());
-  }
+  Future<void> restore(FinancialAccount account) =>
+      CommandGate.runFor(repository, () async {
+        await repository.saveAccount(account.restore());
+      });
 
   Future<void> updateAccount({
     required FinancialAccount account,
     required String name,
     FinancialAccountType? type,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     await repository.saveAccount(account.update(name: name, type: type));
-  }
+  });
 
   /// Corrects an immutable ledger entry by recording an opposite-signed
   /// reversal followed by the corrected entry. The original remains auditable.
@@ -208,7 +211,7 @@ class FinanceUseCases {
     required DateTime occurredAt,
     String? note,
     String? category,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
     final reversal = AccountEntry(
@@ -243,13 +246,13 @@ class FinanceUseCases {
       await repository.saveEntry(corrected);
     }
     return corrected;
-  }
+  });
 
   Future<AccountEntry> voidEntry({
     required AccountEntry original,
     required FinancialAccount account,
     DateTime? occurredAt,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     final reversal = AccountEntry(
       id: StableId.generate(timestamp: occurredAt),
@@ -265,7 +268,7 @@ class FinanceUseCases {
     );
     await repository.saveEntry(reversal);
     return reversal;
-  }
+  });
 
   Future<Money> balance(FinancialAccount account) async =>
       rebuildBalance(account, await repository.listEntries());

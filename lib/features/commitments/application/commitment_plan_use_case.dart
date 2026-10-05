@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
@@ -107,7 +108,7 @@ class CreateCommitmentPlan {
     int? financialAmount,
     @Deprecated('Use reminderOffsets to support multiple reminders.')
     Duration? reminderOffset,
-  }) async {
+  }) => CommandGate.runFor(commitments, () async {
     if (entitlementUnits != null && entitlementUnits <= 0) {
       throw const ValidationError('Entitlement units must be positive');
     }
@@ -202,7 +203,7 @@ class CreateCommitmentPlan {
       occurrences: List.unmodifiable(occurrences),
       reminders: List.unmodifiable(reminders),
     );
-    Future<void> persist() async {
+    Future<void> persist() => CommandGate.runFor(commitments, () async {
       await commitments.save(commitment);
       await plans.save(plan);
       if (entitlementUnits != null) {
@@ -234,7 +235,7 @@ class CreateCommitmentPlan {
           );
         }
       }
-    }
+    });
 
     if (plans case final CommitmentPlanTransaction transaction) {
       await transaction.runTransaction(persist);
@@ -253,5 +254,5 @@ class CreateCommitmentPlan {
       }
     }
     return plan;
-  }
+  });
 }

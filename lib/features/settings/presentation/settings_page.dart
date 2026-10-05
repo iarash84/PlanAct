@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/backup/application/backup_actions.dart';
+import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/app/app_settings.dart';
 
@@ -6,6 +8,8 @@ class SettingsPage extends StatelessWidget {
   const SettingsPage({
     super.key,
     this.settings,
+    this.backupActions,
+    this.backupMessage,
     required this.themeMode,
     required this.onThemeModeChanged,
     this.appLockEnabled = false,
@@ -14,6 +18,8 @@ class SettingsPage extends StatelessWidget {
     this.onAbout,
   });
   final AppSettings? settings;
+  final BackupActions? backupActions;
+  final String? backupMessage;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
   final bool appLockEnabled;
@@ -95,6 +101,8 @@ class SettingsPage extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 20),
+      if (backupActions != null)
+        BackupSettingsCard(actions: backupActions!, message: backupMessage),
       Text('درباره', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 12),
       Card(

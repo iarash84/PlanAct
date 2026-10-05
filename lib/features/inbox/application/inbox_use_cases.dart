@@ -1,3 +1,5 @@
+import 'package:planact/core/application/command_gate.dart';
+
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -220,34 +222,36 @@ class InboxUseCases {
   final InboxRepository repository;
   final LocalSmsParser parser;
 
-  Future<List<InboxSuggestion>> listPendingSuggestions() async {
-    await expireRawText();
-    return (await repository.listSuggestions())
-        .where(
-          (item) =>
-              item.status == SuggestionStatus.pending ||
-              item.status == SuggestionStatus.edited,
-        )
-        .toList(growable: false);
-  }
+  Future<List<InboxSuggestion>> listPendingSuggestions() =>
+      CommandGate.runFor(repository, () async {
+        await expireRawText();
+        return (await repository.listSuggestions())
+            .where(
+              (item) =>
+                  item.status == SuggestionStatus.pending ||
+                  item.status == SuggestionStatus.edited,
+            )
+            .toList(growable: false);
+      });
 
-  Future<void> expireRawText({DateTime? now}) async {
-    final at = (now ?? DateTime.now()).toUtc();
-    for (final item in await repository.listImports()) {
-      if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
-      final deadline = item.retentionUntil;
-      if (deadline != null && !at.isBefore(deadline)) {
-        await repository.saveImport(item.expireRawText());
-      }
-    }
-  }
+  Future<void> expireRawText({DateTime? now}) =>
+      CommandGate.runFor(repository, () async {
+        final at = (now ?? DateTime.now()).toUtc();
+        for (final item in await repository.listImports()) {
+          if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
+          final deadline = item.retentionUntil;
+          if (deadline != null && !at.isBefore(deadline)) {
+            await repository.saveImport(item.expireRawText());
+          }
+        }
+      });
 
   Future<InboxSuggestion> stageSms({
     required String rawText,
     required String sourceKey,
     required String currency,
     DateTime? importedAt,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final normalized = rawText.trim();
     final fingerprint = sha256.convert(utf8.encode(normalized)).toString();
     if (repository is! AtomicInboxStaging) {
@@ -307,12 +311,12 @@ class InboxUseCases {
     await repository.saveImport(staged);
     await repository.saveSuggestion(suggestion);
     return suggestion;
-  }
+  });
 
   Future<InboxSuggestion> edit(
     InboxSuggestion suggestion,
     TransactionDraft draft,
-  ) async {
+  ) => CommandGate.runFor(repository, () async {
     if (suggestion.status == SuggestionStatus.confirmed ||
         suggestion.status == SuggestionStatus.rejected) {
       throw const ValidationError('Resolved suggestions cannot be edited');
@@ -323,27 +327,32 @@ class InboxUseCases {
     final edited = suggestion.withDraft(draft);
     await repository.saveSuggestion(edited);
     return edited;
-  }
+  });
 
-  Future<void> reject(InboxSuggestion suggestion) async {
-    if (repository case final AtomicInboxStaging atomic) {
-      await atomic.rejectAtomically(suggestion.id);
-      return;
-    }
-    if (suggestion.status == SuggestionStatus.confirmed) {
-      throw const ValidationError('Confirmed suggestions cannot be rejected');
-    }
-    await repository.saveSuggestion(
-      suggestion.withStatus(SuggestionStatus.rejected),
-    );
-    final imports = await repository.listImports();
-    final staged = imports.firstWhere(
-      (item) => item.id == suggestion.stagedImportId,
-    );
-    await repository.saveImport(staged.withStatus(StagedItemStatus.rejected));
-  }
+  Future<void> reject(InboxSuggestion suggestion) => CommandGate.runFor(
+    repository,
+    () async {
+      if (repository case final AtomicInboxStaging atomic) {
+        await atomic.rejectAtomically(suggestion.id);
+        return;
+      }
+      if (suggestion.status == SuggestionStatus.confirmed) {
+        throw const ValidationError('Confirmed suggestions cannot be rejected');
+      }
+      await repository.saveSuggestion(
+        suggestion.withStatus(SuggestionStatus.rejected),
+      );
+      final imports = await repository.listImports();
+      final staged = imports.firstWhere(
+        (item) => item.id == suggestion.stagedImportId,
+      );
+      await repository.saveImport(staged.withStatus(StagedItemStatus.rejected));
+    },
+  );
 
-  Future<void> rollback(InboxSuggestion suggestion) async {
+  Future<void> rollback(
+    InboxSuggestion suggestion,
+  ) => CommandGate.runFor(repository, () async {
     final storedSuggestion = (await repository.listSuggestions()).firstWhere(
       (item) => item.id == suggestion.id,
       orElse: () => suggestion,
@@ -356,13 +365,13 @@ class InboxUseCases {
       (item) => item.id == storedSuggestion.stagedImportId,
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.rolledBack));
-  }
+  });
 
   Future<AccountEntry> confirm({
     required InboxSuggestion suggestion,
     required FinancialAccount account,
     required FinanceRepository finance,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     if (suggestion.status == SuggestionStatus.rejected ||
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
@@ -412,7 +421,7 @@ class InboxUseCases {
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.confirmed));
     return entry;
-  }
+  });
 
   StableId _stableImportId(String input, DateTime? timestamp) {
     final digest = sha256.convert(utf8.encode(input)).bytes;

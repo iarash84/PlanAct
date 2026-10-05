@@ -927,3 +927,7 @@ PlanAct باید بتواند برای هر تعهد مهم کاربر یک time
 چه چیزی هنوز باقی مانده است؟**
 
 اگر محصول بتواند این زنجیره را با داده‌ی قابل اعتماد و بدون وابستگی به cloud حفظ کند، هدف اصلی PlanAct محقق شده است.
+
+## Backup implementation status — Priority 1
+
+The production encrypted export/import path is implemented, but the backup release gate remains partial. Current key recovery is restricted to the original installation: device loss, uninstall, or another device is not supported. Export/import confirmations disclose this restriction. Strict fresh-schema validation may reject migrated current-version databases. Exhaustive entity round-trip, concurrent command/lifecycle safety, and isolated native Android picker/Keystore/crash evidence remain required. This status does not reduce the backup/restore acceptance criteria. See docs/adr/0013-production-backup-restore.md.

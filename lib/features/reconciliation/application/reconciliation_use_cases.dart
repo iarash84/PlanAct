@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -98,7 +99,7 @@ class ReconciliationUseCases {
     required DateTime createdAt,
     required List<StableId> occurrenceIds,
     required List<Money> allocations,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
       throw const ValidationError('Occurrences and allocations must align');
     }
@@ -123,20 +124,21 @@ class ReconciliationUseCases {
     );
     await repository.save(result);
     return result;
-  }
+  });
 
-  Future<void> reject(TransactionMatch match) async {
-    await repository.save(
-      TransactionMatch(
-        id: match.id,
-        transactionId: match.transactionId,
-        transactionAmount: match.transactionAmount,
-        createdAt: match.createdAt,
-        allocations: match.allocations,
-        status: MatchStatus.reversed,
-      ),
-    );
-  }
+  Future<void> reject(TransactionMatch match) =>
+      CommandGate.runFor(repository, () async {
+        await repository.save(
+          TransactionMatch(
+            id: match.id,
+            transactionId: match.transactionId,
+            transactionAmount: match.transactionAmount,
+            createdAt: match.createdAt,
+            allocations: match.allocations,
+            status: MatchStatus.reversed,
+          ),
+        );
+      });
 
   Future<void> unmatch(TransactionMatch match) => reject(match);
 
@@ -145,7 +147,7 @@ class ReconciliationUseCases {
     required DateTime createdAt,
     required List<StableId> occurrenceIds,
     required List<Money> allocations,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     if (repository case AtomicMatchCorrection atomic) {
       // Validate and build without persisting an active replacement first.
       if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
@@ -198,11 +200,11 @@ class ReconciliationUseCases {
       ),
     );
     return corrected;
-  }
+  });
 
   Future<List<FinancialPlannedVsActual>> plannedVsActual({
     required Map<StableId, Money> planned,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final totals = <StableId, int>{};
     final currencies = <StableId, String>{};
     for (final match in await repository.list()) {
@@ -233,5 +235,5 @@ class ReconciliationUseCases {
           );
         })
         .toList(growable: false);
-  }
+  });
 }

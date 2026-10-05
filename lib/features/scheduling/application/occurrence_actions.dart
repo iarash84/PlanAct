@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
@@ -141,7 +142,7 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     required Occurrence occurrence,
     required OccurrenceActionType action,
     DateTime? scheduledAt,
-  }) async {
+  }) => CommandGate.runFor(plans, () async {
     final available = availableOccurrenceActions(
       occurrence,
       policy: await policyRepository?.findByCycle(occurrence.cycleId),
@@ -173,61 +174,67 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
       case OccurrenceActionType.cancel:
         await cancel(occurrence, outcome: SessionOutcome.userCancelled);
     }
-  }
+  });
 
   @override
-  Future<void> complete(Occurrence occurrence) async {
-    if (occurrence.status == OccurrenceStatus.completed) return;
-    await plans.saveOccurrence(
-      occurrence.withStatus(OccurrenceStatus.completed),
-    );
-  }
+  Future<void> complete(Occurrence occurrence) =>
+      CommandGate.runFor(plans, () async {
+        if (occurrence.status == OccurrenceStatus.completed) return;
+        await plans.saveOccurrence(
+          occurrence.withStatus(OccurrenceStatus.completed),
+        );
+      });
 
   @override
   Future<void> cancel(
     Occurrence occurrence, {
     required SessionOutcome outcome,
-  }) async {
+  }) => CommandGate.runFor(plans, () async {
     final nextStatus = outcome == SessionOutcome.noShow
         ? OccurrenceStatus.skipped
         : OccurrenceStatus.cancelled;
     if (occurrence.status == nextStatus) return;
     await plans.saveOccurrence(occurrence.withStatus(nextStatus));
-  }
+  });
 
   @override
-  Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt) async {
-    if (occurrence.currentScheduledAt == scheduledAt &&
-        occurrence.status == OccurrenceStatus.rescheduled) {
-      return;
-    }
-    await plans.saveOccurrence(occurrence.reschedule(scheduledAt));
-  }
+  Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt) =>
+      CommandGate.runFor(plans, () async {
+        if (occurrence.currentScheduledAt == scheduledAt &&
+            occurrence.status == OccurrenceStatus.rescheduled) {
+          return;
+        }
+        await plans.saveOccurrence(occurrence.reschedule(scheduledAt));
+      });
 
   @override
-  Future<void> restore(Occurrence occurrence) async {
-    if (occurrence.status == OccurrenceStatus.scheduled) return;
-    await plans.saveOccurrence(
-      occurrence.withStatus(OccurrenceStatus.scheduled),
-    );
-  }
+  Future<void> restore(Occurrence occurrence) =>
+      CommandGate.runFor(plans, () async {
+        if (occurrence.status == OccurrenceStatus.scheduled) return;
+        await plans.saveOccurrence(
+          occurrence.withStatus(OccurrenceStatus.scheduled),
+        );
+      });
 
   @override
-  Future<void> createMakeup(Occurrence occurrence, DateTime scheduledAt) async {
-    final repository = replacements;
-    if (repository == null) {
-      throw StateError('A replacement repository is required for makeup.');
-    }
-    final existing = await repository.listByOriginal(occurrence.id);
-    if (existing.any((item) => item.scheduledAt == scheduledAt.toUtc())) return;
-    await repository.save(
-      ReplacementOccurrence.create(
-        originalOccurrenceId: occurrence.id,
-        scheduledAt: scheduledAt,
-        reason: ReplacementReason.makeup,
-      ),
-    );
-  }
+  Future<void> createMakeup(Occurrence occurrence, DateTime scheduledAt) =>
+      CommandGate.runFor(plans, () async {
+        final repository = replacements;
+        if (repository == null) {
+          throw StateError('A replacement repository is required for makeup.');
+        }
+        final existing = await repository.listByOriginal(occurrence.id);
+        if (existing.any((item) => item.scheduledAt == scheduledAt.toUtc())) {
+          return;
+        }
+        await repository.save(
+          ReplacementOccurrence.create(
+            originalOccurrenceId: occurrence.id,
+            scheduledAt: scheduledAt,
+            reason: ReplacementReason.makeup,
+          ),
+        );
+      });
 
   DateTime _requireDate(DateTime? value, String message) {
     if (value == null) throw ValidationError(message);
