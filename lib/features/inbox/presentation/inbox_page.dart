@@ -6,6 +6,7 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -483,7 +484,7 @@ class _SmsStatusCard extends StatelessWidget {
   );
 }
 
-class _ReviewCard extends StatelessWidget {
+class _ReviewCard extends StatefulWidget {
   const _ReviewCard({
     required this.item,
     required this.busy,
@@ -499,9 +500,16 @@ class _ReviewCard extends StatelessWidget {
   final VoidCallback onReject;
 
   @override
+  State<_ReviewCard> createState() => _ReviewCardState();
+}
+
+class _ReviewCardState extends State<_ReviewCard> {
+  bool _showDetails = false;
+
+  @override
   Widget build(BuildContext context) {
-    final draft = item.suggestion.draft;
-    final amount = '${draft.amount.minorUnits} ${draft.amount.currency}';
+    final draft = widget.item.suggestion.draft;
+    final amount = PersianMoneyText.money(draft.amount);
     final date = PersianDateFormatter.date(
       JalaliDate.fromDateTime(draft.occurredAt),
     );
@@ -524,42 +532,50 @@ class _ReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '${item.sourceLabel} · ${_direction(draft.direction)} · $date',
+              '${widget.item.sourceLabel} · ${_direction(draft.direction)} · $date',
             ),
-            if (draft.bank != null) Text('بانک: ${draft.bank}'),
-            if (draft.accountHint != null)
-              Text('راهنمای حساب: ${draft.accountHint}'),
-            Text('حساب پیشنهادی: ${item.account?.name ?? 'نیازمند انتخاب'}'),
-            if (draft.reference != null)
-              Text('شناسه پیگیری: ${draft.reference}'),
-            const SizedBox(height: PlanActSpacing.sm),
             Text(
-              'چرا این پیشنهاد؟',
-              style: Theme.of(context).textTheme.labelLarge,
+              'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}',
             ),
-            for (final reason in item.reasons) Text('• $reason'),
-            for (final warning in item.warnings)
+            for (final warning in widget.item.warnings)
               Text(
                 'هشدار: $warning',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
+            TextButton.icon(
+              onPressed: () => setState(() => _showDetails = !_showDetails),
+              icon: Icon(_showDetails ? Icons.expand_less : Icons.expand_more),
+              label: Text(_showDetails ? 'بستن جزئیات' : 'جزئیات پیشنهاد'),
+            ),
+            if (_showDetails) ...[
+              if (draft.bank != null) Text('بانک: ${draft.bank}'),
+              if (draft.accountHint != null)
+                Text('راهنمای حساب: ${draft.accountHint}'),
+              if (draft.reference != null)
+                Text('شناسه پیگیری: ${draft.reference}'),
+              Text(
+                'چرا این پیشنهاد؟',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              for (final reason in widget.item.reasons) Text('• $reason'),
+            ],
             const SizedBox(height: PlanActSpacing.sm),
             Wrap(
               spacing: PlanActSpacing.sm,
               runSpacing: PlanActSpacing.xs,
               children: [
                 FilledButton.icon(
-                  onPressed: busy ? null : onConfirm,
+                  onPressed: widget.busy ? null : widget.onConfirm,
                   icon: const Icon(Icons.check),
                   label: const Text('تأیید و ثبت'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: busy ? null : onEdit,
+                  onPressed: widget.busy ? null : widget.onEdit,
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('ویرایش'),
                 ),
                 TextButton.icon(
-                  onPressed: busy ? null : onReject,
+                  onPressed: widget.busy ? null : widget.onReject,
                   icon: const Icon(Icons.close),
                   label: const Text('رد کردن'),
                 ),

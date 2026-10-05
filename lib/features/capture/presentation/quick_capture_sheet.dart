@@ -10,7 +10,10 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
-  const QuickCaptureSheet({super.key});
+  const QuickCaptureSheet({super.key, this.onSave});
+
+  /// Persists before closing; a failed save leaves the form intact for retry.
+  final Future<void> Function(CommitmentDraft draft)? onSave;
 
   @override
   State<QuickCaptureSheet> createState() => _QuickCaptureSheetState();
@@ -23,6 +26,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _entitlementUnits = TextEditingController();
   final _financialAmount = TextEditingController();
   CommitmentDraft _draft = const CommitmentDraft();
+  bool _dateSelected = false;
+  bool _timeSelected = false;
   int _step = 0;
   String? _error;
   bool _saving = false;
@@ -54,9 +59,19 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   }
 
   void _next() {
+    if (_saving) return;
     _syncDraft();
-    final validationStep = _step == 0 ? 1 : _step;
-    final error = _draft.validateForStep(validationStep);
+    final error = _step == 0
+        ? _draft.validateForStep(1)
+        : _step == 1
+        ? (!_dateSelected || !_timeSelected
+              ? 'تاریخ و زمان شروع را انتخاب کنید.'
+              : _draft.validateForStep(2) ?? _draft.validateForStep(3))
+        : _draft.validateForStep(1) ??
+              (!_dateSelected || !_timeSelected
+                  ? 'تاریخ و زمان شروع را انتخاب کنید.'
+                  : _draft.validateForStep(2)) ??
+              _draft.validateForStep(3);
     if (error != null) {
       setState(() => _error = error);
       return;
@@ -65,17 +80,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       _save();
       return;
     }
-    if (_step == 4) {
-      _save();
-      return;
-    }
     setState(() {
       _error = null;
-      _step = _step == 0 ? 2 : _step + 1;
+      _step++;
     });
   }
 
   void _back() {
+    if (_saving) return;
     if (_step == 0) {
       Navigator.of(context).pop();
       return;
@@ -91,15 +103,34 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     _syncDraft();
     final error =
         _draft.validateForStep(1) ??
-        _draft.validateForStep(2) ??
+        (!_dateSelected || !_timeSelected
+            ? 'تاریخ و زمان شروع را انتخاب کنید.'
+            : _draft.validateForStep(2)) ??
         _draft.validateForStep(3);
     if (error != null) {
       setState(() => _error = error);
       return;
     }
     if (_saving) return;
-    setState(() => _saving = true);
-    Navigator.of(context).pop(_draft);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      if (widget.onSave != null) await widget.onSave!(_draft);
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.of(context).pop(widget.onSave == null ? _draft : null);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error =
+              'ثبت تعهد انجام نشد؛ اطلاعات شما حفظ شده است. دوباره تلاش کنید.';
+        });
+      }
+    }
   }
 
   Future<void> _pickDate() async {
@@ -109,18 +140,19 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           _JalaliDatePicker(initialDate: _draft.startAt ?? DateTime.now()),
     );
     if (picked == null) return;
-    final current = _draft.startAt ?? DateTime.now();
-    setState(
-      () => _draft = _draft.copyWith(
+    final current = _draft.startAt;
+    setState(() {
+      _dateSelected = true;
+      _draft = _draft.copyWith(
         startAt: DateTime(
           picked.year,
           picked.month,
           picked.day,
-          current.hour,
-          current.minute,
+          _timeSelected ? current!.hour : 0,
+          _timeSelected ? current!.minute : 0,
         ),
-      ),
-    );
+      );
+    });
   }
 
   Future<void> _pickTime() async {
@@ -130,8 +162,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       initialTime: TimeOfDay.fromDateTime(current),
     );
     if (picked == null) return;
-    setState(
-      () => _draft = _draft.copyWith(
+    setState(() {
+      _timeSelected = true;
+      _draft = _draft.copyWith(
         startAt: DateTime(
           current.year,
           current.month,
@@ -139,79 +172,39 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           picked.hour,
           picked.minute,
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return PlanActFormSheet(
-      title: const [
-        'تعهد جدید',
-        'اطلاعات پایه',
-        'زمان‌بندی',
-        'بسته و اعتبار',
-        'مرور نهایی',
-      ][_step],
-      primaryLabel: _step == 4 || _step == 2
-          ? 'ثبت تعهد'
-          : (_step == 0 ? 'افزودن جزئیات' : 'ادامه'),
-      secondaryLabel: _step == 0 ? 'انصراف' : 'بازگشت',
-      onPrimary: _next,
-      onSecondary: _back,
-      isLoading: _saving,
-      error: _error,
-      primaryKey: const ValueKey('commitment-save-button'),
-      child: AnimatedSwitcher(
-        duration: PlanActMotion.standard,
-        child: KeyedSubtree(key: ValueKey(_step), child: _buildStep()),
+    return PopScope(
+      canPop: !_saving,
+      child: PlanActFormSheet(
+        title: const ['اصل تعهد', 'زمان‌بندی', 'مرور و ثبت'][_step],
+        primaryLabel: _step == 2 ? 'ثبت تعهد' : 'ادامه',
+        secondaryLabel: _step == 0 ? 'انصراف' : 'بازگشت',
+        onPrimary: _next,
+        onSecondary: _back,
+        isLoading: _saving,
+        error: _error,
+        primaryKey: const ValueKey('commitment-save-button'),
+        child: AnimatedSwitcher(
+          duration: PlanActMotion.standard,
+          child: KeyedSubtree(key: ValueKey(_step), child: _buildStep()),
+        ),
       ),
     );
   }
 
   Widget _buildStep() => switch (_step) {
-    0 => _categoryStep(),
-    1 => _basicStep(),
-    2 => _scheduleStep(),
-    3 => _entitlementStep(),
+    0 => _basicStep(),
+    1 => _scheduleStep(),
     _ => _reviewStep(),
   };
 
-  Widget _categoryStep() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      const Text(
-        'نوع تعهد را انتخاب کنید؛ جزئیات دامنه در مراحل بعدی تنظیم می‌شود.',
-      ),
-      const SizedBox(height: PlanActSpacing.md),
-      TextFormField(
-        key: const ValueKey('commitment-title-field'),
-        controller: _title,
-        autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'عنوان تعهد',
-          hintText: 'مثلاً کلاس زبان',
-        ),
-      ),
-      const SizedBox(height: PlanActSpacing.md),
-      RadioGroup<CommitmentCategory>(
-        groupValue: _draft.category,
-        onChanged: (value) =>
-            setState(() => _draft = _draft.copyWith(category: value)),
-        child: Column(
-          children: [
-            for (final item in CommitmentCategory.values)
-              RadioListTile<CommitmentCategory>(
-                value: item,
-                title: Text(_categoryLabel(item)),
-              ),
-          ],
-        ),
-      ),
-    ],
-  );
-
   Widget _basicStep() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       TextFormField(
         key: const ValueKey('commitment-title-field'),
@@ -250,6 +243,21 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         onChanged: (value) =>
             setState(() => _draft = _draft.copyWith(priority: value)),
       ),
+      const SizedBox(height: PlanActSpacing.md),
+      RadioGroup<CommitmentCategory>(
+        groupValue: _draft.category,
+        onChanged: (value) =>
+            setState(() => _draft = _draft.copyWith(category: value)),
+        child: Column(
+          children: [
+            for (final item in CommitmentCategory.values)
+              RadioListTile<CommitmentCategory>(
+                value: item,
+                title: Text(_categoryLabel(item)),
+              ),
+          ],
+        ),
+      ),
     ],
   );
 
@@ -281,7 +289,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
               onPressed: _pickDate,
               icon: const Icon(Icons.calendar_today_outlined),
               label: Text(
-                _draft.startAt == null
+                !_dateSelected
                     ? 'انتخاب تاریخ'
                     : PersianDateFormatter.date(
                         JalaliDate.fromDateTime(_draft.startAt!),
@@ -295,7 +303,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
               onPressed: _pickTime,
               icon: const Icon(Icons.schedule_outlined),
               label: Text(
-                _draft.startAt == null
+                !_timeSelected
                     ? 'انتخاب زمان'
                     : TimeOfDay.fromDateTime(_draft.startAt!).format(context),
               ),
@@ -365,9 +373,10 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       const SizedBox(height: PlanActSpacing.lg),
       _reminderPicker(),
       const SizedBox(height: PlanActSpacing.md),
-      TextButton(
-        onPressed: () => setState(() => _step = 3),
-        child: const Text('تنظیم بسته و اعتبار'),
+      ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        title: const Text('تنظیمات پیشرفته'),
+        children: [_entitlementStep()],
       ),
     ],
   );
@@ -398,9 +407,15 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           ),
         ],
       ),
-      if (_draft.reminderOffsets.isNotEmpty) ...[
+      if (_draft.reminderOffsets
+          .where(
+            (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
+          )
+          .isNotEmpty) ...[
         const SizedBox(height: PlanActSpacing.sm),
-        for (final offset in _draft.reminderOffsets)
+        for (final offset in _draft.reminderOffsets.where(
+          (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
+        ))
           ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
@@ -534,19 +549,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       ),
       const SizedBox(height: PlanActSpacing.md),
       OutlinedButton.icon(
-        onPressed: () => setState(() => _step = 1),
+        onPressed: () => setState(() => _step = 0),
         icon: const Icon(Icons.edit_outlined),
         label: const Text('ویرایش اطلاعات پایه'),
       ),
       OutlinedButton.icon(
-        onPressed: () => setState(() => _step = 2),
+        onPressed: () => setState(() => _step = 1),
         icon: const Icon(Icons.edit_calendar_outlined),
         label: const Text('ویرایش زمان‌بندی'),
-      ),
-      OutlinedButton.icon(
-        onPressed: () => setState(() => _step = 3),
-        icon: const Icon(Icons.inventory_2_outlined),
-        label: const Text('ویرایش بسته و اعتبار'),
       ),
     ],
   );
@@ -659,6 +669,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
             final date = JalaliDate(_month.year, _month.month, day);
             final selected = date == _selected;
             return InkWell(
+              key: ValueKey('capture-date-$day'),
               onTap: () => Navigator.pop(context, date.toDateTime()),
               child: Center(
                 child: Container(

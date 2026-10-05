@@ -3,7 +3,7 @@ import 'package:planact/app/theme/planact_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
@@ -217,7 +217,10 @@ class _ActionItemCard extends StatelessWidget {
         ? const <String>[]
         : <String>[
             if (details.amountMinorUnits != null)
-              '${MoneyInputFormatter.format(details.amountMinorUnits!)} ${details.currency ?? ''}',
+              PersianMoneyText.amount(
+                details.amountMinorUnits!,
+                details.currency ?? '',
+              ),
             if (details.accountName != null) 'حساب: ${details.accountName}',
             if (details.description != null) details.description!,
           ];
@@ -229,7 +232,12 @@ class _ActionItemCard extends StatelessWidget {
               : Icons.priority_high,
         ),
         title: Text(item.title),
-        subtitle: Text([item.subtitle, ...financial].join(' · ')),
+        subtitle: Text(
+          [
+            item.subtitle,
+            if (financial.isNotEmpty) financial.first,
+          ].join(' · '),
+        ),
         trailing: TextButton(
           onPressed: item.commitment == null
               ? onReview

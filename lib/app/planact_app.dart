@@ -7,6 +7,7 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
@@ -254,51 +255,52 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
+  void _openInbox() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: const Text('صندوق ورودی')),
+          body: InboxPage(
+            inbox: _inboxUseCases,
+            finance: _financeRepository,
+            smsSource: AndroidSmsSource(),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showCapture() async {
-    final draft = await showModalBottomSheet<CommitmentDraft>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => const QuickCaptureSheet(),
+      builder: (_) => QuickCaptureSheet(onSave: _saveCapturedCommitment),
     );
-    if (draft == null || draft.title.trim().isEmpty) return;
-    if (draft.scheduledDates.isEmpty) return;
-    try {
-      final startAt = draft.scheduledDates.first;
-      await _createCommitmentPlan(
-        title: draft.title,
-        startAt: startAt,
-        kind: draft.kind,
-        priority: draft.priority,
-        description: draft.description,
-        tags: draft.tags,
-        attachmentIds: draft.attachmentIds,
-        frequency: draft.frequency,
-        weekdays: draft.weekdays,
-        occurrenceCount: draft.occurrenceCount,
-        endDate: draft.endDate,
-        reminderOffsets: draft.reminderOffsets,
-        entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
-            ? draft.entitlementUnits
-            : null,
-        financialDirection: draft.financialMeaning.expectationDirection,
-        financialAmount: draft.financialAmount,
-      );
-      await _refresh();
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('ثبت تعهد انجام نشد؛ دوباره تلاش کنید.'),
-          action: SnackBarAction(label: 'بستن', onPressed: _hideSnackBar),
-        ),
-      );
-    }
   }
 
-  void _hideSnackBar() {
-    if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  Future<void> _saveCapturedCommitment(CommitmentDraft draft) async {
+    final startAt = draft.scheduledDates.first;
+    await _createCommitmentPlan(
+      title: draft.title,
+      startAt: startAt,
+      kind: draft.kind,
+      priority: draft.priority,
+      description: draft.description,
+      tags: draft.tags,
+      attachmentIds: draft.attachmentIds,
+      frequency: draft.frequency,
+      weekdays: draft.weekdays,
+      occurrenceCount: draft.occurrenceCount,
+      endDate: draft.endDate,
+      reminderOffsets: draft.reminderOffsets,
+      entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
+          ? draft.entitlementUnits
+          : null,
+      financialDirection: draft.financialMeaning.expectationDirection,
+      financialAmount: draft.financialAmount,
+    );
+    await _refresh();
   }
 
   void _showMessage(String message) {
@@ -408,8 +410,8 @@ class _HomeShellState extends State<HomeShell> {
     setState(() => _selectedIndex = 2);
     _pageController.animateToPage(
       2,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: PlanActMotion.standard,
+      curve: PlanActMotion.curve,
     );
   }
 
@@ -691,12 +693,15 @@ class _HomeShellState extends State<HomeShell> {
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
         onReview: (item) {
-          final page = item.type == TodayActionItemType.financialReview ? 2 : 3;
-          setState(() => _selectedIndex = page);
+          if (item.type != TodayActionItemType.financialReview) {
+            _openInbox();
+            return;
+          }
+          setState(() => _selectedIndex = 2);
           _pageController.animateToPage(
-            page,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
+            2,
+            duration: PlanActMotion.standard,
+            curve: PlanActMotion.curve,
           );
         },
       ),
@@ -711,11 +716,7 @@ class _HomeShellState extends State<HomeShell> {
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
-        inbox: InboxPage(
-          inbox: _inboxUseCases,
-          finance: _financeRepository,
-          smsSource: AndroidSmsSource(),
-        ),
+        onInbox: _openInbox,
         settings: SettingsPage(
           settings: widget.settings,
           themeMode: widget.themeMode,
@@ -804,8 +805,8 @@ class _HomeShellState extends State<HomeShell> {
           setState(() => _selectedIndex = index);
           _pageController.animateToPage(
             index,
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
+            duration: PlanActMotion.standard,
+            curve: PlanActMotion.curve,
           );
         },
         destinations: const [
@@ -995,19 +996,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       onChanged: widget.onSaved,
                     ),
                   const SizedBox(height: 16),
-                  const Text('انتظار مالی نوبت‌ها'),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
-                  ),
-                  const SizedBox(height: 8),
-                  for (final occurrence in occurrences)
-                    _FinancialExpectationOccurrenceRow(
-                      occurrence: occurrence,
-                      useCases: FinancialExpectationUseCases(
-                        widget.expectationRepository,
+                  ExpansionTile(
+                    title: const Text('انتظار مالی نوبت‌ها'),
+                    children: [
+                      const Text(
+                        'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
                       ),
-                    ),
+                      for (final occurrence in occurrences)
+                        _FinancialExpectationOccurrenceRow(
+                          occurrence: occurrence,
+                          useCases: FinancialExpectationUseCases(
+                            widget.expectationRepository,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               );
             },
@@ -1107,68 +1110,41 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
   CommitmentPriority.urgent => 'فوری',
 };
 
-class _MorePage extends StatefulWidget {
-  const _MorePage({required this.inbox, required this.settings});
+class _MorePage extends StatelessWidget {
+  const _MorePage({required this.onInbox, required this.settings});
 
-  final Widget inbox;
+  final VoidCallback onInbox;
   final Widget settings;
 
   @override
-  State<_MorePage> createState() => _MorePageState();
-}
-
-enum _MoreChild { inbox, settings }
-
-class _MorePageState extends State<_MorePage> {
-  _MoreChild? _child;
-
-  void _open(_MoreChild child) {
-    setState(() => _child = child);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final child = _child;
-    if (child != null) {
-      final (title, page) = switch (child) {
-        _MoreChild.inbox => ('صندوق ورودی', widget.inbox),
-        _MoreChild.settings => ('تنظیمات', widget.settings),
-      };
-      return Column(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.arrow_back),
-            title: Text(title),
-            onTap: () => setState(() => _child = null),
-          ),
-          const Divider(height: 1),
-          Expanded(child: page),
-        ],
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.inbox_outlined),
-            title: const Text('صندوق ورودی'),
-            subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open(_MoreChild.inbox),
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.inbox_outlined),
+          title: const Text('صندوق ورودی'),
+          subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onInbox,
+        ),
+      ),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.settings_outlined),
+          title: const Text('تنظیمات'),
+          subtitle: const Text('تنظیمات عمومی برنامه'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => Scaffold(
+                appBar: AppBar(title: const Text('تنظیمات')),
+                body: settings,
+              ),
+            ),
           ),
         ),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('تنظیمات'),
-            subtitle: const Text('تنظیمات عمومی برنامه'),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open(_MoreChild.settings),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }

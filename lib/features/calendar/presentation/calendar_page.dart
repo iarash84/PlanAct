@@ -215,79 +215,59 @@ class _CalendarDay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return Material(
-      color: selected
-          ? scheme.primaryContainer
-          : scheme.surfaceContainerHighest.withValues(alpha: .38),
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(4, 5, 4, 3),
-          decoration: BoxDecoration(
+    final dateLabel = PersianDateFormatter.date(date);
+    final count = PersianNumbers.format(commitments.length);
+    final selectionLabel = selected ? '، انتخاب‌شده' : '';
+    final todayLabel = isToday ? '، امروز' : '';
+    final holidayLabel = holiday ? '، تعطیل' : '';
+    final countLabel = commitments.isEmpty ? 'بدون تعهد' : '$count تعهد';
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '$dateLabel$selectionLabel$todayLabel$holidayLabel، $countLabel',
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: Material(
+          color: selected
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest.withValues(alpha: .38),
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(8),
-            border: isToday
-                ? Border.all(color: scheme.primary, width: 2)
-                : null,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                PersianNumbers.format(date.day),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: selected || isToday
-                      ? FontWeight.bold
-                      : FontWeight.w600,
-                  color: holiday ? scheme.error : null,
-                ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(4, 5, 4, 3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: isToday
+                    ? Border.all(color: scheme.primary, width: 2)
+                    : null,
               ),
-              const SizedBox(height: 4),
-              ...commitments.take(2).map((item) => _CommitmentChip(item: item)),
-              if (commitments.length > 2)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    '+${PersianNumbers.format(commitments.length - 2)}',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    PersianNumbers.format(date.day),
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.labelSmall,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: selected || isToday
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: holiday ? scheme.error : null,
+                    ),
                   ),
-                ),
-            ],
+                  if (commitments.isNotEmpty)
+                    Text(
+                      PersianNumbers.format(commitments.length),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CommitmentChip extends StatelessWidget {
-  const _CommitmentChip({required this.item});
-
-  final Commitment item;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 22,
-      margin: const EdgeInsets.only(bottom: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-        color: scheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      alignment: Alignment.centerRight,
-      child: Text(
-        item.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: scheme.onTertiaryContainer,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
         ),
       ),
     );

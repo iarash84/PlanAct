@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -7,6 +8,7 @@ import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/core/money/currency.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -32,13 +34,11 @@ class FinancePageState extends State<FinancePage> {
 
   static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
-  FinancialExpectationUseCases? get _expectations =>
-      widget.expectationRepository == null
-      ? null
-      : FinancialExpectationUseCases(widget.expectationRepository!);
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
   bool _loading = true;
+  String? _loadError;
+  bool _hasLoaded = false;
   String? _categoryFilter;
   AccountEntryType? _typeFilter;
 
@@ -49,6 +49,7 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Future<void> _refresh() async {
+    if (mounted && !_hasLoaded) setState(() => _loading = true);
     try {
       final accounts = await widget.repository.listAccounts();
       final entries = await widget.repository.listEntries();
@@ -56,6 +57,8 @@ class FinancePageState extends State<FinancePage> {
         setState(() {
           _accounts = accounts;
           _entries = entries;
+          _hasLoaded = true;
+          _loadError = null;
           _loading = false;
         });
       }
@@ -65,8 +68,10 @@ class FinancePageState extends State<FinancePage> {
         fields: {'errorType': error.runtimeType.toString()},
       );
       if (mounted) {
-        setState(() => _loading = false);
-        _showMessage('بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.');
+        setState(() {
+          _loading = false;
+          _loadError = 'بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.';
+        });
       }
     }
   }
@@ -190,7 +195,7 @@ class FinancePageState extends State<FinancePage> {
                       inputFormatters: const [MoneyInputFormatter()],
                       decoration: const InputDecoration(
                         labelText: 'موجودی اولیه (اختیاری)',
-                        suffixText: 'تومان',
+                        suffixText: 'ریال',
                       ),
                     ),
                   ],
@@ -207,7 +212,7 @@ class FinancePageState extends State<FinancePage> {
       final account = FinancialAccount(
         id: StableId.generate(),
         name: result.name,
-        currency: 'تومان',
+        currency: CurrencyCodes.irr,
         type: result.type,
         bank: result.bank,
       );
@@ -244,140 +249,187 @@ class FinancePageState extends State<FinancePage> {
     var account = _accounts.first;
     var occurredAt = DateTime.now();
     String? formError;
+    var saving = false;
+    Future<void>? sheetRemoved;
     try {
       final result = await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        builder: (context) => StatefulBuilder(
-          builder: (context, setDialogState) => PlanActFormSheet(
-            title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
-            primaryLabel: 'ثبت',
-            onPrimary: () {
-              final value = int.tryParse(
-                MoneyInputFormatter.normalize(amount.text),
-              );
-              if (value != null && value > 0) {
-                Navigator.pop(context, true);
-              } else {
-                setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<FinancialAccount>(
-                  initialValue: account,
-                  decoration: const InputDecoration(labelText: 'حساب'),
-                  items: _accounts
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item.name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) setDialogState(() => account = value);
-                  },
-                ),
-                TextField(
-                  controller: amount,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: const [MoneyInputFormatter()],
-                  decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
-                ),
-                TextField(
-                  controller: note,
-                  decoration: InputDecoration(
-                    labelText: income ? 'شرح درآمد' : 'شرح هزینه',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
+        isDismissible: false,
+        enableDrag: false,
+        builder: (context) {
+          sheetRemoved ??= ModalRoute.of(context)!.completed.then((_) {});
+          return StatefulBuilder(
+            builder: (context, setDialogState) => PopScope(
+              canPop: !saving,
+              child: PlanActFormSheet(
+                title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
+                primaryLabel: 'ثبت',
+                isLoading: saving,
+                onPrimary: () async {
+                  if (saving) return;
+                  final value = int.tryParse(
+                    MoneyInputFormatter.normalize(amount.text),
+                  );
+                  if (value == null || value <= 0) {
+                    setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
+                    return;
+                  }
+                  setDialogState(() {
+                    saving = true;
+                    formError = null;
+                  });
+                  try {
+                    await _finance.record(
+                      account: account,
+                      type: income
+                          ? AccountEntryType.income
+                          : AccountEntryType.expense,
+                      amount: Money(
+                        minorUnits: value,
+                        currency: account.currency,
+                      ),
+                      occurredAt: occurredAt,
+                      note: note.text.trim().isEmpty ? null : note.text.trim(),
+                      category: income ? 'دریافت' : 'عمومی',
+                    );
+                    if (context.mounted) {
+                      setDialogState(() => saving = false);
+                      Navigator.pop(context, true);
+                    }
+                  } catch (error) {
+                    _logger.error(
+                      'Finance transaction creation failed',
+                      fields: {'errorType': error.runtimeType.toString()},
+                    );
+                    if (context.mounted) {
+                      setDialogState(() {
+                        saving = false;
+                        formError = 'ثبت تراکنش انجام نشد؛ اطلاعات شما حفظ شده است. دوباره تلاش کنید.';
+                      });
+                    }
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final selected = await showDialog<DateTime>(
-                            context: context,
-                            builder: (_) => _FinanceJalaliDatePicker(
-                              initialDate: occurredAt,
+                    DropdownButtonFormField<FinancialAccount>(
+                      initialValue: account,
+                      decoration: const InputDecoration(labelText: 'حساب'),
+                      items: _accounts
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(item.name),
                             ),
-                          );
-                          if (selected == null) return;
-                          setDialogState(() {
-                            occurredAt = DateTime(
-                              selected.year,
-                              selected.month,
-                              selected.day,
-                              occurredAt.hour,
-                              occurredAt.minute,
-                            );
-                          });
-                        },
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: Text(
-                          '${occurredAt.year}/${occurredAt.month}/${occurredAt.day}',
-                        ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => account = value);
+                        }
+                      },
+                    ),
+                    TextField(
+                      controller: amount,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: const [MoneyInputFormatter()],
+                      decoration: InputDecoration(
+                        labelText:
+                            'مبلغ به ${CurrencyCodes.label(account.currency)}',
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final selected = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(occurredAt),
-                          );
-                          if (selected == null) return;
-                          setDialogState(() {
-                            occurredAt = DateTime(
-                              occurredAt.year,
-                              occurredAt.month,
-                              occurredAt.day,
-                              selected.hour,
-                              selected.minute,
-                            );
-                          });
-                        },
-                        icon: const Icon(Icons.schedule_outlined),
-                        label: Text(
-                          '${occurredAt.hour.toString().padLeft(2, '0')}:${occurredAt.minute.toString().padLeft(2, '0')}',
-                        ),
+                    TextField(
+                      controller: note,
+                      decoration: InputDecoration(
+                        labelText: income ? 'شرح درآمد' : 'شرح هزینه',
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selected = await showDialog<DateTime>(
+                                context: context,
+                                builder: (_) => _FinanceJalaliDatePicker(
+                                  initialDate: occurredAt,
+                                ),
+                              );
+                              if (selected == null) return;
+                              setDialogState(() {
+                                occurredAt = DateTime(
+                                  selected.year,
+                                  selected.month,
+                                  selected.day,
+                                  occurredAt.hour,
+                                  occurredAt.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.calendar_today_outlined),
+                            label: Text(
+                              PersianDateFormatter.date(
+                                JalaliDate.fromDateTime(occurredAt),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selected = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(occurredAt),
+                              );
+                              if (selected == null) return;
+                              setDialogState(() {
+                                occurredAt = DateTime(
+                                  occurredAt.year,
+                                  occurredAt.month,
+                                  occurredAt.day,
+                                  selected.hour,
+                                  selected.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.schedule_outlined),
+                            label: Text(
+                              PersianNumbers.format(
+                                '${occurredAt.hour.toString().padLeft(2, '0')}:${occurredAt.minute.toString().padLeft(2, '0')}',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (formError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            formError!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                if (formError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        formError!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
-      final value = int.tryParse(MoneyInputFormatter.normalize(amount.text));
-      if (result != true || value == null || value <= 0) return;
-      await _finance.record(
-        account: account,
-        type: income ? AccountEntryType.income : AccountEntryType.expense,
-        amount: Money(minorUnits: value, currency: account.currency),
-        occurredAt: occurredAt,
-        note: note.text.trim().isEmpty ? null : note.text.trim(),
-        category: income ? 'دریافت' : 'عمومی',
-      );
-      await _refresh();
+      if (result == true) {
+        await _refresh();
+        if (mounted && _loadError == null) _showMessage('تراکنش ثبت شد.');
+      }
     } catch (error) {
       _logger.error(
         'Finance transaction creation failed',
@@ -385,6 +437,7 @@ class FinancePageState extends State<FinancePage> {
       );
       if (mounted) _showMessage('ثبت تراکنش انجام نشد؛ دوباره تلاش کنید.');
     } finally {
+      if (sheetRemoved != null) await sheetRemoved;
       amount.dispose();
       note.dispose();
     }
@@ -429,10 +482,7 @@ class FinancePageState extends State<FinancePage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _money(Money money) =>
-      '${_digits(money.minorUnits.abs())} ${money.currency}';
-
-  String _digits(int value) => MoneyInputFormatter.format(value);
+  String _money(Money money) => PersianMoneyText.money(money);
 
   List<AccountEntry> get _filteredEntries {
     final entries =
@@ -448,8 +498,13 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Widget _buildSummary() {
-    final currency = _accounts.isEmpty ? 'تومان' : _accounts.first.currency;
-    final summary = cashFlowSummary(_entries, currency);
+    final currency = _accounts.isEmpty
+        ? CurrencyCodes.irr
+        : _accounts.first.currency;
+    final summary = cashFlowSummary(
+      _entries.where((entry) => entry.amount.currency == currency),
+      currency,
+    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -461,13 +516,23 @@ class FinancePageState extends State<FinancePage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Text('ورودی: ${_digits(summary.incoming)} $currency'),
-            Text('خروجی: ${_digits(summary.outgoing)} $currency'),
-            Text('خالص: ${_digits(summary.net.abs())} $currency'),
+            Text(
+              'ورودی: ${PersianMoneyText.amount(summary.incoming, currency)}',
+            ),
+            Text(
+              'خروجی: ${PersianMoneyText.amount(summary.outgoing, currency)}',
+            ),
+            Text(
+              'خالص: ${PersianMoneyText.amount(summary.net.abs(), currency)}',
+            ),
             const SizedBox(height: 8),
             const Text(
               'این گزارش فقط بر اساس تراکنش‌های ثبت‌شده روی دستگاه است.',
             ),
+            if (_accounts.any((account) => account.currency != currency))
+              const Text(
+                'حساب‌هایی با واحد پول دیگر در این جمع لحاظ نشده‌اند.',
+              ),
           ],
         ),
       ),
@@ -520,11 +585,38 @@ class FinancePageState extends State<FinancePage> {
       appBar: AppBar(title: const Text('مالی')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
+          : !_hasLoaded
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_loadError ?? 'اطلاعات مالی در دسترس نیست.'),
+                  TextButton(
+                    onPressed: _refresh,
+                    child: const Text('تلاش دوباره'),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (_loadError != null)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.warning_amber_outlined),
+                        title: const Text(
+                          'اطلاعات نمایش‌داده‌شده ممکن است قدیمی باشد.',
+                        ),
+                        subtitle: Text(_loadError!),
+                        trailing: TextButton(
+                          onPressed: _refresh,
+                          child: const Text('تلاش دوباره'),
+                        ),
+                      ),
+                    ),
                   _buildSummary(),
                   const SizedBox(height: 12),
                   _buildFilters(),
@@ -593,24 +685,6 @@ class FinancePageState extends State<FinancePage> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  if (_expectations != null) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      'انتظارهای مالی',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const Card(
-                      child: ListTile(
-                        leading: Icon(Icons.info_outline),
-                        title: Text(
-                          'انتظار مالی برای هر نوبت از بخش تعهد ثبت می‌شود.',
-                        ),
-                        subtitle: Text(
-                          'مبلغ، ارز و حساب اختیاری هستند و بدون انتخاب شما ساخته نمی‌شوند.',
-                        ),
-                      ),
-                    ),
-                  ],
                   Text(
                     'آخرین تراکنش‌ها',
                     style: Theme.of(context).textTheme.titleLarge,
@@ -635,8 +709,14 @@ class FinancePageState extends State<FinancePage> {
                         ),
                         subtitle: Text(
                           [
-                            '${entry.occurredAt.toLocal().year}/${entry.occurredAt.toLocal().month}/${entry.occurredAt.toLocal().day}',
-                            '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                            PersianDateFormatter.date(
+                              JalaliDate.fromDateTime(
+                                entry.occurredAt.toLocal(),
+                              ),
+                            ),
+                            PersianNumbers.format(
+                              '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                            ),
                             if (entry.category != null) entry.category!,
                             entry.note ?? 'بدون شرح',
                           ].join(' · '),

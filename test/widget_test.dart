@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/startup_splash.dart';
+import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/main.dart';
 
 void main() {
@@ -20,13 +22,17 @@ void main() {
 
     await tester.tap(find.text('ثبت تعهد جدید'));
     await tester.pumpAndSettle();
-    expect(find.text('تعهد جدید'), findsOneWidget);
+    expect(find.text('اصل تعهد'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('commitment-title-field')),
       'کلاس زبان',
     );
-    await tester.tap(find.text('افزودن جزئیات'));
+    await tester.tap(find.text('ادامه'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('انتخاب تاریخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('capture-date-1')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('انتخاب زمان'));
     await tester.pumpAndSettle();
@@ -57,6 +63,9 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('commitment-save-button')));
     await tester.pumpAndSettle();
+    expect(find.text('مرور و ثبت'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('commitment-save-button')));
+    await tester.pumpAndSettle();
 
     expect(find.text('کلاس زبان'), findsWidgets);
     expect(find.text('تعیین وضعیت'), findsWidgets);
@@ -85,6 +94,38 @@ void main() {
     await tester.tap(find.byTooltip('ماه بعد'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('ماه قبل'), findsOneWidget);
+  });
+
+  testWidgets('calendar shows compact count and selected-day details', (
+    tester,
+  ) async {
+    final commitment = Commitment.create(title: 'کلاس موسیقی');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CalendarPage(
+            commitments: [commitment],
+            scheduledDates: {
+              commitment.id.value: [DateTime.now()],
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('۱'), findsWidgets);
+    final semantics = tester.ensureSemantics();
+    expect(
+      find.bySemanticsLabel(RegExp('امروز.*انتخاب‌شده|انتخاب‌شده.*امروز')),
+      findsOneWidget,
+    );
+    semantics.dispose();
+    await tester.scrollUntilVisible(
+      find.text('کلاس موسیقی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('کلاس موسیقی'), findsOneWidget);
   });
 
   testWidgets('خطای راه‌اندازی امکان تلاش دوباره دارد', (tester) async {

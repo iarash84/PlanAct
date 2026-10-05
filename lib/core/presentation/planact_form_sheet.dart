@@ -14,7 +14,7 @@ class PlanActFormSheet extends StatelessWidget {
     this.onSecondary,
     this.isLoading = false,
     this.error,
-    this.showDragHandle = true,
+    this.showDragHandle = false,
     this.primaryKey,
   });
 
