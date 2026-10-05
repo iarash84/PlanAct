@@ -803,6 +803,16 @@ Release نباید در صورت شکست این موارد ساخته شود.
 - secret یا signing key خصوصی نباید داخل repository قرار گیرد.
 - هر cloud/AI integration آینده باید opt-in باشد.
 
+### قفل برنامه
+
+- قفل برنامه اختیاری و به‌صورت پیش‌فرض خاموش است؛ تنظیم آن باید بعد از راه‌اندازی مجدد باقی بماند.
+- فعال‌سازی و غیرفعال‌سازی نیازمند احراز هویت تازهٔ دستگاه و ذخیرهٔ موفق تنظیم است؛ لغو یا خطا نباید تنظیم را تغییر دهد.
+- در صورت فعال‌بودن، ورود اولیه و بازگشت از پس‌زمینه باید پیش از نمایش دادهٔ خصوصی قفل شوند؛ صفحه‌ها، فرم‌ها و پنجره‌های باز نیز پوشش داده شوند، بدون حذف ورودی فرم.
+- احراز هویت از اثر انگشت یا رمز دستگاه استفاده می‌کند؛ شکست یا نبود قابلیت باید با پیام فارسی و تلاش دوباره همراه باشد، نه دورزدن قفل یا حذف داده.
+- قفل رابط کاربری جایگزین رمزنگاری پایگاه داده یا پشتیبان نیست.
+
+Implementation checkpoint (2026-10-05): Priority 4 remains **partial for native release acceptance**. Root-route protection, lifecycle invalidation, authenticated setting changes, failure/retry feedback and persisted settings are implemented. The 271-test suite and isolated Android build pass; real-device authentication, process lifecycle, recents privacy and accessibility acceptance remain open. See [app-lock verification](../APP_LOCK_VERIFICATION.md).
+
 ---
 
 # 30. Release Criteria

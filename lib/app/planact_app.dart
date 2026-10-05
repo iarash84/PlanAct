@@ -87,6 +87,7 @@ class _PlanActAppState extends State<PlanActApp> {
   Future<void> _loadAppLockSetting() async {
     try {
       final enabled = await _settings!.readAppLockEnabled();
+      if (enabled) _appLockController.lock();
       if (mounted) {
         setState(() {
           _appLockEnabled = enabled;
@@ -104,15 +105,24 @@ class _PlanActAppState extends State<PlanActApp> {
     }
   }
 
+  bool _changingAppLock = false;
+
   Future<void> _setAppLock(bool enabled) async {
-    if (enabled) {
-      final enabledAfterAuth = await _appLockController.enable();
-      if (!enabledAfterAuth) return;
-    } else {
-      _appLockController.disable();
+    if (_changingAppLock) throw StateError('App lock change already running');
+    if (enabled == _appLockEnabled) return;
+    _changingAppLock = true;
+    try {
+      final settings = _settings;
+      if (settings == null) throw StateError('Persistent settings unavailable');
+      await _appLockController.changeSetting(
+        enabled: enabled,
+        persist: settings.writeAppLockEnabled,
+      );
+      if (!mounted) return;
+      setState(() => _appLockEnabled = enabled);
+    } finally {
+      _changingAppLock = false;
     }
-    await _settings?.writeAppLockEnabled(enabled);
-    if (mounted) setState(() => _appLockEnabled = enabled);
   }
 
   @override
@@ -125,7 +135,11 @@ class _PlanActAppState extends State<PlanActApp> {
       themeMode: _themeMode,
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
-        child: child ?? const SizedBox.shrink(),
+        child: AppLockGate(
+          enabled: _appLockEnabled,
+          controller: _appLockController,
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
       home: !_appLockSettingLoaded && _settings != null
           ? Scaffold(
@@ -144,24 +158,20 @@ class _PlanActAppState extends State<PlanActApp> {
                       ),
               ),
             )
-          : AppLockGate(
-              enabled: _appLockEnabled,
-              controller: _appLockController,
-              child: HomeShell(
-                backupActions: widget.backupActions,
-                backupMessage: widget.backupMessage,
-                repository: widget.repository,
-                planRepository: widget.planRepository,
-                settings: _settings,
-                themeMode: _themeMode,
-                appLockEnabled: _appLockEnabled,
-                appLockController: _appLockController,
-                onAppLockChanged: _setAppLock,
-                onThemeModeChanged: (mode) async {
-                  setState(() => _themeMode = mode);
-                  await _settings?.writeThemeMode(mode);
-                },
-              ),
+          : HomeShell(
+              backupActions: widget.backupActions,
+              backupMessage: widget.backupMessage,
+              repository: widget.repository,
+              planRepository: widget.planRepository,
+              settings: _settings,
+              themeMode: _themeMode,
+              appLockEnabled: _appLockEnabled,
+              appLockController: _appLockController,
+              onAppLockChanged: _setAppLock,
+              onThemeModeChanged: (mode) async {
+                setState(() => _themeMode = mode);
+                await _settings?.writeThemeMode(mode);
+              },
             ),
     );
   }

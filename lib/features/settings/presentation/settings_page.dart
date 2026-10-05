@@ -4,6 +4,7 @@ import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/app/app_settings.dart';
+import 'package:planact/features/settings/presentation/app_lock_settings_card.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({
@@ -74,35 +75,7 @@ class SettingsPage extends StatelessWidget {
       const SizedBox(height: 20),
       Text('امنیت', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 12),
-      Card(
-        child: SwitchListTile.adaptive(
-          secondary: const Icon(Icons.lock_outline),
-          title: const Text('قفل برنامه'),
-          subtitle: const Text(
-            'هنگام بازگشت از پس‌زمینه، احراز هویت دستگاه را درخواست می‌کند.',
-          ),
-          value: appLockEnabled,
-          onChanged: onAppLockChanged == null
-              ? null
-              : (enabled) async {
-                  if (!enabled) {
-                    await onAppLockChanged!(false);
-                    return;
-                  }
-                  final controller = appLockController;
-                  if (controller == null ||
-                      await controller.authenticator.isAvailable()) {
-                    await onAppLockChanged!(true);
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('احراز هویت دستگاه در دسترس نیست.'),
-                      ),
-                    );
-                  }
-                },
-        ),
-      ),
+      AppLockSettingsCard(enabled: appLockEnabled, change: onAppLockChanged),
       const SizedBox(height: 20),
       if (enableReminders != null)
         ReminderPermissionsCard(enable: enableReminders!),

@@ -280,6 +280,7 @@ Restore must:
 - Secrets/keys belong in secure platform storage.
 - Sensitive exports require explicit user action and privacy warning.
 - App lock/biometric protection is part of release hardening for sensitive data.
+- App-lock protection must cover the root navigation stack, including modal and pushed routes, without discarding form state. Setting changes require fresh device authentication and successful persistence before changing the effective setting. Background transitions must invalidate in-flight authentication results; failures must not silently disable protection. Device-authenticator absence is not permission to introduce a recovery bypass. Native authentication/lifecycle and recents privacy require independent device evidence; Flutter tests alone do not prove these release gates.
 - Do not add telemetry or crash reporting that uploads personal data without a deliberate privacy review.
 
 ## 14. Coding conventions for vibe coding
