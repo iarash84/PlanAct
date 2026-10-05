@@ -66,6 +66,18 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('وضعیت نوبت ثبت شد.')));
       }
+    } on OccurrenceReminderDeliveryPending catch (pending) {
+      _updated = pending.occurrence;
+      await widget.onChanged();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'وضعیت نوبت ثبت شد؛ هماهنگ‌سازی یادآوری هنوز انجام نشده است.',
+            ),
+          ),
+        );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

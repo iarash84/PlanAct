@@ -841,6 +841,10 @@ After meaningful changes run:
 Do not report a task as complete when analysis or relevant tests fail.
 
 
+## Transactional/platform consistency
+
+Domain commits and external platform delivery are separate outcomes. Do not report a committed creation or occurrence mutation as wholly failed because subsequent reminder synchronization failed. Persist replacement reminder intent transactionally before platform cancellation/scheduling; reconcile from durable rules and occurrences without destroying delivery, snooze or cancellation history. CommandGate admission is not general command serialization. The Priority 5 checkpoint and unresolved same-time restore/concurrency/native gates are recorded in docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md.
+
 ## Production backup verification status
 
 The production adapter decisions and unresolved release gates are recorded in docs/adr/0013-production-backup-restore.md and the PRD implementation-status note. Do not describe installation-bound encrypted exports as portable device-loss recovery. Do not weaken isolated schema validation to bypass migrated-schema incompatibility without tested compatibility rules. Backup integration must prove in-flight command exclusion, repository/listener rebind, full logical-state preservation, and isolated native platform behavior before release.

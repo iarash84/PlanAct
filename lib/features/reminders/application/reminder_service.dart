@@ -14,9 +14,19 @@ abstract interface class ReminderRepository {
   Future<void> saveInstance(ReminderInstance instance);
 }
 
+/// Atomically commits reminder intent before any external platform effects.
+abstract interface class ReminderIntentTransaction {
+  Future<T> runReminderTransaction<T>(Future<T> Function() action);
+}
+
 /// Persistent adapters can reject reminders whose occurrence is resolved.
 abstract interface class ReminderOccurrenceEligibility {
   Future<bool> canRemind(StableId occurrenceId);
+}
+
+/// Rebuilds missing or stale reminder intent from the durable occurrence.
+abstract interface class ReminderOccurrenceSchedule {
+  Future<DateTime?> occurrenceStart(StableId occurrenceId);
 }
 
 class InMemoryReminderRepository implements ReminderRepository {
@@ -49,48 +59,54 @@ class ReminderService {
     required ReminderRule rule,
     required DateTime occurrenceStart,
   }) => CommandGate.runFor(repository, () async {
-    await repository.saveRule(rule);
     final existing = await repository.listInstances();
     final scheduled = ReminderInstance.fromRule(
       rule: rule,
       occurrenceStart: occurrenceStart,
     );
-    // Persist cancellation before platform effects so interrupted updates can
-    // be retried by reconciliation without resurrecting the previous alarm.
-    for (final old in existing.where(
-      (item) =>
-          item.ruleId == rule.id &&
-          item.status != ReminderInstanceStatus.delivered &&
-          (item.scheduledAt.toUtc() != scheduled.scheduledAt.toUtc() ||
-              !rule.enabled),
-    )) {
-      await cancel(old);
-    }
+    final stale = existing
+        .where(
+          (item) =>
+              item.ruleId == rule.id &&
+              item.status != ReminderInstanceStatus.delivered &&
+              (item.scheduledAt.toUtc() != scheduled.scheduledAt.toUtc() ||
+                  !rule.enabled),
+        )
+        .toList();
     final duplicate = existing.where(
       (item) =>
           item.ruleId == rule.id &&
           item.occurrenceId == rule.occurrenceId &&
           item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc(),
     );
-    if (duplicate.isNotEmpty) {
-      // A previous platform attempt may have failed after the durable write.
-      // Retrying must not mistake the persisted intent for delivered scheduling.
-      final previous = duplicate.first;
-      if (previous.status == ReminderInstanceStatus.delivered) return previous;
-      final effective = !rule.enabled
-          ? previous.cancel()
-          : previous.status == ReminderInstanceStatus.cancelled
-          ? previous.reschedule(previous.scheduledAt)
-          : previous;
+    final previous = duplicate.isEmpty ? scheduled : duplicate.first;
+    final effective = previous.status == ReminderInstanceStatus.delivered
+        ? previous
+        : !rule.enabled
+        ? previous.cancel()
+        : previous.status == ReminderInstanceStatus.cancelled
+        ? previous.reschedule(previous.scheduledAt)
+        : previous;
+    await _persistIntent(() async {
+      await repository.saveRule(rule);
+      for (final old in stale) {
+        await repository.saveInstance(old.cancel());
+      }
       await repository.saveInstance(effective);
-      if (rule.enabled) await platform.schedule(effective);
-      return effective;
+    });
+    for (final old in stale) {
+      await platform.cancel(old);
     }
-    final effective = rule.enabled ? scheduled : scheduled.cancel();
-    await repository.saveInstance(effective);
-    if (rule.enabled) await platform.schedule(effective);
+    if (rule.enabled && effective.status != ReminderInstanceStatus.delivered) {
+      await platform.schedule(effective);
+    }
     return effective;
   });
+
+  Future<T> _persistIntent<T>(Future<T> Function() action) =>
+      repository is ReminderIntentTransaction
+      ? (repository as ReminderIntentTransaction).runReminderTransaction(action)
+      : action();
 
   /// Synchronizes a user-edited occurrence using its durable rules.
   Future<void> synchronizeOccurrence({
@@ -143,53 +159,114 @@ class ReminderService {
   ///
   /// The persisted UTC instant is the sole scheduling source of truth. The
   /// platform adapter only translates it into an Android alarm.
-  Future<void> reconcile({required DateTime now}) =>
-      CommandGate.runFor(repository, () async {
-        final rules = await repository.listRules();
-        final instances = await repository.listInstances();
-        final enabledRuleIds = rules
-            .where((rule) => rule.enabled)
-            .map((rule) => rule.id)
-            .toSet();
-        final activeIds = <String>{};
-        var permissionUnavailable = false;
-        for (final instance in instances) {
-          final active =
-              instance.status == ReminderInstanceStatus.scheduled ||
-              instance.status == ReminderInstanceStatus.snoozed;
-          final effectiveAt = instance.status == ReminderInstanceStatus.snoozed
-              ? instance.snoozedUntil ?? instance.scheduledAt
-              : instance.scheduledAt;
-          if (!active) {
-            // Platform cleanup must not rewrite delivered notification history.
-            await platform.cancel(instance);
-            continue;
-          }
-          final eligible =
-              repository is! ReminderOccurrenceEligibility ||
-              await (repository as ReminderOccurrenceEligibility).canRemind(
-                instance.occurrenceId,
+  Future<void> reconcile({required DateTime now}) => CommandGate.runFor(
+    repository,
+    () async {
+      final rules = await repository.listRules();
+      // A committed rule/occurrence may outlive an interrupted platform phase.
+      // Repair missing and stale active intent before rebuilding Android state.
+      await _persistIntent(() async {
+        if (repository case final ReminderOccurrenceSchedule source) {
+          for (final rule in rules.where((rule) => rule.enabled)) {
+            final eligible =
+                repository is! ReminderOccurrenceEligibility ||
+                await (repository as ReminderOccurrenceEligibility).canRemind(
+                  rule.occurrenceId,
+                );
+            if (!eligible) continue;
+            final start = await source.occurrenceStart(rule.occurrenceId);
+            if (start == null) continue;
+            final expected = ReminderInstance.fromRule(
+              rule: rule,
+              occurrenceStart: start,
+            );
+            final owned = (await repository.listInstances()).where(
+              (item) => item.ruleId == rule.id,
+            );
+            final needsRepair =
+                owned.isEmpty ||
+                (owned.every(
+                      (item) => item.scheduledAt != expected.scheduledAt,
+                    ) &&
+                    owned.every(
+                      (item) => item.status != ReminderInstanceStatus.delivered,
+                    )) ||
+                owned.any(
+                  (item) =>
+                      (item.status == ReminderInstanceStatus.scheduled ||
+                          item.status == ReminderInstanceStatus.snoozed) &&
+                      item.scheduledAt != expected.scheduledAt,
+                );
+            if (needsRepair) {
+              // Platform errors are reported by the normal rebuild below.
+              // Persist the complete target first, even if old cancellation fails.
+              for (final old in owned.where(
+                (item) =>
+                    item.status != ReminderInstanceStatus.delivered &&
+                    item.scheduledAt != expected.scheduledAt,
+              )) {
+                await repository.saveInstance(old.cancel());
+              }
+              final matching = owned.where(
+                (item) => item.scheduledAt == expected.scheduledAt,
               );
-          if (!enabledRuleIds.contains(instance.ruleId) ||
-              !eligible ||
-              !effectiveAt.isAfter(now)) {
-            final persisted = instance.cancel();
-            await repository.saveInstance(persisted);
-            await platform.cancel(instance);
-          } else {
-            activeIds.add(instance.id.value);
-            try {
-              await platform.schedule(instance);
-            } on ReminderPermissionUnavailable {
-              permissionUnavailable = true;
+              if (matching.isEmpty) {
+                await repository.saveInstance(expected);
+              } else if (matching.first.status ==
+                  ReminderInstanceStatus.cancelled) {
+                await repository.saveInstance(
+                  matching.first.reschedule(expected.scheduledAt),
+                );
+              }
             }
           }
         }
-        if (platform case final ReminderPlatformInventory inventory) {
-          await inventory.removeOrphans(activeIds);
-        }
-        if (permissionUnavailable) {
-          throw const ReminderPermissionUnavailable();
-        }
       });
+      final instances = await repository.listInstances();
+      final enabledRuleIds = rules
+          .where((rule) => rule.enabled)
+          .map((rule) => rule.id)
+          .toSet();
+      final activeIds = <String>{};
+      var permissionUnavailable = false;
+      for (final instance in instances) {
+        final active =
+            instance.status == ReminderInstanceStatus.scheduled ||
+            instance.status == ReminderInstanceStatus.snoozed;
+        final effectiveAt = instance.status == ReminderInstanceStatus.snoozed
+            ? instance.snoozedUntil ?? instance.scheduledAt
+            : instance.scheduledAt;
+        if (!active) {
+          // Platform cleanup must not rewrite delivered notification history.
+          await platform.cancel(instance);
+          continue;
+        }
+        final eligible =
+            repository is! ReminderOccurrenceEligibility ||
+            await (repository as ReminderOccurrenceEligibility).canRemind(
+              instance.occurrenceId,
+            );
+        if (!enabledRuleIds.contains(instance.ruleId) ||
+            !eligible ||
+            !effectiveAt.isAfter(now)) {
+          final persisted = instance.cancel();
+          await repository.saveInstance(persisted);
+          await platform.cancel(instance);
+        } else {
+          activeIds.add(instance.id.value);
+          try {
+            await platform.schedule(instance);
+          } on ReminderPermissionUnavailable {
+            permissionUnavailable = true;
+          }
+        }
+      }
+      if (platform case final ReminderPlatformInventory inventory) {
+        await inventory.removeOrphans(activeIds);
+      }
+      if (permissionUnavailable) {
+        throw const ReminderPermissionUnavailable();
+      }
+    },
+  );
 }

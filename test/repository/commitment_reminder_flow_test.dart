@@ -207,21 +207,20 @@ void main() {
 
   test('platform failure leaves durable intent to retry on restart', () async {
     platform.fail = true;
-    await expectLater(
-      CreateCommitmentPlan(
-        commitments: commitments,
-        plans: plans,
-        reminderService: ReminderService(
-          repository: reminders,
-          platform: platform,
-        ),
-      ).call(
-        title: 'قابل بازیابی',
-        startAt: DateTime(2030, 1, 1, 18),
-        reminderOffsets: [const Duration(minutes: 15)],
-      ),
-      throwsStateError,
-    );
+    final saved =
+        await CreateCommitmentPlan(
+          commitments: commitments,
+          plans: plans,
+          reminderService: ReminderService(
+            repository: reminders,
+            platform: platform,
+          ),
+        ).call(
+          title: 'قابل بازیابی',
+          startAt: DateTime(2030, 1, 1, 18),
+          reminderOffsets: [const Duration(minutes: 15)],
+        );
+    expect(saved.reminderDeliveryPending, isTrue);
     expect(await commitments.list(), hasLength(1));
     expect(await reminders.listRules(), hasLength(1));
     expect(await reminders.listInstances(), hasLength(1));

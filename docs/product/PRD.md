@@ -942,6 +942,10 @@ PlanAct باید بتواند برای هر تعهد مهم کاربر یک time
 
 اگر محصول بتواند این زنجیره را با داده‌ی قابل اعتماد و بدون وابستگی به cloud حفظ کند، هدف اصلی PlanAct محقق شده است.
 
+## Transactional/platform consistency — Priority 5
+
+A committed commitment creation or occurrence change must be reported separately from pending reminder synchronization; external notification failure must not invite duplicate creation or imply that durable occurrence state was lost. Replacement reminder intent is persisted before external delivery, and startup recovery repairs missing/stale intent from durable rules and eligible occurrences while preserving snooze and delivery history. This is a partial checkpoint: same-time interrupted restore versus explicit reminder cancellation, command concurrency and independent native interruption/reboot evidence remain open. See docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md. Local validation: 276 tests passed and analyzer clean; no schema or dependency change.
+
 ## Backup implementation status — Priority 1
 
 The production encrypted export/import path is implemented, but the backup release gate remains partial. Current key recovery is restricted to the original installation: device loss, uninstall, or another device is not supported. Export/import confirmations disclose this restriction. Strict fresh-schema validation may reject migrated current-version databases. Exhaustive entity round-trip, concurrent command/lifecycle safety, and isolated native Android picker/Keystore/crash evidence remain required. This status does not reduce the backup/restore acceptance criteria. See docs/adr/0013-production-backup-restore.md.

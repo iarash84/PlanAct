@@ -271,7 +271,9 @@ class CreateCommitmentPlan {
             rule: reminder,
             occurrenceStart: occurrence.currentScheduledAt as DateTime,
           );
-        } on ReminderPermissionUnavailable {
+        } catch (_) {
+          // The domain transaction has committed. Platform failure must not
+          // invite a duplicate creation; durable rules are retried at startup.
           reminderDeliveryPending = true;
         }
       }

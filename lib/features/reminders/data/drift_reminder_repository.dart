@@ -10,12 +10,45 @@ class DriftReminderRepository
     implements
         CommandGateProvider,
         ReminderRepository,
-        ReminderOccurrenceEligibility {
+        ReminderOccurrenceEligibility,
+        ReminderOccurrenceSchedule,
+        ReminderIntentTransaction {
   DriftReminderRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<T> runReminderTransaction<T>(Future<T> Function() action) =>
+      CommandGate.runFor(this, () => database.transaction(action));
+
+  @override
+  Future<DateTime?> occurrenceStart(StableId occurrenceId) =>
+      CommandGate.runFor(this, () async {
+        final row = await (database.select(
+          database.occurrences,
+        )..where((row) => row.id.equals(occurrenceId.value))).getSingleOrNull();
+        if (row == null) return null;
+        final value = row.currentScheduledValue;
+        if (value.startsWith('date:')) return null;
+        if (value.startsWith('instant:')) {
+          return DateTime.parse(value.substring(8)).toUtc();
+        }
+        final parts = value.substring(6).split('T');
+        final date = parts[0].split('-').map(int.parse).toList();
+        final time = parts[1].split(':');
+        final seconds = time[2].split('.');
+        return DateTime(
+          date[0],
+          date[1],
+          date[2],
+          int.parse(time[0]),
+          int.parse(time[1]),
+          int.parse(seconds[0]),
+          int.parse(seconds[1]),
+        );
+      });
 
   @override
   Future<bool> canRemind(StableId occurrenceId) =>

@@ -115,6 +115,12 @@ List<OccurrenceAction> availableOccurrenceActions(
   return List.unmodifiable(actions);
 }
 
+/// The occurrence is committed; only external reminder delivery needs retry.
+class OccurrenceReminderDeliveryPending implements Exception {
+  const OccurrenceReminderDeliveryPending(this.occurrence);
+  final Occurrence occurrence;
+}
+
 abstract interface class OccurrenceActionExecutor {
   Future<void> complete(Occurrence occurrence);
   Future<void> cancel(Occurrence occurrence, {required SessionOutcome outcome});
@@ -146,13 +152,17 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
         occurrence.status == OccurrenceStatus.completed ||
         occurrence.status == OccurrenceStatus.cancelled ||
         occurrence.status == OccurrenceStatus.skipped;
-    await reminders?.synchronizeOccurrence(
-      occurrenceId: occurrence.id,
-      occurrenceStart: occurrence.currentScheduledAt is DateTime
-          ? occurrence.currentScheduledAt as DateTime
-          : null,
-      resolved: resolved,
-    );
+    try {
+      await reminders?.synchronizeOccurrence(
+        occurrenceId: occurrence.id,
+        occurrenceStart: occurrence.currentScheduledAt is DateTime
+            ? occurrence.currentScheduledAt as DateTime
+            : null,
+        resolved: resolved,
+      );
+    } catch (_) {
+      throw OccurrenceReminderDeliveryPending(occurrence);
+    }
   }
 
   Future<void> execute({
