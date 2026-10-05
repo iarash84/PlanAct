@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -7,10 +8,73 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 
-class DriftInboxRepository implements InboxRepository, AtomicInboxConfirmation {
+class DriftInboxRepository
+    implements InboxRepository, AtomicInboxConfirmation, AtomicInboxStaging {
   DriftInboxRepository(this.database);
 
   final db.AppDatabase database;
+
+  @override
+  Future<InboxSuggestion> stageAtomically({
+    required StagedImport staged,
+    required InboxSuggestion suggestion,
+  }) => database.transaction(() async {
+    final imports = await listImports();
+    final sourceDuplicate = imports.where(
+      (item) =>
+          item.provenance.source == staged.provenance.source &&
+          item.provenance.sourceKey == staged.provenance.sourceKey,
+    );
+    if (sourceDuplicate.isNotEmpty) {
+      if (sourceDuplicate.first.fingerprint != staged.fingerprint) {
+        throw const ValidationError('Source key belongs to different content');
+      }
+      final suggestions = await listSuggestions();
+      return suggestions.firstWhere(
+        (item) => item.stagedImportId == sourceDuplicate.first.id,
+      );
+    }
+    if (imports.any((item) => item.fingerprint == staged.fingerprint)) {
+      throw const ValidationError('This source item was already imported');
+    }
+    await saveImport(staged);
+    await saveSuggestion(suggestion);
+    return suggestion;
+  });
+
+  @override
+  Future<void> rejectAtomically(
+    StableId suggestionId,
+  ) => database.transaction(() async {
+    final suggestion = await (database.select(
+      database.inboxSuggestions,
+    )..where((table) => table.id.equals(suggestionId.value))).getSingleOrNull();
+    if (suggestion == null) throw StateError('Suggestion was not found');
+    if (suggestion.status == SuggestionStatus.confirmed.index) {
+      throw const ValidationError('Confirmed suggestions cannot be rejected');
+    }
+    final staged =
+        await (database.select(database.stagedImports)
+              ..where((table) => table.id.equals(suggestion.stagedImportId)))
+            .getSingleOrNull();
+    if (staged == null) throw StateError('Import was not found');
+    await (database.update(
+      database.inboxSuggestions,
+    )..where((table) => table.id.equals(suggestionId.value))).write(
+      db.InboxSuggestionsCompanion(
+        status: Value(SuggestionStatus.rejected.index),
+      ),
+    );
+    await (database.update(
+      database.stagedImports,
+    )..where((table) => table.id.equals(staged.id))).write(
+      db.StagedImportsCompanion(
+        status: Value(StagedItemStatus.rejected.index),
+        retentionStatus: Value(RawTextRetentionStatus.rejected.index),
+        lastDecisionAt: Value(DateTime.now().toUtc()),
+      ),
+    );
+  });
 
   @override
   Future<AccountEntry> confirmAtomically({

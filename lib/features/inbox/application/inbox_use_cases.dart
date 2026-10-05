@@ -17,6 +17,15 @@ abstract interface class InboxRepository {
 
 /// Implementations with a shared durable database must commit all three writes
 /// in one transaction. The entry ID is stable across retries and restarts.
+abstract interface class AtomicInboxStaging {
+  Future<InboxSuggestion> stageAtomically({
+    required StagedImport staged,
+    required InboxSuggestion suggestion,
+  });
+
+  Future<void> rejectAtomically(StableId suggestionId);
+}
+
 abstract interface class AtomicInboxConfirmation {
   Future<AccountEntry> confirmAtomically({
     required StableId suggestionId,
@@ -241,21 +250,20 @@ class InboxUseCases {
   }) async {
     final normalized = rawText.trim();
     final fingerprint = sha256.convert(utf8.encode(normalized)).toString();
-    final existing = await repository.listImports();
-    final sourceDuplicate = existing.where(
-      (item) => item.provenance.sourceKey == sourceKey,
-    );
-    if (sourceDuplicate.isNotEmpty) {
-      final stagedId = sourceDuplicate.first.id;
-      return (await repository.listSuggestions()).firstWhere(
-        (item) => item.stagedImportId == stagedId,
+    if (repository is! AtomicInboxStaging) {
+      final existing = await repository.listImports();
+      final sourceDuplicate = existing.where(
+        (item) => item.provenance.sourceKey == sourceKey,
       );
-    }
-    final fingerprintDuplicate = existing.where(
-      (item) => item.fingerprint == fingerprint,
-    );
-    if (fingerprintDuplicate.isNotEmpty) {
-      throw const ValidationError('This source item was already imported');
+      if (sourceDuplicate.isNotEmpty) {
+        final stagedId = sourceDuplicate.first.id;
+        return (await repository.listSuggestions()).firstWhere(
+          (item) => item.stagedImportId == stagedId,
+        );
+      }
+      if (existing.any((item) => item.fingerprint == fingerprint)) {
+        throw const ValidationError('This source item was already imported');
+      }
     }
     final parsed = parser.parse(text: normalized, currency: currency);
     final imported = (importedAt ?? DateTime.now()).toUtc();
@@ -293,6 +301,9 @@ class InboxUseCases {
       stagedImportId: staged.id,
       draft: draft,
     );
+    if (repository case final AtomicInboxStaging atomic) {
+      return atomic.stageAtomically(staged: staged, suggestion: suggestion);
+    }
     await repository.saveImport(staged);
     await repository.saveSuggestion(suggestion);
     return suggestion;
@@ -315,6 +326,10 @@ class InboxUseCases {
   }
 
   Future<void> reject(InboxSuggestion suggestion) async {
+    if (repository case final AtomicInboxStaging atomic) {
+      await atomic.rejectAtomically(suggestion.id);
+      return;
+    }
     if (suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Confirmed suggestions cannot be rejected');
     }
