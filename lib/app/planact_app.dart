@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
@@ -212,6 +213,21 @@ class _HomeShellState extends State<HomeShell> {
       _repository is DriftCommitmentRepository
       ? DriftEntitlementPlanRepository(_repository.database)
       : null;
+  Future<bool> _enableReminders() async {
+    final repository = _repository;
+    if (repository is! DriftCommitmentRepository) return false;
+    final platform = AndroidReminderPlatformAdapter();
+    return CommandGate.runFor(repository, () async {
+      if (!await platform.requestPermission()) return false;
+      if (!await platform.requestExactAlarmPermission()) return false;
+      await ReminderService(
+        repository: DriftReminderRepository(repository.database),
+        platform: platform,
+      ).reconcile(now: DateTime.now().toUtc());
+      return true;
+    });
+  }
+
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
@@ -342,7 +358,7 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _saveCapturedCommitment(CommitmentDraft draft) async {
     final startAt = draft.scheduledDates.first;
-    await _createCommitmentPlan(
+    final plan = await _createCommitmentPlan(
       title: draft.title,
       startAt: startAt,
       kind: draft.kind,
@@ -362,6 +378,11 @@ class _HomeShellState extends State<HomeShell> {
       financialAmount: draft.financialAmount,
     );
     await _refresh();
+    if (plan.reminderDeliveryPending) {
+      _showMessage(
+        'تعهد ذخیره شد. برای دریافت یادآوری، مجوز اعلان و زنگ دقیق را در تنظیمات فعال کنید.',
+      );
+    }
   }
 
   void _showMessage(String message) {
@@ -563,6 +584,7 @@ class _HomeShellState extends State<HomeShell> {
                           expectationRepository: _expectationRepository,
                           occurrenceExecutor: PersistedOccurrenceActionExecutor(
                             plans: _planRepository,
+                            reminders: _createCommitmentPlan.reminderService,
                             replacements:
                                 _repository is DriftCommitmentRepository
                                 ? DriftReplacementRepository(
@@ -779,6 +801,9 @@ class _HomeShellState extends State<HomeShell> {
       _MorePage(
         onInbox: _openInbox,
         settings: SettingsPage(
+          enableReminders: _repository is DriftCommitmentRepository
+              ? _enableReminders
+              : null,
           backupActions: widget.backupActions,
           backupMessage: widget.backupMessage,
           settings: widget.settings,

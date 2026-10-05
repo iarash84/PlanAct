@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/reminders/presentation/reminder_permissions_card.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/app/app_lock.dart';
@@ -16,6 +17,7 @@ class SettingsPage extends StatelessWidget {
     this.appLockController,
     this.onAppLockChanged,
     this.onAbout,
+    this.enableReminders,
   });
   final AppSettings? settings;
   final BackupActions? backupActions;
@@ -26,6 +28,7 @@ class SettingsPage extends StatelessWidget {
   final AppLockController? appLockController;
   final Future<void> Function(bool enabled)? onAppLockChanged;
   final VoidCallback? onAbout;
+  final Future<bool> Function()? enableReminders;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -101,6 +104,8 @@ class SettingsPage extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 20),
+      if (enableReminders != null)
+        ReminderPermissionsCard(enable: enableReminders!),
       if (backupActions != null)
         BackupSettingsCard(actions: backupActions!, message: backupMessage),
       Text('درباره', style: Theme.of(context).textTheme.titleLarge),

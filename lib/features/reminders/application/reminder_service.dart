@@ -2,6 +2,11 @@ import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 
+/// Optional platform inventory used to remove alarms with no durable owner.
+abstract interface class ReminderPlatformInventory {
+  Future<void> removeOrphans(Set<String> activeInstanceIds);
+}
+
 abstract interface class ReminderRepository {
   Future<List<ReminderRule>> listRules();
   Future<List<ReminderInstance>> listInstances();
@@ -50,29 +55,78 @@ class ReminderService {
       rule: rule,
       occurrenceStart: occurrenceStart,
     );
+    // Persist cancellation before platform effects so interrupted updates can
+    // be retried by reconciliation without resurrecting the previous alarm.
+    for (final old in existing.where(
+      (item) =>
+          item.ruleId == rule.id &&
+          item.status != ReminderInstanceStatus.delivered &&
+          (item.scheduledAt.toUtc() != scheduled.scheduledAt.toUtc() ||
+              !rule.enabled),
+    )) {
+      await cancel(old);
+    }
     final duplicate = existing.where(
       (item) =>
           item.ruleId == rule.id &&
           item.occurrenceId == rule.occurrenceId &&
-          item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc() &&
-          item.status != ReminderInstanceStatus.cancelled,
+          item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc(),
     );
     if (duplicate.isNotEmpty) {
       // A previous platform attempt may have failed after the durable write.
       // Retrying must not mistake the persisted intent for delivered scheduling.
-      if (rule.enabled) await platform.schedule(duplicate.first);
-      return duplicate.first;
+      final previous = duplicate.first;
+      if (previous.status == ReminderInstanceStatus.delivered) return previous;
+      final effective = !rule.enabled
+          ? previous.cancel()
+          : previous.status == ReminderInstanceStatus.cancelled
+          ? previous.reschedule(previous.scheduledAt)
+          : previous;
+      await repository.saveInstance(effective);
+      if (rule.enabled) await platform.schedule(effective);
+      return effective;
     }
-    await repository.saveInstance(scheduled);
-    if (rule.enabled) await platform.schedule(scheduled);
-    return scheduled;
+    final effective = rule.enabled ? scheduled : scheduled.cancel();
+    await repository.saveInstance(effective);
+    if (rule.enabled) await platform.schedule(effective);
+    return effective;
+  });
+
+  /// Synchronizes a user-edited occurrence using its durable rules.
+  Future<void> synchronizeOccurrence({
+    required StableId occurrenceId,
+    required DateTime? occurrenceStart,
+    required bool resolved,
+  }) => CommandGate.runFor(repository, () async {
+    if (resolved) {
+      for (final instance in await repository.listInstances()) {
+        if (instance.occurrenceId == occurrenceId &&
+            instance.status != ReminderInstanceStatus.delivered) {
+          await cancel(instance);
+        }
+      }
+      return;
+    }
+    if (occurrenceStart == null) return;
+    var denied = false;
+    for (final rule in await repository.listRules()) {
+      if (rule.occurrenceId != occurrenceId) continue;
+      try {
+        await schedule(rule: rule, occurrenceStart: occurrenceStart);
+      } on ReminderPermissionUnavailable {
+        denied = true;
+      }
+    }
+    if (denied) throw const ReminderPermissionUnavailable();
   });
 
   Future<void> cancel(ReminderInstance instance) =>
       CommandGate.runFor(repository, () async {
-        if (instance.status == ReminderInstanceStatus.cancelled) return;
-        final cancelled = instance.cancel();
-        await repository.saveInstance(cancelled);
+        if (instance.status != ReminderInstanceStatus.cancelled) {
+          await repository.saveInstance(instance.cancel());
+        }
+        // A previous cancellation may have persisted but failed on Android.
+        // Always retry the idempotent platform operation.
         await platform.cancel(instance);
       });
 
@@ -97,6 +151,8 @@ class ReminderService {
             .where((rule) => rule.enabled)
             .map((rule) => rule.id)
             .toSet();
+        final activeIds = <String>{};
+        var permissionUnavailable = false;
         for (final instance in instances) {
           final active =
               instance.status == ReminderInstanceStatus.scheduled ||
@@ -121,8 +177,19 @@ class ReminderService {
             await repository.saveInstance(persisted);
             await platform.cancel(instance);
           } else {
-            await platform.schedule(instance);
+            activeIds.add(instance.id.value);
+            try {
+              await platform.schedule(instance);
+            } on ReminderPermissionUnavailable {
+              permissionUnavailable = true;
+            }
           }
+        }
+        if (platform case final ReminderPlatformInventory inventory) {
+          await inventory.removeOrphans(activeIds);
+        }
+        if (permissionUnavailable) {
+          throw const ReminderPermissionUnavailable();
         }
       });
 }

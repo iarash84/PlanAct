@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -6,7 +11,8 @@ import 'package:planact/features/reminders/domain/reminder.dart';
 
 /// Initializes Android notification delivery without making notifications a
 /// dependency of the reminder domain.
-class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
+class AndroidReminderPlatformAdapter
+    implements ReminderPlatformAdapter, ReminderPlatformInventory {
   AndroidReminderPlatformAdapter({FlutterLocalNotificationsPlugin? plugin})
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
@@ -34,7 +40,45 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    return await android?.requestNotificationsPermission() ?? true;
+    return await android?.requestNotificationsPermission() ?? false;
+  }
+
+  Future<bool> notificationsEnabled() async {
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    return await android?.areNotificationsEnabled() ?? false;
+  }
+
+  Future<bool> exactAlarmsEnabled() async {
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    return await android?.canScheduleExactNotifications() ?? false;
+  }
+
+  Future<bool> requestExactAlarmPermission() async {
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    return await android?.requestExactAlarmsPermission() ?? false;
+  }
+
+  @override
+  Future<void> removeOrphans(Set<String> activeInstanceIds) async {
+    await initialize();
+    for (final pending in await _plugin.pendingNotificationRequests()) {
+      final owner = _instanceOwner(pending.payload);
+      if (owner != null && !activeInstanceIds.contains(owner)) {
+        await _plugin.cancel(id: pending.id);
+      }
+    }
   }
 
   @override
@@ -46,7 +90,25 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
     if (scheduledAt == null || !scheduledAt.isAfter(DateTime.now().toUtc())) {
       return;
     }
+    // Do not invoke permission prompts during startup or background rebuild.
+    // Keep durable intent available for an explicit user-approved retry.
+    if (!await notificationsEnabled()) {
+      throw const ReminderPermissionUnavailable();
+    }
+    if (!await exactAlarmsEnabled()) {
+      throw const ReminderPermissionUnavailable();
+    }
     final id = _notificationId(instance);
+    for (final pending in await _plugin.pendingNotificationRequests()) {
+      final owner = _instanceOwner(pending.payload);
+      if (pending.id == id && owner != instance.id.value) {
+        throw StateError('Notification identifier is already owned.');
+      }
+      // Remove pre-upgrade hash IDs and interrupted duplicate schedules.
+      if (owner == instance.id.value && pending.id != id) {
+        await _plugin.cancel(id: pending.id);
+      }
+    }
     await _plugin.zonedSchedule(
       id: id,
       title: 'یادآوری پلن‌اکت',
@@ -63,16 +125,41 @@ class AndroidReminderPlatformAdapter implements ReminderPlatformAdapter {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: instance.id.value,
+      payload: 'planact:reminder:${instance.id.value}',
     );
   }
 
   @override
   Future<void> cancel(ReminderInstance instance) async {
     await initialize();
+    for (final pending in await _plugin.pendingNotificationRequests()) {
+      if (_instanceOwner(pending.payload) == instance.id.value) {
+        await _plugin.cancel(id: pending.id);
+      }
+    }
     await _plugin.cancel(id: _notificationId(instance));
   }
 
-  int _notificationId(ReminderInstance instance) =>
-      instance.id.value.hashCode & 0x7fffffff;
+  String? _instanceOwner(String? payload) {
+    if (payload == null) return null;
+    const prefix = 'planact:reminder:';
+    final value = payload.startsWith(prefix)
+        ? payload.substring(prefix.length)
+        : payload;
+    try {
+      // Bare UUIDv7 payloads are the legacy reminder ownership contract.
+      return StableId.parse(value).value;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  int _notificationId(ReminderInstance instance) {
+    final stored = int.tryParse(instance.platformNotificationId ?? '');
+    if (stored != null && stored >= 0 && stored <= 0x7fffffff) return stored;
+    // Dart hashCode is not a cross-process/platform persistence contract.
+    final bytes = sha256.convert(utf8.encode(instance.id.value)).bytes;
+    return ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) &
+        0x7fffffff;
+  }
 }

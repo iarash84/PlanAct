@@ -66,7 +66,10 @@ void main() {
       occurrenceStart: DateTime.utc(2026, 2, 1, 19),
     );
 
-    expect(adapter.cancelled.single.id, original.id);
+    expect(adapter.cancelled.map((item) => item.id), [
+      original.id,
+      original.id,
+    ]);
     expect(adapter.scheduled.length, 2);
     expect(rescheduled.scheduledAt, DateTime.utc(2026, 2, 1, 19));
   });

@@ -849,6 +849,8 @@ Release نباید در صورت شکست این موارد ساخته شود.
 - snooze
 - startup rebuild
 
+Implementation checkpoint (2026-10-05): reminders remain **partial**, not release-complete. Explicit Settings permission activation, durable creation intent, cancellation retry, occurrence-action synchronization, and owned-alarm cleanup are implemented. Actual native delivery/retry/cancellation/orphan cleanup was verified only on Android 11 in an isolated debug package. Reboot recovery, newer Android permission denial/revocation, full snooze/tap journeys, lifecycle reconciliation, and interruption-safe edit recovery remain acceptance work. See [reminder verification evidence](../REMINDER_VERIFICATION.md).
+
 ### P1 — Session Packages
 
 - entitlement plans

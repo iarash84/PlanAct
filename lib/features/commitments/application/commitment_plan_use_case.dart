@@ -20,6 +20,7 @@ class CommitmentPlan {
     required this.schedule,
     required this.occurrences,
     required this.reminders,
+    this.reminderDeliveryPending = false,
   });
 
   final Commitment commitment;
@@ -27,6 +28,9 @@ class CommitmentPlan {
   final ScheduleDefinition schedule;
   final List<Occurrence> occurrences;
   final List<ReminderRule> reminders;
+
+  /// Presentation feedback only; durable instances remain the retry source.
+  final bool reminderDeliveryPending;
 }
 
 abstract interface class CommitmentPlanRepository {
@@ -206,6 +210,20 @@ class CreateCommitmentPlan {
     Future<void> persist() => CommandGate.runFor(commitments, () async {
       await commitments.save(commitment);
       await plans.save(plan);
+      if (reminderService case final service?) {
+        for (final rule in reminders) {
+          final occurrence = occurrences.firstWhere(
+            (item) => item.id == rule.occurrenceId,
+          );
+          await service.repository.saveRule(rule);
+          await service.repository.saveInstance(
+            ReminderInstance.fromRule(
+              rule: rule,
+              occurrenceStart: occurrence.currentScheduledAt as DateTime,
+            ),
+          );
+        }
+      }
       if (entitlementUnits != null) {
         final repository = entitlements;
         if (repository == null) {
@@ -242,17 +260,30 @@ class CreateCommitmentPlan {
     } else {
       await persist();
     }
+    var reminderDeliveryPending = false;
     if (reminderService != null) {
       for (final reminder in reminders) {
         final occurrence = occurrences.firstWhere(
           (item) => item.id == reminder.occurrenceId,
         );
-        await reminderService!.schedule(
-          rule: reminder,
-          occurrenceStart: occurrence.currentScheduledAt as DateTime,
-        );
+        try {
+          await reminderService!.schedule(
+            rule: reminder,
+            occurrenceStart: occurrence.currentScheduledAt as DateTime,
+          );
+        } on ReminderPermissionUnavailable {
+          reminderDeliveryPending = true;
+        }
       }
     }
-    return plan;
+    if (!reminderDeliveryPending) return plan;
+    return CommitmentPlan(
+      commitment: plan.commitment,
+      cycle: plan.cycle,
+      schedule: plan.schedule,
+      occurrences: plan.occurrences,
+      reminders: plan.reminders,
+      reminderDeliveryPending: reminderDeliveryPending,
+    );
   });
 }

@@ -19,6 +19,7 @@ import 'package:planact/features/backup/domain/backup_package.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/reminders/application/reminder_platform.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -118,7 +119,14 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       if (recovering) await storage.restoreSafetySnapshot();
       await _open();
       if (recovering) await _clearNotifications();
-      await _synchronizeReminders();
+      try {
+        await _synchronizeReminders();
+      } on ReminderPermissionUnavailable {
+        // Normal startup must remain usable without optional capabilities.
+        // Recovery still requires a successful rebuild before committing.
+        if (recovering) rethrow;
+        _message = 'یادآوری‌ها ذخیره شده‌اند، اما مجوز اعلان یا زنگ دقیق فعال نیست. از تنظیمات یادآوری‌ها را فعال کنید.';
+      }
       if (recovering) await storage.clearRecoveryMarker();
       const keys = SecureBackupKeys();
       final service = BackupService(

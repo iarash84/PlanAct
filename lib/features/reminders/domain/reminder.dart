@@ -155,6 +155,11 @@ class ReminderInstance {
   );
 }
 
+/// Scheduling intent remains durable while the user has not granted access.
+class ReminderPermissionUnavailable implements Exception {
+  const ReminderPermissionUnavailable();
+}
+
 /// Platform-neutral notification operation. Implementations belong in adapters.
 abstract interface class ReminderPlatformAdapter {
   Future<void> schedule(ReminderInstance instance);

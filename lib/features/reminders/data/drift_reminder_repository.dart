@@ -27,8 +27,7 @@ class DriftReminderRepository
         final status = OccurrenceStatus.values[occurrence.status];
         return status != OccurrenceStatus.completed &&
             status != OccurrenceStatus.skipped &&
-            status != OccurrenceStatus.cancelled &&
-            status != OccurrenceStatus.rescheduled;
+            status != OccurrenceStatus.cancelled;
       });
 
   @override

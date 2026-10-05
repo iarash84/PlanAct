@@ -1,5 +1,6 @@
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
@@ -132,11 +133,27 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     required this.plans,
     this.replacements,
     this.policyRepository,
+    this.reminders,
   });
 
   final CommitmentPlanRepository plans;
   final ReplacementRepository? replacements;
   final SessionPolicyRepository? policyRepository;
+  final ReminderService? reminders;
+
+  Future<void> _synchronize(Occurrence occurrence) async {
+    final resolved =
+        occurrence.status == OccurrenceStatus.completed ||
+        occurrence.status == OccurrenceStatus.cancelled ||
+        occurrence.status == OccurrenceStatus.skipped;
+    await reminders?.synchronizeOccurrence(
+      occurrenceId: occurrence.id,
+      occurrenceStart: occurrence.currentScheduledAt is DateTime
+          ? occurrence.currentScheduledAt as DateTime
+          : null,
+      resolved: resolved,
+    );
+  }
 
   Future<void> execute({
     required Occurrence occurrence,
@@ -179,10 +196,9 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
   @override
   Future<void> complete(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
-        if (occurrence.status == OccurrenceStatus.completed) return;
-        await plans.saveOccurrence(
-          occurrence.withStatus(OccurrenceStatus.completed),
-        );
+        final updated = occurrence.withStatus(OccurrenceStatus.completed);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
       });
 
   @override
@@ -193,27 +209,25 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     final nextStatus = outcome == SessionOutcome.noShow
         ? OccurrenceStatus.skipped
         : OccurrenceStatus.cancelled;
-    if (occurrence.status == nextStatus) return;
-    await plans.saveOccurrence(occurrence.withStatus(nextStatus));
+    final updated = occurrence.withStatus(nextStatus);
+    await plans.saveOccurrence(updated);
+    await _synchronize(updated);
   });
 
   @override
   Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt) =>
       CommandGate.runFor(plans, () async {
-        if (occurrence.currentScheduledAt == scheduledAt &&
-            occurrence.status == OccurrenceStatus.rescheduled) {
-          return;
-        }
-        await plans.saveOccurrence(occurrence.reschedule(scheduledAt));
+        final updated = occurrence.reschedule(scheduledAt);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
       });
 
   @override
   Future<void> restore(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
-        if (occurrence.status == OccurrenceStatus.scheduled) return;
-        await plans.saveOccurrence(
-          occurrence.withStatus(OccurrenceStatus.scheduled),
-        );
+        final updated = occurrence.withStatus(OccurrenceStatus.scheduled);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
       });
 
   @override

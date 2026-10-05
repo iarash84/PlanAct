@@ -7,19 +7,26 @@ import 'package:planact/features/commitments/data/drift_commitment_repository.da
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/scheduling/application/occurrence_actions.dart';
+import 'package:planact/features/sessions/domain/session_policy.dart';
 
 class _Platform implements ReminderPlatformAdapter {
   final scheduled = <ReminderInstance>[];
   bool fail = false;
+  bool permissionDenied = false;
+  final cancelled = <ReminderInstance>[];
 
   @override
   Future<void> schedule(ReminderInstance instance) async {
+    if (permissionDenied) throw const ReminderPermissionUnavailable();
     if (fail) throw StateError('platform unavailable');
     scheduled.add(instance);
   }
 
   @override
-  Future<void> cancel(ReminderInstance instance) async {}
+  Future<void> cancel(ReminderInstance instance) async {
+    cancelled.add(instance);
+  }
 }
 
 void main() {
@@ -65,6 +72,138 @@ void main() {
     ).reconcile(now: DateTime.utc(2029, 12, 31));
     expect(restarted.scheduled.single.id, platform.scheduled.single.id);
   });
+
+  test(
+    'denied permission saves every intent and reports pending delivery',
+    () async {
+      platform.permissionDenied = true;
+      final plan =
+          await CreateCommitmentPlan(
+            commitments: commitments,
+            plans: plans,
+            reminderService: ReminderService(
+              repository: reminders,
+              platform: platform,
+            ),
+          ).call(
+            title: 'یادآوری بدون مجوز',
+            startAt: DateTime(2030, 1, 1, 18),
+            reminderOffsets: [
+              const Duration(minutes: 15),
+              const Duration(hours: 1),
+            ],
+          );
+      expect(plan.reminderDeliveryPending, isTrue);
+      expect(await commitments.list(), hasLength(1));
+      expect(await reminders.listInstances(), hasLength(2));
+      platform.permissionDenied = false;
+      await ReminderService(
+        repository: reminders,
+        platform: platform,
+      ).reconcile(now: DateTime.utc(2029, 12, 31));
+      expect(platform.scheduled, hasLength(2));
+    },
+  );
+
+  test(
+    'disable/re-enable keeps platform and persisted IDs identical',
+    () async {
+      await CreateCommitmentPlan(
+        commitments: commitments,
+        plans: plans,
+        reminderService: ReminderService(
+          repository: reminders,
+          platform: platform,
+        ),
+      ).call(
+        title: 'شناسه پایدار',
+        startAt: DateTime(2030, 1, 1, 18),
+        reminderOffsets: [Duration.zero],
+      );
+      final rule = (await reminders.listRules()).single;
+      final original = (await reminders.listInstances()).single;
+      final service = ReminderService(
+        repository: reminders,
+        platform: platform,
+      );
+      await service.schedule(
+        rule: rule.disable(),
+        occurrenceStart: original.scheduledAt,
+      );
+      final restored = await service.schedule(
+        rule: rule.enable(),
+        occurrenceStart: original.scheduledAt,
+      );
+      expect(restored.id, original.id);
+      expect(
+        (await reminders.listInstances()).single.id,
+        platform.scheduled.last.id,
+      );
+    },
+  );
+
+  test(
+    'occurrence edit, cancellation and restore synchronize Android intent',
+    () async {
+      final service = ReminderService(
+        repository: reminders,
+        platform: platform,
+      );
+      final plan =
+          await CreateCommitmentPlan(
+            commitments: commitments,
+            plans: plans,
+            reminderService: service,
+          ).call(
+            title: 'جابجایی جلسه',
+            startAt: DateTime(2030, 1, 1, 18),
+            reminderOffsets: [Duration.zero],
+          );
+      final executor = PersistedOccurrenceActionExecutor(
+        plans: plans,
+        reminders: service,
+      );
+      final original = plan.occurrences.single;
+      await executor.reschedule(original, DateTime(2030, 1, 2, 18));
+      final edited = (await plans.findByCommitmentId(plan.commitment.id))!
+          .occurrences
+          .single;
+      expect(await reminders.canRemind(edited.id), isTrue);
+      expect(
+        (await reminders.listInstances())
+            .where((item) => item.status == ReminderInstanceStatus.scheduled)
+            .single
+            .scheduledAt,
+        DateTime(2030, 1, 2, 18).toUtc(),
+      );
+      await executor.cancel(edited, outcome: SessionOutcome.providerCancelled);
+      expect(
+        (await reminders.listInstances()).every(
+          (item) => item.status == ReminderInstanceStatus.cancelled,
+        ),
+        isTrue,
+      );
+      final cancelled = (await plans.findByCommitmentId(plan.commitment.id))!
+          .occurrences
+          .single;
+      await executor.restore(cancelled);
+      expect(
+        (await reminders.listInstances()).where(
+          (item) => item.status == ReminderInstanceStatus.scheduled,
+        ),
+        hasLength(1),
+      );
+      await executor.complete(edited);
+      expect(await reminders.canRemind(edited.id), isFalse);
+      expect(
+        (await reminders.listInstances()).every(
+          (item) => item.status == ReminderInstanceStatus.cancelled,
+        ),
+        isTrue,
+      );
+      expect(platform.cancelled, isNotEmpty);
+    },
+  );
 
   test('platform failure leaves durable intent to retry on restart', () async {
     platform.fail = true;

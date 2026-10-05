@@ -6,6 +6,7 @@ import 'package:planact/features/reminders/domain/reminder.dart';
 class _FakeAdapter implements ReminderPlatformAdapter {
   final scheduled = <StableId>[];
   final cancelled = <StableId>[];
+  bool failCancellation = false;
 
   @override
   Future<void> schedule(ReminderInstance instance) async {
@@ -15,6 +16,10 @@ class _FakeAdapter implements ReminderPlatformAdapter {
   @override
   Future<void> cancel(ReminderInstance instance) async {
     cancelled.add(instance.id);
+    if (failCancellation) {
+      failCancellation = false;
+      throw StateError('injected platform cancellation failure');
+    }
   }
 }
 
@@ -66,7 +71,7 @@ void main() {
         (await repository.listInstances()).single.status,
         ReminderInstanceStatus.cancelled,
       );
-      expect(adapter.cancelled, [instance.id]);
+      expect(adapter.cancelled, [instance.id, instance.id]);
     },
   );
 
@@ -96,9 +101,8 @@ void main() {
   );
 
   test('reconcile persists cancellation for disabled reminders', () async {
-    final disabledRule = ReminderRule.atOccurrence(
-      occurrenceId: occurrenceId,
-    ).disable();
+    final disabledRule = ReminderRule.atOccurrence(occurrenceId: occurrenceId)
+        .disable();
     final stale = await service.schedule(
       rule: disabledRule,
       occurrenceStart: DateTime.utc(2026, 1, 10, 18),
@@ -129,6 +133,78 @@ void main() {
 
     expect(adapter.scheduled, [snoozed.id]);
     expect(adapter.cancelled, isEmpty);
+  });
+
+  test(
+    'cancel retries Android after a persisted cancellation failure',
+    () async {
+      final instance = await service.schedule(
+        rule: ReminderRule.atOccurrence(occurrenceId: occurrenceId),
+        occurrenceStart: DateTime.utc(2026, 1, 10),
+      );
+      adapter.failCancellation = true;
+      await expectLater(service.cancel(instance), throwsStateError);
+      final persisted = (await repository.listInstances()).single;
+      expect(persisted.status, ReminderInstanceStatus.cancelled);
+      await service.cancel(persisted);
+      expect(adapter.cancelled, [instance.id, instance.id]);
+    },
+  );
+
+  test(
+    'changed delivery cancels the previous durable and platform intent',
+    () async {
+      final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
+      final first = await service.schedule(
+        rule: rule,
+        occurrenceStart: DateTime.utc(2026, 1, 10),
+      );
+      final second = await service.schedule(
+        rule: rule,
+        occurrenceStart: DateTime.utc(2026, 1, 11),
+      );
+      expect(first.id, isNot(second.id));
+      final instances = await repository.listInstances();
+      expect(instances.first.status, ReminderInstanceStatus.cancelled);
+      expect(instances.last.status, ReminderInstanceStatus.scheduled);
+      expect(adapter.cancelled, [first.id]);
+    },
+  );
+
+  test('disable then enable reuses durable identity', () async {
+    final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
+    final first = await service.schedule(
+      rule: rule,
+      occurrenceStart: DateTime.utc(2030, 1, 10),
+    );
+    final disabled = await service.schedule(
+      rule: rule.disable(),
+      occurrenceStart: first.scheduledAt,
+    );
+    expect(disabled.status, ReminderInstanceStatus.cancelled);
+    final enabled = await service.schedule(
+      rule: rule.enable(),
+      occurrenceStart: first.scheduledAt,
+    );
+    expect(enabled.id, first.id);
+    expect(enabled.status, ReminderInstanceStatus.scheduled);
+    expect(await repository.listInstances(), hasLength(1));
+  });
+
+  test('delivered history is not rescheduled by a repeated command', () async {
+    final rule = ReminderRule.atOccurrence(occurrenceId: occurrenceId);
+    final first = await service.schedule(
+      rule: rule,
+      occurrenceStart: DateTime.utc(2030, 1, 10),
+    );
+    await repository.saveInstance(first.deliver());
+    adapter.scheduled.clear();
+    final repeated = await service.schedule(
+      rule: rule,
+      occurrenceStart: first.scheduledAt,
+    );
+    expect(repeated.status, ReminderInstanceStatus.delivered);
+    expect(adapter.scheduled, isEmpty);
   });
 
   test('cancelling a snoozed reminder clears the snooze timestamp', () async {
