@@ -19,13 +19,53 @@
 - Java `17`
 - Android SDK با compile SDK `36`
 
+### Windows (PowerShell)
+
+در PowerShell از ریشه repository اجرا کنید:
+
+```powershell
+.\tool\ci.ps1
+```
+
+اگر سیاست اجرای PowerShell مانع اجرای فایل شد، فقط برای همین فرایند PowerShell از این دستور استفاده کنید:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\tool\ci.ps1
+```
+
+یا برای PowerShell 7:
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\tool\ci.ps1
+```
+
+برای اجرای format check، analyze و تست‌ها بدون ساخت Android App Bundle (برای مثال وقتی signing محلی در دسترس نیست)، اجرا کنید:
+
+```powershell
+$previousSkipAndroidBuild = $env:PLANACT_SKIP_ANDROID_BUILD
+try {
+    $env:PLANACT_SKIP_ANDROID_BUILD = 'true'
+    .\tool\ci.ps1
+} finally {
+    if ($null -eq $previousSkipAndroidBuild) {
+        Remove-Item Env:PLANACT_SKIP_ANDROID_BUILD -ErrorAction SilentlyContinue
+    } else {
+        $env:PLANACT_SKIP_ANDROID_BUILD = $previousSkipAndroidBuild
+    }
+}
+```
+
+این اجرا build اندروید را انجام نمی‌دهد و جایگزین CI کامل نیست. برای CI کامل، signing محلی معتبر را در `android/key.properties` یا متغیرهای `ANDROID_KEYSTORE_PATH`، `ANDROID_KEYSTORE_PASSWORD`، `ANDROID_KEY_ALIAS` و `ANDROID_KEY_PASSWORD` تنظیم کنید و دستور اصلی را بدون `PLANACT_SKIP_ANDROID_BUILD` اجرا کنید.
+
+### Linux و macOS (Bash)
+
 از ریشه repository اجرا کنید:
 
 ```bash
 bash tool/ci.sh
 ```
 
-این اسکریپت به‌ترتیب lockfile را با `flutter pub get --enforce-lockfile` بررسی می‌کند، قالب‌بندی، analyze، تست‌ها و build سازگار Android release را اجرا می‌کند. در محیط محلی برای build release باید signing محلی معتبر در `android/key.properties` یا متغیرهای signing تنظیم شده باشد.
+هر دو اسکریپت ابتدا lockfile را با `flutter pub get --enforce-lockfile` بررسی می‌کنند، سپس format check، analyze، تست‌ها و در حالت پیش‌فرض build سازگار Android release را اجرا می‌کنند. برای رد کردن build اندروید در Bash می‌توان `PLANACT_SKIP_ANDROID_BUILD=true` را برای اجرای دستور تنظیم کرد؛ این حالت نیز CI کامل محسوب نمی‌شود. در اجرای کامل محلی باید signing معتبر در `android/key.properties` یا متغیرهای `ANDROID_KEYSTORE_PATH`، `ANDROID_KEYSTORE_PASSWORD`، `ANDROID_KEY_ALIAS` و `ANDROID_KEY_PASSWORD` تنظیم شده باشد.
 
 اگر build اندروید را موقتاً خارج از یک بررسی کامل اجرا می‌کنید، آن را به‌عنوان جایگزین CI گزارش نکنید؛ CI همیشه build release را enforce می‌کند.
 
@@ -36,7 +76,7 @@ GitHub Actions برای Pull Requestهای مقصد `master` و pushهای `mast
 در صورت شکست:
 
 1. ابتدا لاگ همان مرحله را بخوانید و علت واقعی را اصلاح کنید.
-2. همان دستور یا `bash tool/ci.sh` را محلی اجرا کنید.
+2. دستور متناسب با سیستم‌عامل را محلی اجرا کنید: `.\tool\ci.ps1` در Windows PowerShell یا `bash tool/ci.sh` در Linux/macOS.
 3. اگر شکست ناشی از زیرساخت موقت GitHub یا شبکه بود، از گزینه **Re-run failed jobs** استفاده کنید؛ برای retry بی‌معنی commit جدید نسازید.
 4. اگر lockfile، migration یا signing تغییر کرده است، اثر آن را در توضیح Pull Request بنویسید.
 
@@ -88,6 +128,15 @@ git switch -c feature/short-description
 ```bash
 git fetch origin
 git rebase origin/master
+```
+
+سپس بررسی محلی را با دستور سیستم‌عامل خود اجرا کنید:
+
+```powershell
+.\tool\ci.ps1
+```
+
+```bash
 bash tool/ci.sh
 ```
 

@@ -168,11 +168,19 @@
 
 برای راهنمای شاخه‌ها، بررسی محلی، Pull Request، CI، همگام‌سازی و انتشار Android به [راهنمای workflow توسعه](docs/development-workflow.md) مراجعه کنید.
 
-بررسی مشترک محلی با دستور زیر اجرا می‌شود:
+بررسی مشترک محلی را از ریشه repository اجرا کنید. در Windows PowerShell:
+
+```powershell
+.\tool\ci.ps1
+```
+
+در Linux و macOS:
 
 ```bash
 bash tool/ci.sh
 ```
+
+این بررسی شامل دریافت وابستگی‌ها، format check، analyze، تست‌ها و build سازگار Android release است؛ برای build کامل محلی به signing معتبر نیاز دارید. راهنمای [workflow توسعه](docs/development-workflow.md) جزئیات اجرای PowerShell و حالت اجرای بدون build اندروید را توضیح می‌دهد.
 
 انتشار از GitHub Actions و به‌صورت دستی از `master` انجام می‌شود؛ پس از موفقیت validation و ساخت artifact امضاشده، tag و GitHub Release ساخته می‌شوند. tag را دستی ایجاد و push نکنید. کلید خصوصی signing نباید در repository قرار بگیرد.
 
