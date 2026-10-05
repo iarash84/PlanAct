@@ -3,12 +3,85 @@ import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 
-class DriftInboxRepository implements InboxRepository {
+class DriftInboxRepository implements InboxRepository, AtomicInboxConfirmation {
   DriftInboxRepository(this.database);
 
   final db.AppDatabase database;
+
+  @override
+  Future<AccountEntry> confirmAtomically({
+    required StableId suggestionId,
+    required AccountEntry entry,
+  }) => database.transaction(() async {
+    final suggestion = await (database.select(
+      database.inboxSuggestions,
+    )..where((table) => table.id.equals(suggestionId.value))).getSingleOrNull();
+    if (suggestion == null) throw StateError('Suggestion was not found');
+    final staged =
+        await (database.select(database.stagedImports)
+              ..where((table) => table.id.equals(suggestion.stagedImportId)))
+            .getSingleOrNull();
+    if (staged == null) throw StateError('Import was not found');
+    if (suggestion.status == SuggestionStatus.rejected.index ||
+        staged.status == StagedItemStatus.rejected.index) {
+      throw StateError('Rejected imports cannot be confirmed');
+    }
+    if (suggestion.status == SuggestionStatus.confirmed.index) {
+      final entries = await DriftFinanceRepository(database).listEntries();
+      final persisted = entries.where((item) => item.id == entry.id);
+      if (persisted.isEmpty ||
+          persisted.single.accountId != entry.accountId ||
+          persisted.single.amount != entry.amount ||
+          persisted.single.type != entry.type ||
+          persisted.single.occurredAt != entry.occurredAt ||
+          persisted.single.referenceId != entry.referenceId ||
+          persisted.single.note != entry.note) {
+        throw StateError('Import already confirmed with different details');
+      }
+      return persisted.single;
+    }
+    if (suggestion.status != SuggestionStatus.confirmed.index) {
+      if (suggestion.minorUnits != entry.amount.minorUnits ||
+          suggestion.currency != entry.amount.currency ||
+          suggestion.occurredAt.toUtc() != entry.occurredAt.toUtc() ||
+          suggestion.reference != entry.referenceId ||
+          suggestion.merchant != entry.note ||
+          (suggestion.type == 'income') !=
+              (entry.type == AccountEntryType.income)) {
+        throw StateError('Suggestion changed; reload before confirming');
+      }
+      final account =
+          await (database.select(database.financialAccounts)
+                ..where((table) => table.id.equals(entry.accountId.value)))
+              .getSingleOrNull();
+      if (account == null ||
+          account.status != FinancialAccountStatus.active.index ||
+          account.currency != entry.amount.currency) {
+        throw StateError('Account is unavailable for this import');
+      }
+      await DriftFinanceRepository(database).saveEntry(entry);
+      await (database.update(
+        database.inboxSuggestions,
+      )..where((table) => table.id.equals(suggestionId.value))).write(
+        db.InboxSuggestionsCompanion(
+          status: Value(SuggestionStatus.confirmed.index),
+        ),
+      );
+      await (database.update(
+        database.stagedImports,
+      )..where((table) => table.id.equals(staged.id))).write(
+        db.StagedImportsCompanion(
+          status: Value(StagedItemStatus.confirmed.index),
+        ),
+      );
+    }
+    final entries = await DriftFinanceRepository(database).listEntries();
+    return entries.firstWhere((item) => item.id == entry.id);
+  });
 
   @override
   Future<List<StagedImport>> listImports() async {

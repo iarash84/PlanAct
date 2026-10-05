@@ -16,8 +16,7 @@ class LocalAppAuthenticator implements AppAuthenticator {
   @override
   Future<bool> isAvailable() async {
     try {
-      return await _authentication.isDeviceSupported() &&
-          await _authentication.canCheckBiometrics;
+      return await _authentication.isDeviceSupported();
     } on PlatformException {
       return false;
     }
@@ -101,9 +100,10 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     if (widget.enabled) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _lockAndAuthenticate(),
-      );
+      widget.controller.lock();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _lockAndAuthenticate();
+      });
     }
   }
 
@@ -115,6 +115,8 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed && _backgrounded) {
       _backgrounded = false;
       if (widget.enabled) {
+        widget.controller.lock();
+        setState(() {});
         _lockAndAuthenticate();
       }
     }

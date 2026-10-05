@@ -34,6 +34,10 @@ abstract interface class CommitmentPlanRepository {
   Future<void> saveOccurrence(Occurrence occurrence);
 }
 
+abstract interface class CommitmentPlanTransaction {
+  Future<T> runTransaction<T>(Future<T> Function() action);
+}
+
 class InMemoryCommitmentPlanRepository implements CommitmentPlanRepository {
   final Map<StableId, CommitmentPlan> _plans = {};
 
@@ -198,36 +202,44 @@ class CreateCommitmentPlan {
       occurrences: List.unmodifiable(occurrences),
       reminders: List.unmodifiable(reminders),
     );
-    await commitments.save(commitment);
-    await plans.save(plan);
-    if (entitlementUnits != null) {
-      final repository = entitlements;
-      if (repository == null) {
-        throw StateError(
-          'Entitlement repository is required for session plans.',
+    Future<void> persist() async {
+      await commitments.save(commitment);
+      await plans.save(plan);
+      if (entitlementUnits != null) {
+        final repository = entitlements;
+        if (repository == null) {
+          throw StateError(
+            'Entitlement repository is required for session plans.',
+          );
+        }
+        final entitlement = EntitlementPlan.create(
+          cycleId: cycle.id,
+          totalUnits: entitlementUnits,
+          unitType: EntitlementUnitType.session,
+          validFrom: startAt,
+          plannedExpiry: entitlementExpiry,
         );
+        await repository.save(entitlement);
       }
-      final entitlement = EntitlementPlan.create(
-        cycleId: cycle.id,
-        totalUnits: entitlementUnits,
-        unitType: EntitlementUnitType.session,
-        validFrom: startAt,
-        plannedExpiry: entitlementExpiry,
-      );
-      await repository.save(entitlement);
+      if (financialDirection != null && financialAmount != null) {
+        final expectationUseCases = financialExpectations;
+        if (expectationUseCases == null) {
+          throw StateError('Financial expectation use cases are required.');
+        }
+        for (final occurrence in occurrences) {
+          await expectationUseCases.create(
+            occurrenceId: occurrence.id,
+            direction: financialDirection,
+            amount: financialAmount,
+          );
+        }
+      }
     }
-    if (financialDirection != null && financialAmount != null) {
-      final expectationUseCases = financialExpectations;
-      if (expectationUseCases == null) {
-        throw StateError('Financial expectation use cases are required.');
-      }
-      for (final occurrence in occurrences) {
-        await expectationUseCases.create(
-          occurrenceId: occurrence.id,
-          direction: financialDirection,
-          amount: financialAmount,
-        );
-      }
+
+    if (plans case final CommitmentPlanTransaction transaction) {
+      await transaction.runTransaction(persist);
+    } else {
+      await persist();
     }
     if (reminderService != null) {
       for (final reminder in reminders) {

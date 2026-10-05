@@ -20,6 +20,13 @@ abstract interface class FinanceRepository {
   });
 }
 
+abstract interface class AtomicFinanceCorrection {
+  Future<void> saveCorrection({
+    required AccountEntry reversal,
+    required AccountEntry corrected,
+  });
+}
+
 class InMemoryFinanceRepository implements FinanceRepository {
   final Map<StableId, FinancialAccount> _accounts = {};
   final Map<StableId, AccountEntry> _entries = {};
@@ -229,8 +236,12 @@ class FinanceUseCases {
       category: category,
       source: AccountEntrySource.manual,
     );
-    await repository.saveEntry(reversal);
-    await repository.saveEntry(corrected);
+    if (repository case AtomicFinanceCorrection atomic) {
+      await atomic.saveCorrection(reversal: reversal, corrected: corrected);
+    } else {
+      await repository.saveEntry(reversal);
+      await repository.saveEntry(corrected);
+    }
     return corrected;
   }
 

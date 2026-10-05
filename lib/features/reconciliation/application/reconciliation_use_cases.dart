@@ -10,6 +10,13 @@ abstract interface class ReconciliationRepository {
   Future<void> save(TransactionMatch match);
 }
 
+abstract interface class AtomicMatchCorrection {
+  Future<void> saveCorrection({
+    required TransactionMatch original,
+    required TransactionMatch corrected,
+  });
+}
+
 class ReconciliationEngine {
   const ReconciliationEngine({this.scorer = const ReconciliationScorer()});
 
@@ -139,6 +146,39 @@ class ReconciliationUseCases {
     required List<StableId> occurrenceIds,
     required List<Money> allocations,
   }) async {
+    if (repository case AtomicMatchCorrection atomic) {
+      // Validate and build without persisting an active replacement first.
+      if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
+        throw const ValidationError('Occurrences and allocations must align');
+      }
+      final matchId = StableId.generate(timestamp: createdAt);
+      final corrected = TransactionMatch(
+        id: matchId,
+        transactionId: original.transactionId,
+        transactionAmount: original.transactionAmount,
+        createdAt: createdAt.toUtc(),
+        allocations: [
+          for (var index = 0; index < occurrenceIds.length; index++)
+            MatchAllocation(
+              id: StableId.generate(timestamp: createdAt),
+              matchId: matchId,
+              occurrenceId: occurrenceIds[index],
+              amount: allocations[index],
+            ),
+        ],
+      );
+      final superseded = TransactionMatch(
+        id: original.id,
+        transactionId: original.transactionId,
+        transactionAmount: original.transactionAmount,
+        createdAt: original.createdAt,
+        allocations: original.allocations,
+        status: MatchStatus.corrected,
+        correctedMatchId: corrected.id,
+      );
+      await atomic.saveCorrection(original: superseded, corrected: corrected);
+      return corrected;
+    }
     final corrected = await match(
       transactionId: original.transactionId,
       transactionAmount: original.transactionAmount,

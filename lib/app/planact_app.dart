@@ -36,6 +36,9 @@ import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
+import 'package:planact/features/reminders/application/reminder_service.dart';
+import 'package:planact/features/reminders/application/reminder_platform.dart';
+import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
 
 class PlanActApp extends StatefulWidget {
@@ -52,6 +55,8 @@ class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
   bool _appLockEnabled = false;
+  bool _appLockSettingLoaded = false;
+  String? _appLockSettingError;
   late final AppLockController _appLockController = AppLockController(
     authenticator: LocalAppAuthenticator(),
   );
@@ -65,9 +70,27 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
-      _settings!.readAppLockEnabled().then((enabled) {
-        if (mounted) setState(() => _appLockEnabled = enabled);
-      });
+      _loadAppLockSetting();
+    }
+  }
+
+  Future<void> _loadAppLockSetting() async {
+    try {
+      final enabled = await _settings!.readAppLockEnabled();
+      if (mounted) {
+        setState(() {
+          _appLockEnabled = enabled;
+          _appLockSettingLoaded = true;
+          _appLockSettingError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _appLockSettingError =
+              'خواندن تنظیمات قفل برنامه ممکن نشد. دوباره تلاش کنید.',
+        );
+      }
     }
   }
 
@@ -94,23 +117,40 @@ class _PlanActAppState extends State<PlanActApp> {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: AppLockGate(
-        enabled: _appLockEnabled,
-        controller: _appLockController,
-        child: HomeShell(
-          repository: widget.repository,
-          planRepository: widget.planRepository,
-          settings: _settings,
-          themeMode: _themeMode,
-          appLockEnabled: _appLockEnabled,
-          appLockController: _appLockController,
-          onAppLockChanged: _setAppLock,
-          onThemeModeChanged: (mode) async {
-            setState(() => _themeMode = mode);
-            await _settings?.writeThemeMode(mode);
-          },
-        ),
-      ),
+      home: !_appLockSettingLoaded && _settings != null
+          ? Scaffold(
+              body: Center(
+                child: _appLockSettingError == null
+                    ? const CircularProgressIndicator()
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_appLockSettingError!),
+                          TextButton(
+                            onPressed: _loadAppLockSetting,
+                            child: const Text('تلاش دوباره'),
+                          ),
+                        ],
+                      ),
+              ),
+            )
+          : AppLockGate(
+              enabled: _appLockEnabled,
+              controller: _appLockController,
+              child: HomeShell(
+                repository: widget.repository,
+                planRepository: widget.planRepository,
+                settings: _settings,
+                themeMode: _themeMode,
+                appLockEnabled: _appLockEnabled,
+                appLockController: _appLockController,
+                onAppLockChanged: _setAppLock,
+                onThemeModeChanged: (mode) async {
+                  setState(() => _themeMode = mode);
+                  await _settings?.writeThemeMode(mode);
+                },
+              ),
+            ),
     );
   }
 }
@@ -162,6 +202,12 @@ class _HomeShellState extends State<HomeShell> {
     plans: _planRepository,
     entitlements: _entitlementRepository,
     financialExpectations: _expectationUseCases,
+    reminderService: _repository is DriftCommitmentRepository
+        ? ReminderService(
+            repository: DriftReminderRepository(_repository.database),
+            platform: AndroidReminderPlatformAdapter(),
+          )
+        : null,
   );
   int _selectedIndex = 0;
   final GlobalKey<FinancePageState> _financePageKey =

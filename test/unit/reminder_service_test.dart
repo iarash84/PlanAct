@@ -32,7 +32,7 @@ void main() {
   });
 
   test(
-    'scheduling is idempotent and does not duplicate platform notifications',
+    'scheduling reuses the same platform notification ID on retry',
     () async {
       final rule = ReminderRule.beforeOccurrence(
         occurrenceId: occurrenceId,
@@ -45,7 +45,8 @@ void main() {
 
       expect(second.id, first.id);
       expect((await repository.listInstances()).length, 1);
-      expect(adapter.scheduled, [first.id]);
+      // The platform schedules by stable ID; retry replaces the same alarm.
+      expect(adapter.scheduled, [first.id, first.id]);
     },
   );
 

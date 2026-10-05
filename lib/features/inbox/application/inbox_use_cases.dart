@@ -15,6 +15,15 @@ abstract interface class InboxRepository {
   Future<void> saveSuggestion(InboxSuggestion suggestion);
 }
 
+/// Implementations with a shared durable database must commit all three writes
+/// in one transaction. The entry ID is stable across retries and restarts.
+abstract interface class AtomicInboxConfirmation {
+  Future<AccountEntry> confirmAtomically({
+    required StableId suggestionId,
+    required AccountEntry entry,
+  });
+}
+
 /// Normalizes an external source into a staged import. Adapters must not write
 /// to finance repositories or any final ledger.
 abstract interface class ImportSourceAdapter {
@@ -352,9 +361,12 @@ class InboxUseCases {
       );
     }
     final entry = AccountEntry(
-      id: StableId.generate(timestamp: suggestion.draft.occurredAt),
+      id: _stableImportId(
+        '${suggestion.stagedImportId.value}:financial-entry',
+        suggestion.draft.occurredAt,
+      ),
       accountId: account.id,
-      type: suggestion.draft.direction == TransactionDirection.incoming
+      type: suggestion.draft.type == 'income'
           ? AccountEntryType.income
           : AccountEntryType.expense,
       amount: suggestion.draft.amount,
@@ -362,6 +374,20 @@ class InboxUseCases {
       referenceId: suggestion.draft.reference,
       note: suggestion.draft.merchant,
     );
+    if (repository case final AtomicInboxConfirmation atomic) {
+      return atomic.confirmAtomically(
+        suggestionId: suggestion.id,
+        entry: entry,
+      );
+    }
+    final stored = (await repository.listSuggestions()).firstWhere(
+      (item) => item.id == suggestion.id,
+    );
+    if (stored.status == SuggestionStatus.confirmed) {
+      return (await finance.listEntries()).firstWhere(
+        (item) => item.id == entry.id,
+      );
+    }
     await finance.saveEntry(entry);
     await repository.saveSuggestion(
       suggestion.withStatus(SuggestionStatus.confirmed),

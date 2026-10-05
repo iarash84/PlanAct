@@ -8,10 +8,16 @@ import 'package:planact/features/commitments/data/drift_commitment_repository.da
 import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 
-class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
+class DriftCommitmentPlanRepository
+    implements CommitmentPlanRepository, CommitmentPlanTransaction {
   DriftCommitmentPlanRepository(this.database);
   final db.AppDatabase database;
+
+  @override
+  Future<T> runTransaction<T>(Future<T> Function() action) =>
+      database.transaction(action);
 
   @override
   Future<void> save(CommitmentPlan plan) async {
@@ -79,6 +85,10 @@ class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
               ),
             );
       }
+      final reminders = DriftReminderRepository(database);
+      for (final rule in plan.reminders) {
+        await reminders.saveRule(rule);
+      }
     });
   }
 
@@ -132,12 +142,16 @@ class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
     final commitment = await DriftCommitmentRepository(database)
         .findById(commitmentId);
     if (commitment == null) return null;
+    final rules = await DriftReminderRepository(database).listRules();
+    final occurrenceIds = rows.map((row) => row.id).toSet();
     return CommitmentPlan(
       commitment: commitment,
       cycle: _cycle(cycle),
       schedule: _schedule(schedule),
       occurrences: rows.map(_occurrence).toList(growable: false),
-      reminders: const [],
+      reminders: rules
+          .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
+          .toList(growable: false),
     );
   }
 

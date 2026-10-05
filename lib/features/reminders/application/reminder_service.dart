@@ -51,7 +51,12 @@ class ReminderService {
           item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc() &&
           item.status != ReminderInstanceStatus.cancelled,
     );
-    if (duplicate.isNotEmpty) return duplicate.first;
+    if (duplicate.isNotEmpty) {
+      // A previous platform attempt may have failed after the durable write.
+      // Retrying must not mistake the persisted intent for delivered scheduling.
+      if (rule.enabled) await platform.schedule(duplicate.first);
+      return duplicate.first;
+    }
     await repository.saveInstance(scheduled);
     if (rule.enabled) await platform.schedule(scheduled);
     return scheduled;

@@ -5,7 +5,8 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
-class DriftFinanceRepository implements FinanceRepository {
+class DriftFinanceRepository
+    implements FinanceRepository, AtomicFinanceCorrection {
   DriftFinanceRepository(this.database);
   final db.AppDatabase database;
 
@@ -78,6 +79,15 @@ class DriftFinanceRepository implements FinanceRepository {
     await saveEntry(outgoing);
     await saveEntry(incoming);
     if (fee != null) await saveEntry(fee);
+  });
+
+  @override
+  Future<void> saveCorrection({
+    required AccountEntry reversal,
+    required AccountEntry corrected,
+  }) => database.transaction(() async {
+    await saveEntry(reversal);
+    await saveEntry(corrected);
   });
 
   @override

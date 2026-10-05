@@ -27,7 +27,8 @@ Future<CommitmentRepository> _createRepository() async {
   );
   final platform = AndroidReminderPlatformAdapter();
   await platform.initialize();
-  await platform.requestPermission();
+  // Permission prompts belong to an explicit reminder-capability interaction,
+  // never the general application startup (ADR 0012).
   await ReminderService(
     repository: DriftReminderRepository(database),
     platform: platform,

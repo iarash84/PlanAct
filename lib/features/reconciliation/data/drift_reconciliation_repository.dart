@@ -5,7 +5,8 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 
-class DriftReconciliationRepository implements ReconciliationRepository {
+class DriftReconciliationRepository
+    implements ReconciliationRepository, AtomicMatchCorrection {
   DriftReconciliationRepository(this.database);
   final db.AppDatabase database;
 
@@ -47,6 +48,15 @@ class DriftReconciliationRepository implements ReconciliationRepository {
         })
         .toList(growable: false);
   }
+
+  @override
+  Future<void> saveCorrection({
+    required TransactionMatch original,
+    required TransactionMatch corrected,
+  }) => database.transaction(() async {
+    await save(original);
+    await save(corrected);
+  });
 
   @override
   Future<void> save(TransactionMatch match) async {
