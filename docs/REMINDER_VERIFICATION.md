@@ -42,6 +42,14 @@ PLANACT_NATIVE_REMINDER_PASS: exact delivery, retry deduplication, cancellation,
 
 The probe checked one pending owned alarm after repeated scheduling, waited for actual native delivery, verified the active notification ID, cancelled it and verified removal, then scheduled a future alarm and verified orphan cleanup. This is real plugin/native evidence, **not** proof of the whole product journey or reboot behavior. The API 30 device does not exercise Android 13 notification permission or Android 14 exact-alarm default denial.
 
+## Notification activation correction
+
+The Settings activation action now checks actual Android notification enablement before and after the runtime permission request. If notifications remain disabled (including Android 12 and earlier, or a denied Android 13+ permission), it opens this application's notification settings, with application-details settings as a fallback. The native bridge completes when the settings activity returns; the adapter then checks actual enablement again. Only enabled notifications allow the existing exact-alarm activation and reminder rebuild to continue. Opening settings alone is not reported as permission granted. The user must enable the system toggle; the application cannot grant permission on the user's behalf.
+
+The Persian Settings guidance explains enabling notifications and returning to the application. No startup settings launch, dependency, schema migration, or historical-data change was added.
+
+Validation for this correction: full Flutter suite **260 passed**, analyzer clean, formatting and Git whitespace validation passed, and isolated Android debug APK built successfully. Four added channel-mocked tests cover already enabled notifications, runtime grant, settings grant on return, and return without grant. These tests and compilation are **not native evidence** for the settings return flow; real-device/OEM and Android 13+ verification remains open. The earlier API 30 probe above tested delivery, not this newly added settings bridge.
+
 ## Remaining acceptance work
 
 - Actual reboot/update/process-interruption tests with durable app state and reminders; manifest receivers alone are insufficient evidence.

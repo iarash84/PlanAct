@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
+
 import 'package:crypto/crypto.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
@@ -13,10 +15,15 @@ import 'package:planact/features/reminders/domain/reminder.dart';
 /// dependency of the reminder domain.
 class AndroidReminderPlatformAdapter
     implements ReminderPlatformAdapter, ReminderPlatformInventory {
-  AndroidReminderPlatformAdapter({FlutterLocalNotificationsPlugin? plugin})
-    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  AndroidReminderPlatformAdapter({
+    FlutterLocalNotificationsPlugin? plugin,
+    MethodChannel? settingsChannel,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+       _settingsChannel =
+           settingsChannel ?? const MethodChannel('planact/reminder-settings');
 
   final FlutterLocalNotificationsPlugin _plugin;
+  final MethodChannel _settingsChannel;
   bool _initialized = false;
 
   Future<void> initialize() async {
@@ -40,7 +47,15 @@ class AndroidReminderPlatformAdapter
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    return await android?.requestNotificationsPermission() ?? false;
+    if (android == null) return false;
+    if (await android.areNotificationsEnabled() ?? false) return true;
+    await android.requestNotificationsPermission();
+    if (await android.areNotificationsEnabled() ?? false) return true;
+    // A runtime prompt cannot re-enable notifications disabled in Settings,
+    // including Android <= 12 and permanently denied Android 13+ permission.
+    // This method is invoked only after the user's explicit enable action.
+    await _settingsChannel.invokeMethod<void>('openNotificationSettings');
+    return await android.areNotificationsEnabled() ?? false;
   }
 
   Future<bool> notificationsEnabled() async {
