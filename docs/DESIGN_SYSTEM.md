@@ -1,49 +1,160 @@
 # PlanAct Design System
 
-## Direction
+This document is the authoritative concrete visual specification for PlanAct. `AGENTS.md` defines how design decisions are governed; this document defines how PlanAct should feel and look. Read both before meaningful UI or shared design-system work. Product behavior remains governed by `docs/product/PRD.md`.
 
-PlanAct uses Material 3 with a calm, Persian-first visual language. The product is RTL by default, local-first, and sensitive to personal and financial information. Visual treatment must clarify the difference between plan, actual, expectation, transaction, and reconciliation without changing domain semantics.
+## Product visual character
 
-## Tokens
+PlanAct is a calm, trustworthy, focused, organized, modern, approachable, financially credible, action-oriented, low-noise personal commitment manager for Persian-speaking users. Its interface should make the difference between plan, actual, expectation, transaction, and reconciliation easy to understand without changing their domain meaning.
 
-- [`PlanActColors`](../lib/app/theme/planact_colors.dart) defines semantic roles: primary, success, attention, overdue, info, background, and surface.
-- [`PlanActSpacing`](../lib/app/theme/planact_spacing.dart) defines the spacing scale from `xs` through `xxl`, plus page and 48dp touch-target tokens.
-- [`PlanActRadius`](../lib/app/theme/planact_radius.dart) defines chip, input, card, and bottom-sheet shapes.
-- [`PlanActMotion`](../lib/app/theme/planact_spacing.dart) defines short, standard, and emphasis durations and the shared ease-out curve.
+The launcher artwork at `assets/icons/app_icon.png` and `assets/icons/app_icon_foreground.png` combines deep navy with vivid blue-green/teal and green over a pale, cool field. Express that identity through a restrained blue-green foundation, clear hierarchy, and selective accent—not by copying the launcher's gradients across the app. Avoid generic framework-default appearance, excessive color, neon, decorative gradients, card-on-card layouts, and repeated logo placement. Material 3 is the component and interaction foundation, not the brand itself.
 
-Do not introduce arbitrary colors, radii, elevations, or motion timings in feature widgets when a token or Material component theme is appropriate.
+## Visual source of truth
+
+For visual decisions, follow this order after product/domain requirements and `AGENTS.md` governance:
+
+1. This specification.
+2. Shared `ThemeData`, `ColorScheme`, `TextTheme`, component themes, and PlanAct tokens.
+3. Shared PlanAct components.
+4. Feature-local composition.
+5. One-off local styling only when genuinely necessary, scoped, and documented.
+
+The implementation lives in:
+
+- [`PlanActTheme`](../lib/app/theme/planact_theme.dart)
+- [`PlanActColors`](../lib/app/theme/planact_colors.dart)
+- [`PlanActTypography`](../lib/app/theme/planact_typography.dart)
+- [`PlanActSpacing` and `PlanActMotion`](../lib/app/theme/planact_spacing.dart)
+- [`PlanActRadius`](../lib/app/theme/planact_radius.dart)
+
+These files implement the specification; they are not permission for feature widgets to introduce further styles. When the specification and implementation disagree, identify whether implementation predates the shared contract, preserve product behavior, and record an intentional exception. A foundational visual change must update this document and the corresponding theme/tokens together, then review affected surfaces.
+
+## Brand palette
+
+The values below record the current token baseline after inspection of the logo and theme. Token names in code remain the implementation source for values; feature widgets must refer to those roles, not duplicate hex literals.
+
+| Role | Current token/value | Use |
+| --- | --- | --- |
+| Brand primary | `PlanActColors.primary` — `#176B87` | Main product actions, focus, and selected emphasis where semantically appropriate |
+| Deeper brand tone | `PlanActColors.primaryDark` — `#0D5268` | Existing deeper brand token; do not invent feature-specific variants |
+| Light scaffold | `PlanActColors.lightBackground` — `#F7FAFB` | Quiet light-mode page background |
+| Dark scaffold | `PlanActColors.darkBackground` — `#101A1E` | Quiet dark-mode page background |
+| Light surface | `PlanActColors.lightSurface` — `#FFFFFF` | Base light-mode surface |
+| Dark surface | `PlanActColors.darkSurface` — `#18262B` | Base dark-mode surface |
+
+`ColorScheme` supplies Material roles such as `onPrimary`, containers, outlines, and additional surface levels. Use those semantic roles instead of selecting a nearby raw color. Preserve a restrained relationship to the logo's deep navy and blue-green/teal/green family; do not use the artwork's bright colors or gradients as a license for a loud interface.
+
+The current `PlanActTheme` wires Material `secondary` to the existing info token, `tertiary` to success, and `error` to overdue. These are current implementation mappings, not automatically approved equivalences between brand hierarchy and business meaning. Do not rely on or extend those aliases as status semantics without an explicit semantic review and synchronized update to this document and theme implementation.
+
+## Semantic palette
+
+Business status is separate from Material brand hierarchy. Current semantic tokens are:
+
+| Meaning | Current token/value | Guidance |
+| --- | --- | --- |
+| Success | `PlanActColors.success` — `#2F855A` | Confirmed positive outcome |
+| Attention / warning | `PlanActColors.attention` — `#B7791F` | Needs review or caution |
+| Overdue / danger | `PlanActColors.overdue` — `#C53030` | Late or harmful/error state where appropriate |
+| Information | `PlanActColors.info` — `#2B6CB0` | Neutral informational emphasis |
+| Paused / archived / disabled | No dedicated token currently | Use an appropriately subdued shared semantic/surface role; add a shared role if repeated or if a distinct meaning is required |
+
+The current semantic tokens are not yet brightness-specific. The values above describe the existing baseline, not a claim that the same foreground/background pair is suitable in both themes. Check actual contrast and define brightness-appropriate token pairs in the shared system whenever a role is used in a theme where it is not legible. Do not hard-code local replacements or conflate (for example) `secondary` with info, `tertiary` with success, or `error` with overdue merely because current theme fields are wired that way. Provide readable foreground/container combinations as well as status colors, and always convey status with text, icon, or shape in addition to color.
 
 ## Typography
 
-[`PlanActTypography`](../lib/app/theme/planact_typography.dart) derives its text theme from Material 3 and applies semantic weights for display, headline, title, and action roles. Persian copy remains the default. Mixed Persian/Latin content and numbers must use normal text shaping and locale-aware formatters; do not reverse strings or perform scattered digit replacement.
+Persian readability is the default. Use semantic roles from `PlanActTypography`/`TextTheme`, rather than local font sizes or weights:
 
-## Component treatments
+| Role | Preferred semantic source |
+| --- | --- |
+| Screen title | `headlineSmall` or the established page-title role |
+| Section title | `titleLarge` |
+| Card/row title | `titleMedium` |
+| Body and supporting copy | `bodyLarge`, `bodyMedium`, `bodySmall` by hierarchy |
+| Field labels and actions | `labelLarge`, `labelMedium` |
+| Numeric and money emphasis | A semantic title/body role that preserves locale formatting and clear digit grouping |
 
-[`PlanActTheme`](../lib/app/theme/planact_theme.dart) is the single source for shared Material 3 treatments:
+Preserve correct Persian shaping and line height, natural mixed Persian/Latin text flow, locale-aware Persian digits where appropriate, and readable money/numeric values. Never reverse strings or replace digits with scattered string operations. Text must remain legible at increased system text scale and narrow mobile widths.
 
-- App bars are quiet, surface-colored, and use minimal elevation.
-- Navigation bars use a restrained selected indicator and a 72dp height.
-- Filled, outlined, text, and icon buttons preserve a 48dp minimum touch target.
-- Cards use surface hierarchy and a shared 16dp shape without heavy shadows.
-- List tiles inherit consistent padding and shape.
-- Text fields are filled, outlined, and use the shared input radius.
-- Chips, dialogs, bottom sheets, and snackbars use shared shapes and spacing.
-- FABs use primary-container contrast and are reserved for the primary action.
+There is currently no bundled font asset or declared font dependency; the theme uses the existing `sans` family. Treat this as a documented baseline limitation, not a claim that any generic font choice is ideal. Do not introduce a new font or change the global family from a feature. A deliberate Persian font decision requires an explicit design-system change and coordinated theme/assets update; this documentation task does not add a dependency.
 
-Financial values and statuses must remain explicit in text and not rely on color alone. Reconciliation UI must show the expected record, actual transaction, match explanation, consequence of confirmation, and undo/reversal path.
+## Spacing and touch targets
 
-## Motion and feedback
+Use the existing compact spacing scale: `xs` 4dp, `sm` 8dp, `md` 12dp, `lg` 16dp, `xl` 24dp, and `xxl` 32dp. The current page gutter token is 20dp. Use these for recurring visual rhythm; component-specific geometry may remain local when it is truly unique.
 
-Motion communicates insertion/removal, state changes, expansion, reconciliation, archive/undo, selection, success, and navigation continuity. Routine navigation has no haptic feedback. Prefer implicit animations and avoid animation-frame assertions in tests. Loading, disabled, success, warning, error, selected, resolved, and archived states must be visible and understandable in Persian.
+Keep interactive targets at least 48×48dp, consistent with the theme. Preserve breathing room around Persian text and controls. Do not compress spacing to make a dense form or list fit; simplify or progressively disclose content instead.
 
-## Accessibility
+## Shape
 
-Use directional Flutter APIs and semantic labels. Preserve 48dp touch targets, readable contrast, text scaling, screen-reader meaning, and color-independent status communication. Avoid unnecessary shadows, blur, animation controllers, and rebuilds. Reduced-motion support should favor final-state correctness over decorative transitions.
+Use the established hierarchy: chips 8dp, inputs 12dp, cards/dialogs 16dp, and sheet top corners 24dp. Reserve fully pill-shaped treatment for components whose Material semantics call for it; do not make every surface a pill. Reuse `PlanActRadius` rather than repeating radii.
 
-## Journey consistency
+## Surface hierarchy
 
-The commitment flow keeps create, save, Today, status, archive, and undo visually coherent. Financial flows distinguish expectations from transactions and make matching consequences explicit. SMS imports remain staged until review and confirmation. Account rows, transaction history, filters, details, Inbox suggestions, and Attention cards reuse the shared Material treatments.
+- **Scaffold:** quiet brightness-specific background; avoid unbroken white-on-white layouts.
+- **Base surface:** primary content plane, readable against the scaffold.
+- **Cards and list surfaces:** group related content only when grouping improves scanning; avoid nesting cards or adding a card to every row.
+- **Elevated/modal surfaces:** dialogs and sheets should be distinguishable through theme surface roles, shape, and elevation—not arbitrary shadows.
+- **Selected/highlight surfaces:** use a restrained shared container/indicator plus clear text/icon state; selection must not depend on color alone.
 
-## Review checklist
+Use `ColorScheme` surface/container and outline roles consistently. Do not add local elevation, shadow, border, or surface shades where a theme role already communicates the hierarchy.
 
-Before adding a visual pattern, check the theme and shared tokens first. Confirm RTL, Persian copy, touch targets, text scaling, loading/error/empty states, undo or confirmation requirements, and restart-safe domain behavior. Design changes must not alter product semantics or persistence rules.
+## Component hierarchy
+
+- **Primary action:** one visually dominant action per context; use the shared filled treatment and primary brand role.
+- **Secondary action:** visible but subordinate, using outlined, tonal, or text treatment as appropriate.
+- **Destructive action:** use error semantics only for an actually destructive operation; pair with the required confirmation/undo semantics.
+- **Text/icon actions:** use shared theme sizing and provide accessible labels for icon-only controls.
+- **Cards and rows:** prioritize readable title, useful supporting content, and a clear action; prefer a shared row pattern over similar feature-local cards.
+- **Fields:** use shared filled/outlined field treatment, consistent focus/error states, and correct Persian input behavior.
+- **Chips and badges:** concise secondary metadata or state; use the shared shape and do not substitute color for a label.
+- **Navigation and AppBars:** keep hierarchy quiet and consistent; directional affordances must follow the app's RTL semantics.
+- **Sheets and dialogs:** use shared shape/surface treatment, preserve keyboard/focus and scroll behavior, and state consequences for important actions.
+- **State views:** use distinct, reusable loading, empty, error, success, stale, and disabled treatments. Error must not resemble empty; keep progress scoped to the operation/item when possible.
+
+Use the shared Material theme for recurring component treatments. Local composition is appropriate for unique product content, not for recreating buttons, fields, cards, state views, or navigation styles.
+
+## State presentation
+
+Every applicable screen state must have a coherent representation:
+
+- **Loading/refreshing:** show progress in the affected region and retain useful context where possible.
+- **Saving/action in progress:** indicate which operation is busy and prevent duplicate activation where needed.
+- **Success:** confirm the result in Persian; offer undo/recovery when the operation is reversible and appropriate.
+- **Empty:** explain the absence and offer a relevant next step when one exists.
+- **Error:** communicate failure distinctly from empty, provide a human-readable and actionable retry/recovery path where possible.
+- **Stale/partial:** explain what is incomplete without implying success.
+- **Disabled:** retain readable contrast and make the reason understandable where relevant.
+
+Do not leave asynchronous failures silent and do not use color as the only state signal.
+
+## Motion
+
+Motion is restrained and functional: it should communicate state change, continuity, hierarchy, insertion/removal, expansion, success/failure, or navigation—not decoration. Reuse the existing `PlanActMotion` tokens: short 150ms, standard 220ms, emphasis 300ms, `easeOutCubic`. Respect reduced-motion expectations and ensure the final state is correct without animation. Prefer implicit Flutter animations for simple transitions; use explicit controllers only when necessary.
+
+## RTL
+
+RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/end-aware padding, and directional icons. Do not manually reverse lists, strings, or layout order to simulate RTL. Navigation and previous/next/back/forward icons must follow one consistent semantic convention. Validate mixed Persian/Latin text, numbers, forms, focus order, and date controls in context.
+
+## Accessibility and responsive behavior
+
+- Maintain a minimum 48×48dp interactive target.
+- Target WCAG 2.1 AA contrast as a baseline: 4.5:1 for normal text and 3:1 for large text and essential non-text controls; verify foregrounds against their actual Light and Dark surfaces.
+- Support system text scaling without clipping, fixed-height text regions, or reducing font size to conceal overflow.
+- Give icon-only actions meaningful Persian semantic labels; ensure focus and keyboard behavior where applicable.
+- Communicate status through text/icon/shape in addition to color.
+- Check narrow mobile widths and increased text scale. Let Persian text wrap naturally and adapt layout; do not truncate essential labels or solve overflow by shrinking text.
+
+## Brand exceptions
+
+Official bank/provider colors may appear only when needed to identify that external entity. Keep them scoped to the entity representation; they must not become PlanAct theme colors, general action colors, or status semantics. Logo use is similarly limited to appropriate brand moments. Any other exception must be necessary, small in scope, consistent with product behavior and accessibility, and documented with the affected surface and reason.
+
+## Change and review policy
+
+Implementing an existing rule or correcting drift does not require redefining the visual identity. Do not casually change the brand palette, typography family, global radius system, primary/secondary hierarchy, or visual paradigm from a feature widget.
+
+When a task intentionally changes a foundational design rule:
+
+1. Update this specification and the corresponding shared theme/token implementation together.
+2. Review the affected Light and Dark states.
+3. Review related screens and shared-component consumers; for broad work, complete the app-wide visual coverage inventory required by `AGENTS.md`.
+4. Document any intentional exceptions and migration scope.
+
+Before adding a recurring pattern, inspect the existing theme, tokens, and shared components. Extend a shared role when several surfaces need it; do not over-tokenize unique geometry or create duplicate abstractions. App-wide consistency does not authorize unrelated architectural rewrites.
