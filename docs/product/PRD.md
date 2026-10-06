@@ -389,6 +389,10 @@ Occurrenceهای گذشته نباید به‌طور مخفی بازنویسی �
 
 Calendar باید occurrenceهای برنامه‌ریزی‌شده را نمایش دهد.
 
+Iranian holidays must work fully offline from versioned, traceable bundled data, with deterministic Jalali-compatible lookup. Friday weekend rules, official fixed/variable holidays, and scoped special/temporary closures must remain distinct; overlapping reasons must be retained. Outside verified annual coverage, Calendar must explicitly warn that missing holiday markers do not prove a working day. Holiday data alone must not cancel/reschedule occurrences or alter entitlement/financial history.
+
+Priority 8 checkpoint (2026-10-06): **Partial**. Published-calendar source snapshots cover complete Jalali years 1400–1404. Calendar shows Persian holiday reasons, accessible labels and incomplete-coverage warnings. Current fixed rules remain available from 1400 onward, but variable dates outside verified coverage are not predicted. Complete 1405 coverage is still required; the official PDF endpoint was inaccessible during source verification. Special closures have a typed, provenance-bearing seam, but no actual temporary closure dataset or user-editing feature is shipped. See [verification report](../IRANIAN_HOLIDAYS_VERIFICATION.md).
+
 Requirements:
 
 - نمایش جلالی؛

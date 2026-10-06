@@ -1,33 +1,107 @@
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/features/calendar/domain/iranian_holiday_data.dart';
+
+enum CalendarHolidayKind { weekend, officialFixed, officialVariable, special }
 
 class CalendarHoliday {
-  const CalendarHoliday({required this.date, required this.title});
+  const CalendarHoliday({
+    required this.date,
+    required this.title,
+    this.kind = CalendarHolidayKind.weekend,
+    this.source = 'Iranian weekly weekend rule',
+    this.version = IranianHolidayProvider.dataVersion,
+    this.scope = 'Iran',
+  });
 
   final JalaliDate date;
   final String title;
+  final CalendarHolidayKind kind;
+  final String source;
+  final String version;
+  final String scope;
 }
 
-/// Offline holiday seam. Friday is always treated as the weekly holiday;
-/// official dates can be expanded through this versioned local dataset.
+/// Published calendar dates, not an approximate lunar-calendar calculation.
+/// Additional special closures must be supplied from a versioned durable source;
+/// this class does not create or persist user closures.
 class IranianHolidayProvider {
-  const IranianHolidayProvider();
+  const IranianHolidayProvider({this.specialClosures = const []});
+
+  static const dataVersion = 'iran-1400-1404-v1';
+  static const firstCoveredYear = 1400;
+  static const lastCoveredYear = 1404;
+  static const officialSource =
+      'persian-calendar/events + qamari/calendar-center';
+  final List<CalendarHoliday> specialClosures;
+
+  bool hasCompleteOfficialCoverage(int year) =>
+      year >= firstCoveredYear && year <= lastCoveredYear;
 
   List<CalendarHoliday> holidaysForMonth(int year, int month) {
-    final result = <CalendarHoliday>[];
     final first = JalaliDate(year, month, 1);
-    for (var day = 1; day <= first.monthLength; day++) {
-      final date = JalaliDate(year, month, day);
-      if (date.weekDay == 7) {
-        result.add(CalendarHoliday(date: date, title: 'تعطیلی هفتگی'));
-      }
-    }
-    return result;
+    return List.unmodifiable([
+      for (var day = 1; day <= first.monthLength; day++)
+        ...holidaysFor(JalaliDate(year, month, day)),
+    ]);
   }
 
-  CalendarHoliday? holidayFor(JalaliDate date) {
-    if (date.weekDay == 7) {
-      return CalendarHoliday(date: date, title: 'تعطیلی هفتگی');
+  List<CalendarHoliday> holidaysFor(JalaliDate date) {
+    // Force validation even when there are no matching official events.
+    final weekday = date.weekDay;
+    final result = <CalendarHoliday>[];
+    if (weekday == 7) {
+      result.add(CalendarHoliday(date: date, title: 'تعطیلی هفتگی (جمعه)'));
     }
-    return null;
+    // Current fixed rules are not evidence for arbitrary historical years.
+    if (date.year >= firstCoveredYear) {
+      for (final (month, day, title) in iranianFixedHolidays) {
+        if (date.month == month && date.day == day) {
+          result.add(
+            CalendarHoliday(
+              date: date,
+              title: title,
+              kind: CalendarHolidayKind.officialFixed,
+              source: officialSource,
+            ),
+          );
+        }
+      }
+    }
+    if (hasCompleteOfficialCoverage(date.year)) {
+      final gregorian = date.toDateTime();
+      for (final (year, month, day, title) in iranianVariableHolidays) {
+        if (gregorian.year == year &&
+            gregorian.month == month &&
+            gregorian.day == day) {
+          result.add(
+            CalendarHoliday(
+              date: date,
+              title: title,
+              kind: CalendarHolidayKind.officialVariable,
+              source: officialSource,
+            ),
+          );
+        }
+      }
+    }
+    for (final closure in specialClosures) {
+      if (closure.kind != CalendarHolidayKind.special ||
+          closure.source.trim().isEmpty ||
+          closure.version.trim().isEmpty ||
+          closure.scope.trim().isEmpty ||
+          closure.title.trim().isEmpty) {
+        throw ArgumentError(
+          'Special closures require explicit kind and provenance',
+        );
+      }
+      if (closure.date == date) result.add(closure);
+    }
+    return List.unmodifiable(result);
+  }
+
+  /// Compatibility single-reason lookup; use holidaysFor to retain overlaps.
+  CalendarHoliday? holidayFor(JalaliDate date) {
+    final holidays = holidaysFor(date);
+    return holidays.isEmpty ? null : holidays.first;
   }
 }

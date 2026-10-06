@@ -841,6 +841,10 @@ After meaningful changes run:
 Do not report a task as complete when analysis or relevant tests fail.
 
 
+## Offline Iranian holiday safeguards
+
+Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Priority 8 remains partial until current-year coverage is verified, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
+
 ## Schedule/actual checkpoint safeguards
 
 Priorities 6 and 7 are partial as recorded in docs/SCHEDULE_ACTUAL_VERIFICATION.md. Explicit reopening appends a result, preserves earlier history, and restores an actionable scheduled/rescheduled occurrence; it must not be described as an exact prior-status, financial, or entitlement reversal. Persisted outcome enum indices must remain stable. Date/time editing must reject unsupported recurrence/termination semantics rather than silently changing session counts or recurrence phase. Full intermediate schedule audit, version-safe generation, durable concurrency revisions, and interrupted reminder reopening remain required gates, not waived requirements.

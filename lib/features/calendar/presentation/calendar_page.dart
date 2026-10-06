@@ -19,9 +19,13 @@ class CalendarPage extends StatefulWidget {
     this.onCommitmentTap,
     this.occurrences = const {},
     this.reminderRules = const [],
+    this.initialDate,
+    this.holidayProvider = const IranianHolidayProvider(),
   });
 
   final List<Commitment> commitments;
+  final JalaliDate? initialDate;
+  final IranianHolidayProvider holidayProvider;
   final Map<String, List<DateTime>> scheduledDates;
   final Map<String, List<Occurrence>> occurrences;
   final List<ReminderRule> reminderRules;
@@ -32,14 +36,14 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  static const _holidayProvider = IranianHolidayProvider();
+  IranianHolidayProvider get _holidayProvider => widget.holidayProvider;
   late JalaliDate _month;
   late JalaliDate _selectedDay;
 
   @override
   void initState() {
     super.initState();
-    final today = JalaliDate.now();
+    final today = widget.initialDate ?? JalaliDate.now();
     _month = JalaliDate(today.year, today.month, 1);
     _selectedDay = today;
   }
@@ -77,6 +81,13 @@ class _CalendarPageState extends State<CalendarPage> {
             _selectedDay = today;
           }),
         ),
+        if (!_holidayProvider.hasCompleteOfficialCoverage(_month.year))
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: PlanActSpacing.sm),
+            child: Text(
+              'دادهٔ تعطیلات رسمی این سال کامل نیست؛ تعطیلات قمری نمایش داده نمی‌شوند. نبودن نشان تعطیلی به معنی روز کاری قطعی نیست.',
+            ),
+          ),
         const SizedBox(height: PlanActSpacing.md),
         Row(
           children: PersianDateFormatter.weekdayNames
@@ -117,7 +128,9 @@ class _CalendarPageState extends State<CalendarPage> {
               date: date,
               selected: _selectedDay == date,
               isToday: today == date,
-              holiday: holidays.any((holiday) => holiday.date == date),
+              holidays: holidays
+                  .where((holiday) => holiday.date == date)
+                  .toList(),
               commitments: items,
               onTap: () => setState(() => _selectedDay = date),
             );
@@ -131,6 +144,14 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
         ),
         const SizedBox(height: PlanActSpacing.sm),
+        for (final holiday in _holidayProvider.holidaysFor(_selectedDay))
+          Padding(
+            padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
+            child: Text(
+              _holidayLabel(holiday),
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
         if (selectedItems.isEmpty)
           const Text('برای این روز تعهدی ثبت نشده است.')
         else
@@ -189,6 +210,14 @@ class _CalendarPageState extends State<CalendarPage> {
   ).toList();
 }
 
+String _holidayLabel(CalendarHoliday holiday) => switch (holiday.kind) {
+  CalendarHolidayKind.weekend => holiday.title,
+  CalendarHolidayKind.officialFixed ||
+  CalendarHolidayKind.officialVariable => 'تعطیل رسمی: ${holiday.title}',
+  CalendarHolidayKind.special =>
+    'تعطیلی موردی (${holiday.scope}): ${holiday.title}',
+};
+
 class _CalendarHeader extends StatelessWidget {
   const _CalendarHeader({
     required this.month,
@@ -241,7 +270,7 @@ class _CalendarDay extends StatelessWidget {
     required this.date,
     required this.selected,
     required this.isToday,
-    required this.holiday,
+    required this.holidays,
     required this.commitments,
     required this.onTap,
   });
@@ -249,7 +278,7 @@ class _CalendarDay extends StatelessWidget {
   final JalaliDate date;
   final bool selected;
   final bool isToday;
-  final bool holiday;
+  final List<CalendarHoliday> holidays;
   final List<Commitment> commitments;
   final VoidCallback onTap;
 
@@ -261,7 +290,10 @@ class _CalendarDay extends StatelessWidget {
     final count = PersianNumbers.format(commitments.length);
     final selectionLabel = selected ? '، انتخاب‌شده' : '';
     final todayLabel = isToday ? '، امروز' : '';
-    final holidayLabel = holiday ? '، تعطیل' : '';
+    final holiday = holidays.isNotEmpty;
+    final holidayLabel = holiday
+        ? '، ${holidays.map(_holidayLabel).join('، ')}'
+        : '';
     final countLabel = commitments.isEmpty ? 'بدون تعهد' : '$count تعهد';
     return Semantics(
       button: true,
@@ -298,6 +330,12 @@ class _CalendarDay extends StatelessWidget {
                       color: holiday ? scheme.error : null,
                     ),
                   ),
+                  if (holiday)
+                    Text(
+                      'تعطیل',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall,
+                    ),
                   if (commitments.isNotEmpty)
                     Text(
                       PersianNumbers.format(commitments.length),
