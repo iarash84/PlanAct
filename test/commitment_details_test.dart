@@ -63,8 +63,22 @@ void main() {
 
     expect(find.text('جزئیات تعهد'), findsOneWidget);
     expect(find.text('توضیحات کلاس'), findsOneWidget);
-    await tester.enterText(find.byType(TextField).first, 'کلاس جدید');
-    await tester.tap(find.text('ذخیره'));
+    await tester.enterText(
+      find.widgetWithText(TextField, 'عنوان'),
+      'کلاس جدید',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'ذخیره'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'ذخیره'),
+      warnIfMissed: true,
+    );
     await tester.pumpAndSettle();
     expect((await repository.findById(commitment.id))!.title, 'کلاس جدید');
   });

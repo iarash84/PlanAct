@@ -294,6 +294,20 @@ Plan و Actual نباید یکی باشند.
 
 ---
 
+## 6.9 برچسب‌گذاری تعهدها و تراکنش‌ها
+
+- برچسب اختیاری، قابل استفادهٔ مجدد و مستقل از دسته‌بندی تراکنش و وضعیت تعهد است؛ نبود برچسب به معنی مقدار پیش‌فرض نیست.
+- کاربر می‌تواند در جزئیات تعهد یا از عملیات تراکنش، برچسب بسازد یا برچسب موجود را به همان مورد اضافه کند. برداشتن برچسب فقط اتصال همان مورد را حذف می‌کند، نه خود برچسب یا سایر اتصال‌ها.
+- اتصال‌ها بلافاصله ذخیره می‌شوند و به ذخیرهٔ فرم عنوان/توضیحات وابسته نیستند؛ رابط باید این موضوع را روشن کند و برای موفقیت، انتظار و خطا بازخورد فارسی بدهد.
+- تغییر نام سراسری باید هویت پایدار و همهٔ اتصال‌ها را حفظ کند. نام خالی یا نام تکراری پس از حذف فاصله‌های ابتدا/انتها، علامت ابتدایی `#` و یکسان‌سازی حروف لاتین پذیرفته نشود؛ ساخت نام موجود همان برچسب را استفاده کند، نه نسخهٔ تکراری.
+- حذف سراسری نیازمند تأیید صریح با توضیح حذف اتصال‌ها و نبود بازگردانی است؛ خود تعهدها، تراکنش‌ها، رخدادها، نتایج و ledger نباید حذف یا تغییر کنند.
+- برچسب‌های تعهد در Today و خط زمانی و برچسب‌های تراکنش در Finance دیده شوند. Finance از فیلتر اختیاری یک برچسب پشتیبانی کند؛ «همهٔ برچسب‌ها» فیلتر را پاک کند، نه اینکه فقط موارد بدون برچسب را نشان دهد.
+- نام و اتصال‌ها پس از راه‌اندازی مجدد و پشتیبان/بازیابی حفظ شوند. ذخیرهٔ metadata یا وضعیت با snapshot قدیمی نباید اتصال حذف‌شده یا نام قدیمی را دوباره بسازد.
+
+Implementation checkpoint (2026-10-06): **Implemented for the bounded local tagging flow**, not a native release sign-off. Stable-ID typed memberships, transactional rename/remove and legacy projection synchronization, commitment/finance editors, shared labels, global management and single-tag Finance filtering are wired. File-backed restart and rollback tests, critical widget journeys in Light/Dark, and existing full-state encrypted backup tests provide local evidence. Multi-tag filtering, tag reports, broad commitment search/filter UI and automatic propagation to corrected/new ledger entries are not claimed. Native picker/Keystore/crash, device accessibility/keyboard and other existing release gates remain open. See [tagging verification](../TAGGING_VERIFICATION.md).
+
+---
+
 # 7. Core User Journeys
 
 ## Journey A — ثبت یک تعهد ساده

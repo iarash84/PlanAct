@@ -1,3 +1,4 @@
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -68,6 +69,8 @@ class PlanActCommitmentRow extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
+                    if (commitment.tags.isNotEmpty)
+                      TagLabels(labels: commitment.tags),
                     const SizedBox(height: PlanActSpacing.xs),
                     Text(
                       supportingDetails ??

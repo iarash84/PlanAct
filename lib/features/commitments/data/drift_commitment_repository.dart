@@ -41,6 +41,16 @@ class DriftCommitmentRepository
   Future<void> save(Commitment commitment) =>
       CommandGate.runFor(this, () async {
         await _database.transaction(() async {
+          final stored =
+              await (_database.select(_database.commitments)
+                    ..where((row) => row.id.equals(commitment.id.value)))
+                  .getSingleOrNull();
+          // Existing memberships are edited through TagRepository. Metadata or
+          // lifecycle saves can carry an obsolete label snapshot after a rename
+          // or removal and must not recreate it or overwrite concurrent links.
+          final labels = stored == null
+              ? commitment.tags
+              : await _tagsFor(commitment.id.value);
           await _database
               .into(_database.commitments)
               .insertOnConflictUpdate(
@@ -52,10 +62,11 @@ class DriftCommitmentRepository
                   kind: Value(commitment.kind.index),
                   priority: Value(commitment.priority.index),
                   description: Value(commitment.description),
-                  tags: Value(commitment.tags.join('\\n')),
+                  tags: Value(labels.join('\\n')),
                   attachmentIds: Value(commitment.attachmentIds.join('\\n')),
                 ),
               );
+          if (stored != null) return;
           final repository = DriftTagRepository(_database);
           final existing = await repository.tagsFor(
             commitment.id.value,

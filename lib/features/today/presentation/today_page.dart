@@ -1,3 +1,4 @@
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
@@ -232,11 +233,18 @@ class _ActionItemCard extends StatelessWidget {
               : Icons.priority_high,
         ),
         title: Text(item.title),
-        subtitle: Text(
-          [
-            item.subtitle,
-            if (financial.isNotEmpty) financial.first,
-          ].join(' · '),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              [
+                item.subtitle,
+                if (financial.isNotEmpty) financial.first,
+              ].join(' · '),
+            ),
+            if (item.commitment case final Commitment commitment)
+              TagLabels(labels: commitment.tags),
+          ],
         ),
         trailing: TextButton(
           onPressed: item.commitment == null

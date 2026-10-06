@@ -1,6 +1,9 @@
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
 import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
@@ -55,6 +58,7 @@ class PlanActApp extends StatefulWidget {
   const PlanActApp({
     super.key,
     this.repository,
+    this.tagRepository,
     this.planRepository,
     this.holidayPackages,
     this.backupActions,
@@ -65,6 +69,7 @@ class PlanActApp extends StatefulWidget {
   final String? backupMessage;
 
   final CommitmentRepository? repository;
+  final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
 
   @override
@@ -173,6 +178,7 @@ class _PlanActAppState extends State<PlanActApp> {
               backupActions: widget.backupActions,
               backupMessage: widget.backupMessage,
               repository: widget.repository,
+              tagRepository: widget.tagRepository,
               planRepository: widget.planRepository,
               settings: _settings,
               themeMode: _themeMode,
@@ -192,6 +198,7 @@ class HomeShell extends StatefulWidget {
   const HomeShell({
     super.key,
     this.repository,
+    this.tagRepository,
     this.planRepository,
     this.settings,
     this.holidayPackages,
@@ -208,6 +215,7 @@ class HomeShell extends StatefulWidget {
   static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
+  final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
   final HolidayPackageService? holidayPackages;
@@ -227,6 +235,11 @@ class _HomeShellState extends State<HomeShell> {
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
+  late final TagRepository _tagRepository =
+      widget.tagRepository ??
+      (_repository is DriftCommitmentRepository
+          ? DriftTagRepository(_repository.database)
+          : InMemoryTagRepository());
   late final CommitmentPlanRepository _planRepository =
       widget.planRepository ??
       (_repository is DriftCommitmentRepository
@@ -297,9 +310,30 @@ class _HomeShellState extends State<HomeShell> {
     _refresh();
   }
 
+  Future<void> _tagsChanged() async {
+    await _refresh();
+    if (_todayError != null) throw StateError('Tag refresh failed');
+  }
+
   Future<void> _refresh() async {
     try {
-      final items = await _repository.list();
+      final persisted = await _repository.list();
+      final allTags = await _tagRepository.list();
+      final items = <Commitment>[];
+      for (final item in persisted) {
+        final ids = await _tagRepository.tagsFor(
+          item.id.value,
+          TaggableType.commitment,
+        );
+        items.add(
+          item.withTags(
+            allTags
+                .where((tag) => ids.contains(tag.id))
+                .map((tag) => tag.label)
+                .toSet(),
+          ),
+        );
+      }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};
       for (final item in items) {
@@ -614,6 +648,7 @@ class _HomeShellState extends State<HomeShell> {
                         builder: (_) => CommitmentDetailsPage(
                           commitment: commitment,
                           repository: _repository,
+                          tagRepository: _tagRepository,
                           planRepository: _planRepository,
                           expectationRepository: _expectationRepository,
                           occurrenceExecutor: PersistedOccurrenceActionExecutor(
@@ -635,7 +670,7 @@ class _HomeShellState extends State<HomeShell> {
                                   )
                                 : null,
                           ),
-                          onSaved: _refresh,
+                          onSaved: _tagsChanged,
                         ),
                       ),
                     );
@@ -837,6 +872,8 @@ class _HomeShellState extends State<HomeShell> {
       FinancePage(
         key: _financePageKey,
         repository: _financeRepository,
+        tagRepository: _tagRepository,
+        onTagsChanged: _tagsChanged,
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
@@ -974,7 +1011,9 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.expectationRepository,
     required this.occurrenceExecutor,
     required this.onSaved,
+    this.tagRepository,
   });
+  final TagRepository? tagRepository;
   final Commitment commitment;
   final CommitmentRepository repository;
   final CommitmentPlanRepository planRepository;
@@ -1108,6 +1147,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             },
           ),
           const SizedBox(height: 24),
+          if (widget.tagRepository case final TagRepository tags)
+            RecordTagEditor(
+              repository: tags,
+              recordId: widget.commitment.id.value,
+              type: TaggableType.commitment,
+              onChanged: () async {
+                // Re-read durable state before any later metadata/status command.
+                await widget.repository.findById(widget.commitment.id);
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
+            )
+          else
+            TagLabels(labels: widget.commitment.tags),
+          const SizedBox(height: PlanActSpacing.lg),
           FutureBuilder<CommitmentPlan?>(
             future: widget.planRepository.findByCommitmentId(
               widget.commitment.id,

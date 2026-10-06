@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/domain/tag.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/logging/app_logger.dart';
@@ -19,8 +23,12 @@ class FinancePage extends StatefulWidget {
     super.key,
     required this.repository,
     this.expectationRepository,
+    this.tagRepository,
+    this.onTagsChanged,
   });
 
+  final TagRepository? tagRepository;
+  final Future<void> Function()? onTagsChanged;
   final FinanceRepository repository;
   final FinancialExpectationRepository? expectationRepository;
 
@@ -39,6 +47,11 @@ class FinancePageState extends State<FinancePage> {
   bool _loading = true;
   String? _loadError;
   bool _hasLoaded = false;
+  List<Tag> _tags = [];
+  Map<String, Set<StableId>> _entryTags = {};
+  StableId? _tagFilter;
+  Set<String>? _tagMatches;
+  bool _filterBusy = false;
   String? _categoryFilter;
   AccountEntryType? _typeFilter;
 
@@ -53,8 +66,31 @@ class FinancePageState extends State<FinancePage> {
     try {
       final accounts = await widget.repository.listAccounts();
       final entries = await widget.repository.listEntries();
+      final tags = await widget.tagRepository?.list() ?? <Tag>[];
+      final memberships = <String, Set<StableId>>{};
+      if (widget.tagRepository case final TagRepository repository) {
+        for (final entry in entries) {
+          memberships[entry.id.value] = await repository.tagsFor(
+            entry.id.value,
+            TaggableType.accountEntry,
+          );
+        }
+      }
+      final selected = tags.any((tag) => tag.id == _tagFilter)
+          ? _tagFilter
+          : null;
+      final matches = selected == null
+          ? null
+          : await widget.tagRepository!.recordsWithTag(
+              selected,
+              TaggableType.accountEntry,
+            );
       if (mounted) {
         setState(() {
+          _tags = tags;
+          _entryTags = memberships;
+          _tagFilter = selected;
+          _tagMatches = matches;
           _accounts = accounts;
           _entries = entries;
           _hasLoaded = true;
@@ -75,6 +111,55 @@ class FinancePageState extends State<FinancePage> {
       }
     }
   }
+
+  Future<void> _filterTag(StableId? id) async {
+    if (_filterBusy) return;
+    setState(() => _filterBusy = true);
+    try {
+      final matches = id == null
+          ? null
+          : await widget.tagRepository!.recordsWithTag(
+              id,
+              TaggableType.accountEntry,
+            );
+      if (mounted) {
+        setState(() {
+          _tagFilter = id;
+          _tagMatches = matches;
+        });
+      }
+    } catch (_) {
+      if (mounted) _showMessage('فیلتر برچسب انجام نشد؛ دوباره تلاش کنید.');
+    } finally {
+      if (mounted) setState(() => _filterBusy = false);
+    }
+  }
+
+  Future<void> _tagsChanged() async {
+    await widget.onTagsChanged?.call();
+    await _refresh();
+    if (_loadError != null) throw StateError('Tag refresh failed');
+  }
+
+  Future<void> _editEntryTags(AccountEntry entry) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => SingleChildScrollView(
+      padding: EdgeInsetsDirectional.only(
+        start: PlanActSpacing.page,
+        end: PlanActSpacing.page,
+        top: PlanActSpacing.lg,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + PlanActSpacing.lg,
+      ),
+      child: RecordTagEditor(
+        repository: widget.tagRepository!,
+        recordId: entry.id.value,
+        type: TaggableType.accountEntry,
+        onChanged: _tagsChanged,
+      ),
+    ),
+  );
 
   Future<void> _editAccount(FinancialAccount account) async {
     try {
@@ -487,6 +572,10 @@ class FinancePageState extends State<FinancePage> {
   List<AccountEntry> get _filteredEntries {
     final entries =
         _entries
+            .where(
+              (entry) =>
+                  _tagMatches == null || _tagMatches!.contains(entry.id.value),
+            )
             .where((entry) => _typeFilter == null || entry.type == _typeFilter)
             .where(
               (entry) =>
@@ -620,6 +709,23 @@ class FinancePageState extends State<FinancePage> {
                   _buildSummary(),
                   const SizedBox(height: 12),
                   _buildFilters(),
+                  if (widget.tagRepository != null) ...[
+                    if (_filterBusy) const LinearProgressIndicator(),
+                    TagFilter(
+                      tags: _tags,
+                      selected: _tagFilter,
+                      enabled: !_filterBusy,
+                      onChanged: _filterTag,
+                    ),
+                    TextButton(
+                      onPressed: () => showTagManager(
+                        context,
+                        repository: widget.tagRepository!,
+                        onChanged: _tagsChanged,
+                      ),
+                      child: const Text('مدیریت برچسب‌ها'),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -691,7 +797,9 @@ class FinancePageState extends State<FinancePage> {
                   ),
                   if (_filteredEntries.isEmpty)
                     const Card(
-                      child: ListTile(title: Text('هزینه‌ای ثبت نشده است.')),
+                      child: ListTile(
+                        title: Text('تراکنشی با این فیلترها پیدا نشد.'),
+                      ),
                     ),
                   for (final entry in _filteredEntries)
                     Card(
@@ -707,26 +815,48 @@ class FinancePageState extends State<FinancePage> {
                         title: Text(
                           '${entry.type == AccountEntryType.income ? 'ورودی' : 'خروجی'} · ${_money(entry.amount)}',
                         ),
-                        subtitle: Text(
-                          [
-                            PersianDateFormatter.date(
-                              JalaliDate.fromDateTime(
-                                entry.occurredAt.toLocal(),
-                              ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              [
+                                PersianDateFormatter.date(
+                                  JalaliDate.fromDateTime(
+                                    entry.occurredAt.toLocal(),
+                                  ),
+                                ),
+                                PersianNumbers.format(
+                                  '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                ),
+                                if (entry.category != null) entry.category!,
+                                entry.note ?? 'بدون شرح',
+                              ].join(' · '),
                             ),
-                            PersianNumbers.format(
-                              '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                            TagLabels(
+                              labels: _tags
+                                  .where(
+                                    (tag) =>
+                                        _entryTags[entry.id.value]?.contains(
+                                          tag.id,
+                                        ) ??
+                                        false,
+                                  )
+                                  .map((tag) => tag.label),
                             ),
-                            if (entry.category != null) entry.category!,
-                            entry.note ?? 'بدون شرح',
-                          ].join(' · '),
+                          ],
                         ),
                         trailing: PopupMenuButton<String>(
                           tooltip: 'عملیات تراکنش',
                           onSelected: (value) {
                             if (value == 'void') _voidEntry(entry);
+                            if (value == 'tags') _editEntryTags(entry);
                           },
-                          itemBuilder: (context) => const [
+                          itemBuilder: (context) => [
+                            if (widget.tagRepository != null)
+                              const PopupMenuItem(
+                                value: 'tags',
+                                child: Text('برچسب‌های تراکنش'),
+                              ),
                             PopupMenuItem(
                               value: 'void',
                               child: Text('حذف امن تراکنش'),
