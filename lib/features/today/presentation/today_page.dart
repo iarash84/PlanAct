@@ -1,6 +1,6 @@
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
-import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -82,7 +82,10 @@ class TodayPage extends StatelessWidget {
             const SizedBox(height: PlanActSpacing.xl),
           ],
           if (center.today.isNotEmpty) ...[
-            const _SectionHeader(title: 'امروز', color: PlanActColors.primary),
+            _SectionHeader(
+              title: 'امروز',
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.today.map(
               (item) => _ActionItemCard(
@@ -94,9 +97,9 @@ class TodayPage extends StatelessWidget {
             const SizedBox(height: PlanActSpacing.xl),
           ],
           if (center.upcoming.isNotEmpty) ...[
-            const _SectionHeader(
+            _SectionHeader(
               title: 'آینده نزدیک',
-              color: PlanActColors.info,
+              color: PlanActStatusColors.of(context).info,
             ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.upcoming.map(

@@ -591,7 +591,7 @@ class _HomeShellState extends State<HomeShell> {
     setState(() => _selectedIndex = 2);
     _pageController.animateToPage(
       2,
-      duration: PlanActMotion.standard,
+      duration: PlanActMotion.duration(context),
       curve: PlanActMotion.curve,
     );
   }
@@ -891,7 +891,7 @@ class _HomeShellState extends State<HomeShell> {
           setState(() => _selectedIndex = 2);
           _pageController.animateToPage(
             2,
-            duration: PlanActMotion.standard,
+            duration: PlanActMotion.duration(context),
             curve: PlanActMotion.curve,
           );
         },
@@ -937,29 +937,7 @@ class _HomeShellState extends State<HomeShell> {
     final titles = ['امروز', 'تقویم', 'مدیریت مالی', 'بیشتر'];
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Transform.scale(
-                  scale: 1.14,
-                  child: Image.asset(
-                    'assets/icons/app_icon.png',
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(titles[_selectedIndex]),
-          ],
-        ),
+        title: Text(titles[_selectedIndex]),
         actions: [
           PopupMenuButton<_AppMenuAction>(
             tooltip: 'گزینه‌های بیشتر',
@@ -996,7 +974,19 @@ class _HomeShellState extends State<HomeShell> {
         child: PageView(
           controller: _pageController,
           onPageChanged: (index) => setState(() => _selectedIndex = index),
-          children: pages,
+          children: pages
+              .map(
+                (page) => Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: PlanActSpacing.contentWidth,
+                    ),
+                    child: page,
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -1010,7 +1000,7 @@ class _HomeShellState extends State<HomeShell> {
           setState(() => _selectedIndex = index);
           _pageController.animateToPage(
             index,
-            duration: PlanActMotion.standard,
+            duration: PlanActMotion.duration(context),
             curve: PlanActMotion.curve,
           );
         },

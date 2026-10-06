@@ -68,11 +68,14 @@ class PlanActFormSheet extends StatelessWidget {
                   Text(title, style: Theme.of(context).textTheme.titleLarge),
                   if (error != null) ...[
                     const SizedBox(height: PlanActSpacing.sm),
-                    Text(
-                      error!,
-                      key: const ValueKey('planact-form-error'),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        error!,
+                        key: const ValueKey('planact-form-error'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                   ],
@@ -86,9 +89,12 @@ class PlanActFormSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: PlanActSpacing.md),
-                  Row(
+                  OverflowBar(
+                    spacing: PlanActSpacing.sm,
+                    overflowSpacing: PlanActSpacing.sm,
+                    alignment: MainAxisAlignment.end,
                     children: [
-                      Expanded(
+                      SizedBox(
                         child: OutlinedButton(
                           onPressed: isLoading
                               ? null
@@ -97,8 +103,7 @@ class PlanActFormSheet extends StatelessWidget {
                           child: Text(secondaryLabel),
                         ),
                       ),
-                      const SizedBox(width: PlanActSpacing.sm),
-                      Expanded(
+                      SizedBox(
                         child: FilledButton(
                           key: primaryKey,
                           onPressed: isLoading ? null : onPrimary,

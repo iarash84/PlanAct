@@ -191,7 +191,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         error: _error,
         primaryKey: const ValueKey('commitment-save-button'),
         child: AnimatedSwitcher(
-          duration: PlanActMotion.standard,
+          duration: PlanActMotion.duration(context),
           child: KeyedSubtree(key: ValueKey(_step), child: _buildStep()),
         ),
       ),

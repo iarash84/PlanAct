@@ -1,6 +1,6 @@
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
-import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 
@@ -30,22 +30,22 @@ class PlanActCommitmentRow extends StatelessWidget {
       ),
       CommitmentStatus.paused => (
         Icons.pause_circle_outline,
-        PlanActColors.attention,
+        PlanActStatusColors.of(context).attention,
         'متوقف‌شده',
       ),
       CommitmentStatus.completed => (
         Icons.check_circle_outline,
-        PlanActColors.success,
+        PlanActStatusColors.of(context).success,
         'تکمیل‌شده',
       ),
       CommitmentStatus.cancelled => (
         Icons.cancel_outlined,
-        Theme.of(context).colorScheme.error,
+        PlanActStatusColors.of(context).inactive,
         'لغوشده',
       ),
       CommitmentStatus.archived => (
         Icons.archive_outlined,
-        Theme.of(context).colorScheme.onSurfaceVariant,
+        PlanActStatusColors.of(context).inactive,
         'بایگانی‌شده',
       ),
     };

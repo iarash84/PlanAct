@@ -4,6 +4,7 @@ import 'planact_colors.dart';
 import 'planact_radius.dart';
 import 'planact_spacing.dart';
 import 'planact_typography.dart';
+import 'planact_status_colors.dart';
 
 abstract final class PlanActTheme {
   static ThemeData light() => _build(Brightness.light);
@@ -16,10 +17,12 @@ abstract final class PlanActTheme {
           seedColor: PlanActColors.primary,
           brightness: brightness,
         ).copyWith(
-          primary: PlanActColors.primary,
-          secondary: PlanActColors.info,
-          tertiary: PlanActColors.success,
-          error: PlanActColors.overdue,
+          primary: brightness == Brightness.light
+              ? PlanActColors.primary
+              : const Color(0xff8bd0e7),
+          onPrimary: brightness == Brightness.light
+              ? Colors.white
+              : const Color(0xff003544),
           surface: brightness == Brightness.light
               ? PlanActColors.lightBackground
               : PlanActColors.darkBackground,
@@ -30,6 +33,11 @@ abstract final class PlanActTheme {
     final outline = scheme.outlineVariant;
     return ThemeData(
       useMaterial3: true,
+      extensions: [
+        brightness == Brightness.light
+            ? PlanActStatusColors.light
+            : PlanActStatusColors.dark,
+      ],
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
       textTheme: PlanActTypography.textTheme(scheme),
@@ -113,7 +121,20 @@ abstract final class PlanActTheme {
         backgroundColor: scheme.primaryContainer,
         foregroundColor: scheme.onPrimaryContainer,
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
+      dividerTheme: DividerThemeData(color: outline, space: PlanActSpacing.lg),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
+      popupMenuTheme: PopupMenuThemeData(
+        color: scheme.surfaceContainer,
+        shape: const RoundedRectangleBorder(borderRadius: PlanActRadius.card),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          minimumSize: const Size(0, PlanActSpacing.touchTarget),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        constraints: const BoxConstraints(maxWidth: 640),
+        backgroundColor: scheme.surfaceContainer,
         showDragHandle: true,
         shape: RoundedRectangleBorder(borderRadius: PlanActRadius.sheet),
         clipBehavior: Clip.antiAlias,
@@ -132,7 +153,7 @@ abstract final class PlanActTheme {
         elevation: 0,
         height: 72,
         backgroundColor: scheme.surface,
-        indicatorColor: scheme.secondaryContainer,
+        indicatorColor: scheme.primaryContainer,
         labelTextStyle: WidgetStatePropertyAll(
           PlanActTypography.textTheme(scheme).labelMedium,
         ),

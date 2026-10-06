@@ -1,4 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
@@ -89,50 +93,71 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
         const SizedBox(height: PlanActSpacing.md),
-        Row(
-          children: PersianDateFormatter.weekdayNames
-              .map(
-                (name) => Expanded(
-                  child: Center(
-                    child: Text(
-                      name,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final scaler = MediaQuery.textScalerOf(context);
+            final cellWidth = math.max(
+              PlanActSpacing.touchTarget,
+              scaler.scale(40) + 16,
+            );
+            final width = math.max(constraints.maxWidth, cellWidth * 7 + 18);
+            final cellHeight = math.max(96.0, scaler.scale(80) + 24);
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: width,
+                child: Column(
+                  children: [
+                    Row(
+                      children: PersianDateFormatter.weekdayNames
+                          .map(
+                            (name) => Expanded(
+                              child: Center(
+                                child: Text(
+                                  name,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
-                  ),
+                    const SizedBox(height: PlanActSpacing.xs),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: cellCount,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 7,
+                        crossAxisSpacing: 3,
+                        mainAxisSpacing: 3,
+                        mainAxisExtent: cellHeight,
+                      ),
+                      itemBuilder: (context, index) {
+                        final day = index - leading + 1;
+                        if (day < 1 || day > _month.monthLength) {
+                          return const SizedBox.shrink();
+                        }
+                        final date = JalaliDate(_month.year, _month.month, day);
+                        final items = _commitmentsFor(date);
+                        return _CalendarDay(
+                          date: date,
+                          selected: _selectedDay == date,
+                          isToday: today == date,
+                          holidays: holidays
+                              .where((holiday) => holiday.date == date)
+                              .toList(),
+                          commitments: items,
+                          onTap: () => setState(() => _selectedDay = date),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              )
-              .toList(),
-        ),
-        const SizedBox(height: PlanActSpacing.xs),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: cellCount,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            crossAxisSpacing: 3,
-            mainAxisSpacing: 3,
-            childAspectRatio: .72,
-          ),
-          itemBuilder: (context, index) {
-            final day = index - leading + 1;
-            if (day < 1 || day > _month.monthLength) {
-              return const SizedBox.shrink();
-            }
-            final date = JalaliDate(_month.year, _month.month, day);
-            final items = _commitmentsFor(date);
-            return _CalendarDay(
-              date: date,
-              selected: _selectedDay == date,
-              isToday: today == date,
-              holidays: holidays
-                  .where((holiday) => holiday.date == date)
-                  .toList(),
-              commitments: items,
-              onTap: () => setState(() => _selectedDay = date),
+              ),
             );
           },
         ),
@@ -305,14 +330,14 @@ class _CalendarDay extends StatelessWidget {
           color: selected
               ? scheme.primaryContainer
               : scheme.surfaceContainerHighest.withValues(alpha: .38),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: PlanActRadius.chip,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: PlanActRadius.chip,
             child: Container(
               padding: const EdgeInsets.fromLTRB(4, 5, 4, 3),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: PlanActRadius.chip,
                 border: isToday
                     ? Border.all(color: scheme.primary, width: 2)
                     : null,
@@ -327,7 +352,11 @@ class _CalendarDay extends StatelessWidget {
                       fontWeight: selected || isToday
                           ? FontWeight.bold
                           : FontWeight.w600,
-                      color: holiday ? scheme.error : null,
+                      color: holiday
+                          ? PlanActStatusColors.of(context).info
+                          : selected
+                          ? scheme.onPrimaryContainer
+                          : scheme.onSurface,
                     ),
                   ),
                   if (holiday)
@@ -341,7 +370,9 @@ class _CalendarDay extends StatelessWidget {
                       PersianNumbers.format(commitments.length),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: scheme.onPrimaryContainer,
+                        color: selected
+                            ? scheme.onPrimaryContainer
+                            : scheme.onSurfaceVariant,
                       ),
                     ),
                 ],

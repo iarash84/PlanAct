@@ -5,6 +5,7 @@ import 'package:planact/features/classification/domain/tag.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -441,7 +442,7 @@ class FinancePageState extends State<FinancePage> {
                             onPressed: () async {
                               final selected = await showDialog<DateTime>(
                                 context: context,
-                                builder: (_) => _FinanceJalaliDatePicker(
+                                builder: (_) => PlanActJalaliDatePicker(
                                   initialDate: occurredAt,
                                 ),
                               );
@@ -958,136 +959,4 @@ class _AccountEditDialogState extends State<_AccountEditDialog> {
       decoration: const InputDecoration(labelText: 'نام حساب'),
     ),
   );
-}
-
-class _FinanceJalaliDatePicker extends StatefulWidget {
-  const _FinanceJalaliDatePicker({required this.initialDate});
-
-  final DateTime initialDate;
-
-  @override
-  State<_FinanceJalaliDatePicker> createState() =>
-      _FinanceJalaliDatePickerState();
-}
-
-class _FinanceJalaliDatePickerState extends State<_FinanceJalaliDatePicker> {
-  late JalaliDate _selected;
-  late JalaliDate _month;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = JalaliDate.fromDateTime(widget.initialDate);
-    _month = JalaliDate(_selected.year, _selected.month, 1);
-  }
-
-  void _changeMonth(int offset) {
-    setState(() => _month = _month.addMonths(offset));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final firstWeekdayOffset = _month.weekDay - 1;
-    final dayCount = _month.monthLength;
-    final cellCount = firstWeekdayOffset + dayCount;
-
-    return AlertDialog(
-      titlePadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
-      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      title: Row(
-        children: [
-          IconButton(
-            tooltip: 'ماه قبل',
-            onPressed: () => _changeMonth(-1),
-            icon: const Icon(Icons.chevron_right),
-          ),
-          Expanded(
-            child: Center(
-              child: Text(
-                PersianDateFormatter.month(_month),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'ماه بعد',
-            onPressed: () => _changeMonth(1),
-            icon: const Icon(Icons.chevron_left),
-          ),
-        ],
-      ),
-      content: SizedBox(
-        width: 320,
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  for (final name in PersianDateFormatter.weekdayNames)
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          name.substring(0, 1),
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: cellCount,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                ),
-                itemBuilder: (context, index) {
-                  if (index < firstWeekdayOffset) return const SizedBox();
-                  final day = index - firstWeekdayOffset + 1;
-                  final date = JalaliDate(_month.year, _month.month, day);
-                  final isSelected = date == _selected;
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () => Navigator.of(context).pop(date.toDateTime()),
-                    child: Center(
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        decoration: isSelected
-                            ? BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                shape: BoxShape.circle,
-                              )
-                            : null,
-                        child: Text(
-                          PersianNumbers.format(day),
-                          style: TextStyle(
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('انصراف'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

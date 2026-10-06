@@ -43,21 +43,21 @@ The values below record the current token baseline after inspection of the logo 
 
 `ColorScheme` supplies Material roles such as `onPrimary`, containers, outlines, and additional surface levels. Use those semantic roles instead of selecting a nearby raw color. Preserve a restrained relationship to the logo's deep navy and blue-green/teal/green family; do not use the artwork's bright colors or gradients as a license for a loud interface.
 
-The current `PlanActTheme` wires Material `secondary` to the existing info token, `tertiary` to success, and `error` to overdue. These are current implementation mappings, not automatically approved equivalences between brand hierarchy and business meaning. Do not rely on or extend those aliases as status semantics without an explicit semantic review and synchronized update to this document and theme implementation.
+Material secondary and tertiary are generated brand roles, not information or success aliases. Material error retains its own foreground/container pairing and is reserved for actual failures/destructive operations. Light primary remains #176B87 with white foreground; Dark primary is #8BD0E7 with #003544 foreground.
 
 ## Semantic palette
 
-Business status is separate from Material brand hierarchy. Current semantic tokens are:
+Business meaning is provided by the brightness-aware PlanActStatusColors theme extension in lib/app/theme/planact_status_colors.dart. Each role supplies an opaque foreground and container; foregrounds are also tested against the scaffold surface. Never use Material tertiary as success or error as a holiday/overdue shortcut.
 
-| Meaning | Current token/value | Guidance |
+| Role | Light foreground / container | Dark foreground / container |
 | --- | --- | --- |
-| Success | `PlanActColors.success` — `#2F855A` | Confirmed positive outcome |
-| Attention / warning | `PlanActColors.attention` — `#B7791F` | Needs review or caution |
-| Overdue / danger | `PlanActColors.overdue` — `#C53030` | Late or harmful/error state where appropriate |
-| Information | `PlanActColors.info` — `#2B6CB0` | Neutral informational emphasis |
-| Paused / archived / disabled | No dedicated token currently | Use an appropriately subdued shared semantic/surface role; add a shared role if repeated or if a distinct meaning is required |
+| Success | #17633F / #D9F3E4 | #9CDDB6 / #173B29 |
+| Attention | #744900 / #FFEDC2 | #FFD58C / #493510 |
+| Danger / overdue | #A32129 / #FFE3E3 | #FFB3B6 / #502329 |
+| Information | #205D96 / #DFEDFF | #AACFFF / #1B354E |
+| Inactive | #495B63 / #E6EDEF | #BECBD1 / #2B3B42 |
 
-The current semantic tokens are not yet brightness-specific. The values above describe the existing baseline, not a claim that the same foreground/background pair is suitable in both themes. Check actual contrast and define brightness-appropriate token pairs in the shared system whenever a role is used in a theme where it is not legible. Do not hard-code local replacements or conflate (for example) `secondary` with info, `tertiary` with success, or `error` with overdue merely because current theme fields are wired that way. Provide readable foreground/container combinations as well as status colors, and always convey status with text, icon, or shape in addition to color.
+Cancellation and archival use subdued inactive styling, not destructive/error styling. Holidays are information with a written label, not errors. Review warnings use attention. Status must always retain a text/icon cue. Legacy static business colors have been removed.
 
 ## Typography
 
@@ -158,3 +158,11 @@ When a task intentionally changes a foundational design rule:
 4. Document any intentional exceptions and migration scope.
 
 Before adding a recurring pattern, inspect the existing theme, tokens, and shared components. Extend a shared role when several surfaces need it; do not over-tokenize unique geometry or create duplicate abstractions. App-wide consistency does not authorize unrelated architectural rewrites.
+
+## Implemented migration checkpoint (2026-10-06)
+
+Shared body line heights are 1.6 (large/medium), 1.5 (small), and 1.4 for small labels, retaining system sans. Root single-column content is capped at 840dp; modal sheets at 640dp. Form actions wrap via an overflow bar and errors are live semantic announcements. Calendar and the shared Jalali picker preserve 48dp minimum cells through horizontal scrolling when required and grow with text scale; Finance now reuses that picker. Existing previous/next semantics are retained consistently.
+
+PlanActMotion.duration respects platform disableAnimations; root navigation and capture transitions consume it. Startup has no decorative entrance animation, glow or custom shadow. Logos remain in launcher/startup/About, not repeated in root AppBars. Shared divider, progress, popup menu, segmented button and bottom-sheet treatments are theme-owned.
+
+See docs/UI_MIGRATION_VERIFICATION.md for surface coverage and limitations. Automated contrast and widget checks are evidence for tested pairs/flows only, not native-device, screen-reader or profile-performance certification.

@@ -1,3 +1,5 @@
+import 'package:planact/app/theme/planact_status_colors.dart';
+
 import 'dart:async';
 
 import 'package:planact/core/ids/stable_id.dart';
@@ -612,7 +614,9 @@ class _ReviewCardState extends State<_ReviewCard> {
             for (final warning in widget.item.warnings)
               Text(
                 'هشدار: $warning',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: TextStyle(
+                  color: PlanActStatusColors.of(context).attention,
+                ),
               ),
             TextButton.icon(
               onPressed: () => setState(() => _showDetails = !_showDetails),
@@ -685,19 +689,22 @@ class _InboxStateCard extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: 16),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
-          if (actionLabel != null) ...[
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+            if (actionLabel != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
           ],
-        ],
+        ),
       ),
     ),
   );
