@@ -10,12 +10,14 @@ class PlanActCommitmentRow extends StatelessWidget {
     this.scheduledDates = const [],
     this.onTap,
     this.onArchive,
+    this.supportingDetails,
   });
 
   final Commitment commitment;
   final List<DateTime> scheduledDates;
   final VoidCallback? onTap;
   final VoidCallback? onArchive;
+  final String? supportingDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +70,10 @@ class PlanActCommitmentRow extends StatelessWidget {
                     ),
                     const SizedBox(height: PlanActSpacing.xs),
                     Text(
-                      scheduledDates.isEmpty
-                          ? '$statusLabel • بدون زمان‌بندی'
-                          : '$statusLabel • ${scheduledDates.length} جلسه',
+                      supportingDetails ??
+                          (scheduledDates.isEmpty
+                              ? '$statusLabel • بدون زمان‌بندی'
+                              : '$statusLabel • ${scheduledDates.length} جلسه'),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),

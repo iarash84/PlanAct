@@ -402,6 +402,8 @@ Requirements:
 
 # 12. Reminder System
 
+Occurrence-level editing checkpoint (2026-10-06): Details exposes explicit single-occurrence relative reminder editing, including presets, custom minute offsets and removing reminders. Removed rules are disabled with delivery history retained; saved configuration and pending platform synchronization are reported separately. Calendar shows the selected day's occurrence times and enabled reminder configuration, with an explicit all-day label when no time exists. No arbitrary time is assigned to date-only occurrences. Whole-series reminder editing and absolute date-time reminder authoring remain outside this checkpoint; native release gates remain open. See [focused verification](../CALENDAR_REMINDER_EDIT_VERIFICATION.md).
+
 کاربر باید بتواند reminder را نسبت به occurrence تعریف کند.
 
 نمونه:

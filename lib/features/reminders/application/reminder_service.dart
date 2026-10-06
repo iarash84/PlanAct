@@ -108,6 +108,97 @@ class ReminderService {
       ? (repository as ReminderIntentTransaction).runReminderTransaction(action)
       : action();
 
+  /// Replaces this occurrence's enabled rules without deleting delivery history.
+  /// Returns true when durable changes succeeded but platform delivery is pending.
+  Future<bool> editOccurrenceRules({
+    required StableId occurrenceId,
+    required List<ReminderRule> expected,
+    required List<ReminderRule> selected,
+    required DateTime now,
+  }) => CommandGate.runFor(repository, () async {
+    if (repository is! ReminderIntentTransaction ||
+        repository is! ReminderOccurrenceSchedule ||
+        repository is! ReminderOccurrenceEligibility) {
+      throw StateError(
+        'Durable reminder editing requires transactional storage.',
+      );
+    }
+    await _persistIntent(() async {
+      if (!await (repository as ReminderOccurrenceEligibility).canRemind(
+        occurrenceId,
+      )) {
+        throw StateError('Resolved occurrences cannot receive reminder edits.');
+      }
+      final current = (await repository.listRules())
+          .where((rule) => rule.occurrenceId == occurrenceId && rule.enabled)
+          .toList();
+      Object fingerprint(ReminderRule rule) => (
+        rule.id,
+        rule.occurrenceId,
+        rule.anchor,
+        rule.offset.inSeconds,
+        rule.absoluteAt?.toUtc(),
+        rule.title,
+        rule.body,
+        rule.enabled,
+      );
+      final before = current.map(fingerprint).toSet();
+      if (before.length != expected.length ||
+          !before.containsAll(expected.map(fingerprint))) {
+        throw StateError(
+          'Reminder configuration changed; reload before saving.',
+        );
+      }
+      final start = await (repository as ReminderOccurrenceSchedule)
+          .occurrenceStart(occurrenceId);
+      final allIds = (await repository.listRules())
+          .map((rule) => rule.id)
+          .toSet();
+      final selectedIds = <StableId>{};
+      for (final rule in selected) {
+        if (rule.occurrenceId != occurrenceId ||
+            !rule.enabled ||
+            !selectedIds.add(rule.id) ||
+            (allIds.contains(rule.id) && !before.contains(fingerprint(rule))) ||
+            (start == null && rule.anchor == ReminderAnchor.occurrenceStart)) {
+          throw StateError('Invalid reminder selection.');
+        }
+      }
+      for (final rule in current) {
+        if (!selectedIds.contains(rule.id)) {
+          await repository.saveRule(rule.disable());
+        }
+      }
+      final instances = await repository.listInstances();
+      for (final instance in instances) {
+        if (instance.occurrenceId == occurrenceId &&
+            !selectedIds.contains(instance.ruleId) &&
+            (instance.status == ReminderInstanceStatus.scheduled ||
+                instance.status == ReminderInstanceStatus.snoozed)) {
+          await repository.saveInstance(instance.cancel());
+        }
+      }
+      for (final rule in selected) {
+        await repository.saveRule(rule);
+        if (!allIds.contains(rule.id)) {
+          await repository.saveInstance(
+            ReminderInstance.fromRule(
+              rule: rule,
+              occurrenceStart: start ?? rule.absoluteAt!,
+            ),
+          );
+        }
+      }
+    });
+    try {
+      await reconcile(now: now);
+      return false;
+    } catch (_) {
+      // The configuration is already committed; retry delivery on reconciliation.
+      return true;
+    }
+  });
+
   /// Synchronizes a user-edited occurrence using its durable rules.
   Future<void> synchronizeOccurrence({
     required StableId occurrenceId,

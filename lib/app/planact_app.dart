@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
 import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/scheduling/presentation/edit_schedule_dialog.dart';
@@ -263,6 +265,8 @@ class _HomeShellState extends State<HomeShell> {
       : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
+  Map<String, List<Occurrence>> _calendarOccurrences = {};
+  List<ReminderRule> _calendarReminderRules = [];
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
   String? _todayError;
@@ -297,10 +301,15 @@ class _HomeShellState extends State<HomeShell> {
         plans[item.id] = plan.occurrences;
         schedules[item.id.value] = [
           for (final occurrence in plan.occurrences)
-            if (occurrence.currentScheduledAt is DateTime)
-              occurrence.currentScheduledAt as DateTime,
+            if (occurrence.currentScheduledAt case final DateTime date)
+              date.isUtc ? date.toLocal() : date
+            else if (occurrence.currentScheduledAt case final LocalDate date)
+              DateTime(date.year, date.month, date.day),
         ];
       }
+      final reminderRules =
+          await _createCommitmentPlan.reminderService?.repository.listRules() ??
+          <ReminderRule>[];
       final expectations = await _expectationRepository.listExpectations();
       final matches = await _expectationRepository.listMatches();
       final accounts = await _financeRepository.listAccounts();
@@ -329,6 +338,10 @@ class _HomeShellState extends State<HomeShell> {
       if (mounted) {
         setState(() {
           _commitments = items;
+          _calendarOccurrences = {
+            for (final entry in plans.entries) entry.key.value: entry.value,
+          };
+          _calendarReminderRules = reminderRules;
           _scheduledDates
             ..clear()
             ..addAll(schedules);
@@ -807,6 +820,8 @@ class _HomeShellState extends State<HomeShell> {
       ),
       CalendarPage(
         commitments: _commitments,
+        occurrences: _calendarOccurrences,
+        reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
       ),
@@ -1160,6 +1175,18 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             }
                           : null,
                     ),
+                  if (widget.occurrenceExecutor
+                      case final PersistedOccurrenceActionExecutor executor)
+                    if (executor.reminders != null)
+                      for (final occurrence in occurrences)
+                        OccurrenceReminders(
+                          key: ValueKey(
+                            'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
+                          ),
+                          occurrence: occurrence,
+                          service: executor.reminders!,
+                          onSaved: widget.onSaved,
+                        ),
                   const SizedBox(height: 16),
                   ExpansionTile(
                     title: const Text('انتظار مالی نوبت‌ها'),

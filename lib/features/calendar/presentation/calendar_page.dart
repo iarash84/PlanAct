@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
+import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -13,10 +17,14 @@ class CalendarPage extends StatefulWidget {
     required this.commitments,
     required this.scheduledDates,
     this.onCommitmentTap,
+    this.occurrences = const {},
+    this.reminderRules = const [],
   });
 
   final List<Commitment> commitments;
   final Map<String, List<DateTime>> scheduledDates;
+  final Map<String, List<Occurrence>> occurrences;
+  final List<ReminderRule> reminderRules;
   final ValueChanged<Commitment>? onCommitmentTap;
 
   @override
@@ -130,6 +138,7 @@ class _CalendarPageState extends State<CalendarPage> {
             (item) => PlanActCommitmentRow(
               commitment: item,
               scheduledDates: widget.scheduledDates[item.id.value] ?? const [],
+              supportingDetails: _detailsFor(item),
               onTap: widget.onCommitmentTap == null
                   ? null
                   : () => widget.onCommitmentTap!(item),
@@ -137,6 +146,39 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
       ],
     );
+  }
+
+  DateTime _displayDate(Object value) => switch (value) {
+    DateTime date => date.isUtc ? date.toLocal() : date,
+    LocalDate date => DateTime(date.year, date.month, date.day),
+    _ => throw StateError('Unsupported occurrence date'),
+  };
+
+  String? _detailsFor(Commitment item) {
+    final occurrences = widget.occurrences[item.id.value];
+    if (occurrences == null) return null;
+    return occurrences
+        .where(
+          (occurrence) =>
+              JalaliDate.fromDateTime(
+                _displayDate(occurrence.currentScheduledAt),
+              ) ==
+              _selectedDay,
+        )
+        .map((occurrence) {
+          final value = occurrence.currentScheduledAt;
+          final time = value is DateTime
+              ? 'ساعت ${reminderTimeLabel(value)}'
+              : 'تمام‌روز (بدون ساعت)';
+          final rules = widget.reminderRules.where(
+            (rule) => rule.enabled && rule.occurrenceId == occurrence.id,
+          );
+          final reminders = rules.isEmpty
+              ? 'بدون یادآوری'
+              : 'یادآوری: ${rules.map(reminderRuleLabel).join('، ')}';
+          return '$time • $reminders';
+        })
+        .join('\n');
   }
 
   List<Commitment> _commitmentsFor(JalaliDate date) => widget.commitments.where(

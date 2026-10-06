@@ -30,15 +30,17 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
       title: Row(
         children: [
           IconButton(
+            tooltip: 'ماه قبل',
             onPressed: () => setState(() => _month = _month.addMonths(-1)),
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(Icons.chevron_left),
           ),
           Expanded(
             child: Center(child: Text(PersianDateFormatter.month(_month))),
           ),
           IconButton(
+            tooltip: 'ماه بعد',
             onPressed: () => setState(() => _month = _month.addMonths(1)),
-            icon: const Icon(Icons.chevron_left),
+            icon: const Icon(Icons.chevron_right),
           ),
         ],
       ),
