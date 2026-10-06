@@ -8,6 +8,17 @@ abstract interface class ActualRepository {
   Future<void> save(Actual actual);
 }
 
+/// Commits an append-only result and its occurrence status together, rejecting
+/// stale input. Production implementations must provide a database transaction.
+abstract interface class OccurrenceActualWriter {
+  Future<Occurrence> recordOccurrenceActual({
+    required Occurrence expected,
+    required ActualOutcome outcome,
+    required DateTime recordedAt,
+    String? note,
+  });
+}
+
 class InMemoryActualRepository implements ActualRepository {
   final Map<StableId, Actual> _items = {};
 
@@ -49,16 +60,25 @@ class HistoryProjection {
     required Iterable<Occurrence> occurrences,
     required Iterable<Actual> actuals,
   }) {
-    final byOccurrence = <StableId, Actual>{
-      for (final actual in actuals) actual.occurrenceId: actual,
-    };
+    // Repositories return append order; equal-second timestamps retain that
+    // order rather than inventing chronology from random identifier bits.
+    final byOccurrence = <StableId, Actual>{};
+    for (final actual in actuals) {
+      final previous = byOccurrence[actual.occurrenceId];
+      if (previous == null ||
+          !actual.recordedAt.isBefore(previous.recordedAt)) {
+        byOccurrence[actual.occurrenceId] = actual;
+      }
+    }
     return occurrences
         .map((occurrence) {
           final actual = byOccurrence[occurrence.id];
           return PlannedVsActual(
             occurrenceId: occurrence.id,
             plannedAt: occurrence.currentScheduledAt,
-            outcome: actual?.outcome,
+            outcome: actual?.outcome == ActualOutcome.reopened
+                ? null
+                : actual?.outcome,
             recordedAt: actual?.recordedAt,
             explanation: actual == null
                 ? 'برای این برنامه هنوز نتیجه‌ای ثبت نشده است.'
@@ -75,5 +95,6 @@ class HistoryProjection {
     ActualOutcome.missed => 'برنامه از دست رفت.',
     ActualOutcome.noShow => 'عدم حضور ثبت شد.',
     ActualOutcome.partial => 'برنامه به‌صورت ناقص انجام شد.',
+    ActualOutcome.reopened => 'نتیجه بازگردانی شد؛ سابقهٔ قبلی محفوظ است.',
   };
 }

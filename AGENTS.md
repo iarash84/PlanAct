@@ -841,6 +841,10 @@ After meaningful changes run:
 Do not report a task as complete when analysis or relevant tests fail.
 
 
+## Schedule/actual checkpoint safeguards
+
+Priorities 6 and 7 are partial as recorded in docs/SCHEDULE_ACTUAL_VERIFICATION.md. Explicit reopening appends a result, preserves earlier history, and restores an actionable scheduled/rescheduled occurrence; it must not be described as an exact prior-status, financial, or entitlement reversal. Persisted outcome enum indices must remain stable. Date/time editing must reject unsupported recurrence/termination semantics rather than silently changing session counts or recurrence phase. Full intermediate schedule audit, version-safe generation, durable concurrency revisions, and interrupted reminder reopening remain required gates, not waived requirements.
+
 ## Transactional/platform consistency
 
 Domain commits and external platform delivery are separate outcomes. Do not report a committed creation or occurrence mutation as wholly failed because subsequent reminder synchronization failed. Persist replacement reminder intent transactionally before platform cancellation/scheduling; reconcile from durable rules and occurrences without destroying delivery, snooze or cancellation history. CommandGate admission is not general command serialization. The Priority 5 checkpoint and unresolved same-time restore/concurrency/native gates are recorded in docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md.

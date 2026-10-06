@@ -143,13 +143,16 @@ class DriftCommitmentPlanRepository
                   ..where((t) => t.commitmentId.equals(commitmentId.value)))
                 .getSingleOrNull();
         if (cycle == null) return null;
-        final schedule = await (database.select(
-          database.scheduleDefinitions,
-        )..where((t) => t.cycleId.equals(cycle.id))).getSingleOrNull();
+        final schedule =
+            await (database.select(database.scheduleDefinitions)
+                  ..where((t) => t.cycleId.equals(cycle.id))
+                  ..orderBy([(t) => OrderingTerm.desc(t.version)])
+                  ..limit(1))
+                .getSingleOrNull();
         if (schedule == null) return null;
         final rows = await (database.select(
           database.occurrences,
-        )..where((t) => t.scheduleDefinitionId.equals(schedule.id))).get();
+        )..where((t) => t.cycleId.equals(cycle.id))).get();
         final commitment = await DriftCommitmentRepository(database)
             .findById(commitmentId);
         if (commitment == null) return null;

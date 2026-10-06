@@ -1,4 +1,6 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/features/actuals/application/actual_use_cases.dart';
+import 'package:planact/features/actuals/domain/actual.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
@@ -109,8 +111,13 @@ List<OccurrenceAction> availableOccurrenceActions(
         ),
       );
     case OccurrenceStatus.completed:
-      // Completed occurrences are historical and cannot be reopened silently.
-      break;
+      actions.add(
+        const OccurrenceAction(
+          type: OccurrenceActionType.restore,
+          label: 'بازگردانی نتیجه',
+          consequence: 'نتیجهٔ قبلی محفوظ می‌ماند و بازگشایی ثبت می‌شود. پرداخت و اعتبار جلسه تغییر نمی‌کند.',
+        ),
+      );
   }
   return List.unmodifiable(actions);
 }
@@ -140,12 +147,33 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     this.replacements,
     this.policyRepository,
     this.reminders,
+    this.actuals,
   });
 
   final CommitmentPlanRepository plans;
   final ReplacementRepository? replacements;
   final SessionPolicyRepository? policyRepository;
   final ReminderService? reminders;
+  final OccurrenceActualWriter? actuals;
+
+  Future<Occurrence> recordResult(
+    Occurrence occurrence,
+    ActualOutcome outcome, {
+    String? note,
+  }) => CommandGate.runFor(plans, () async {
+    final writer = actuals;
+    if (writer == null) {
+      throw StateError('An atomic actual writer is required.');
+    }
+    final updated = await writer.recordOccurrenceActual(
+      expected: occurrence,
+      outcome: outcome,
+      recordedAt: DateTime.now().toUtc(),
+      note: note,
+    );
+    await _synchronize(updated);
+    return updated;
+  });
 
   Future<void> _synchronize(Occurrence occurrence) async {
     final resolved =
@@ -206,6 +234,10 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
   @override
   Future<void> complete(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
+        if (actuals != null) {
+          await recordResult(occurrence, ActualOutcome.completed);
+          return;
+        }
         final updated = occurrence.withStatus(OccurrenceStatus.completed);
         await plans.saveOccurrence(updated);
         await _synchronize(updated);
@@ -216,6 +248,15 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     Occurrence occurrence, {
     required SessionOutcome outcome,
   }) => CommandGate.runFor(plans, () async {
+    if (actuals != null) {
+      await recordResult(
+        occurrence,
+        outcome == SessionOutcome.noShow
+            ? ActualOutcome.noShow
+            : ActualOutcome.cancelled,
+      );
+      return;
+    }
     final nextStatus = outcome == SessionOutcome.noShow
         ? OccurrenceStatus.skipped
         : OccurrenceStatus.cancelled;
@@ -235,6 +276,10 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
   @override
   Future<void> restore(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
+        if (actuals != null) {
+          await recordResult(occurrence, ActualOutcome.reopened);
+          return;
+        }
         final updated = occurrence.withStatus(OccurrenceStatus.scheduled);
         await plans.saveOccurrence(updated);
         await _synchronize(updated);

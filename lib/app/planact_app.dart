@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/scheduling/presentation/edit_schedule_dialog.dart';
+import 'package:planact/features/actuals/data/drift_actual_repository.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
@@ -594,6 +598,9 @@ class _HomeShellState extends State<HomeShell> {
                           expectationRepository: _expectationRepository,
                           occurrenceExecutor: PersistedOccurrenceActionExecutor(
                             plans: _planRepository,
+                            actuals: _repository is DriftCommitmentRepository
+                                ? DriftActualRepository(_repository.database)
+                                : null,
                             reminders: _createCommitmentPlan.reminderService,
                             replacements:
                                 _repository is DriftCommitmentRepository
@@ -1091,7 +1098,67 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                     OccurrenceActionRow(
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
-                      onChanged: widget.onSaved,
+                      key: ValueKey(
+                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}',
+                      ),
+                      onChanged: () async {
+                        await widget.onSaved();
+                        if (mounted) setState(() {});
+                      },
+                      onEdit: widget.planRepository is CommitmentPlanTransaction
+                          ? (selected) async {
+                              final selection =
+                                  await showDialog<ScheduleEditSelection>(
+                                    context: context,
+                                    builder: (_) => EditScheduleDialog(
+                                      occurrence: selected,
+                                      recurring:
+                                          snapshot.data!.schedule.mode !=
+                                          ScheduleMode.oneOff,
+                                    ),
+                                  );
+                              if (selection == null || !mounted) return;
+                              try {
+                                final executor = widget.occurrenceExecutor;
+                                final pending =
+                                    await EditCommitmentSchedule(
+                                      widget.planRepository,
+                                      reminders:
+                                          executor
+                                              is PersistedOccurrenceActionExecutor
+                                          ? executor.reminders
+                                          : null,
+                                    )(
+                                      commitmentId: widget.commitment.id,
+                                      expected: selected,
+                                      scheduledAt: selection.scheduledAt,
+                                      scope: selection.scope,
+                                      now: DateTime.now(),
+                                    );
+                                await widget.onSaved();
+                                if (!context.mounted) return;
+                                setState(() {});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      pending
+                                          ? 'زمان ذخیره شد؛ هماهنگ‌سازی یادآوری در انتظار است.'
+                                          : 'زمان ذخیره شد؛ سوابق قبلی محفوظ است.',
+                                    ),
+                                  ),
+                                );
+                              } catch (_) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'تغییر زمان انجام نشد. نوبت‌های گذشته، دستی یا تغییر تاریخ سری ماهانه و سالانه قابل ویرایش نیستند؛ نوبت را دوباره بررسی کنید.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          : null,
                     ),
                   const SizedBox(height: 16),
                   ExpansionTile(

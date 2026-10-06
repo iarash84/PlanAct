@@ -942,6 +942,10 @@ PlanAct باید بتواند برای هر تعهد مهم کاربر یک time
 
 اگر محصول بتواند این زنجیره را با داده‌ی قابل اعتماد و بدون وابستگی به cloud حفظ کند، هدف اصلی PlanAct محقق شده است.
 
+## Schedule editing and actual history — Priorities 6 and 7
+
+Implementation checkpoint (2026-10-06): **Partial**. Details supports explicit scoped date/time edits, retained schedule versions, atomic outcome recording and explicit reopening without deleting earlier results or modifying financial/session ledgers. Reopening makes an occurrence actionable; it is not an exact historical status reversal. Full recurrence/termination editing, intermediate schedule audit, generation/revision safety, complete Today/Calendar journeys and interrupted reminder reopening recovery remain acceptance gates. See [schedule and actual verification](../SCHEDULE_ACTUAL_VERIFICATION.md). No existing acceptance criterion is waived by this checkpoint.
+
 ## Transactional/platform consistency — Priority 5
 
 A committed commitment creation or occurrence change must be reported separately from pending reminder synchronization; external notification failure must not invite duplicate creation or imply that durable occurrence state was lost. Replacement reminder intent is persisted before external delivery, and startup recovery repairs missing/stale intent from durable rules and eligible occurrences while preserving snooze and delivery history. This is a partial checkpoint: same-time interrupted restore versus explicit reminder cancellation, command concurrency and independent native interruption/reboot evidence remain open. See docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md. Local validation: 276 tests passed and analyzer clean; no schema or dependency change.
