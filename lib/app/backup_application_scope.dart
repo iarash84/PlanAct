@@ -1,4 +1,9 @@
 import 'dart:io';
+
+import 'package:planact/features/calendar/application/holiday_package_service.dart';
+import 'package:planact/features/calendar/data/sqlite_holiday_package_store.dart';
+import 'package:planact/features/calendar/data/file_holiday_package_source.dart';
+
 import 'dart:typed_data';
 
 import 'package:drift/native.dart';
@@ -45,6 +50,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
   AppDatabaseLifecycle? _owner;
   late File _live;
   FileBackupActions? _actions;
+  HolidayPackageService? _holidayPackages;
   String? _message;
   bool _busy = true;
   bool _failed = false;
@@ -92,6 +98,17 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
           await (widget.directory?.call() ??
               getApplicationDocumentsDirectory());
       _live = File('${directory.path}/planact.sqlite');
+      _holidayPackages = HolidayPackageService(
+        SqliteHolidayPackageStore(
+          File('${directory.path}/holiday-packages.sqlite'),
+        ),
+        FileHolidayPackageSource(),
+      );
+      try {
+        await _holidayPackages!.load();
+      } catch (_) {
+        _message = 'دادهٔ واردشدهٔ تعطیلات قابل بررسی نیست؛ تقویم پایه نمایش داده می‌شود. دادهٔ قبلی حفظ شده است؛ برای بازیابی فایل با پشتیبانی تماس بگیرید.';
+      }
       // Build a trusted reference using the real current creation/migration code.
       final reference = File(
         '${directory.path}/planact-schema-reference.sqlite',
@@ -252,6 +269,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       return PlanActApp(
         key: ValueKey(_generation),
         repository: DriftCommitmentRepository(_owner!.database),
+        holidayPackages: _holidayPackages,
         backupActions: _actions,
         backupMessage: _message,
       );

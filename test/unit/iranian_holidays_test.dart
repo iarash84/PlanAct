@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
@@ -15,7 +18,7 @@ void main() {
       .toList();
 
   test('all verified years include ten fixed holiday dates', () {
-    for (var year = 1400; year <= 1404; year++) {
+    for (var year = 1400; year <= 1405; year++) {
       expect(provider.hasCompleteOfficialCoverage(year), isTrue);
       final fixed = [
         for (var month = 1; month <= 12; month++)
@@ -107,15 +110,86 @@ void main() {
       () => provider.holidaysFor(const JalaliDate(1404, 12, 30)),
       throwsA(isA<Exception>()),
     );
-    expect(provider.hasCompleteOfficialCoverage(1405), isFalse);
+    expect(provider.hasCompleteOfficialCoverage(1406), isFalse);
     expect(provider.hasCompleteOfficialCoverage(1399), isFalse);
     expect(official(const JalaliDate(1399, 1, 1)), isEmpty);
     expect(
       provider
-          .holidaysForMonth(1405, 1)
+          .holidaysForMonth(1406, 1)
           .where((h) => h.kind == CalendarHolidayKind.officialVariable),
       isEmpty,
     );
+  });
+
+  test('all 365 days of 1405 match the published monthly holiday markers', () {
+    final snapshot = jsonDecode(
+      File('third_party/iranian_holidays/time_ir_1405.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    for (final month in snapshot['months'] as List) {
+      for (var day = 1; day <= month['day_count']; day++) {
+        final date = JalaliDate(1405, month['month'] as int, day);
+        expect(
+          official(date).isNotEmpty,
+          (month['official_days'] as List).contains(day),
+          reason: '$date',
+        );
+      }
+    }
+    for (final row in snapshot['holidays'] as List) {
+      final date = JalaliDate(
+        1405,
+        row['jalali_month'] as int,
+        row['jalali_day'] as int,
+      );
+      final gregorian = date.toDateTime();
+      expect(
+        [gregorian.year, gregorian.month, gregorian.day],
+        [row['gregorian_year'], row['gregorian_month'], row['gregorian_day']],
+      );
+      expect(
+        official(date).any(
+          (h) =>
+              h.kind ==
+              (row['base'] == 2
+                  ? CalendarHolidayKind.officialVariable
+                  : CalendarHolidayKind.officialFixed),
+        ),
+        isTrue,
+      );
+    }
+  });
+
+  test('1405 retains both Eid cycles, overlaps and exact 29-day Safar end', () {
+    for (final date in [
+      const JalaliDate(1405, 1, 1),
+      const JalaliDate(1405, 12, 19),
+    ]) {
+      expect(official(date).any((h) => h.title.contains('فطر')), isTrue);
+      expect(
+        official(date.addDays(1)).any((h) => h.title.contains('فطر')),
+        isTrue,
+      );
+    }
+    expect(official(const JalaliDate(1405, 3, 14)).length, 2);
+    expect(
+      official(const JalaliDate(1405, 5, 22))
+          .any((h) => h.title.contains('رضا')),
+      isTrue,
+    );
+    expect(
+      official(const JalaliDate(1405, 5, 23))
+          .any((h) => h.title.contains('رضا')),
+      isFalse,
+    );
+    expect(official(const JalaliDate(1405, 6, 8)).length, 2);
+    final rebuilt = const IranianHolidayProvider().holidaysFor(
+      const JalaliDate(1405, 12, 19),
+    );
+    expect(
+      rebuilt.map((h) => h.title),
+      provider.holidaysFor(const JalaliDate(1405, 12, 19)).map((h) => h.title),
+    );
+    expect(rebuilt.every((h) => h.source.contains('time.ir')), isTrue);
   });
 
   test(

@@ -39,9 +39,21 @@ void main() {
       await show(const JalaliDate(1405, 1, 1));
       expect(
         find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.text('تعطیل رسمی: آغاز نوروز'), findsOneWidget);
+      expect(find.textContaining('تعطیل رسمی: عید سعید فطر'), findsOneWidget);
+      await show(const JalaliDate(1405, 12, 19));
+      expect(find.textContaining('تعطیل رسمی: عید سعید فطر'), findsOneWidget);
+      expect(
+        find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
+        findsNothing,
+      );
+      await show(const JalaliDate(1406, 1, 1));
+      expect(
+        find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   }

@@ -1,3 +1,5 @@
+import 'package:planact/features/calendar/application/holiday_package_service.dart';
+import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/reminders/presentation/reminder_permissions_card.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
@@ -9,6 +11,8 @@ import 'package:planact/features/settings/presentation/app_lock_settings_card.da
 class SettingsPage extends StatelessWidget {
   const SettingsPage({
     super.key,
+    this.holidayPackages,
+    this.onHolidaysChanged,
     this.settings,
     this.backupActions,
     this.backupMessage,
@@ -20,6 +24,8 @@ class SettingsPage extends StatelessWidget {
     this.onAbout,
     this.enableReminders,
   });
+  final HolidayPackageService? holidayPackages;
+  final VoidCallback? onHolidaysChanged;
   final AppSettings? settings;
   final BackupActions? backupActions;
   final String? backupMessage;
@@ -79,6 +85,11 @@ class SettingsPage extends StatelessWidget {
       const SizedBox(height: 20),
       if (enableReminders != null)
         ReminderPermissionsCard(enable: enableReminders!),
+      if (holidayPackages != null)
+        HolidayPackageSettingsCard(
+          service: holidayPackages!,
+          onInstalled: onHolidaysChanged ?? () {},
+        ),
       if (backupActions != null)
         BackupSettingsCard(actions: backupActions!, message: backupMessage),
       Text('درباره', style: Theme.of(context).textTheme.titleLarge),

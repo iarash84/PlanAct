@@ -1,6 +1,6 @@
 # Iranian holiday source snapshots
 
-License: CC0-1.0; full upstream dedication is in [LICENSE](LICENSE).
+The upstream events and month-start snapshots are CC0-1.0; their dedication is in [LICENSE](LICENSE). This does not claim a CC0 license for time.ir.
 No converter implementation or GPL source code is copied.
 
 ## Provenance
@@ -11,9 +11,13 @@ No converter implementation or GPL source code is copied.
 
 ## Coverage and refresh
 
-Provider version: iran-1400-1404-v1. Complete public lookup is limited to Jalali 1400–1404, inclusive. Extra source rows outside that interval are not exposed as complete annual coverage. Fixed current rules are exposed from 1400 onward; future variable holidays are unknown, not predicted. No historical claims are made before 1400.
+Provider version: iran-1400-1405-v2. Complete public lookup covers Jalali 1400–1405, inclusive. Extra source rows outside that interval are not exposed as complete annual coverage. Fixed current rules are exposed from 1400 onward; future variable holidays are unknown, not predicted. No historical claims are made before 1400.
 
-The 1405 official PDF URL cited by upstream returned an anti-bot HTML document during verification. Unreviewed StarCalendar data was not imported. This checkpoint therefore does NOT provide complete current-year holiday support.
+### Published 1405 calendar facts
+
+[time_ir_1405.json](time_ir_1405.json) records minimal date facts retrieved from https://www.time.ir/ on 2026-10-06, using the site's public monthly calendar action. Each of the twelve monthly responses includes its underlying public source URL and SHA-256 of the received response. All 365 enabled days were checked, and official day markers exactly matched official event dates. The snapshot has ten fixed and nineteen lunar date records (including two Eid cycles). Existing CC0 event titles are reused; the combined Prophet/Imam Sadiq birthday expands into two existing reasons.
+
+This is a secondary published-calendar source, not a directly retrieved official PDF or observed-moon prediction. The previously inaccessible official PDF is not claimed as independently verified. No time.ir JavaScript, HTML, artwork, descriptions, editorial titles or database dump is redistributed; only the minimal factual date mapping and provenance are retained. The CC0 notice applies only to the original upstream snapshots, not the website or its content. StarCalendar/AGPL implementation and datasets were not imported.
 
 Refresh requires explicit review of a published source, a pinned source revision, updated snapshots/coverage/version and regression tests. Generate using [the offline generator](../../tool/generate_iranian_holidays.py), then apply the repository Dart formatter to [the generated data](../../lib/features/calendar/domain/iranian_holiday_data.dart). Running both steps must reproduce that file without differences. Neither generation nor normal application use needs a network connection.
 

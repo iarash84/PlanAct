@@ -25,17 +25,24 @@ class CalendarHoliday {
 /// Additional special closures must be supplied from a versioned durable source;
 /// this class does not create or persist user closures.
 class IranianHolidayProvider {
-  const IranianHolidayProvider({this.specialClosures = const []});
+  const IranianHolidayProvider({
+    this.specialClosures = const [],
+    this.annualOverrides = const {},
+  });
 
-  static const dataVersion = 'iran-1400-1404-v1';
+  /// Only validated complete packages are supplied by the application service.
+  final Map<int, List<CalendarHoliday>> annualOverrides;
+
+  static const dataVersion = 'iran-1400-1405-v2';
   static const firstCoveredYear = 1400;
-  static const lastCoveredYear = 1404;
+  static const lastCoveredYear = 1405;
   static const officialSource =
       'persian-calendar/events + qamari/calendar-center';
   final List<CalendarHoliday> specialClosures;
 
   bool hasCompleteOfficialCoverage(int year) =>
-      year >= firstCoveredYear && year <= lastCoveredYear;
+      annualOverrides.containsKey(year) ||
+      (year >= firstCoveredYear && year <= lastCoveredYear);
 
   List<CalendarHoliday> holidaysForMonth(int year, int month) {
     final first = JalaliDate(year, month, 1);
@@ -53,7 +60,11 @@ class IranianHolidayProvider {
       result.add(CalendarHoliday(date: date, title: 'تعطیلی هفتگی (جمعه)'));
     }
     // Current fixed rules are not evidence for arbitrary historical years.
-    if (date.year >= firstCoveredYear) {
+    if (annualOverrides[date.year] case final overrides?) {
+      result.addAll(overrides.where((h) => h.date == date));
+    }
+    if (!annualOverrides.containsKey(date.year) &&
+        date.year >= firstCoveredYear) {
       for (final (month, day, title) in iranianFixedHolidays) {
         if (date.month == month && date.day == day) {
           result.add(
@@ -67,7 +78,8 @@ class IranianHolidayProvider {
         }
       }
     }
-    if (hasCompleteOfficialCoverage(date.year)) {
+    if (!annualOverrides.containsKey(date.year) &&
+        hasCompleteOfficialCoverage(date.year)) {
       final gregorian = date.toDateTime();
       for (final (year, month, day, title) in iranianVariableHolidays) {
         if (gregorian.year == year &&
@@ -78,7 +90,9 @@ class IranianHolidayProvider {
               date: date,
               title: title,
               kind: CalendarHolidayKind.officialVariable,
-              source: officialSource,
+              source: date.year == 1405
+                  ? 'time.ir published calendar (2026-10-06)'
+                  : officialSource,
             ),
           );
         }

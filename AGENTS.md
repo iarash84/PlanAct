@@ -843,7 +843,7 @@ Do not report a task as complete when analysis or relevant tests fail.
 
 ## Offline Iranian holiday safeguards
 
-Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Priority 8 remains partial until current-year coverage is verified, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
+Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Current-year 1405 coverage is checked against all twelve time.ir published months; do not describe that secondary source as independent verification of the official PDF. Future-year coverage and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
 
 ## Schedule/actual checkpoint safeguards
 
@@ -856,3 +856,7 @@ Domain commits and external platform delivery are separate outcomes. Do not repo
 ## Production backup verification status
 
 The production adapter decisions and unresolved release gates are recorded in docs/adr/0013-production-backup-restore.md and the PRD implementation-status note. Do not describe installation-bound encrypted exports as portable device-loss recovery. Do not weaken isolated schema validation to bypass migrated-schema incompatibility without tested compatibility rules. Backup integration must prove in-flight command exclusion, repository/listener rebind, full logical-state preservation, and isolated native platform behavior before release.
+
+## Independent holiday package safeguards
+
+Annual packages use explicit first-publisher fingerprint approval and pinned Ed25519 signer continuity; a valid signature is not evidence of official source accuracy or factual completeness. Keep source review separate from structural coverage validation. Preserve old data on rejection or transactional failure, never reset trust silently, and never mutate personal history on reference-data imports. Public package storage is outside personal backup/restore; retain original packages. See docs/adr/0014-independent-holiday-packages.md.

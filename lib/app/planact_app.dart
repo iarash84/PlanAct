@@ -1,3 +1,5 @@
+import 'package:planact/features/calendar/application/holiday_package_service.dart';
+import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
@@ -54,9 +56,11 @@ class PlanActApp extends StatefulWidget {
     super.key,
     this.repository,
     this.planRepository,
+    this.holidayPackages,
     this.backupActions,
     this.backupMessage,
   });
+  final HolidayPackageService? holidayPackages;
   final BackupActions? backupActions;
   final String? backupMessage;
 
@@ -165,6 +169,7 @@ class _PlanActAppState extends State<PlanActApp> {
               ),
             )
           : HomeShell(
+              holidayPackages: widget.holidayPackages,
               backupActions: widget.backupActions,
               backupMessage: widget.backupMessage,
               repository: widget.repository,
@@ -189,6 +194,7 @@ class HomeShell extends StatefulWidget {
     this.repository,
     this.planRepository,
     this.settings,
+    this.holidayPackages,
     this.backupActions,
     this.backupMessage,
     this.themeMode = ThemeMode.system,
@@ -204,6 +210,7 @@ class HomeShell extends StatefulWidget {
   final CommitmentRepository? repository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
+  final HolidayPackageService? holidayPackages;
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
@@ -819,6 +826,8 @@ class _HomeShellState extends State<HomeShell> {
         },
       ),
       CalendarPage(
+        holidayProvider:
+            widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
         occurrences: _calendarOccurrences,
         reminderRules: _calendarReminderRules,
@@ -833,6 +842,8 @@ class _HomeShellState extends State<HomeShell> {
       _MorePage(
         onInbox: _openInbox,
         settings: SettingsPage(
+          holidayPackages: widget.holidayPackages,
+          onHolidaysChanged: () => setState(() {}),
           enableReminders: _repository is DriftCommitmentRepository
               ? _enableReminders
               : null,
