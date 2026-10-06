@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:planact/core/ids/stable_id.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -24,11 +26,13 @@ class InboxPage extends StatefulWidget {
     required this.inbox,
     required this.finance,
     this.smsSource,
+    this.onDetermineRelationship,
   });
 
   final InboxUseCases inbox;
   final FinanceRepository finance;
   final AndroidSmsSource? smsSource;
+  final Future<void> Function(StableId transactionId)? onDetermineRelationship;
 
   @override
   State<InboxPage> createState() => _InboxPageState();
@@ -283,13 +287,28 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       );
       return;
     }
+    AccountEntry? imported;
     await _runAction(() async {
-      await widget.inbox.confirm(
+      imported = await widget.inbox.confirm(
         suggestion: item.suggestion,
         account: account,
         finance: widget.finance,
       );
     });
+    if (mounted && imported != null) {
+      final id = imported!.id;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('تراکنش ثبت شد.'),
+          action: widget.onDetermineRelationship == null
+              ? null
+              : SnackBarAction(
+                  label: 'تعیین ارتباط',
+                  onPressed: () => widget.onDetermineRelationship!(id),
+                ),
+        ),
+      );
+    }
   }
 
   Future<void> _reject(InboxReviewItem item) async {

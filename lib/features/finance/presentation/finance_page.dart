@@ -25,8 +25,10 @@ class FinancePage extends StatefulWidget {
     this.expectationRepository,
     this.tagRepository,
     this.onTagsChanged,
+    this.onDetermineRelationship,
   });
 
+  final Future<void> Function(StableId transactionId)? onDetermineRelationship;
   final TagRepository? tagRepository;
   final Future<void> Function()? onTagsChanged;
   final FinanceRepository repository;
@@ -850,8 +852,18 @@ class FinancePageState extends State<FinancePage> {
                           onSelected: (value) {
                             if (value == 'void') _voidEntry(entry);
                             if (value == 'tags') _editEntryTags(entry);
+                            if (value == 'relationship') {
+                              widget.onDetermineRelationship?.call(entry.id);
+                            }
                           },
                           itemBuilder: (context) => [
+                            if (widget.onDetermineRelationship != null &&
+                                (entry.type == AccountEntryType.income ||
+                                    entry.type == AccountEntryType.expense))
+                              const PopupMenuItem(
+                                value: 'relationship',
+                                child: Text('تعیین ارتباط'),
+                              ),
                             if (widget.tagRepository != null)
                               const PopupMenuItem(
                                 value: 'tags',

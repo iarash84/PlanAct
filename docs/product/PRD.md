@@ -517,6 +517,10 @@ Minimum transaction types:
 
 اصلاح matching نباید history قبلی را بدون ردپا حذف کند.
 
+«تعیین ارتباط» برای تراکنش مشخص باید همان تراکنش را تا انتخاب تعهد و رخداد و تأیید مبلغ حفظ کند؛ نباید صرفاً صفحهٔ عمومی مالی را باز کند. پس از تأیید ورود پیامک، اقدام «تعیین ارتباط» باید شناسهٔ تراکنش ثبت‌شده را منتقل کند. ورود به این مسیر یا انصراف از آن نباید تراکنش تازه، نتیجهٔ رخداد یا مبلغ مورد انتظار ایجاد یا تغییر دهد.
+
+Implementation checkpoint (2026-10-06): Priority 10 contextual navigation is wired from Today, transaction actions and the SMS confirmation feedback into the existing persistent matching architecture. The bounded flow confirms one occurrence allocation at a time, supports partial allocation and retains the form on refresh or failed confirmation. It does not claim the complete matching scope above: match correction, explicit overpayment, commitment-only targets, bulk allocation and cross-command atomic allocation admission remain separate work. See `docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md` for evidence and limitations.
+
 ---
 
 # 16. Inbox

@@ -53,6 +53,10 @@ import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/reminders/application/reminder_platform.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/reconciliation/application/contextual_reconciliation.dart';
+import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
+import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
+import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({
@@ -400,6 +404,32 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
+  late final ReconciliationUseCases _reconciliation = ReconciliationUseCases(
+    _repository is DriftCommitmentRepository
+        ? DriftReconciliationRepository(_repository.database)
+        : InMemoryReconciliationRepository(),
+  );
+
+  Future<void> _openRelationship(StableId transactionId) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => TransactionRelationshipPage(
+          transactionId: transactionId,
+          flow: ContextualReconciliation(
+            finance: _financeRepository,
+            commitments: _repository,
+            plans: _planRepository,
+            reconciliation: _reconciliation,
+          ),
+        ),
+      ),
+    );
+    if (saved == true) {
+      await _refresh();
+      _showMessage('ارتباط تراکنش ثبت شد.');
+    }
+  }
+
   void _openInbox() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -408,6 +438,7 @@ class _HomeShellState extends State<HomeShell> {
           body: InboxPage(
             inbox: _inboxUseCases,
             finance: _financeRepository,
+            onDetermineRelationship: _openRelationship,
             smsSource: AndroidSmsSource(),
           ),
         ),
@@ -848,6 +879,11 @@ class _HomeShellState extends State<HomeShell> {
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
         onReview: (item) {
+          if (item.attentionAction == AttentionAction.classifyTransaction &&
+              item.sourceReference != null) {
+            _openRelationship(StableId.parse(item.sourceReference!));
+            return;
+          }
           if (item.type != TodayActionItemType.financialReview) {
             _openInbox();
             return;
@@ -872,6 +908,7 @@ class _HomeShellState extends State<HomeShell> {
       FinancePage(
         key: _financePageKey,
         repository: _financeRepository,
+        onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
         onTagsChanged: _tagsChanged,
         expectationRepository: _expectationRepository,
