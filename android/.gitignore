@@ -1,8 +1,6 @@
-gradle-wrapper.jar
+# Gradle Wrapper scripts and JAR are versioned for clean-checkout builds.
 /.gradle
 /captures/
-/gradlew
-/gradlew.bat
 /local.properties
 GeneratedPluginRegistrant.java
 .cxx/

@@ -1,0 +1,4 @@
+# Keep the Unix wrapper executable on Linux after checkout on any platform.
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+gradle/wrapper/gradle-wrapper.jar binary
