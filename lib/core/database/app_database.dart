@@ -20,6 +20,9 @@ class Commitments extends Table {
   IntColumn get status => integer()();
   IntColumn get kind => integer().withDefault(const Constant(0))();
   IntColumn get priority => integer().withDefault(const Constant(1))();
+  TextColumn get colorKey => text().nullable().customConstraint(
+    "NULL CHECK (color_key IN ('teal','blue','indigo','violet','rose','amber','olive','cyan'))",
+  )();
   TextColumn get description => text().nullable()();
   TextColumn get tags => text().withDefault(const Constant(''))();
   TextColumn get attachmentIds => text().withDefault(const Constant(''))();
@@ -397,7 +400,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -566,6 +569,9 @@ class AppDatabase extends _$AppDatabase {
           'CREATE UNIQUE INDEX relationship_reviews_transaction_revision ON relationship_reviews(transaction_id, revision)',
         );
         await _createReviewHistoryGuards();
+      }
+      if (from < 18) {
+        await m.addColumn(commitments, commitments.colorKey);
       }
       await _writeSchemaMetadata();
     },

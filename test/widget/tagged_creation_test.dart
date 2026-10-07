@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/domain/commitment_color.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,6 +46,7 @@ void main() {
             tagRepository: tags,
             onSave: (draft) async {
               expect(draft.tags, {'خانه'});
+              expect(draft.color, CommitmentColor.blue);
               calls++;
               if (calls == 1) throw StateError('injected');
             },
@@ -56,6 +58,10 @@ void main() {
         find.byKey(const ValueKey('commitment-title-field')),
         'جلسه',
       );
+      final color = find.byKey(const ValueKey('commitment-color-blue'));
+      await tester.ensureVisible(color);
+      await tester.tap(color);
+      await tester.pumpAndSettle();
       await addTag(tester, 'خانه');
       await tester.ensureVisible(find.text('ادامه'));
       await tester.tap(find.text('ادامه'));

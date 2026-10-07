@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart';
@@ -16,7 +16,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 // 02bc301, 09f9c44, 444b2d3, c42a3e1, b64416d, a14dade, 58bc343, b9dd2f0,
 // 184f8e7, 2edbc33, fb69495. The -v16 files retain actual historical migration
 // output. fresh-v16 uses the committed fb69495-v16 declarations as an explicit
-// v16 input (not a newly inferred schema). The -v17 files are actual current
+// v16 input (not a newly inferred schema). The -v18 files are actual current
 // migration output, not schemas with constraints selectively removed.
 const fixtures = [
   'a14dade',
@@ -32,6 +32,7 @@ const fixtures = [
   'chain-v14',
   'chain-v15',
   'fresh-v16',
+  'fresh-v17',
 ];
 
 Future<void> createHistorical(File file, String fixture) async {
@@ -55,7 +56,7 @@ Future<void> createHistorical(File file, String fixture) async {
     raw.execute(
       "INSERT INTO commitments(id,title,created_at,status,tags) VALUES ('legacy','historical',0,0,'آموزش')",
     );
-    if (data['version'] == 16) {
+    if ((data['version'] as int) >= 16) {
       raw.execute(
         "INSERT INTO tags(id,label,normalized_label,created_at) VALUES ('legacy-tag','آموزش','آموزش',0)",
       );
@@ -91,7 +92,7 @@ void main() {
     raw.close();
     storage = SqliteBackupStorage(
       live: fresh,
-      schemaVersion: 17,
+      schemaVersion: 18,
       expectedSchema: expected,
       snapshot: fresh.readAsBytes,
       closeLive: () async {},
@@ -100,7 +101,7 @@ void main() {
 
   tearDown(() async => directory.delete(recursive: true));
 
-  test('fresh v17 still validates', () async {
+  test('fresh v18 still validates', () async {
     await storage.validatePayload(await storage.live.readAsBytes());
   });
 
@@ -111,19 +112,25 @@ void main() {
         final file = File('${directory.path}/legacy.sqlite');
         await createHistorical(file, fixture);
         var database = AppDatabase.forTesting(NativeDatabase(file));
-        expect(await database.readMetadata('schema_version'), '17');
+        expect(await database.readMetadata('schema_version'), '18');
         await database.close();
         final raw = sqlite.sqlite3.open(file.path);
         try {
           final reference = (jsonDecode(
-            await File('test/fixtures/backup_schema/$fixture-v17.json')
+            await File('test/fixtures/backup_schema/$fixture-v18.json')
                 .readAsString(),
           ) as List).cast<String>();
           expect(SqliteBackupStorage.schema(raw), reference);
           expect(SqliteBackupStorage.schema(raw), isNot(expected));
           expect(
-            raw.select('SELECT title FROM commitments').single['title'],
+            raw
+                .select('SELECT title, color_key FROM commitments')
+                .single['title'],
             'historical',
+          );
+          expect(
+            raw.select('SELECT color_key FROM commitments').single['color_key'],
+            isNull,
           );
           expect(
             raw

@@ -53,7 +53,10 @@ void main() {
         ),
       ),
     );
-    expect(find.text('تمام‌روز (بدون ساعت) • بدون یادآوری'), findsOneWidget);
+    expect(
+      find.text('تمام‌روز (بدون ساعت) • برنامه‌ریزی‌شده • بدون یادآوری'),
+      findsOneWidget,
+    );
     expect(find.textContaining('ساعت ۰۰:۰۰'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -143,7 +146,9 @@ void main() {
           ),
         );
         expect(
-          find.text('ساعت ۱۸:۳۰ • یادآوری: ۱۵ دقیقه قبل از شروع'),
+          find.text(
+            'ساعت ۱۸:۳۰ • برنامه‌ریزی‌شده • یادآوری: ۱۵ دقیقه قبل از شروع',
+          ),
           findsOneWidget,
         );
         expect(find.textContaining('۲ ساعت قبل'), findsNothing);

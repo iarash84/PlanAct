@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
@@ -482,6 +483,7 @@ class _HomeShellState extends State<HomeShell> {
       startAt: startAt,
       kind: draft.kind,
       priority: draft.priority,
+      color: draft.color,
       description: draft.description,
       tags: draft.tags,
       attachmentIds: draft.attachmentIds,
@@ -935,6 +937,9 @@ class _HomeShellState extends State<HomeShell> {
             widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
         occurrences: _calendarOccurrences,
+        weekLoader: _planRepository is DriftCommitmentPlanRepository
+            ? _planRepository.loadWeek
+            : null,
         reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
@@ -1099,11 +1104,13 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
     text: widget.commitment.description ?? '',
   );
   late CommitmentPriority _priority = widget.commitment.priority;
+  late CommitmentColor? _color = widget.commitment.color;
   bool _saving = false;
   bool get _dirty =>
       _title.text != widget.commitment.title ||
       _description.text != (widget.commitment.description ?? '') ||
-      _priority != widget.commitment.priority;
+      _priority != widget.commitment.priority ||
+      _color != widget.commitment.color;
   @override
   void initState() {
     super.initState();
@@ -1150,6 +1157,8 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             ? null
             : _description.text.trim(),
         priority: _priority,
+        color: _color,
+        updateColor: true,
       );
       await widget.onSaved();
       if (mounted) Navigator.pop(context);
@@ -1200,6 +1209,11 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             decoration: const InputDecoration(labelText: 'توضیحات'),
           ),
           const SizedBox(height: 16),
+          CommitmentColorPicker(
+            selected: _color,
+            enabled: !_saving,
+            onChanged: (color) => setState(() => _color = color),
+          ),
           DropdownButtonFormField<CommitmentPriority>(
             initialValue: _priority,
             decoration: const InputDecoration(labelText: 'اولویت'),

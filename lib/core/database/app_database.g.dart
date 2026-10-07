@@ -278,6 +278,18 @@ class $CommitmentsTable extends Commitments
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _colorKeyMeta = const VerificationMeta(
+    'colorKey',
+  );
+  @override
+  late final GeneratedColumn<String> colorKey = GeneratedColumn<String>(
+    'color_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL CHECK (color_key IN (\'teal\',\'blue\',\'indigo\',\'violet\',\'rose\',\'amber\',\'olive\',\'cyan\'))',
+  );
   static const VerificationMeta _descriptionMeta = const VerificationMeta(
     'description',
   );
@@ -319,6 +331,7 @@ class $CommitmentsTable extends Commitments
     status,
     kind,
     priority,
+    colorKey,
     description,
     tags,
     attachmentIds,
@@ -374,6 +387,12 @@ class $CommitmentsTable extends Commitments
       context.handle(
         _priorityMeta,
         priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
+    if (data.containsKey('color_key')) {
+      context.handle(
+        _colorKeyMeta,
+        colorKey.isAcceptableOrUnknown(data['color_key']!, _colorKeyMeta),
       );
     }
     if (data.containsKey('description')) {
@@ -433,6 +452,10 @@ class $CommitmentsTable extends Commitments
         DriftSqlType.int,
         data['${effectivePrefix}priority'],
       )!,
+      colorKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color_key'],
+      ),
       description: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}description'],
@@ -461,6 +484,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
   final int status;
   final int kind;
   final int priority;
+  final String? colorKey;
   final String? description;
   final String tags;
   final String attachmentIds;
@@ -471,6 +495,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     required this.status,
     required this.kind,
     required this.priority,
+    this.colorKey,
     this.description,
     required this.tags,
     required this.attachmentIds,
@@ -484,6 +509,9 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     map['status'] = Variable<int>(status);
     map['kind'] = Variable<int>(kind);
     map['priority'] = Variable<int>(priority);
+    if (!nullToAbsent || colorKey != null) {
+      map['color_key'] = Variable<String>(colorKey);
+    }
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
@@ -500,6 +528,9 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       status: Value(status),
       kind: Value(kind),
       priority: Value(priority),
+      colorKey: colorKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorKey),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
@@ -520,6 +551,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       status: serializer.fromJson<int>(json['status']),
       kind: serializer.fromJson<int>(json['kind']),
       priority: serializer.fromJson<int>(json['priority']),
+      colorKey: serializer.fromJson<String?>(json['colorKey']),
       description: serializer.fromJson<String?>(json['description']),
       tags: serializer.fromJson<String>(json['tags']),
       attachmentIds: serializer.fromJson<String>(json['attachmentIds']),
@@ -535,6 +567,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       'status': serializer.toJson<int>(status),
       'kind': serializer.toJson<int>(kind),
       'priority': serializer.toJson<int>(priority),
+      'colorKey': serializer.toJson<String?>(colorKey),
       'description': serializer.toJson<String?>(description),
       'tags': serializer.toJson<String>(tags),
       'attachmentIds': serializer.toJson<String>(attachmentIds),
@@ -548,6 +581,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     int? status,
     int? kind,
     int? priority,
+    Value<String?> colorKey = const Value.absent(),
     Value<String?> description = const Value.absent(),
     String? tags,
     String? attachmentIds,
@@ -558,6 +592,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     status: status ?? this.status,
     kind: kind ?? this.kind,
     priority: priority ?? this.priority,
+    colorKey: colorKey.present ? colorKey.value : this.colorKey,
     description: description.present ? description.value : this.description,
     tags: tags ?? this.tags,
     attachmentIds: attachmentIds ?? this.attachmentIds,
@@ -570,6 +605,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
       status: data.status.present ? data.status.value : this.status,
       kind: data.kind.present ? data.kind.value : this.kind,
       priority: data.priority.present ? data.priority.value : this.priority,
+      colorKey: data.colorKey.present ? data.colorKey.value : this.colorKey,
       description: data.description.present
           ? data.description.value
           : this.description,
@@ -589,6 +625,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
           ..write('status: $status, ')
           ..write('kind: $kind, ')
           ..write('priority: $priority, ')
+          ..write('colorKey: $colorKey, ')
           ..write('description: $description, ')
           ..write('tags: $tags, ')
           ..write('attachmentIds: $attachmentIds')
@@ -604,6 +641,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
     status,
     kind,
     priority,
+    colorKey,
     description,
     tags,
     attachmentIds,
@@ -618,6 +656,7 @@ class Commitment extends DataClass implements Insertable<Commitment> {
           other.status == this.status &&
           other.kind == this.kind &&
           other.priority == this.priority &&
+          other.colorKey == this.colorKey &&
           other.description == this.description &&
           other.tags == this.tags &&
           other.attachmentIds == this.attachmentIds);
@@ -630,6 +669,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
   final Value<int> status;
   final Value<int> kind;
   final Value<int> priority;
+  final Value<String?> colorKey;
   final Value<String?> description;
   final Value<String> tags;
   final Value<String> attachmentIds;
@@ -641,6 +681,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     this.status = const Value.absent(),
     this.kind = const Value.absent(),
     this.priority = const Value.absent(),
+    this.colorKey = const Value.absent(),
     this.description = const Value.absent(),
     this.tags = const Value.absent(),
     this.attachmentIds = const Value.absent(),
@@ -653,6 +694,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     required int status,
     this.kind = const Value.absent(),
     this.priority = const Value.absent(),
+    this.colorKey = const Value.absent(),
     this.description = const Value.absent(),
     this.tags = const Value.absent(),
     this.attachmentIds = const Value.absent(),
@@ -668,6 +710,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     Expression<int>? status,
     Expression<int>? kind,
     Expression<int>? priority,
+    Expression<String>? colorKey,
     Expression<String>? description,
     Expression<String>? tags,
     Expression<String>? attachmentIds,
@@ -680,6 +723,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
       if (status != null) 'status': status,
       if (kind != null) 'kind': kind,
       if (priority != null) 'priority': priority,
+      if (colorKey != null) 'color_key': colorKey,
       if (description != null) 'description': description,
       if (tags != null) 'tags': tags,
       if (attachmentIds != null) 'attachment_ids': attachmentIds,
@@ -694,6 +738,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     Value<int>? status,
     Value<int>? kind,
     Value<int>? priority,
+    Value<String?>? colorKey,
     Value<String?>? description,
     Value<String>? tags,
     Value<String>? attachmentIds,
@@ -706,6 +751,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
       status: status ?? this.status,
       kind: kind ?? this.kind,
       priority: priority ?? this.priority,
+      colorKey: colorKey ?? this.colorKey,
       description: description ?? this.description,
       tags: tags ?? this.tags,
       attachmentIds: attachmentIds ?? this.attachmentIds,
@@ -734,6 +780,9 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
     if (priority.present) {
       map['priority'] = Variable<int>(priority.value);
     }
+    if (colorKey.present) {
+      map['color_key'] = Variable<String>(colorKey.value);
+    }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
@@ -758,6 +807,7 @@ class CommitmentsCompanion extends UpdateCompanion<Commitment> {
           ..write('status: $status, ')
           ..write('kind: $kind, ')
           ..write('priority: $priority, ')
+          ..write('colorKey: $colorKey, ')
           ..write('description: $description, ')
           ..write('tags: $tags, ')
           ..write('attachmentIds: $attachmentIds, ')
@@ -12406,6 +12456,7 @@ typedef $$CommitmentsTableCreateCompanionBuilder =
       required int status,
       Value<int> kind,
       Value<int> priority,
+      Value<String?> colorKey,
       Value<String?> description,
       Value<String> tags,
       Value<String> attachmentIds,
@@ -12419,6 +12470,7 @@ typedef $$CommitmentsTableUpdateCompanionBuilder =
       Value<int> status,
       Value<int> kind,
       Value<int> priority,
+      Value<String?> colorKey,
       Value<String?> description,
       Value<String> tags,
       Value<String> attachmentIds,
@@ -12504,6 +12556,11 @@ class $$CommitmentsTableFilterComposer
 
   ColumnFilters<int> get priority => $composableBuilder(
     column: $table.priority,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get colorKey => $composableBuilder(
+    column: $table.colorKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12612,6 +12669,11 @@ class $$CommitmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get colorKey => $composableBuilder(
+    column: $table.colorKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get description => $composableBuilder(
     column: $table.description,
     builder: (column) => ColumnOrderings(column),
@@ -12654,6 +12716,9 @@ class $$CommitmentsTableAnnotationComposer
 
   GeneratedColumn<int> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<String> get colorKey =>
+      $composableBuilder(column: $table.colorKey, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
     column: $table.description,
@@ -12756,6 +12821,7 @@ class $$CommitmentsTableTableManager
                 Value<int> status = const Value.absent(),
                 Value<int> kind = const Value.absent(),
                 Value<int> priority = const Value.absent(),
+                Value<String?> colorKey = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String> tags = const Value.absent(),
                 Value<String> attachmentIds = const Value.absent(),
@@ -12767,6 +12833,7 @@ class $$CommitmentsTableTableManager
                 status: status,
                 kind: kind,
                 priority: priority,
+                colorKey: colorKey,
                 description: description,
                 tags: tags,
                 attachmentIds: attachmentIds,
@@ -12780,6 +12847,7 @@ class $$CommitmentsTableTableManager
                 required int status,
                 Value<int> kind = const Value.absent(),
                 Value<int> priority = const Value.absent(),
+                Value<String?> colorKey = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String> tags = const Value.absent(),
                 Value<String> attachmentIds = const Value.absent(),
@@ -12791,6 +12859,7 @@ class $$CommitmentsTableTableManager
                 status: status,
                 kind: kind,
                 priority: priority,
+                colorKey: colorKey,
                 description: description,
                 tags: tags,
                 attachmentIds: attachmentIds,

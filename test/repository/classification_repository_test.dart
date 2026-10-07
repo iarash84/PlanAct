@@ -86,7 +86,7 @@ void main() {
     final database = AppDatabase.forTesting(NativeDatabase(file));
     final rows = await DriftTagRepository(database).list();
     expect(rows.map((tag) => tag.label).toSet(), {'آموزش', 'کار'});
-    expect(await database.readMetadata('schema_version'), '17');
+    expect(await database.readMetadata('schema_version'), '18');
     await database.close();
     await directory.delete(recursive: true);
   });
@@ -134,7 +134,7 @@ void main() {
         columns.map((row) => row.read<String>('name')),
         contains('bank_code'),
       );
-      expect(await database.readMetadata('schema_version'), '17');
+      expect(await database.readMetadata('schema_version'), '18');
       await database.close();
       await directory.delete(recursive: true);
     },

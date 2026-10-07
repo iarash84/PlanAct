@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -246,6 +247,15 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ],
         onChanged: (value) =>
             setState(() => _draft = _draft.copyWith(priority: value)),
+      ),
+      const SizedBox(height: PlanActSpacing.md),
+      CommitmentColorPicker(
+        selected: _draft.color,
+        enabled: !_saving,
+        onChanged: (color) => setState(
+          () =>
+              _draft = _draft.copyWith(color: color, clearColor: color == null),
+        ),
       ),
       const SizedBox(height: PlanActSpacing.md),
       DraftTagPicker(

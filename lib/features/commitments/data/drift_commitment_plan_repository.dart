@@ -2,6 +2,8 @@ import 'package:planact/core/application/command_gate.dart';
 
 import 'dart:convert';
 
+import 'package:planact/features/calendar/application/week_timeline.dart';
+
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
@@ -16,7 +18,8 @@ class DriftCommitmentPlanRepository
     implements
         CommandGateProvider,
         CommitmentPlanRepository,
-        CommitmentPlanTransaction {
+        CommitmentPlanTransaction,
+        CalendarRangeRepository {
   DriftCommitmentPlanRepository(this.database);
 
   @override
@@ -168,6 +171,51 @@ class DriftCommitmentPlanRepository
               .toList(growable: false),
         );
       });
+
+  @override
+  Future<Map<String, List<Occurrence>>> loadWeek(
+    LocalDate start,
+  ) => CommandGate.runFor(this, () async {
+    final localStart = DateTime(start.year, start.month, start.day);
+    final finish = start.addDays(7);
+    final localEnd = DateTime(finish.year, finish.month, finish.day);
+    final predicates = <String>[];
+    final variables = <Variable>[];
+    for (var i = 0; i < 7; i++) {
+      final date = _date(start.addDays(i));
+      predicates.add(
+        '(o.current_scheduled_value = ? OR o.current_scheduled_value LIKE ?)',
+      );
+      variables.add(Variable<String>('date:$date'));
+      variables.add(Variable<String>('local:${date}T%'));
+    }
+    predicates.add(
+      '(o.current_scheduled_value >= ? AND o.current_scheduled_value < ?)',
+    );
+    variables.add(
+      Variable<String>('instant:${localStart.toUtc().toIso8601String()}'),
+    );
+    variables.add(
+      Variable<String>('instant:${localEnd.toUtc().toIso8601String()}'),
+    );
+    final rows = await database
+        .customSelect(
+          'SELECT o.*, c.commitment_id AS owner_id FROM occurrences o '
+          'JOIN commitment_cycles c ON c.id = o.cycle_id '
+          'WHERE ${predicates.join(' OR ')}',
+          variables: variables,
+          readsFrom: {database.occurrences, database.commitmentCycles},
+        )
+        .get();
+    final result = <String, List<Occurrence>>{};
+    for (final row in rows) {
+      final occurrence = _occurrence(database.occurrences.map(row.data));
+      result
+          .putIfAbsent(row.read<String>('owner_id'), () => [])
+          .add(occurrence);
+    }
+    return result;
+  });
 
   static String _date(LocalDate value) =>
       '${value.year}-${value.month}-${value.day}';

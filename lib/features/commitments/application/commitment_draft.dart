@@ -9,6 +9,7 @@ class CommitmentDraft {
     this.category = CommitmentCategory.other,
     this.title = '',
     this.description,
+    this.color,
     this.provider,
     this.kind = CommitmentKind.oneOff,
     this.startAt,
@@ -30,6 +31,7 @@ class CommitmentDraft {
   final CommitmentCategory category;
   final String title;
   final String? description;
+  final CommitmentColor? color;
   final String? provider;
   final CommitmentKind kind;
   final DateTime? startAt;
@@ -55,6 +57,8 @@ class CommitmentDraft {
     CommitmentCategory? category,
     String? title,
     String? description,
+    CommitmentColor? color,
+    bool clearColor = false,
     String? provider,
     CommitmentKind? kind,
     DateTime? startAt,
@@ -75,6 +79,7 @@ class CommitmentDraft {
     category: category ?? this.category,
     title: title ?? this.title,
     description: description ?? this.description,
+    color: clearColor ? null : color ?? this.color,
     provider: provider ?? this.provider,
     kind: kind ?? this.kind,
     startAt: startAt ?? this.startAt,

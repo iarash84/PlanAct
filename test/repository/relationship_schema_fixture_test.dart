@@ -14,19 +14,19 @@ import 'sqlite_backup_schema_compatibility_test.dart'
 // Explicit opt-in regeneration uses actual AppDatabase migration output, never
 // weakened or inferred declarations. Normal runs compare committed fixtures.
 void main() {
-  test('trusted v17 fixtures equal actual migration output', () async {
+  test('trusted v18 fixtures equal actual migration output', () async {
     final directory = await Directory.systemTemp.createTemp('review-fixtures-');
     try {
       for (final fixture in fixtures) {
         final file = File('${directory.path}/$fixture.sqlite');
         await createHistorical(file, fixture);
         final database = AppDatabase.forTesting(NativeDatabase(file));
-        expect(await database.readMetadata('schema_version'), '17');
+        expect(await database.readMetadata('schema_version'), '18');
         await database.close();
         final raw = sqlite.sqlite3.open(file.path);
         final schema = SqliteBackupStorage.schema(raw);
         raw.close();
-        final target = File('test/fixtures/backup_schema/$fixture-v17.json');
+        final target = File('test/fixtures/backup_schema/$fixture-v18.json');
         if (Platform.environment['REGENERATE_REVIEW_FIXTURES'] == '1') {
           await target.writeAsString(
             '${const JsonEncoder.withIndent('  ').convert(schema)}\n',

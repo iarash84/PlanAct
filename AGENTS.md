@@ -754,7 +754,7 @@ Always verify:
 
 Do not make interactive elements artificially small for visual compactness.
 
-For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
+For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar Month-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
 
 ---
 
@@ -862,3 +862,7 @@ The production adapter decisions and unresolved release gates are recorded in do
 ## Independent holiday package safeguards
 
 Annual packages use explicit first-publisher fingerprint approval and pinned Ed25519 signer continuity; a valid signature is not evidence of official source accuracy or factual completeness. Keep source review separate from structural coverage validation. Preserve old data on rejection or transactional failure, never reset trust silently, and never mutate personal history on reference-data imports. Public package storage is outside personal backup/restore; retain original packages. See docs/adr/0014-independent-holiday-packages.md.
+
+## Calendar Week safeguards
+
+The month fit-to-screen touch-width exception applies only to Month, never Week. Week uses Saturday-based centralized date calculation, horizontal phone scrolling with standard targets, synchronized headers and a fixed time gutter. Recorded LocalDate occurrences are all-day; recorded DateTime occurrences are point starts. Do not fabricate ends/durations or persist visual card footprints. Optional explicit interval/midnight layout inputs are pure synthetic seams, not parallel event storage. Identity palette colors remain independent of actual status text/icons. Bounded durable Week reads must respect local/date/instant serialization, preserve every historical status, and never generate or mutate schedules. Existing Today eager plan reads are not eliminated by this scoped Calendar change.

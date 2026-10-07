@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:planact/app/theme/commitment_identity_palette.dart';
+import 'package:planact/features/calendar/application/week_timeline.dart';
+import 'package:planact/features/calendar/presentation/week_timeline_view.dart';
+
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
@@ -24,10 +28,12 @@ class CalendarPage extends StatefulWidget {
     this.occurrences = const {},
     this.reminderRules = const [],
     this.initialDate,
+    this.weekLoader,
     this.holidayProvider = const IranianHolidayProvider(),
   });
 
   final List<Commitment> commitments;
+  final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
   final JalaliDate? initialDate;
   final IranianHolidayProvider holidayProvider;
   final Map<String, List<DateTime>> scheduledDates;
@@ -43,6 +49,7 @@ class _CalendarPageState extends State<CalendarPage> {
   IranianHolidayProvider get _holidayProvider => widget.holidayProvider;
   late JalaliDate _month;
   late JalaliDate _selectedDay;
+  bool _week = false;
 
   @override
   void initState() {
@@ -64,6 +71,62 @@ class _CalendarPageState extends State<CalendarPage> {
     final cellCount = ((leading + _month.monthLength + 6) ~/ 7) * 7;
     final selectedItems = _commitmentsFor(_selectedDay);
 
+    final toggle = SegmentedButton<bool>(
+      segments: const [
+        ButtonSegment(value: false, label: Text('ماه')),
+        ButtonSegment(value: true, label: Text('هفته')),
+      ],
+      selected: {_week},
+      onSelectionChanged: (value) => setState(() {
+        _week = value.single;
+        _month = JalaliDate(_selectedDay.year, _selectedDay.month, 1);
+      }),
+    );
+    if (_week) {
+      final dates = WeekTimeline.dates(_selectedDay);
+      return Column(
+        children: [
+          toggle,
+          Row(
+            children: [
+              IconButton(
+                tooltip: 'هفته قبل',
+                icon: const Icon(Icons.chevron_left),
+                onPressed: () =>
+                    setState(() => _selectedDay = _selectedDay.addDays(-7)),
+              ),
+              Expanded(
+                child: Text(
+                  '${PersianDateFormatter.date(dates.first)} — ${PersianDateFormatter.date(dates.last)}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              IconButton(
+                tooltip: 'هفته بعد',
+                icon: const Icon(Icons.chevron_right),
+                onPressed: () =>
+                    setState(() => _selectedDay = _selectedDay.addDays(7)),
+              ),
+              IconButton(
+                tooltip: 'امروز',
+                icon: const Icon(Icons.today_outlined),
+                onPressed: () => setState(() => _selectedDay = today),
+              ),
+            ],
+          ),
+          Expanded(
+            child: WeekTimelineView(
+              date: _selectedDay,
+              commitments: widget.commitments,
+              occurrences: widget.occurrences,
+              holidays: _holidayProvider,
+              loader: widget.weekLoader,
+              onTap: widget.onCommitmentTap,
+            ),
+          ),
+        ],
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         PlanActSpacing.md,
@@ -72,6 +135,7 @@ class _CalendarPageState extends State<CalendarPage> {
         PlanActSpacing.xl,
       ),
       children: [
+        toggle,
         _CalendarHeader(
           month: _month,
           onPrevious: () => setState(() {
@@ -261,7 +325,7 @@ class _CalendarPageState extends State<CalendarPage> {
           final reminders = rules.isEmpty
               ? 'بدون یادآوری'
               : 'یادآوری: ${rules.map(reminderRuleLabel).join('، ')}';
-          return '$time • $reminders';
+          return '$time • ${calendarStatusLabel(occurrence.status)} • $reminders';
         })
         .join('\n');
   }
@@ -404,6 +468,28 @@ class _CalendarDay extends StatelessWidget {
                       'تعطیل',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelSmall,
+                    ),
+                  if (commitments.isNotEmpty)
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 2,
+                      children: [
+                        for (final item in commitments.take(3))
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: CommitmentIdentityPalette.background(
+                                CommitmentIdentityPalette.resolve(
+                                  item.color,
+                                  item.id,
+                                ),
+                                theme.brightness,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   if (commitments.isNotEmpty)
                     Text(

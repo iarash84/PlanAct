@@ -20,7 +20,11 @@ void main() {
       addTearDown(database.close);
       final commitments = DriftCommitmentRepository(database);
       final tags = DriftTagRepository(database);
-      final commitment = Commitment.create(title: 'کلاس', tags: {'آموزش'});
+      final commitment = Commitment.create(
+        title: 'کلاس',
+        tags: {'آموزش'},
+        color: CommitmentColor.rose,
+      );
       await commitments.save(commitment);
       final plans = InMemoryCommitmentPlanRepository();
       var refreshes = 0;
@@ -61,6 +65,10 @@ void main() {
         find.widgetWithText(TextField, 'عنوان'),
         'کلاس جدید',
       );
+      final color = find.byKey(const ValueKey('commitment-color-blue'));
+      await tester.ensureVisible(color);
+      await tester.tap(color);
+      await tester.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
@@ -75,6 +83,7 @@ void main() {
       final stored = (await commitments.findById(commitment.id))!;
       expect(stored.title, 'کلاس جدید');
       expect(stored.tags, isEmpty);
+      expect(stored.color, CommitmentColor.blue);
       expect(
         await tags.tagsFor(commitment.id.value, TaggableType.commitment),
         isEmpty,

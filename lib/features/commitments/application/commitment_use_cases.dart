@@ -15,6 +15,7 @@ class CreateCommitment {
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
+    CommitmentColor? color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
   }) => CommandGate.runFor(repository, () async {
@@ -24,6 +25,7 @@ class CreateCommitment {
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );
@@ -146,14 +148,17 @@ class UpdateCommitmentMetadata {
     required String title,
     required String? description,
     required CommitmentPriority priority,
+    CommitmentColor? color,
+    bool updateColor = false,
   }) => CommandGate.runFor(repository, () async {
     final current = await repository.findById(commitmentId);
     if (current == null) throw NotFoundError('Commitment was not found');
-    final updated = current.updateMetadata(
-      title: title,
-      description: description,
-      priority: priority,
-    );
+    final updated = (updateColor ? current.withColor(color) : current)
+        .updateMetadata(
+          title: title,
+          description: description,
+          priority: priority,
+        );
     await repository.save(updated);
     return updated;
   });

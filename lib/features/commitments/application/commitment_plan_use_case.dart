@@ -98,6 +98,7 @@ class CreateCommitmentPlan {
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
+    CommitmentColor? color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
     RecurrenceFrequency? frequency,
@@ -137,6 +138,7 @@ class CreateCommitmentPlan {
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );

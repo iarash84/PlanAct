@@ -33,8 +33,8 @@ class _Rebuild implements BackupRebuildHook {
 // fixture rather than silently passing with an empty table.
 const _rows = <String, List<String>>{
   'commitments': [
-    "('c','کلاس موسیقی',1700000000,0,0,1,'یادداشت','','')",
-    "('archived','تاریخچه',1700000001,4,0,1,NULL,'','')",
+    "('c','کلاس موسیقی',1700000000,0,0,1,'violet','یادداشت','','')",
+    "('archived','تاریخچه',1700000001,4,0,1,NULL,NULL,'','')",
   ],
   'commitment_cycles': ["('cycle','c',0,1700000000,NULL,NULL,4,1,0,0)"],
   'schedule_definitions': [
@@ -163,7 +163,7 @@ void main() {
           sql.close();
           final storage = SqliteBackupStorage(
             live: live,
-            schemaVersion: 17,
+            schemaVersion: 18,
             expectedSchema: schema,
             snapshot: live.readAsBytes,
             closeLive: () async {},
@@ -171,7 +171,7 @@ void main() {
           final rebuild = _Rebuild()..failOnce = rollback;
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 17),
+            validator: const BackupValidator(currentSchemaVersion: 18),
             rebuildHook: rebuild,
             keyStorage: _Keys(),
             encryptor: AesGcmBackupEncryptor(),

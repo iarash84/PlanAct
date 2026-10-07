@@ -40,27 +40,24 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
       .toList();
 
   // Exact sqlite_master signatures from committed historical Drift schemas,
-  // upgraded by AppDatabase's real migrations to v17. Full declarations live in
+  // upgraded by AppDatabase's real migrations to v18. Full declarations live in
   // test/fixtures/backup_schema; never add a signature from an incoming payload.
   // These approve whole historical constraint sets, not arbitrary missing FKs,
   // CHECKs, indexes, or a mixture of individually permitted table variants.
-  static const _trustedMigratedV17 = {
-    // Actual fresh historical v10/v11 -> v17.
-    'eab3f04cb6f0e4b96950a6d5b068876d830c7f6ad3d7450cc6289e04732e53ce',
-    // Actual fresh historical v12, v13, v14, v15/v16 -> v17.
-    'a4ada7abc1de59757638e9dec9660bae699f727c5a7cd93178b33c03103f55ff',
-    '0f3b8ed67b94a08c54d6383bb7aaa43d9d38bc93d1a106181cabc09cf4a009af',
-    '3861e21b8d6f92232810ca29f2883a8e0c348f48743398daf8f8c4f51084db20',
-    'df1c53ffee960d7b21f43f6025e43007f3597e96fc8fc01b0c5ee9cfcaec6268',
-    // Sequential committed v1 -> ... -> v10..v15 -> v17.
-    '0b420de072d994a6ce0894775e1c121ff4690e2149b1281aac283f5d258ffedc',
+  static const _trustedMigratedV18 = {
+    '63b0c34a0dc5b31bb0cdcac8403a3b404c64f16b9b8f7f99762d15b14395c003',
+    '8e760670c56a003913b1d6c35da25c11758a927f01148d1e1cb941ba6fedd925',
+    '9fc49d7aacd528bceecbd38570ed6025743cb1e9c5b3709b8a708be359ef596a',
+    'c8b0652045cbad8cb92099320e39e8be32d135b3a2b7cce0982694a14dd7eba4',
+    'dd3600cc3391af9887b9029ff38df789ef83f9df2d3133786cb64a55b5795261',
+    'fa1e95043f6062b6346fddd66823b407ee9e0c156fcb28a961b29c7346727b7e',
   };
 
   bool _matchesSchema(Database db) {
     final declarations = schema(db).join('\n');
     if (declarations == expectedSchema.join('\n')) return true;
-    return schemaVersion == 17 &&
-        _trustedMigratedV17.contains(
+    return schemaVersion == 18 &&
+        _trustedMigratedV18.contains(
           sha256.convert(utf8.encode(declarations)).toString(),
         );
   }

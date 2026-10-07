@@ -62,6 +62,7 @@ class DriftCommitmentRepository
                   kind: Value(commitment.kind.index),
                   priority: Value(commitment.priority.index),
                   description: Value(commitment.description),
+                  colorKey: Value(commitment.color?.name),
                   tags: Value(labels.join('\\n')),
                   attachmentIds: Value(commitment.attachmentIds.join('\\n')),
                 ),
@@ -114,6 +115,9 @@ class DriftCommitmentRepository
       kind: CommitmentKind.values[row.kind],
       priority: CommitmentPriority.values[row.priority],
       description: row.description,
+      color: row.colorKey == null
+          ? null
+          : CommitmentColor.values.byName(row.colorKey!),
       tags: tags,
       attachmentIds: row.attachmentIds.isEmpty
           ? const []
