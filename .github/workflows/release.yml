@@ -81,6 +81,7 @@ jobs:
           flutter --version
           dart --version
           java -version
+          chmod +x android/gradlew
           (cd android && ./gradlew --version)
 
       - name: Prepare release signing keystore
