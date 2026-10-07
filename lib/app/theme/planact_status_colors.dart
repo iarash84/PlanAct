@@ -12,6 +12,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
     required this.dangerContainer,
     required this.info,
     required this.infoContainer,
+    required this.holiday,
+    required this.holidayContainer,
     required this.inactive,
     required this.inactiveContainer,
   });
@@ -24,6 +26,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
   final Color dangerContainer;
   final Color info;
   final Color infoContainer;
+  final Color holiday;
+  final Color holidayContainer;
   final Color inactive;
   final Color inactiveContainer;
 
@@ -36,6 +40,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
     dangerContainer: Color(0xffffe3e3),
     info: Color(0xff205d96),
     infoContainer: Color(0xffdfedff),
+    holiday: Color(0xffa32129),
+    holidayContainer: Color(0xffffe3e3),
     inactive: Color(0xff495b63),
     inactiveContainer: Color(0xffe6edef),
   );
@@ -48,6 +54,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
     dangerContainer: Color(0xff502329),
     info: Color(0xffaacfff),
     infoContainer: Color(0xff1b354e),
+    holiday: Color(0xffffb3b6),
+    holidayContainer: Color(0xff502329),
     inactive: Color(0xffbecbd1),
     inactiveContainer: Color(0xff2b3b42),
   );
@@ -66,6 +74,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
     Color? dangerContainer,
     Color? info,
     Color? infoContainer,
+    Color? holiday,
+    Color? holidayContainer,
     Color? inactive,
     Color? inactiveContainer,
   }) => PlanActStatusColors(
@@ -77,6 +87,8 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
     dangerContainer: dangerContainer ?? this.dangerContainer,
     info: info ?? this.info,
     infoContainer: infoContainer ?? this.infoContainer,
+    holiday: holiday ?? this.holiday,
+    holidayContainer: holidayContainer ?? this.holidayContainer,
     inactive: inactive ?? this.inactive,
     inactiveContainer: inactiveContainer ?? this.inactiveContainer,
   );
@@ -101,6 +113,12 @@ class PlanActStatusColors extends ThemeExtension<PlanActStatusColors> {
       dangerContainer: Color.lerp(dangerContainer, other.dangerContainer, t)!,
       info: Color.lerp(info, other.info, t)!,
       infoContainer: Color.lerp(infoContainer, other.infoContainer, t)!,
+      holiday: Color.lerp(holiday, other.holiday, t)!,
+      holidayContainer: Color.lerp(
+        holidayContainer,
+        other.holidayContainer,
+        t,
+      )!,
       inactive: Color.lerp(inactive, other.inactive, t)!,
       inactiveContainer: Color.lerp(
         inactiveContainer,

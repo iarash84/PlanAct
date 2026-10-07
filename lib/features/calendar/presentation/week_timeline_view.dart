@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -283,13 +284,29 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                                         Text(
                                           PersianDateFormatter.date(day),
                                           textAlign: TextAlign.center,
-                                          style: theme.textTheme.titleMedium,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                color:
+                                                    widget.holidays
+                                                        .holidaysFor(day)
+                                                        .isNotEmpty
+                                                    ? PlanActStatusColors.of(
+                                                        context,
+                                                      ).holiday
+                                                    : null,
+                                              ),
                                         ),
                                         for (final holiday
                                             in widget.holidays.holidaysFor(day))
                                           Text(
                                             holiday.title,
                                             textAlign: TextAlign.center,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: PlanActStatusColors.of(
+                                                    context,
+                                                  ).holiday,
+                                                ),
                                           ),
                                         if (!widget.holidays
                                             .hasCompleteOfficialCoverage(

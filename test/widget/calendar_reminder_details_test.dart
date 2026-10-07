@@ -53,10 +53,9 @@ void main() {
         ),
       ),
     );
-    expect(
-      find.text('تمام‌روز (بدون ساعت) • برنامه‌ریزی‌شده • بدون یادآوری'),
-      findsOneWidget,
-    );
+    expect(find.text('تمام‌روز (بدون ساعت)'), findsOneWidget);
+    expect(find.text('برنامه‌ریزی‌شده'), findsOneWidget);
+    expect(find.text('بدون یادآوری'), findsOneWidget);
     expect(find.textContaining('ساعت ۰۰:۰۰'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -145,12 +144,9 @@ void main() {
             brightness: brightness,
           ),
         );
-        expect(
-          find.text(
-            'ساعت ۱۸:۳۰ • برنامه‌ریزی‌شده • یادآوری: ۱۵ دقیقه قبل از شروع',
-          ),
-          findsOneWidget,
-        );
+        expect(find.text('ساعت ۱۸:۳۰'), findsOneWidget);
+        expect(find.text('برنامه‌ریزی‌شده'), findsOneWidget);
+        expect(find.text('یادآوری: ۱۵ دقیقه قبل از شروع'), findsOneWidget);
         expect(find.textContaining('۲ ساعت قبل'), findsNothing);
         expect(tester.takeException(), isNull);
       },

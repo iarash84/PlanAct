@@ -1,5 +1,6 @@
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -236,11 +237,19 @@ class _ActionItemCard extends StatelessWidget {
           ];
     return Card(
       child: ListTile(
-        leading: Icon(
-          item.type == TodayActionItemType.occurrence
-              ? Icons.event_available
-              : Icons.priority_high,
-        ),
+        leading: item.commitment != null
+            ? CommitmentIdentityMarker(
+                key: ValueKey('today-identity-${item.id}'),
+                commitment: item.commitment!,
+                icon: item.type == TodayActionItemType.occurrence
+                    ? Icons.event_available
+                    : Icons.priority_high,
+              )
+            : Icon(
+                item.type == TodayActionItemType.occurrence
+                    ? Icons.event_available
+                    : Icons.priority_high,
+              ),
         title: Text(item.title),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

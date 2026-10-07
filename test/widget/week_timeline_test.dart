@@ -132,7 +132,7 @@ void main() {
             find.byKey(ValueKey('week-card-${occurrences.first.id.value}')),
             findsOneWidget,
           );
-          await tester.tap(find.byTooltip('امروز'));
+          await tester.tap(find.text('بازگشت به امروز'));
           await tester.pumpAndSettle();
           await tester.pump(const Duration(minutes: 2));
           expect(tester.takeException(), isNull);

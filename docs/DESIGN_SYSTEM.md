@@ -55,9 +55,10 @@ Business meaning is provided by the brightness-aware PlanActStatusColors theme e
 | Attention | #744900 / #FFEDC2 | #FFD58C / #493510 |
 | Danger / overdue | #A32129 / #FFE3E3 | #FFB3B6 / #502329 |
 | Information | #205D96 / #DFEDFF | #AACFFF / #1B354E |
+| Holiday | #A32129 / #FFE3E3 | #FFB3B6 / #502329 |
 | Inactive | #495B63 / #E6EDEF | #BECBD1 / #2B3B42 |
 
-Cancellation and archival use subdued inactive styling, not destructive/error styling. Holidays are information with a written label, not errors. Review warnings use attention. Status must always retain a text/icon cue. Legacy static business colors have been removed.
+Cancellation and archival use subdued inactive styling, not destructive/error styling. Calendar holidays use the dedicated red holiday role with written reasons and accessible labels, not Material error or danger semantics. Its current red values intentionally match the danger pair, but the roles remain independent: holidays never imply failure, urgency, or destructive actions. Month day numbers/holiday labels and selected-day reasons, plus Week holiday dates/reasons, consume this role in both brightnesses. Review warnings use attention. Status must always retain a text/icon cue. Legacy static business colors have been removed.
 
 ## Typography
 
@@ -167,8 +168,20 @@ PlanActMotion.duration respects platform disableAnimations; root navigation and 
 
 See docs/UI_MIGRATION_VERIFICATION.md for surface coverage and limitations. Automated contrast and widget checks are evidence for tested pairs/flows only, not native-device, screen-reader or profile-performance certification.
 
+## Calendar return to today
+
+Month and Week expose a visible Persian “بازگشت به امروز” text-and-icon action below the mode control instead of the easily missed header icon. It reads the current local Jalali date when pressed, restores the selected day and displayed month/week, and preserves the active view mode. The shared themed button retains standard targets and text scaling; its separate row avoids crowding narrow navigation headers. Calendar-only composition change; other surfaces and domain/persistence semantics remain unchanged.
+
+## Today identity markers and Calendar mode control
+
+Today commitment-linked action cards in Attention, Today and Upcoming reuse the shared `CommitmentIdentityMarker` also used by Calendar selected-day cards. The marker uses the same brightness-aware identity palette and deterministic stable-ID fallback, with a Persian color semantic label. Identity never replaces urgency, action, or outcome wording/icons; unrelated financial/inbox review items retain their neutral icons. Existing Today grouping and callbacks remain unchanged.
+
+Calendar Month and Week use the same full available-width mode control with 12dp horizontal and 8dp top gutters. Switching modes must not change its bounds; height remains theme/text-scale driven rather than fixed. Regression coverage checks exact bounds at 320dp with normal and doubled text scaling in Light and Dark.
+
+Coverage: Today action cards migrated; Calendar selected-day cards migrated to the shared marker without changing appearance; Calendar mode control corrected in both modes. Month dots and Week event cards remain compliant with the same identity palette. Legacy commitment rows, details, Finance, settings and other surfaces are intentionally unchanged because they are not consumers of this marker/control and no global token changed.
+
 ## Calendar Week and identity integration
 
 Month retains its fit-to-screen width exception. Week does not: minimum day/lane widths and standard 48dp targets use horizontal scrolling on phones, synchronized day/all-day headers and body, and a fixed time gutter. Seven days fit when sufficient width exists; dense overlap groups expand the scrollable day widths rather than shrinking targets. Week geometry is centralized in WeekTimelineGeometry (120dp/hour). Text-scale-aware card footprints are hit geometry, not durations; production records have no ends. Titles have full Persian semantics and tooltip when visually shortened. Dense all-day content scrolls in its own header region.
 
-CommitmentIdentityPalette owns eight brightness-specific identity pairs and deterministic stable-ID fallback. Month dots and Week cards consume it, independent of occurrence status. Status uses actual text/icon on the identity foreground, never inferred success/overdue recoloring. Current-time line uses the shared primary role and an isolated disposed minute timer. Shared theme, typography, spacing and radius remain unchanged. Coverage: Calendar Month/Week migrated; picker, Today, details, Finance and other surfaces intentionally unchanged because this scoped change does not alter their shared tokens or domain actions.
+CommitmentIdentityPalette owns eight brightness-specific identity pairs and deterministic stable-ID fallback. Month dots, selected-day commitment cards and Week cards consume it, independent of occurrence status. Selected-day cards use the shared Material card theme with an identity-colored icon marker (and Persian color semantics), title/tags, then separate time/status and reminder rows per recorded occurrence. Date-only records remain explicitly all-day; missing occurrence details are disclosed rather than assigned time/status. Cards wrap at narrow widths and increased text scale and preserve details navigation. Week status uses actual text/icon on the identity foreground, never inferred success/overdue recoloring. Current-time line uses the shared primary role and an isolated disposed minute timer. Shared typography, spacing and radius remain unchanged. Coverage: Calendar Month/Week migrated; picker, Today, details, Finance and other surfaces intentionally unchanged because the new holiday role and selected-day card composition do not change their styles or domain actions.

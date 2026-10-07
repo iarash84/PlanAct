@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
-import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
+import 'package:planact/features/calendar/presentation/calendar_commitment_card.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -17,7 +17,6 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
-import 'package:planact/features/today/presentation/widgets/planact_commitment_row.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({
@@ -71,22 +70,49 @@ class _CalendarPageState extends State<CalendarPage> {
     final cellCount = ((leading + _month.monthLength + 6) ~/ 7) * 7;
     final selectedItems = _commitmentsFor(_selectedDay);
 
-    final toggle = SegmentedButton<bool>(
-      segments: const [
-        ButtonSegment(value: false, label: Text('ماه')),
-        ButtonSegment(value: true, label: Text('هفته')),
-      ],
-      selected: {_week},
-      onSelectionChanged: (value) => setState(() {
-        _week = value.single;
-        _month = JalaliDate(_selectedDay.year, _selectedDay.month, 1);
-      }),
+    final toggle = SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<bool>(
+        key: const ValueKey('calendar-mode-toggle'),
+        segments: const [
+          ButtonSegment(value: false, label: Text('ماه')),
+          ButtonSegment(value: true, label: Text('هفته')),
+        ],
+        selected: {_week},
+        onSelectionChanged: (value) => setState(() {
+          _week = value.single;
+          _month = JalaliDate(_selectedDay.year, _selectedDay.month, 1);
+        }),
+      ),
+    );
+    final todayButton = Align(
+      alignment: AlignmentDirectional.centerEnd,
+      child: TextButton.icon(
+        key: const ValueKey('calendar-return-today'),
+        onPressed: () => setState(() {
+          final current = JalaliDate.now();
+          _selectedDay = current;
+          _month = JalaliDate(current.year, current.month, 1);
+        }),
+        icon: const Icon(Icons.today_outlined),
+        label: const Text('بازگشت به امروز'),
+      ),
     );
     if (_week) {
       final dates = WeekTimeline.dates(_selectedDay);
       return Column(
         children: [
-          toggle,
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: PlanActSpacing.md,
+              vertical: PlanActSpacing.sm,
+            ),
+            child: toggle,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
+            child: todayButton,
+          ),
           Row(
             children: [
               IconButton(
@@ -106,11 +132,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 icon: const Icon(Icons.chevron_right),
                 onPressed: () =>
                     setState(() => _selectedDay = _selectedDay.addDays(7)),
-              ),
-              IconButton(
-                tooltip: 'امروز',
-                icon: const Icon(Icons.today_outlined),
-                onPressed: () => setState(() => _selectedDay = today),
               ),
             ],
           ),
@@ -136,6 +157,7 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       children: [
         toggle,
+        todayButton,
         _CalendarHeader(
           month: _month,
           onPrevious: () => setState(() {
@@ -143,10 +165,6 @@ class _CalendarPageState extends State<CalendarPage> {
           }),
           onNext: () => setState(() {
             _month = _month.addMonths(1);
-          }),
-          onToday: () => setState(() {
-            _month = JalaliDate(today.year, today.month, 1);
-            _selectedDay = today;
           }),
         ),
         if (!_holidayProvider.hasCompleteOfficialCoverage(_month.year))
@@ -277,17 +295,19 @@ class _CalendarPageState extends State<CalendarPage> {
             padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
             child: Text(
               _holidayLabel(holiday),
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: PlanActStatusColors.of(context).holiday,
+              ),
             ),
           ),
         if (selectedItems.isEmpty)
           const Text('برای این روز تعهدی ثبت نشده است.')
         else
           ...selectedItems.map(
-            (item) => PlanActCommitmentRow(
+            (item) => CalendarCommitmentCard(
               commitment: item,
-              scheduledDates: widget.scheduledDates[item.id.value] ?? const [],
-              supportingDetails: _detailsFor(item),
+              occurrences: _occurrencesFor(item),
+              reminderRules: widget.reminderRules,
               onTap: widget.onCommitmentTap == null
                   ? null
                   : () => widget.onCommitmentTap!(item),
@@ -303,32 +323,16 @@ class _CalendarPageState extends State<CalendarPage> {
     _ => throw StateError('Unsupported occurrence date'),
   };
 
-  String? _detailsFor(Commitment item) {
-    final occurrences = widget.occurrences[item.id.value];
-    if (occurrences == null) return null;
-    return occurrences
-        .where(
-          (occurrence) =>
-              JalaliDate.fromDateTime(
-                _displayDate(occurrence.currentScheduledAt),
-              ) ==
-              _selectedDay,
-        )
-        .map((occurrence) {
-          final value = occurrence.currentScheduledAt;
-          final time = value is DateTime
-              ? 'ساعت ${reminderTimeLabel(value)}'
-              : 'تمام‌روز (بدون ساعت)';
-          final rules = widget.reminderRules.where(
-            (rule) => rule.enabled && rule.occurrenceId == occurrence.id,
-          );
-          final reminders = rules.isEmpty
-              ? 'بدون یادآوری'
-              : 'یادآوری: ${rules.map(reminderRuleLabel).join('، ')}';
-          return '$time • ${calendarStatusLabel(occurrence.status)} • $reminders';
-        })
-        .join('\n');
-  }
+  List<Occurrence> _occurrencesFor(Commitment item) =>
+      (widget.occurrences[item.id.value] ?? const <Occurrence>[])
+          .where(
+            (occurrence) =>
+                JalaliDate.fromDateTime(
+                  _displayDate(occurrence.currentScheduledAt),
+                ) ==
+                _selectedDay,
+          )
+          .toList();
 
   List<Commitment> _commitmentsFor(JalaliDate date) => widget.commitments.where(
     (item) {
@@ -351,13 +355,11 @@ class _CalendarHeader extends StatelessWidget {
     required this.month,
     required this.onPrevious,
     required this.onNext,
-    required this.onToday,
   });
 
   final JalaliDate month;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
-  final VoidCallback onToday;
 
   @override
   Widget build(BuildContext context) {
@@ -382,11 +384,6 @@ class _CalendarHeader extends StatelessWidget {
           tooltip: 'ماه بعد',
           onPressed: onNext,
           icon: const Icon(Icons.chevron_right),
-        ),
-        IconButton(
-          tooltip: 'امروز',
-          onPressed: onToday,
-          icon: const Icon(Icons.today_outlined),
         ),
       ],
     );
@@ -457,7 +454,7 @@ class _CalendarDay extends StatelessWidget {
                           ? FontWeight.bold
                           : FontWeight.w600,
                       color: holiday
-                          ? PlanActStatusColors.of(context).info
+                          ? PlanActStatusColors.of(context).holiday
                           : selected
                           ? scheme.onPrimaryContainer
                           : scheme.onSurface,
@@ -467,7 +464,9 @@ class _CalendarDay extends StatelessWidget {
                     Text(
                       'تعطیل',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: PlanActStatusColors.of(context).holiday,
+                      ),
                     ),
                   if (commitments.isNotEmpty)
                     Wrap(

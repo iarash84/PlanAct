@@ -31,12 +31,16 @@ void main() {
         (status.attention, status.attentionContainer),
         (status.danger, status.dangerContainer),
         (status.info, status.infoContainer),
+        (status.holiday, status.holidayContainer),
+        (status.holiday, scheme.primaryContainer),
+        (status.holiday, scheme.surfaceContainerHighest),
         (status.inactive, status.inactiveContainer),
         for (final color in [
           status.success,
           status.attention,
           status.danger,
           status.info,
+          status.holiday,
           status.inactive,
         ])
           (color, scheme.surface),
@@ -44,6 +48,8 @@ void main() {
       for (final pair in pairs) {
         expect(contrast(pair.$1, pair.$2), greaterThanOrEqualTo(4.5));
       }
+      expect(status.copyWith().holiday, status.holiday);
+      expect(status.lerp(status, .5).holidayContainer, status.holidayContainer);
       expect(status.copyWith().info, status.info);
       expect(status.lerp(status, .5).info, status.info);
     });
