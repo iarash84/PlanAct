@@ -9,6 +9,7 @@ import 'package:planact/features/reconciliation/application/relationship_review_
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/data/drift_transaction_match_reader.dart';
 
 class DriftReconciliationRepository
     implements
@@ -23,43 +24,8 @@ class DriftReconciliationRepository
   final db.AppDatabase database;
 
   @override
-  Future<List<TransactionMatch>> list() => CommandGate.runFor(this, () async {
-    final matches = await database.select(database.transactionMatches).get();
-    final allocations = await database.select(database.matchAllocations).get();
-    return matches
-        .map((row) {
-          final items = allocations
-              .where((item) => item.matchId == row.id)
-              .map(
-                (item) => MatchAllocation(
-                  id: StableId.parse(item.id),
-                  matchId: StableId.parse(item.matchId),
-                  occurrenceId: StableId.parse(item.occurrenceId),
-                  amount: Money(
-                    minorUnits: item.minorUnits,
-                    currency: item.currency,
-                  ),
-                  type: AllocationType.values[item.type],
-                ),
-              )
-              .toList(growable: false);
-          return TransactionMatch(
-            id: StableId.parse(row.id),
-            transactionId: StableId.parse(row.transactionId),
-            transactionAmount: Money(
-              minorUnits: row.minorUnits,
-              currency: row.currency,
-            ),
-            createdAt: row.createdAt.toUtc(),
-            allocations: items,
-            status: MatchStatus.values[row.status],
-            correctedMatchId: row.correctedMatchId == null
-                ? null
-                : StableId.parse(row.correctedMatchId!),
-          );
-        })
-        .toList(growable: false);
-  });
+  Future<List<TransactionMatch>> list() =>
+      CommandGate.runFor(this, () => readTransactionMatches(database));
 
   RelationshipReviewEntry _entry(db.RelationshipReview row) =>
       RelationshipReviewEntry(

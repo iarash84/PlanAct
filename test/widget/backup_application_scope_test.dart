@@ -20,6 +20,75 @@ Future<void> _waitForApp(WidgetTester tester) async {
 
 void main() {
   testWidgets(
+    'production startup retains durable data and retries failed preparation',
+    (tester) async => tester.runAsync(() async {
+      final directory = await Directory.systemTemp.createTemp('planact-retry-');
+      var attempts = 0;
+      final retryStarted = Completer<void>();
+      final finishRetry = Completer<void>();
+      await tester.pumpWidget(
+        BackupApplicationScope(
+          directory: () async => directory,
+          synchronizeReminders: (database) async {
+            attempts++;
+            if (attempts == 1) {
+              await database.writeMetadata('retry_evidence', 'preserved');
+              throw StateError('Preparation failed');
+            }
+            expect(await database.readMetadata('retry_evidence'), 'preserved');
+            retryStarted.complete();
+            await finishRetry.future;
+          },
+          clearNotifications: () async {},
+        ),
+      );
+      try {
+        for (var i = 0; i < 200; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          await tester.pump();
+          if (find.text('تلاش دوباره').evaluate().isNotEmpty) break;
+        }
+        expect(attempts, 1);
+        expect(find.byType(PlanActApp), findsNothing);
+        expect(
+          find.text('آماده‌سازی امن اطلاعات ممکن نشد. دوباره تلاش کنید.'),
+          findsOneWidget,
+        );
+        expect(find.text('تلاش دوباره'), findsOneWidget);
+        await tester.tap(find.text('تلاش دوباره'));
+        await tester.pump();
+        await retryStarted.future;
+        await tester.pump();
+        expect(attempts, 2);
+        expect(find.byType(PlanActApp), findsNothing);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.text('تلاش دوباره'), findsNothing);
+        finishRetry.complete();
+        await _waitForApp(tester);
+        final app = tester.widget<PlanActApp>(find.byType(PlanActApp));
+        final repository = app.repository! as DriftCommitmentRepository;
+        expect(
+          await repository.database.readMetadata('retry_evidence'),
+          'preserved',
+        );
+        for (var i = 0; i < 200; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          await tester.pump();
+          if (find.text('چه چیزی نیاز به توجه دارد؟').evaluate().isNotEmpty) {
+            break;
+          }
+        }
+        expect(find.text('چه چیزی نیاز به توجه دارد؟'), findsOneWidget);
+      } finally {
+        if (!finishRetry.isCompleted) finishRetry.complete();
+        await tester.pumpWidget(const SizedBox());
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        await directory.delete(recursive: true);
+      }
+    }),
+  );
+
+  testWidgets(
     'backup host drains full commands, disposes UI and rebinds a fresh file-backed generation',
     (tester) async => tester.runAsync(() async {
       final directory = await Directory.systemTemp.createTemp('planact-host-');

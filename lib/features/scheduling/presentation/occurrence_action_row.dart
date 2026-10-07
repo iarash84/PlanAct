@@ -1,3 +1,4 @@
+import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
 import 'package:planact/features/actuals/application/actual_use_cases.dart';
@@ -239,7 +240,9 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     return Card(
       child: ListTile(
         title: Text(label),
-        subtitle: Text('${_statusLabel(occurrence.status)} — مشاهدهٔ سابقه'),
+        subtitle: Text(
+          '${occurrenceStatusLabel(occurrence.status)} — مشاهدهٔ سابقه',
+        ),
         onTap: _busy ? null : _showHistory,
         trailing: _busy
             ? const SizedBox(
@@ -260,16 +263,4 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       ),
     );
   }
-
-  String _statusLabel(OccurrenceStatus status) => switch (status) {
-    OccurrenceStatus.scheduled => 'برنامه‌ریزی‌شده',
-    OccurrenceStatus.due => 'موعد رسیده',
-    OccurrenceStatus.completed => 'انجام‌شده',
-    OccurrenceStatus.skipped => 'عدم حضور',
-    OccurrenceStatus.cancelled => 'لغوشده',
-    OccurrenceStatus.rescheduled => 'جابه‌جا شده',
-    OccurrenceStatus.overdue => 'عقب‌افتاده',
-    OccurrenceStatus.deferred => 'موکول شده',
-    OccurrenceStatus.pendingDecision => 'نیازمند تصمیم',
-  };
 }

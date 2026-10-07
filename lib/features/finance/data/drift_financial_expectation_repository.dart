@@ -3,11 +3,11 @@ import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
-import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/data/drift_transaction_match_reader.dart';
 
 class DriftFinancialExpectationRepository
     implements CommandGateProvider, FinancialExpectationRepository {
@@ -46,45 +46,7 @@ class DriftFinancialExpectationRepository
 
   @override
   Future<List<TransactionMatch>> listMatches() =>
-      CommandGate.runFor(this, () async {
-        final rows = await database.select(database.transactionMatches).get();
-        final allocations = await database
-            .select(database.matchAllocations)
-            .get();
-        return rows
-            .map((row) {
-              final items = allocations
-                  .where((item) => item.matchId == row.id)
-                  .map(
-                    (item) => MatchAllocation(
-                      id: StableId.parse(item.id),
-                      matchId: StableId.parse(item.matchId),
-                      occurrenceId: StableId.parse(item.occurrenceId),
-                      amount: Money(
-                        minorUnits: item.minorUnits,
-                        currency: item.currency,
-                      ),
-                      type: AllocationType.values[item.type],
-                    ),
-                  )
-                  .toList(growable: false);
-              return TransactionMatch(
-                id: StableId.parse(row.id),
-                transactionId: StableId.parse(row.transactionId),
-                transactionAmount: Money(
-                  minorUnits: row.minorUnits,
-                  currency: row.currency,
-                ),
-                createdAt: row.createdAt.toUtc(),
-                allocations: items,
-                status: MatchStatus.values[row.status],
-                correctedMatchId: row.correctedMatchId == null
-                    ? null
-                    : StableId.parse(row.correctedMatchId!),
-              );
-            })
-            .toList(growable: false);
-      });
+      CommandGate.runFor(this, () => readTransactionMatches(database));
 
   @override
   Future<void> saveExpectation(FinancialExpectation item) => CommandGate.runFor(

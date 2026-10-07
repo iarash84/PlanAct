@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:planact/app/startup_splash.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
-import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/main.dart';
 
@@ -126,31 +124,5 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('کلاس موسیقی'), findsOneWidget);
-  });
-
-  testWidgets('خطای راه‌اندازی امکان تلاش دوباره دارد', (tester) async {
-    var attempts = 0;
-    await tester.pumpWidget(
-      PlanActStartup(
-        repositoryLoader: () {
-          attempts++;
-          if (attempts == 1) {
-            return Future.error(StateError('startup failed'));
-          }
-          return Future.value(InMemoryCommitmentRepository());
-        },
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('راه‌اندازی برنامه انجام نشد'), findsOneWidget);
-    expect(find.text('تلاش دوباره'), findsOneWidget);
-    expect(attempts, 1);
-
-    await tester.tap(find.text('تلاش دوباره'));
-    await tester.pumpAndSettle();
-
-    expect(attempts, 2);
-    expect(find.text('چه چیزی نیاز به توجه دارد؟'), findsOneWidget);
   });
 }

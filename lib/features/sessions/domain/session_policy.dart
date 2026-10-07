@@ -1,7 +1,5 @@
 import 'package:planact/core/errors/app_error.dart';
 
-enum CancellationActor { provider, user }
-
 enum SessionOutcome {
   completed,
   providerCancelled,

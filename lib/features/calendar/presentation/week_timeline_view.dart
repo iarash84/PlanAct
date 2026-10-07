@@ -1,3 +1,5 @@
+import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
+
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -25,17 +27,8 @@ abstract final class WeekTimelineGeometry {
   static double top(double minute) => minute * hourHeight / 60;
 }
 
-String calendarStatusLabel(OccurrenceStatus status) => switch (status) {
-  OccurrenceStatus.scheduled => 'برنامه‌ریزی‌شده',
-  OccurrenceStatus.due => 'موعد رسیده',
-  OccurrenceStatus.completed => 'انجام‌شده',
-  OccurrenceStatus.skipped => 'عدم حضور',
-  OccurrenceStatus.cancelled => 'لغوشده',
-  OccurrenceStatus.rescheduled => 'جابه‌جا شده',
-  OccurrenceStatus.overdue => 'عقب‌افتاده',
-  OccurrenceStatus.deferred => 'موکول شده',
-  OccurrenceStatus.pendingDecision => 'نیازمند تصمیم',
-};
+String calendarStatusLabel(OccurrenceStatus status) =>
+    occurrenceStatusLabel(status);
 IconData calendarStatusIcon(OccurrenceStatus status) => switch (status) {
   OccurrenceStatus.completed => Icons.check_circle_outline,
   OccurrenceStatus.cancelled => Icons.cancel_outlined,
