@@ -943,6 +943,7 @@ class _HomeShellState extends State<HomeShell> {
         reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
+        onAdd: _showCapture,
       ),
       FinancePage(
         key: _financePageKey,

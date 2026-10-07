@@ -1,4 +1,80 @@
-# Week Timeline verification
+# Calendar Week verification
+
+## User-approved agenda redesign — 2026-10-07
+
+This section supersedes the historical phone-horizontal-scroll and initial-hour
+UX described below. The older inspection/validation record is retained as
+historical evidence, not the current phone contract.
+
+### Scope and decisions
+
+- Phone Week is one vertical Saturday–Friday agenda with opaque pinned day
+  headings confined to their own day sections. Rows wrap the full Persian title,
+  show the recorded start or تمام‌روز, reuse the shared commitment identity
+  marker and show actual status text/icon independently of identity.
+- Current week initially reveals today using measured heights of earlier day
+  sections; earlier days remain above and accessible. Other weeks start Saturday.
+  This is view-only state. The seven-day content is laid out eagerly to obtain
+  exact offsets; no unbounded domain read or generation is added.
+- Empty days remain compact; whole-week empty content appears at the initial day
+  and offers the existing quick-capture callback when supplied. Production
+  Calendar wires the same callback as the root quick-add action, not a new form.
+- Loading, retry, stale-future protection, holiday reasons and incomplete-coverage
+  warnings are retained. Existing mode switch, previous/next, today and commitment
+  details/reminder flows remain unchanged.
+- Wide timeline is automatic only when actual available width can accommodate
+  all seven day/lane columns at the current text scale. Dense equal starts switch
+  to agenda when needed; they never imply conflict, duration or end. The existing
+  wide point timeline and its view-only hour positioning remain unchanged.
+- PRD §11, DESIGN_SYSTEM Calendar Week and AGENTS safeguards were updated together
+  to record the explicit approved product decision. No architecture ADR is needed:
+  this changes composition, not domain/persistence/platform contracts.
+
+### Changed files and scoped coverage
+
+- `lib/features/calendar/presentation/week_timeline_view.dart`: responsive agenda,
+  grouped pinned headings, measured text heights, rows and initial-day positioning.
+- `lib/features/calendar/presentation/calendar_page.dart` and
+  `lib/app/planact_app.dart`: existing quick-add callback wiring only.
+- `test/widget/week_timeline_test.dart`: Light/Dark at 320dp with 1x/2x text,
+  all nine actual statuses, standard targets, identity marker, details tap,
+  navigation, initial today/earlier days, wide lanes, all-day/equal starts,
+  incomplete holidays, pinned heading, add, loading/retry and stale completion.
+- `AGENTS.md`, `docs/product/PRD.md`, `docs/DESIGN_SYSTEM.md` and this report:
+  current contracts and verification aligned.
+
+Coverage: Week phone/wide/content/empty/loading/error/navigation **Migrated**.
+Month/mode bounds/return-today/selected-day cards **Compliant**, protected by
+existing regression tests. Today, shared marker/theme, details/reminders, picker,
+Finance and other surfaces **Intentionally Unchanged**: no shared token, marker
+implementation or domain action changed.
+
+No schema, migration, dependency, durable default, reminder intent, holiday source,
+backup format or domain semantic change. Bounded durable loader and file-backed
+restart coverage remain in place. Today eager reads are still outside scope.
+Native screen-reader/device visual review, profile performance and Android release
+validation remain limitations; eager layout is bounded by one week's records but
+no dense-week performance certification is claimed.
+
+### Final validation — agenda redesign
+
+- Format verification of `lib` and `test`: **228 files, zero changes**, exit 0.
+- `flutter analyze`: **No issues found**, as recorded in the completed analyzer output.
+- Focused Calendar/design-system regression run: **56 tests passed**.
+- Agenda widget run: **9 tests passed**, including scaled Light/Dark layouts,
+  today positioning, earlier days, sticky headings, all-day/equal starts and retry.
+- Full suite retry with `flutter test --concurrency=1 --reporter=expanded`:
+  **439 tests passed**. An earlier full run terminated with a Dart VM stack trace;
+  the successful single-worker retry is the authoritative full-suite result.
+- `git diff --check`: successful.
+
+Automated checks do not replace native-device visual/accessibility review or
+performance profiling. Existing details navigation opens commitment details;
+selecting a particular occurrence is still not supported by that existing API.
+
+---
+
+# Historical timeline checkpoint (before approved agenda redesign)
 
 ## Phase 0 — inspection map (completed before code changes)
 

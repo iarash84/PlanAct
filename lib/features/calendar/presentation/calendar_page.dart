@@ -24,6 +24,7 @@ class CalendarPage extends StatefulWidget {
     required this.commitments,
     required this.scheduledDates,
     this.onCommitmentTap,
+    this.onAdd,
     this.occurrences = const {},
     this.reminderRules = const [],
     this.initialDate,
@@ -39,6 +40,7 @@ class CalendarPage extends StatefulWidget {
   final Map<String, List<Occurrence>> occurrences;
   final List<ReminderRule> reminderRules;
   final ValueChanged<Commitment>? onCommitmentTap;
+  final VoidCallback? onAdd;
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -49,6 +51,7 @@ class _CalendarPageState extends State<CalendarPage> {
   late JalaliDate _month;
   late JalaliDate _selectedDay;
   bool _week = false;
+  int _weekPositionRevision = 0;
 
   @override
   void initState() {
@@ -91,6 +94,7 @@ class _CalendarPageState extends State<CalendarPage> {
         key: const ValueKey('calendar-return-today'),
         onPressed: () => setState(() {
           final current = JalaliDate.now();
+          _weekPositionRevision++;
           _selectedDay = current;
           _month = JalaliDate(current.year, current.month, 1);
         }),
@@ -137,12 +141,14 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           Expanded(
             child: WeekTimelineView(
+              key: ValueKey(_weekPositionRevision),
               date: _selectedDay,
               commitments: widget.commitments,
               occurrences: widget.occurrences,
               holidays: _holidayProvider,
               loader: widget.weekLoader,
               onTap: widget.onCommitmentTap,
+              onAdd: widget.onAdd,
             ),
           ),
         ],
