@@ -80,6 +80,10 @@ const _rows = <String, List<String>>{
     "('allocation','match','done',500000,'IRR',0)",
     "('corrected-allocation','corrected','done',400000,'IRR',0)",
   ],
+  'relationship_reviews': [
+    "('independent','payment',1,0,1500000,'IRR','active-fingerprint','history-fingerprint',1000000,1700000001)",
+    "('reopened','payment',2,1,1500000,'IRR','active-fingerprint','history-fingerprint',1000000,1700000002)",
+  ],
   'financial_expectations': [
     "('expectation','done',0,1500000,'IRR','bank',0,1700000000,1700000001)",
   ],
@@ -159,7 +163,7 @@ void main() {
           sql.close();
           final storage = SqliteBackupStorage(
             live: live,
-            schemaVersion: 16,
+            schemaVersion: 17,
             expectedSchema: schema,
             snapshot: live.readAsBytes,
             closeLive: () async {},
@@ -167,7 +171,7 @@ void main() {
           final rebuild = _Rebuild()..failOnce = rollback;
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 16),
+            validator: const BackupValidator(currentSchemaVersion: 17),
             rebuildHook: rebuild,
             keyStorage: _Keys(),
             encryptor: AesGcmBackupEncryptor(),

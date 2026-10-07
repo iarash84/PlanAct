@@ -525,7 +525,18 @@ Minimum transaction types:
 
 «تعیین ارتباط» برای تراکنش مشخص باید همان تراکنش را تا انتخاب تعهد و رخداد و تأیید مبلغ حفظ کند؛ نباید صرفاً صفحهٔ عمومی مالی را باز کند. پس از تأیید ورود پیامک، اقدام «تعیین ارتباط» باید شناسهٔ تراکنش ثبت‌شده را منتقل کند. ورود به این مسیر یا انصراف از آن نباید تراکنش تازه، نتیجهٔ رخداد یا مبلغ مورد انتظار ایجاد یا تغییر دهد.
 
-Implementation checkpoint (2026-10-06): Priority 10 contextual navigation is wired from Today, transaction actions and the SMS confirmation feedback into the existing persistent matching architecture. The bounded flow confirms one occurrence allocation at a time, supports partial allocation and retains the form on refresh or failed confirmation. It does not claim the complete matching scope above: match correction, explicit overpayment, commitment-only targets, bulk allocation and cross-command atomic allocation admission remain separate work. See `docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md` for evidence and limitations.
+Implementation checkpoint (2026-10-06): Priority 10 contextual navigation is wired from Today, transaction actions and the SMS confirmation feedback into the persistent matching architecture. The bounded flow confirms one occurrence allocation at a time, supports partial allocation and retains the form on refresh or failed confirmation. Match correction UI, explicit overpayment policy, commitment-only targets and bulk allocation remain separate work. See `docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md` for the original checkpoint; the relationship-review checkpoint below supersedes its allocation-admission limitation.
+
+### بررسی مستقل ارتباط تراکنش
+
+- «به تعهدی مربوط نیست» تصمیم صریح و مستقل از دسته‌بندی، برچسب و ارتباط مالی است. نبود ارتباط یا خروج/انصراف از فرم به معنی بررسی‌شدن نیست.
+- صف تعیین ارتباط در امروز فقط هزینه/درآمد معتبر و خنثی‌نشده با مبلغ تخصیص‌نیافته و بررسی‌نشده را نشان می‌دهد. انتقال، موجودی اولیه، اصلاح و ثبت جبرانی وارد این صف نمی‌شوند.
+- ارتباط جزئی فقط مبلغ تخصیص‌یافته را پوشش می‌دهد؛ باقی‌مانده همچنان نیازمند بررسی است. کاربر می‌تواند فقط همین باقی‌مانده را مستقل تأیید کند، بدون ایجاد ارتباط صوری یا اعلام تسویهٔ تعهد.
+- تصمیم مستقل، مبلغ و موجودی حساب، ارتباط‌های موجود، نتیجهٔ رخداد، مبلغ مورد انتظار، دسته‌بندی و برچسب‌ها را تغییر نمی‌دهد؛ سابقهٔ تصمیم و بازگشایی پس از راه‌اندازی مجدد و پشتیبان/بازیابی حفظ می‌شود.
+- بازگردانی پس از ثبت و «بازگشایی بررسی ارتباط» در مسیر تعیین ارتباط قابل دسترس است. این مسیر از عملیات تراکنش در مالی، حتی برای موارد مستقل، باز می‌شود؛ پس از بازگشایی می‌توان ارتباط واقعی ثبت کرد.
+- فرم قدیمی نباید تصمیم یا تخصیص جدیدتر را بازنویسی کند. تغییر مبلغ یا سابقهٔ تخصیص، تأیید مستقل قبلی را برای باقی‌ماندهٔ جدید نامعتبر می‌کند، بدون حذف سابقه. جمع تخصیص‌های فعال نباید از مبلغ تراکنش تجاوز کند؛ سیاست اضافه‌پرداخت نیازمند تصمیم جداگانه است.
+
+Implementation checkpoint (2026-10-07): Durable independent-remainder review, append-only reopening/Undo, partial-remainder Today classification and guarded transactional allocation admission are implemented for the bounded local relationship flow. Schema 17 includes review history in personal backups, with strict historical-schema validation retained. See [relationship review verification](../RELATIONSHIP_REVIEW_VERIFICATION.md) and [ADR 0015](../adr/0015-transaction-relationship-review.md). Native-device and installation-bound backup recovery limitations remain unchanged.
 
 ---
 

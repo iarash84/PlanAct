@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
+import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
@@ -21,6 +23,20 @@ import 'package:planact/features/reconciliation/application/contextual_reconcili
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
+
+class _DelayedContext extends ContextualReconciliation {
+  _DelayedContext(ContextualReconciliation flow, this.pending)
+    : super(
+        finance: flow.finance,
+        commitments: flow.commitments,
+        plans: flow.plans,
+        reconciliation: flow.reconciliation,
+      );
+  final Future<TransactionRelationshipContext> pending;
+  @override
+  Future<TransactionRelationshipContext> load(StableId transactionId) =>
+      pending;
+}
 
 void main() {
   late AppDatabase database;
@@ -176,6 +192,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('تأیید و ثبت'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('تأیید و ثبت'));
       await tester.pumpAndSettle();
       final imported = (await finance.listEntries()).singleWhere(
@@ -200,7 +217,252 @@ void main() {
     },
   );
 
+  testWidgets('loading is explicit until durable context arrives', (
+    tester,
+  ) async {
+    final pending = Completer<TransactionRelationshipContext>();
+    final delayed = _DelayedContext(flow, pending.future);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TransactionRelationshipPage(
+          transactionId: transaction.id,
+          flow: delayed,
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('به تعهدی مربوط نیست'), findsNothing);
+    pending.complete(await flow.load(transaction.id));
+    await tester.pumpAndSettle();
+    expect(find.text('به تعهدی مربوط نیست'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    'no candidates still permits independent decision; back alone makes no review',
+    (tester) async {
+      final emptyFlow = ContextualReconciliation(
+        finance: finance,
+        commitments: InMemoryCommitmentRepository(),
+        plans: plans,
+        reconciliation: reconciliation,
+      );
+      Future<void> open() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: PlanActTheme.light(),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<bool>(
+                      builder: (_) => TransactionRelationshipPage(
+                        transactionId: transaction.id,
+                        flow: emptyFlow,
+                      ),
+                    ),
+                  ),
+                  child: const Text('ورود'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('ورود'));
+        await tester.pumpAndSettle();
+      }
+
+      await open();
+      expect(
+        find.text('هنوز رخدادی برای انتخاب ثبت نشده است.'),
+        findsOneWidget,
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect((await emptyFlow.load(transaction.id)).review!.revision, 0);
+      await tester.tap(find.text('ورود'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
+      expect(
+        (await emptyFlow.load(transaction.id)).review!.isIndependent,
+        isTrue,
+      );
+      expect(await reconciliation.repository.list(), isEmpty);
+      expect(await finance.listEntries(), hasLength(1));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'stale independent/reopen decisions retain draft until explicit reload',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TransactionRelationshipPage(
+            transactionId: transaction.id,
+            flow: flow,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('کلاس موسیقی'));
+      await tester.enterText(
+        find.widgetWithText(TextField, 'مبلغ ارتباط'),
+        '400',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      final independent = await flow.markIndependent(
+        expected: (await flow.load(transaction.id)).review!,
+      );
+      await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .controller!
+            .text,
+        '400',
+      );
+      expect(tester.widget<ListTile>(find.byType(ListTile)).selected, isTrue);
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('بازخوانی'));
+      await tester.pumpAndSettle();
+      await flow.reopen(expected: independent);
+      await tester.ensureVisible(find.text('بازگشایی بررسی ارتباط'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('بازگشایی بررسی ارتباط'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
+      expect(find.text('بازگشایی بررسی ارتباط'), findsOneWidget);
+      await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('بازخوانی'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .controller!
+            .text,
+        '400',
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
   for (final dark in [false, true]) {
+    testWidgets(
+      'partial independent remainder undo, reopen and relink with dirty back (${dark ? 'dark' : 'light'})',
+      (tester) async {
+        await flow.confirm(
+          transactionId: transaction.id,
+          occurrenceId: occurrenceId,
+          minorUnits: 400,
+        );
+        bool? returned;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+            builder: (context, child) => Directionality(
+              textDirection: TextDirection.rtl,
+              child: MediaQuery(
+                data: MediaQuery.of(context)
+                    .copyWith(textScaler: TextScaler.linear(1.8)),
+                child: child!,
+              ),
+            ),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () async {
+                    returned = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute<bool>(
+                        builder: (_) => TransactionRelationshipPage(
+                          transactionId: transaction.id,
+                          flow: flow,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('ورود'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.tap(find.text('ورود'));
+        await tester.pumpAndSettle();
+        expect(
+          Directionality.of(
+            tester.element(find.byType(TransactionRelationshipPage)),
+          ),
+          TextDirection.rtl,
+        );
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        expect((await flow.load(transaction.id)).review!.isIndependent, isTrue);
+        expect(find.text('تأیید ارتباط'), findsNothing);
+        await tester.tap(find.text('بازگردانی'));
+        await tester.pumpAndSettle();
+        expect(
+          (await flow.load(transaction.id)).review!.isIndependent,
+          isFalse,
+        );
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(returned, isTrue);
+        await tester.tap(find.text('ورود'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('بررسی‌شده:'), findsOneWidget);
+        await tester.ensureVisible(find.text('بازگشایی بررسی ارتباط'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('بازگشایی بررسی ارتباط'));
+        await tester.pumpAndSettle();
+        expect(
+          (await flow.load(transaction.id)).review!.isIndependent,
+          isFalse,
+        );
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+        await tester.drag(find.byType(SnackBar), const Offset(0, 300));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(find.text('کلاس موسیقی'), 150);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('کلاس موسیقی'));
+        await tester.ensureVisible(
+          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+        );
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          '600',
+        );
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.ensureVisible(find.text('تأیید ارتباط'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('تأیید ارتباط'));
+        await tester.pumpAndSettle();
+        expect(returned, isTrue);
+        expect((await flow.load(transaction.id)).available.minorUnits, 0);
+        expect(await reconciliation.repository.list(), hasLength(2));
+        expect(await finance.listEntries(), hasLength(1));
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
     testWidgets(
       'Today opens exact transaction and back retains origin (${dark ? 'dark' : 'light'})',
       (tester) async {
@@ -228,6 +490,26 @@ void main() {
         await tester.pageBack();
         await tester.pumpAndSettle();
         expect(find.text('تعیین ارتباط'), findsWidgets);
+        expect((await flow.load(transaction.id)).review!.revision, 0);
+        expect(await reconciliation.repository.list(), isEmpty);
+        expect(await finance.listEntries(), hasLength(1));
+        await tester.tap(find.widgetWithText(TextButton, 'تعیین ارتباط'));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
+        expect((await flow.load(transaction.id)).review!.isIndependent, isTrue);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          PlanActApp(repository: commitments, planRepository: plans),
+        );
+        await tester.pumpAndSettle();
+        expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
         expect(await reconciliation.repository.list(), isEmpty);
         expect(await finance.listEntries(), hasLength(1));
         await tester.pumpWidget(const SizedBox.shrink());
@@ -267,7 +549,8 @@ void main() {
           '400',
         );
         FocusManager.instance.primaryFocus?.unfocus();
-        await tester.ensureVisible(find.text('بازخوانی'));
+        await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('بازخوانی'));
         await tester.pumpAndSettle();
         expect(
@@ -285,6 +568,7 @@ void main() {
           minorUnits: 700,
         );
         await tester.ensureVisible(find.text('تأیید ارتباط'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('تأیید ارتباط'));
         await tester.pumpAndSettle();
         expect(find.byType(TransactionRelationshipPage), findsOneWidget);
@@ -296,7 +580,8 @@ void main() {
           '400',
         );
         expect(tester.widget<ListTile>(find.byType(ListTile)).selected, isTrue);
-        await tester.ensureVisible(find.text('بازخوانی'));
+        await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('بازخوانی'));
         await tester.pumpAndSettle();
         await tester.enterText(
@@ -305,6 +590,7 @@ void main() {
         );
         FocusManager.instance.primaryFocus?.unfocus();
         await tester.ensureVisible(find.text('تأیید ارتباط'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('تأیید ارتباط'));
         await tester.pumpAndSettle();
         expect(find.text('المصدر'), findsOneWidget);

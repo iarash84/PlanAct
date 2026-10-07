@@ -4,6 +4,7 @@ import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
@@ -175,6 +176,7 @@ class AttentionEngine {
     required Iterable<InboxSuggestion> inboxSuggestions,
     required Iterable<AccountEntry> entries,
     required Iterable<FinancialAccount> accounts,
+    Iterable<RelationshipReviewEntry> reviewEntries = const [],
   }) {
     final dashboard = build(
       now: now,
@@ -185,6 +187,7 @@ class AttentionEngine {
       inboxSuggestions: inboxSuggestions,
       entries: entries,
       accounts: accounts,
+      reviewEntries: reviewEntries,
     );
     final byCommitment = {for (final item in commitments) item.id: item};
     final occurrenceById = <String, Occurrence>{};
@@ -298,6 +301,7 @@ class AttentionEngine {
     required Iterable<InboxSuggestion> inboxSuggestions,
     required Iterable<AccountEntry> entries,
     required Iterable<FinancialAccount> accounts,
+    Iterable<RelationshipReviewEntry> reviewEntries = const [],
   }) {
     final activeCommitments = commitments.where(
       (item) => item.status != CommitmentStatus.archived,
@@ -334,9 +338,7 @@ class AttentionEngine {
     }
 
     final allocatedByOccurrence = <StableId, int>{};
-    final matchedTransactionIds = <StableId>{};
     for (final match in matches.where((m) => m.status == MatchStatus.active)) {
-      matchedTransactionIds.add(match.transactionId);
       for (final allocation in match.allocations) {
         allocatedByOccurrence[allocation.occurrenceId] =
             (allocatedByOccurrence[allocation.occurrenceId] ?? 0) +
@@ -415,9 +417,35 @@ class AttentionEngine {
         .toList();
     attention.addAll(inbox);
 
-    final unmatched = entries.where(
-      (entry) => !matchedTransactionIds.contains(entry.id),
-    );
+    final latestReviews = <StableId, RelationshipReviewEntry>{};
+    for (final review in reviewEntries) {
+      final previous = latestReviews[review.transactionId];
+      if (previous == null || review.revision > previous.revision) {
+        latestReviews[review.transactionId] = review;
+      }
+    }
+    final reversedIds = entries
+        .where((entry) => entry.type == AccountEntryType.reversal)
+        .map((entry) => entry.referenceId)
+        .toSet();
+    final unmatched = <AccountEntry>[];
+    final reviews = <StableId, RelationshipReview>{};
+    for (final entry in entries) {
+      if ((entry.type != AccountEntryType.income &&
+              entry.type != AccountEntryType.expense) ||
+          reversedIds.contains(entry.id.value)) {
+        continue;
+      }
+      final review = RelationshipReview.project(
+        transactionId: entry.id,
+        transactionAmount: entry.amount,
+        matches: matches,
+        latestDecision: latestReviews[entry.id],
+      );
+      if (review.remainderMinorUnits <= 0 || review.isIndependent) continue;
+      unmatched.add(entry);
+      reviews[entry.id] = review;
+    }
     final accountNames = {
       for (final account in accounts) account.id: account.name,
     };
@@ -427,9 +455,9 @@ class AttentionEngine {
           id: 'transaction:${entry.id.value}',
           reason: AttentionReason.unmatchedTransaction,
           title: 'تراکنش نیازمند بررسی',
-          explanation: 'این تراکنش هنوز به تعهد یا پرداختی مرتبط نشده است.',
+          explanation: 'مبلغ باقی‌ماندهٔ این تراکنش نیازمند تعیین ارتباط است.',
           urgency: 65,
-          amountMinorUnits: entry.amount.minorUnits,
+          amountMinorUnits: reviews[entry.id]!.remainderMinorUnits,
           currency: entry.amount.currency,
           occurredAt: entry.occurredAt,
           accountName: accountNames[entry.accountId],

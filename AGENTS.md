@@ -243,6 +243,8 @@ Planned-vs-actual logic belongs outside UI and must be testable.
 
 Financial matching between transactions and occurrences is many-to-many to support partial payments, multiple payments, overpayment, and corrected matches.
 
+Transaction relationship review is separate from real matches, categories and tags. Only explicit confirmation may resolve an unmatched remainder as independent; navigation/cancellation is not review. Persist append-only independent/reopened decisions with transaction amount, allocation/history fingerprints and monotonic per-transaction revision. Undo/reopening appends history; it must not reverse financial entries or remove matches. A changed amount or allocation history invalidates the old decision for the current remainder, without deleting it. Today must classify eligible unreversed income/expense remainders through the domain projection, not suppress a whole transaction because any active match exists. Production allocation admission and review compare-and-append must validate fresh durable state transactionally; CommandGate alone is not serialization. New review history belongs in personal backup logical preservation and schema compatibility tests. See docs/adr/0015-transaction-relationship-review.md.
+
 ## 11. Persistence and migration rules
 
 - Use foreign keys, indexes, transactional writes, and explicit migrations from the beginning.

@@ -56,6 +56,8 @@ import 'package:planact/features/reminders/application/reminder_platform.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/reconciliation/application/contextual_reconciliation.dart';
+import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
+import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
@@ -362,6 +364,16 @@ class _HomeShellState extends State<HomeShell> {
       final accounts = await _financeRepository.listAccounts();
       final entries = await _financeRepository.listEntries();
       final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+      final reviewEntries = <RelationshipReviewEntry>[];
+      final reviewRepository = _reconciliation.repository;
+      if (reviewRepository is RelationshipReviewRepository) {
+        for (final entry in entries) {
+          reviewEntries.addAll(
+            await (reviewRepository as RelationshipReviewRepository)
+                .reviewHistory(entry),
+          );
+        }
+      }
       final dashboard = _attentionEngine.build(
         now: DateTime.now(),
         commitments: items,
@@ -371,6 +383,7 @@ class _HomeShellState extends State<HomeShell> {
         inboxSuggestions: inboxSuggestions,
         entries: entries,
         accounts: accounts,
+        reviewEntries: reviewEntries,
       );
       final actionCenter = _attentionEngine.buildActionCenter(
         now: DateTime.now(),
@@ -381,6 +394,7 @@ class _HomeShellState extends State<HomeShell> {
         inboxSuggestions: inboxSuggestions,
         entries: entries,
         accounts: accounts,
+        reviewEntries: reviewEntries,
       );
       if (mounted) {
         setState(() {

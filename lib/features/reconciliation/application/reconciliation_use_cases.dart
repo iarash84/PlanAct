@@ -5,6 +5,8 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/domain/relationship_review.dart';
+import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 
 abstract interface class ReconciliationRepository {
   Future<List<TransactionMatch>> list();
@@ -63,15 +65,147 @@ class ReconciliationEngine {
   }
 }
 
-class InMemoryReconciliationRepository implements ReconciliationRepository {
+class InMemoryReconciliationRepository
+    implements
+        ReconciliationRepository,
+        RelationshipReviewRepository,
+        AtomicMatchCorrection {
   final Map<StableId, TransactionMatch> _matches = {};
+  final Map<StableId, AccountEntry> _transactions = {};
+  final Map<StableId, List<RelationshipReviewEntry>> _reviews = {};
+
+  RelationshipReview _review(StableId id) => RelationshipReview.project(
+    transactionId: id,
+    transactionAmount:
+        (_transactions[id] ??
+                (throw const ValidationError(
+                  'Load the transaction review first',
+                )))
+            .amount,
+    matches: _matches.values,
+    latestDecision: _reviews[id]?.lastOrNull,
+  );
+
+  @override
+  Future<RelationshipReview> loadReview(AccountEntry transaction) async {
+    if (transaction.type != AccountEntryType.income &&
+        transaction.type != AccountEntryType.expense) {
+      throw const ValidationError('Transaction is not eligible for matching');
+    }
+    _transactions[transaction.id] = transaction;
+    return _review(transaction.id);
+  }
+
+  @override
+  Future<List<RelationshipReviewEntry>> reviewHistory(
+    AccountEntry transaction,
+  ) async => List.unmodifiable(_reviews[transaction.id] ?? []);
+
+  @override
+  Future<RelationshipReview> decideReview({
+    required RelationshipReview expected,
+    required RelationshipReviewDecision decision,
+    required DateTime recordedAt,
+  }) async {
+    final current = _review(expected.transactionId);
+    current.requireExpected(expected);
+    final entry = current.append(decision, recordedAt);
+    (_reviews[expected.transactionId] ??= []).add(entry);
+    return _review(expected.transactionId);
+  }
+
+  @override
+  Future<void> saveReviewedMatch(
+    TransactionMatch match,
+    RelationshipReview expected,
+  ) async {
+    final current = _review(match.transactionId);
+    current.requireExpected(expected);
+    if (current.isIndependent) {
+      throw const ValidationError(
+        'Reopen the relationship review before matching',
+      );
+    }
+    _save(match);
+  }
+
+  void _save(TransactionMatch match) {
+    final old = _matches[match.id];
+    if (old != null) {
+      TransactionMatch immutablePart(TransactionMatch value) =>
+          TransactionMatch(
+            id: value.id,
+            transactionId: value.transactionId,
+            transactionAmount: value.transactionAmount,
+            createdAt: value.createdAt,
+            allocations: value.allocations,
+          );
+      if (old.transactionId != match.transactionId ||
+          old.createdAt != match.createdAt ||
+          allocationFingerprintFor([immutablePart(old)]) !=
+              allocationFingerprintFor([immutablePart(match)]) ||
+          (old.status != MatchStatus.active &&
+              (old.status != match.status ||
+                  old.correctedMatchId != match.correctedMatchId)) ||
+          (old.status == MatchStatus.active &&
+              match.status == MatchStatus.active &&
+              old.correctedMatchId != match.correctedMatchId)) {
+        throw const ValidationError('Match history cannot be rewritten');
+      }
+    } else if (match.status != MatchStatus.active) {
+      throw const ValidationError('Only existing matches can be resolved');
+    }
+    if (match.status == MatchStatus.active) {
+      final current = _transactions[match.transactionId];
+      if (current != null && current.amount != match.transactionAmount) {
+        throw const ValidationError('Transaction amount changed');
+      }
+      final used = _matches.values
+          .where(
+            (m) =>
+                m.transactionId == match.transactionId &&
+                m.id != match.id &&
+                m.status == MatchStatus.active,
+          )
+          .fold(0, (sum, m) => sum + m.allocatedMinorUnits);
+      if (used + match.allocatedMinorUnits >
+          match.transactionAmount.minorUnits) {
+        throw const ValidationError(
+          'Cumulative allocation exceeds transaction amount',
+        );
+      }
+      if (current != null && _review(match.transactionId).isIndependent) {
+        throw const ValidationError(
+          'Reopen the relationship review before matching',
+        );
+      }
+    }
+    _matches[match.id] = match;
+  }
+
+  @override
+  Future<void> saveCorrection({
+    required TransactionMatch original,
+    required TransactionMatch corrected,
+  }) async {
+    final before = Map<StableId, TransactionMatch>.from(_matches);
+    try {
+      _save(original);
+      _save(corrected);
+    } catch (_) {
+      _matches
+        ..clear()
+        ..addAll(before);
+      rethrow;
+    }
+  }
 
   @override
   Future<List<TransactionMatch>> list() async =>
       List.unmodifiable(_matches.values);
 
   @override
-  Future<void> save(TransactionMatch match) async => _matches[match.id] = match;
+  Future<void> save(TransactionMatch match) async => _save(match);
 }
 
 class ReconciliationUseCases {
@@ -99,6 +233,7 @@ class ReconciliationUseCases {
     required DateTime createdAt,
     required List<StableId> occurrenceIds,
     required List<Money> allocations,
+    RelationshipReview? expectedReview,
   }) => CommandGate.runFor(repository, () async {
     if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
       throw const ValidationError('Occurrences and allocations must align');
@@ -122,7 +257,18 @@ class ReconciliationUseCases {
       createdAt: createdAt.toUtc(),
       allocations: items,
     );
-    await repository.save(result);
+    if (expectedReview != null) {
+      final reviews = repository;
+      if (reviews is! RelationshipReviewRepository) {
+        throw const ValidationError('Relationship review is unsupported');
+      }
+      await (reviews as RelationshipReviewRepository).saveReviewedMatch(
+        result,
+        expectedReview,
+      );
+    } else {
+      await repository.save(result);
+    }
     return result;
   });
 

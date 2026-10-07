@@ -8,6 +8,8 @@ import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/domain/relationship_review.dart';
+import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 
 class RelationshipTarget {
@@ -22,11 +24,13 @@ class TransactionRelationshipContext {
     required this.account,
     required this.available,
     required this.targets,
+    this.review,
   });
   final AccountEntry transaction;
   final FinancialAccount? account;
   final Money available;
   final List<RelationshipTarget> targets;
+  final RelationshipReview? review;
 }
 
 /// Reloads the durable transaction by identity; navigation never creates a ledger
@@ -73,17 +77,54 @@ class ContextualReconciliation {
         targets.add(RelationshipTarget(commitment, occurrence));
       }
     }
+    final repository = reconciliation.repository;
+    final review = repository is RelationshipReviewRepository
+        ? await (repository as RelationshipReviewRepository).loadReview(
+            transaction,
+          )
+        : null;
     return TransactionRelationshipContext(
+      review: review,
       transaction: transaction,
       account: accounts.where((a) => a.id == transaction.accountId).firstOrNull,
       available: Money(
-        minorUnits: (transaction.amount.minorUnits - used).clamp(
-          0,
-          transaction.amount.minorUnits,
-        ),
-        currency: transaction.amount.currency,
+        minorUnits:
+            review?.remainderMinorUnits ??
+            (transaction.amount.minorUnits - used).clamp(
+              0,
+              transaction.amount.minorUnits,
+            ),
+        currency:
+            review?.transactionAmount.currency ?? transaction.amount.currency,
       ),
       targets: List.unmodifiable(targets),
+    );
+  }
+
+  Future<RelationshipReview> markIndependent({
+    required RelationshipReview expected,
+    DateTime? recordedAt,
+  }) => _decide(expected, RelationshipReviewDecision.independent, recordedAt);
+
+  Future<RelationshipReview> reopen({
+    required RelationshipReview expected,
+    DateTime? recordedAt,
+  }) => _decide(expected, RelationshipReviewDecision.reopened, recordedAt);
+
+  Future<RelationshipReview> _decide(
+    RelationshipReview expected,
+    RelationshipReviewDecision decision,
+    DateTime? at,
+  ) async {
+    await load(expected.transactionId);
+    final repository = reconciliation.repository;
+    if (repository is! RelationshipReviewRepository) {
+      throw const ValidationError('Relationship review is unsupported');
+    }
+    return (repository as RelationshipReviewRepository).decideReview(
+      expected: expected,
+      decision: decision,
+      recordedAt: at ?? DateTime.now().toUtc(),
     );
   }
 
@@ -91,14 +132,27 @@ class ContextualReconciliation {
     required StableId transactionId,
     required StableId occurrenceId,
     required int minorUnits,
+    RelationshipReview? expectedReview,
   }) async {
     final context = await load(transactionId);
+    if (expectedReview != null) {
+      if (context.review == null) {
+        throw const ValidationError('Relationship review is unsupported');
+      }
+      context.review!.requireExpected(expectedReview);
+    }
+    if (context.review?.isIndependent == true) {
+      throw const ValidationError(
+        'Reopen the relationship review before matching',
+      );
+    }
     if (minorUnits <= 0 ||
         minorUnits > context.available.minorUnits ||
         !context.targets.any((t) => t.occurrence.id == occurrenceId)) {
       throw const ValidationError('Invalid relationship allocation');
     }
     await reconciliation.match(
+      expectedReview: expectedReview ?? context.review,
       transactionId: context.transaction.id,
       transactionAmount: context.transaction.amount,
       createdAt: DateTime.now().toUtc(),

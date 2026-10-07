@@ -34,7 +34,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '16');
+    expect(await database.readMetadata('schema_version'), '17');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -353,6 +353,15 @@ void main() {
         ],
       );
 
+      await repository.save(
+        TransactionMatch(
+          id: match.id,
+          transactionId: match.transactionId,
+          transactionAmount: match.transactionAmount,
+          createdAt: match.createdAt,
+          allocations: match.allocations,
+        ),
+      );
       await repository.save(match);
       final stored = await repository.list();
 

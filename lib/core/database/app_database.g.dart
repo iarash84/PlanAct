@@ -8846,6 +8846,672 @@ class MatchAllocationsCompanion extends UpdateCompanion<MatchAllocation> {
   }
 }
 
+class $RelationshipReviewsTable extends RelationshipReviews
+    with TableInfo<$RelationshipReviewsTable, RelationshipReview> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RelationshipReviewsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+    'transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES account_entries (id)',
+    ),
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(revision).isBiggerThanValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _decisionMeta = const VerificationMeta(
+    'decision',
+  );
+  @override
+  late final GeneratedColumn<int> decision = GeneratedColumn<int>(
+    'decision',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(decision).isBetweenValues(0, 1),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _minorUnitsMeta = const VerificationMeta(
+    'minorUnits',
+  );
+  @override
+  late final GeneratedColumn<int> minorUnits = GeneratedColumn<int>(
+    'minor_units',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(minorUnits).isBiggerThanValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _allocationFingerprintMeta =
+      const VerificationMeta('allocationFingerprint');
+  @override
+  late final GeneratedColumn<String> allocationFingerprint =
+      GeneratedColumn<String>(
+        'allocation_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _allocationHistoryFingerprintMeta =
+      const VerificationMeta('allocationHistoryFingerprint');
+  @override
+  late final GeneratedColumn<String> allocationHistoryFingerprint =
+      GeneratedColumn<String>(
+        'allocation_history_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _remainderMinorUnitsMeta =
+      const VerificationMeta('remainderMinorUnits');
+  @override
+  late final GeneratedColumn<int> remainderMinorUnits = GeneratedColumn<int>(
+    'remainder_minor_units',
+    aliasedName,
+    false,
+    check: () =>
+        ComparableExpr(remainderMinorUnits).isBiggerThanValue(0) &
+        ComparableExpr(remainderMinorUnits).isSmallerOrEqual(minorUnits),
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transactionId,
+    revision,
+    decision,
+    minorUnits,
+    currency,
+    allocationFingerprint,
+    allocationHistoryFingerprint,
+    remainderMinorUnits,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'relationship_reviews';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RelationshipReview> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_revisionMeta);
+    }
+    if (data.containsKey('decision')) {
+      context.handle(
+        _decisionMeta,
+        decision.isAcceptableOrUnknown(data['decision']!, _decisionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_decisionMeta);
+    }
+    if (data.containsKey('minor_units')) {
+      context.handle(
+        _minorUnitsMeta,
+        minorUnits.isAcceptableOrUnknown(data['minor_units']!, _minorUnitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_minorUnitsMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('allocation_fingerprint')) {
+      context.handle(
+        _allocationFingerprintMeta,
+        allocationFingerprint.isAcceptableOrUnknown(
+          data['allocation_fingerprint']!,
+          _allocationFingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_allocationFingerprintMeta);
+    }
+    if (data.containsKey('allocation_history_fingerprint')) {
+      context.handle(
+        _allocationHistoryFingerprintMeta,
+        allocationHistoryFingerprint.isAcceptableOrUnknown(
+          data['allocation_history_fingerprint']!,
+          _allocationHistoryFingerprintMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_allocationHistoryFingerprintMeta);
+    }
+    if (data.containsKey('remainder_minor_units')) {
+      context.handle(
+        _remainderMinorUnitsMeta,
+        remainderMinorUnits.isAcceptableOrUnknown(
+          data['remainder_minor_units']!,
+          _remainderMinorUnitsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remainderMinorUnitsMeta);
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RelationshipReview map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RelationshipReview(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      transactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaction_id'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      decision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}decision'],
+      )!,
+      minorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}minor_units'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      allocationFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allocation_fingerprint'],
+      )!,
+      allocationHistoryFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allocation_history_fingerprint'],
+      )!,
+      remainderMinorUnits: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remainder_minor_units'],
+      )!,
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RelationshipReviewsTable createAlias(String alias) {
+    return $RelationshipReviewsTable(attachedDatabase, alias);
+  }
+}
+
+class RelationshipReview extends DataClass
+    implements Insertable<RelationshipReview> {
+  final String id;
+  final String transactionId;
+  final int revision;
+  final int decision;
+  final int minorUnits;
+  final String currency;
+  final String allocationFingerprint;
+  final String allocationHistoryFingerprint;
+  final int remainderMinorUnits;
+  final DateTime recordedAt;
+  const RelationshipReview({
+    required this.id,
+    required this.transactionId,
+    required this.revision,
+    required this.decision,
+    required this.minorUnits,
+    required this.currency,
+    required this.allocationFingerprint,
+    required this.allocationHistoryFingerprint,
+    required this.remainderMinorUnits,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transaction_id'] = Variable<String>(transactionId);
+    map['revision'] = Variable<int>(revision);
+    map['decision'] = Variable<int>(decision);
+    map['minor_units'] = Variable<int>(minorUnits);
+    map['currency'] = Variable<String>(currency);
+    map['allocation_fingerprint'] = Variable<String>(allocationFingerprint);
+    map['allocation_history_fingerprint'] = Variable<String>(
+      allocationHistoryFingerprint,
+    );
+    map['remainder_minor_units'] = Variable<int>(remainderMinorUnits);
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  RelationshipReviewsCompanion toCompanion(bool nullToAbsent) {
+    return RelationshipReviewsCompanion(
+      id: Value(id),
+      transactionId: Value(transactionId),
+      revision: Value(revision),
+      decision: Value(decision),
+      minorUnits: Value(minorUnits),
+      currency: Value(currency),
+      allocationFingerprint: Value(allocationFingerprint),
+      allocationHistoryFingerprint: Value(allocationHistoryFingerprint),
+      remainderMinorUnits: Value(remainderMinorUnits),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory RelationshipReview.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RelationshipReview(
+      id: serializer.fromJson<String>(json['id']),
+      transactionId: serializer.fromJson<String>(json['transactionId']),
+      revision: serializer.fromJson<int>(json['revision']),
+      decision: serializer.fromJson<int>(json['decision']),
+      minorUnits: serializer.fromJson<int>(json['minorUnits']),
+      currency: serializer.fromJson<String>(json['currency']),
+      allocationFingerprint: serializer.fromJson<String>(
+        json['allocationFingerprint'],
+      ),
+      allocationHistoryFingerprint: serializer.fromJson<String>(
+        json['allocationHistoryFingerprint'],
+      ),
+      remainderMinorUnits: serializer.fromJson<int>(
+        json['remainderMinorUnits'],
+      ),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transactionId': serializer.toJson<String>(transactionId),
+      'revision': serializer.toJson<int>(revision),
+      'decision': serializer.toJson<int>(decision),
+      'minorUnits': serializer.toJson<int>(minorUnits),
+      'currency': serializer.toJson<String>(currency),
+      'allocationFingerprint': serializer.toJson<String>(allocationFingerprint),
+      'allocationHistoryFingerprint': serializer.toJson<String>(
+        allocationHistoryFingerprint,
+      ),
+      'remainderMinorUnits': serializer.toJson<int>(remainderMinorUnits),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  RelationshipReview copyWith({
+    String? id,
+    String? transactionId,
+    int? revision,
+    int? decision,
+    int? minorUnits,
+    String? currency,
+    String? allocationFingerprint,
+    String? allocationHistoryFingerprint,
+    int? remainderMinorUnits,
+    DateTime? recordedAt,
+  }) => RelationshipReview(
+    id: id ?? this.id,
+    transactionId: transactionId ?? this.transactionId,
+    revision: revision ?? this.revision,
+    decision: decision ?? this.decision,
+    minorUnits: minorUnits ?? this.minorUnits,
+    currency: currency ?? this.currency,
+    allocationFingerprint: allocationFingerprint ?? this.allocationFingerprint,
+    allocationHistoryFingerprint:
+        allocationHistoryFingerprint ?? this.allocationHistoryFingerprint,
+    remainderMinorUnits: remainderMinorUnits ?? this.remainderMinorUnits,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  RelationshipReview copyWithCompanion(RelationshipReviewsCompanion data) {
+    return RelationshipReview(
+      id: data.id.present ? data.id.value : this.id,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      decision: data.decision.present ? data.decision.value : this.decision,
+      minorUnits: data.minorUnits.present
+          ? data.minorUnits.value
+          : this.minorUnits,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      allocationFingerprint: data.allocationFingerprint.present
+          ? data.allocationFingerprint.value
+          : this.allocationFingerprint,
+      allocationHistoryFingerprint: data.allocationHistoryFingerprint.present
+          ? data.allocationHistoryFingerprint.value
+          : this.allocationHistoryFingerprint,
+      remainderMinorUnits: data.remainderMinorUnits.present
+          ? data.remainderMinorUnits.value
+          : this.remainderMinorUnits,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RelationshipReview(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('revision: $revision, ')
+          ..write('decision: $decision, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('allocationFingerprint: $allocationFingerprint, ')
+          ..write(
+            'allocationHistoryFingerprint: $allocationHistoryFingerprint, ',
+          )
+          ..write('remainderMinorUnits: $remainderMinorUnits, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transactionId,
+    revision,
+    decision,
+    minorUnits,
+    currency,
+    allocationFingerprint,
+    allocationHistoryFingerprint,
+    remainderMinorUnits,
+    recordedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RelationshipReview &&
+          other.id == this.id &&
+          other.transactionId == this.transactionId &&
+          other.revision == this.revision &&
+          other.decision == this.decision &&
+          other.minorUnits == this.minorUnits &&
+          other.currency == this.currency &&
+          other.allocationFingerprint == this.allocationFingerprint &&
+          other.allocationHistoryFingerprint ==
+              this.allocationHistoryFingerprint &&
+          other.remainderMinorUnits == this.remainderMinorUnits &&
+          other.recordedAt == this.recordedAt);
+}
+
+class RelationshipReviewsCompanion extends UpdateCompanion<RelationshipReview> {
+  final Value<String> id;
+  final Value<String> transactionId;
+  final Value<int> revision;
+  final Value<int> decision;
+  final Value<int> minorUnits;
+  final Value<String> currency;
+  final Value<String> allocationFingerprint;
+  final Value<String> allocationHistoryFingerprint;
+  final Value<int> remainderMinorUnits;
+  final Value<DateTime> recordedAt;
+  final Value<int> rowid;
+  const RelationshipReviewsCompanion({
+    this.id = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.decision = const Value.absent(),
+    this.minorUnits = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.allocationFingerprint = const Value.absent(),
+    this.allocationHistoryFingerprint = const Value.absent(),
+    this.remainderMinorUnits = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RelationshipReviewsCompanion.insert({
+    required String id,
+    required String transactionId,
+    required int revision,
+    required int decision,
+    required int minorUnits,
+    required String currency,
+    required String allocationFingerprint,
+    required String allocationHistoryFingerprint,
+    required int remainderMinorUnits,
+    required DateTime recordedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       transactionId = Value(transactionId),
+       revision = Value(revision),
+       decision = Value(decision),
+       minorUnits = Value(minorUnits),
+       currency = Value(currency),
+       allocationFingerprint = Value(allocationFingerprint),
+       allocationHistoryFingerprint = Value(allocationHistoryFingerprint),
+       remainderMinorUnits = Value(remainderMinorUnits),
+       recordedAt = Value(recordedAt);
+  static Insertable<RelationshipReview> custom({
+    Expression<String>? id,
+    Expression<String>? transactionId,
+    Expression<int>? revision,
+    Expression<int>? decision,
+    Expression<int>? minorUnits,
+    Expression<String>? currency,
+    Expression<String>? allocationFingerprint,
+    Expression<String>? allocationHistoryFingerprint,
+    Expression<int>? remainderMinorUnits,
+    Expression<DateTime>? recordedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (revision != null) 'revision': revision,
+      if (decision != null) 'decision': decision,
+      if (minorUnits != null) 'minor_units': minorUnits,
+      if (currency != null) 'currency': currency,
+      if (allocationFingerprint != null)
+        'allocation_fingerprint': allocationFingerprint,
+      if (allocationHistoryFingerprint != null)
+        'allocation_history_fingerprint': allocationHistoryFingerprint,
+      if (remainderMinorUnits != null)
+        'remainder_minor_units': remainderMinorUnits,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RelationshipReviewsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? transactionId,
+    Value<int>? revision,
+    Value<int>? decision,
+    Value<int>? minorUnits,
+    Value<String>? currency,
+    Value<String>? allocationFingerprint,
+    Value<String>? allocationHistoryFingerprint,
+    Value<int>? remainderMinorUnits,
+    Value<DateTime>? recordedAt,
+    Value<int>? rowid,
+  }) {
+    return RelationshipReviewsCompanion(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      revision: revision ?? this.revision,
+      decision: decision ?? this.decision,
+      minorUnits: minorUnits ?? this.minorUnits,
+      currency: currency ?? this.currency,
+      allocationFingerprint:
+          allocationFingerprint ?? this.allocationFingerprint,
+      allocationHistoryFingerprint:
+          allocationHistoryFingerprint ?? this.allocationHistoryFingerprint,
+      remainderMinorUnits: remainderMinorUnits ?? this.remainderMinorUnits,
+      recordedAt: recordedAt ?? this.recordedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (decision.present) {
+      map['decision'] = Variable<int>(decision.value);
+    }
+    if (minorUnits.present) {
+      map['minor_units'] = Variable<int>(minorUnits.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (allocationFingerprint.present) {
+      map['allocation_fingerprint'] = Variable<String>(
+        allocationFingerprint.value,
+      );
+    }
+    if (allocationHistoryFingerprint.present) {
+      map['allocation_history_fingerprint'] = Variable<String>(
+        allocationHistoryFingerprint.value,
+      );
+    }
+    if (remainderMinorUnits.present) {
+      map['remainder_minor_units'] = Variable<int>(remainderMinorUnits.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RelationshipReviewsCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('revision: $revision, ')
+          ..write('decision: $decision, ')
+          ..write('minorUnits: $minorUnits, ')
+          ..write('currency: $currency, ')
+          ..write('allocationFingerprint: $allocationFingerprint, ')
+          ..write(
+            'allocationHistoryFingerprint: $allocationHistoryFingerprint, ',
+          )
+          ..write('remainderMinorUnits: $remainderMinorUnits, ')
+          ..write('recordedAt: $recordedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $FinancialExpectationsTable extends FinancialExpectations
     with TableInfo<$FinancialExpectationsTable, FinancialExpectation> {
   @override
@@ -11529,6 +12195,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MatchAllocationsTable matchAllocations = $MatchAllocationsTable(
     this,
   );
+  late final $RelationshipReviewsTable relationshipReviews =
+      $RelationshipReviewsTable(this);
   late final $FinancialExpectationsTable financialExpectations =
       $FinancialExpectationsTable(this);
   late final $TagsTable tags = $TagsTable(this);
@@ -11539,6 +12207,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StagedImportsTable stagedImports = $StagedImportsTable(this);
   late final $InboxSuggestionsTable inboxSuggestions = $InboxSuggestionsTable(
     this,
+  );
+  late final Index relationshipReviewsTransactionRevision = Index(
+    'relationship_reviews_transaction_revision',
+    'CREATE UNIQUE INDEX relationship_reviews_transaction_revision ON relationship_reviews (transaction_id, revision)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -11562,12 +12234,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accountEntries,
     transactionMatches,
     matchAllocations,
+    relationshipReviews,
     financialExpectations,
     tags,
     commitmentTags,
     accountEntryTags,
     stagedImports,
     inboxSuggestions,
+    relationshipReviewsTransactionRevision,
   ];
 }
 
@@ -18399,6 +19073,30 @@ final class $$AccountEntriesTableReferences
     );
   }
 
+  static MultiTypedResultKey<
+    $RelationshipReviewsTable,
+    List<RelationshipReview>
+  >
+  _relationshipReviewsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.relationshipReviews,
+        aliasName: 'account_entries__id__relationship_reviews__transaction_id',
+      );
+
+  $$RelationshipReviewsTableProcessedTableManager get relationshipReviewsRefs {
+    final manager = $$RelationshipReviewsTableTableManager(
+      $_db,
+      $_db.relationshipReviews,
+    ).filter((f) => f.transactionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _relationshipReviewsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$AccountEntryTagsTable, List<AccountEntryTag>>
   _accountEntryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.accountEntryTags,
@@ -18518,6 +19216,31 @@ class $$AccountEntriesTableFilterComposer
           }) => $$TransactionMatchesTableFilterComposer(
             $db: $db,
             $table: $db.transactionMatches,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> relationshipReviewsRefs(
+    Expression<bool> Function($$RelationshipReviewsTableFilterComposer f) f,
+  ) {
+    final $$RelationshipReviewsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.relationshipReviews,
+      getReferencedColumn: (t) => t.transactionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RelationshipReviewsTableFilterComposer(
+            $db: $db,
+            $table: $db.relationshipReviews,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -18733,6 +19456,32 @@ class $$AccountEntriesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> relationshipReviewsRefs<T extends Object>(
+    Expression<T> Function($$RelationshipReviewsTableAnnotationComposer a) f,
+  ) {
+    final $$RelationshipReviewsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.relationshipReviews,
+          getReferencedColumn: (t) => t.transactionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RelationshipReviewsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.relationshipReviews,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
   Expression<T> accountEntryTagsRefs<T extends Object>(
     Expression<T> Function($$AccountEntryTagsTableAnnotationComposer a) f,
   ) {
@@ -18775,6 +19524,7 @@ class $$AccountEntriesTableTableManager
           PrefetchHooks Function({
             bool accountId,
             bool transactionMatchesRefs,
+            bool relationshipReviewsRefs,
             bool accountEntryTagsRefs,
           })
         > {
@@ -18859,12 +19609,14 @@ class $$AccountEntriesTableTableManager
               ({
                 accountId = false,
                 transactionMatchesRefs = false,
+                relationshipReviewsRefs = false,
                 accountEntryTagsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (transactionMatchesRefs) db.transactionMatches,
+                    if (relationshipReviewsRefs) db.relationshipReviews,
                     if (accountEntryTagsRefs) db.accountEntryTags,
                   ],
                   addJoins:
@@ -18920,6 +19672,27 @@ class $$AccountEntriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (relationshipReviewsRefs)
+                        await $_getPrefetchedData<
+                          AccountEntry,
+                          $AccountEntriesTable,
+                          RelationshipReview
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountEntriesTableReferences
+                              ._relationshipReviewsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountEntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).relationshipReviewsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.transactionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (accountEntryTagsRefs)
                         await $_getPrefetchedData<
                           AccountEntry,
@@ -18964,6 +19737,7 @@ typedef $$AccountEntriesTableProcessedTableManager =
       PrefetchHooks Function({
         bool accountId,
         bool transactionMatchesRefs,
+        bool relationshipReviewsRefs,
         bool accountEntryTagsRefs,
       })
     >;
@@ -19869,6 +20643,449 @@ typedef $$MatchAllocationsTableProcessedTableManager =
       (MatchAllocation, $$MatchAllocationsTableReferences),
       MatchAllocation,
       PrefetchHooks Function({bool matchId, bool occurrenceId})
+    >;
+typedef $$RelationshipReviewsTableCreateCompanionBuilder =
+    RelationshipReviewsCompanion Function({
+      required String id,
+      required String transactionId,
+      required int revision,
+      required int decision,
+      required int minorUnits,
+      required String currency,
+      required String allocationFingerprint,
+      required String allocationHistoryFingerprint,
+      required int remainderMinorUnits,
+      required DateTime recordedAt,
+      Value<int> rowid,
+    });
+typedef $$RelationshipReviewsTableUpdateCompanionBuilder =
+    RelationshipReviewsCompanion Function({
+      Value<String> id,
+      Value<String> transactionId,
+      Value<int> revision,
+      Value<int> decision,
+      Value<int> minorUnits,
+      Value<String> currency,
+      Value<String> allocationFingerprint,
+      Value<String> allocationHistoryFingerprint,
+      Value<int> remainderMinorUnits,
+      Value<DateTime> recordedAt,
+      Value<int> rowid,
+    });
+
+final class $$RelationshipReviewsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RelationshipReviewsTable,
+          RelationshipReview
+        > {
+  $$RelationshipReviewsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountEntriesTable _transactionIdTable(_$AppDatabase db) => db
+      .accountEntries
+      .createAlias('relationship_reviews__transaction_id__account_entries__id');
+
+  $$AccountEntriesTableProcessedTableManager get transactionId {
+    final $_column = $_itemColumn<String>('transaction_id')!;
+
+    final manager = $$AccountEntriesTableTableManager(
+      $_db,
+      $_db.accountEntries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_transactionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RelationshipReviewsTableFilterComposer
+    extends Composer<_$AppDatabase, $RelationshipReviewsTable> {
+  $$RelationshipReviewsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get decision => $composableBuilder(
+    column: $table.decision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allocationFingerprint => $composableBuilder(
+    column: $table.allocationFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allocationHistoryFingerprint => $composableBuilder(
+    column: $table.allocationHistoryFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remainderMinorUnits => $composableBuilder(
+    column: $table.remainderMinorUnits,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountEntriesTableFilterComposer get transactionId {
+    final $$AccountEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelationshipReviewsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RelationshipReviewsTable> {
+  $$RelationshipReviewsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get decision => $composableBuilder(
+    column: $table.decision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allocationFingerprint => $composableBuilder(
+    column: $table.allocationFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allocationHistoryFingerprint =>
+      $composableBuilder(
+        column: $table.allocationHistoryFingerprint,
+        builder: (column) => ColumnOrderings(column),
+      );
+
+  ColumnOrderings<int> get remainderMinorUnits => $composableBuilder(
+    column: $table.remainderMinorUnits,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountEntriesTableOrderingComposer get transactionId {
+    final $$AccountEntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelationshipReviewsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RelationshipReviewsTable> {
+  $$RelationshipReviewsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<int> get decision =>
+      $composableBuilder(column: $table.decision, builder: (column) => column);
+
+  GeneratedColumn<int> get minorUnits => $composableBuilder(
+    column: $table.minorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get allocationFingerprint => $composableBuilder(
+    column: $table.allocationFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get allocationHistoryFingerprint =>
+      $composableBuilder(
+        column: $table.allocationHistoryFingerprint,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<int> get remainderMinorUnits => $composableBuilder(
+    column: $table.remainderMinorUnits,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+
+  $$AccountEntriesTableAnnotationComposer get transactionId {
+    final $$AccountEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.transactionId,
+      referencedTable: $db.accountEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accountEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelationshipReviewsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RelationshipReviewsTable,
+          RelationshipReview,
+          $$RelationshipReviewsTableFilterComposer,
+          $$RelationshipReviewsTableOrderingComposer,
+          $$RelationshipReviewsTableAnnotationComposer,
+          $$RelationshipReviewsTableCreateCompanionBuilder,
+          $$RelationshipReviewsTableUpdateCompanionBuilder,
+          (RelationshipReview, $$RelationshipReviewsTableReferences),
+          RelationshipReview,
+          PrefetchHooks Function({bool transactionId})
+        > {
+  $$RelationshipReviewsTableTableManager(
+    _$AppDatabase db,
+    $RelationshipReviewsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RelationshipReviewsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RelationshipReviewsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RelationshipReviewsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> transactionId = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<int> decision = const Value.absent(),
+                Value<int> minorUnits = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String> allocationFingerprint = const Value.absent(),
+                Value<String> allocationHistoryFingerprint =
+                    const Value.absent(),
+                Value<int> remainderMinorUnits = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RelationshipReviewsCompanion(
+                id: id,
+                transactionId: transactionId,
+                revision: revision,
+                decision: decision,
+                minorUnits: minorUnits,
+                currency: currency,
+                allocationFingerprint: allocationFingerprint,
+                allocationHistoryFingerprint: allocationHistoryFingerprint,
+                remainderMinorUnits: remainderMinorUnits,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String transactionId,
+                required int revision,
+                required int decision,
+                required int minorUnits,
+                required String currency,
+                required String allocationFingerprint,
+                required String allocationHistoryFingerprint,
+                required int remainderMinorUnits,
+                required DateTime recordedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RelationshipReviewsCompanion.insert(
+                id: id,
+                transactionId: transactionId,
+                revision: revision,
+                decision: decision,
+                minorUnits: minorUnits,
+                currency: currency,
+                allocationFingerprint: allocationFingerprint,
+                allocationHistoryFingerprint: allocationHistoryFingerprint,
+                remainderMinorUnits: remainderMinorUnits,
+                recordedAt: recordedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RelationshipReviewsTable, RelationshipReview>(
+                    table,
+                  ),
+                  $$RelationshipReviewsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({transactionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (transactionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.transactionId,
+                        referencedTable: $$RelationshipReviewsTableReferences
+                            ._transactionIdTable(db),
+                        referencedColumn: $$RelationshipReviewsTableReferences
+                            ._transactionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RelationshipReviewsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RelationshipReviewsTable,
+      RelationshipReview,
+      $$RelationshipReviewsTableFilterComposer,
+      $$RelationshipReviewsTableOrderingComposer,
+      $$RelationshipReviewsTableAnnotationComposer,
+      $$RelationshipReviewsTableCreateCompanionBuilder,
+      $$RelationshipReviewsTableUpdateCompanionBuilder,
+      (RelationshipReview, $$RelationshipReviewsTableReferences),
+      RelationshipReview,
+      PrefetchHooks Function({bool transactionId})
     >;
 typedef $$FinancialExpectationsTableCreateCompanionBuilder =
     FinancialExpectationsCompanion Function({
@@ -22357,6 +23574,8 @@ class $AppDatabaseManager {
       $$TransactionMatchesTableTableManager(_db, _db.transactionMatches);
   $$MatchAllocationsTableTableManager get matchAllocations =>
       $$MatchAllocationsTableTableManager(_db, _db.matchAllocations);
+  $$RelationshipReviewsTableTableManager get relationshipReviews =>
+      $$RelationshipReviewsTableTableManager(_db, _db.relationshipReviews);
   $$FinancialExpectationsTableTableManager get financialExpectations =>
       $$FinancialExpectationsTableTableManager(_db, _db.financialExpectations);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);

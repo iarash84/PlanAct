@@ -249,6 +249,38 @@ class MatchAllocations extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+@TableIndex(
+  name: 'relationship_reviews_transaction_revision',
+  columns: {#transactionId, #revision},
+  unique: true,
+)
+class RelationshipReviews extends Table {
+  TextColumn get id => text()();
+  TextColumn get transactionId => text().references(AccountEntries, #id)();
+  // ignore: recursive_getters
+  IntColumn get revision => integer().check(revision.isBiggerThanValue(0))();
+  // ignore: recursive_getters
+  IntColumn get decision => integer().check(decision.isBetweenValues(0, 1))();
+  // ignore: recursive_getters
+  IntColumn get minorUnits =>
+      // ignore: recursive_getters
+      integer().check(minorUnits.isBiggerThanValue(0))();
+  TextColumn get currency => text()();
+  TextColumn get allocationFingerprint => text()();
+  TextColumn get allocationHistoryFingerprint => text()();
+  // ignore: recursive_getters
+  IntColumn get remainderMinorUnits => integer().check(
+    // ignore: recursive_getters
+    remainderMinorUnits.isBiggerThanValue(0) &
+        // ignore: recursive_getters
+        remainderMinorUnits.isSmallerOrEqual(minorUnits),
+  )();
+  DateTimeColumn get recordedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 class FinancialExpectations extends Table {
   TextColumn get id => text()();
   TextColumn get occurrenceId => text().references(Occurrences, #id)();
@@ -348,6 +380,7 @@ class InboxSuggestions extends Table {
     AccountEntries,
     TransactionMatches,
     MatchAllocations,
+    RelationshipReviews,
     FinancialExpectations,
     Tags,
     CommitmentTags,
@@ -364,12 +397,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
+      await _createReviewHistoryGuards();
       await _writeSchemaMetadata();
     },
     onUpgrade: (Migrator m, int from, int to) async {
@@ -526,12 +560,28 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
         );
       }
+      if (from < 17) {
+        await m.createTable(relationshipReviews);
+        await customStatement(
+          'CREATE UNIQUE INDEX relationship_reviews_transaction_revision ON relationship_reviews(transaction_id, revision)',
+        );
+        await _createReviewHistoryGuards();
+      }
       await _writeSchemaMetadata();
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Future<void> _createReviewHistoryGuards() async {
+    await customStatement(
+      "CREATE TRIGGER relationship_reviews_no_update BEFORE UPDATE ON relationship_reviews BEGIN SELECT RAISE(ABORT, 'Relationship review history is append-only'); END",
+    );
+    await customStatement(
+      "CREATE TRIGGER relationship_reviews_no_delete BEFORE DELETE ON relationship_reviews BEGIN SELECT RAISE(ABORT, 'Relationship review history is append-only'); END",
+    );
+  }
 
   Future<void> _writeSchemaMetadata() async {
     await into(schemaMetadata).insertOnConflictUpdate(
