@@ -294,6 +294,21 @@ Plan و Actual نباید یکی باشند.
 
 ---
 
+## 6.9 برچسب‌گذاری تعهدها و تراکنش‌ها
+
+- برچسب اختیاری، قابل استفادهٔ مجدد و مستقل از دسته‌بندی تراکنش و وضعیت تعهد است؛ نبود برچسب به معنی مقدار پیش‌فرض نیست.
+- کاربر می‌تواند در جزئیات تعهد یا از عملیات تراکنش، برچسب بسازد یا برچسب موجود را به همان مورد اضافه کند. برداشتن برچسب فقط اتصال همان مورد را حذف می‌کند، نه خود برچسب یا سایر اتصال‌ها.
+- در ویرایش مورد موجود، اتصال‌ها بلافاصله ذخیره می‌شوند و به ذخیرهٔ فرم عنوان/توضیحات وابسته نیستند؛ رابط باید این موضوع را روشن کند و برای موفقیت، انتظار و خطا بازخورد فارسی بدهد.
+- هنگام ایجاد تعهد و ثبت سریع یا کامل هزینه/درآمد، کاربر بتواند برچسب موجود را انتخاب کند یا نام جدید وارد کند. انتخاب‌ها تا ثبت نهایی پیش‌نویس هستند؛ انصراف هیچ برچسب یا اتصالی ذخیره نمی‌کند. ثبت مورد، ساخت نام‌های جدید و اتصال‌ها باید اتمیک باشد؛ خطا فرم و انتخاب‌ها را برای تلاش دوباره حفظ کند. رفتن از ثبت سریع به «گزینه‌های بیشتر» انتخاب برچسب‌ها را منتقل کند.
+- تغییر نام سراسری باید هویت پایدار و همهٔ اتصال‌ها را حفظ کند. نام خالی یا نام تکراری پس از حذف فاصله‌های ابتدا/انتها، علامت ابتدایی `#` و یکسان‌سازی حروف لاتین پذیرفته نشود؛ ساخت نام موجود همان برچسب را استفاده کند، نه نسخهٔ تکراری.
+- حذف سراسری نیازمند تأیید صریح با توضیح حذف اتصال‌ها و نبود بازگردانی است؛ خود تعهدها، تراکنش‌ها، رخدادها، نتایج و ledger نباید حذف یا تغییر کنند.
+- برچسب‌های تعهد در Today و خط زمانی و برچسب‌های تراکنش در Finance دیده شوند. Finance از فیلتر اختیاری یک برچسب پشتیبانی کند؛ «همهٔ برچسب‌ها» فیلتر را پاک کند، نه اینکه فقط موارد بدون برچسب را نشان دهد.
+- نام و اتصال‌ها پس از راه‌اندازی مجدد و پشتیبان/بازیابی حفظ شوند. ذخیرهٔ metadata یا وضعیت با snapshot قدیمی نباید اتصال حذف‌شده یا نام قدیمی را دوباره بسازد.
+
+Implementation checkpoint (2026-10-06): **Implemented for the bounded local tagging flow**, not a native release sign-off. Stable-ID typed memberships, transactional rename/remove and legacy projection synchronization, commitment/finance editors, shared labels, global management and single-tag Finance filtering are wired. File-backed restart and rollback tests, critical widget journeys in Light/Dark, and existing full-state encrypted backup tests provide local evidence. Multi-tag filtering, tag reports, broad commitment search/filter UI and automatic propagation to corrected/new ledger entries are not claimed. Native picker/Keystore/crash, device accessibility/keyboard and other existing release gates remain open. See [tagging verification](../TAGGING_VERIFICATION.md).
+
+---
+
 # 7. Core User Journeys
 
 ## Journey A — ثبت یک تعهد ساده
@@ -383,15 +398,25 @@ Occurrenceهای گذشته نباید به‌طور مخفی بازنویسی �
 
 هر آیتم باید action واضح داشته باشد.
 
+صفحهٔ امروز با کشیدن به پایین، حتی در حالت خالی، باید دوباره داده‌های محلی و اقدامات نیازمند رسیدگی را بخواند. بازگشت به امروز، بازگشت از صندوق ورودی و ثبت یا خنثی‌سازی تراکنش در بخش مالی نیز باید نمای امروز را تازه کنند. تازه‌سازی صرفاً بازخوانی و محاسبهٔ نمای موجود است و نباید تراکنش، ارتباط یا سابقهٔ جدید ایجاد کند؛ تراکنش‌های نیازمند تعیین ارتباط مطابق قواعد Attention نمایش داده می‌شوند، نه همهٔ تراکنش‌ها به‌عنوان اقدام معوق.
+
 ---
 
 # 11. Calendar
 
+نمای هفته با انتخاب ماه/هفته، هفتهٔ شنبه تا جمعه، مرور هفتهٔ قبل/بعد و بازگشت به امروز ارائه می‌شود. طبق بازطراحی تأییدشدهٔ کاربر (۲۰۲۶-۱۰-۰۷)، نمای اصلی گوشی یک دستورکار هفتگی با پیمایش عمودی واحد، عنوان چسبان هر روز و ردیف‌های خوانا است؛ پیمایش افقی روزها و شبکهٔ خالی ۲۴ساعته ندارد. هر ردیف ساعت شروع واقعی یا «تمام‌روز»، عنوان کامل، نشان مشترک هویت تعهد و متن و نماد وضعیت ثبت‌شده را نمایش می‌دهد؛ همهٔ وضعیت‌های تاریخی حفظ می‌شوند. روزهای خالی به‌صورت فشرده دیده می‌شوند؛ هفتهٔ خالی پیام روشن و، در صورت وجود مسیر ثبت، اقدام «افزودن سریع» دارد. بارگذاری و خطای قابل تلاش مجدد از خالی بودن متمایزند. هفتهٔ جاری از امروز باز می‌شود و روزهای پیشین بالاتر قابل دسترسی‌اند؛ هفته‌های دیگر از شنبه شروع می‌شوند. این صرفاً موقعیت نمایش است و زمان‌بندی ایجاد نمی‌کند. در عرض واقعی کافی برای هفت ستون خوانا، خط زمانی موجود با عنوان‌های همگام و ستون ساعت ثابت به‌صورت خودکار حفظ می‌شود؛ تراکم یا بزرگ‌نمایی متن که این عرض را ناکافی کند به دستورکار عمودی برمی‌گردد، بدون تنظیم یا حالت تازه. در خط زمانی، پیمایش اولیهٔ هفتهٔ جاری دو ساعت پیش از اکنون و هفته‌های دیگر ۰۸:۰۰ باقی می‌ماند. رخداد بدون ساعت تمام‌روز و رخداد دارای ساعت فقط یک شروع ثبت‌شده است: پایان، مدت یا تعارض از هم‌زمانی شروع‌ها استنتاج نمی‌شود. رنگ هویت مستقل از وضعیت است. تعطیلات، همهٔ دلایل هم‌پوشان و هشدار پوشش ناقص حفظ می‌شوند. لمس ردیف/کارت همان مسیر جزئیات و یادآور موجود را باز می‌کند. خواندن محدود داده‌های پایدار هفته، RTL، بزرگ‌نمایی متن، هدف لمس حداقل ۴۸ و طراحی روشن/تیره الزامی‌اند؛ هیچ تغییر دامنه یا ذخیره‌سازی در این بازطراحی نیست.
+
+
 Calendar باید occurrenceهای برنامه‌ریزی‌شده را نمایش دهد.
+
+Iranian holidays must work fully offline from versioned, traceable bundled data, with deterministic Jalali-compatible lookup. Friday weekend rules, official fixed/variable holidays, and scoped special/temporary closures must remain distinct; overlapping reasons must be retained. Outside verified annual coverage, Calendar must explicitly warn that missing holiday markers do not prove a working day. Holiday data alone must not cancel/reschedule occurrences or alter entitlement/financial history.
+
+Priority 8 checkpoint (2026-10-06): **Current-year official holiday coverage implemented**. Published-calendar source snapshots cover complete Jalali years 1400–1405; all twelve months and 365 days of 1405 were checked against time.ir's published monthly calendar, including both Eid cycles and overlapping reasons. This secondary source is not claimed as independent verification of the inaccessible official PDF. Calendar shows Persian holiday reasons, accessible labels and incomplete-coverage warnings only outside covered years. Current fixed rules remain available from 1400 onward, but variable dates outside verified coverage are not predicted. Special closures have a typed, provenance-bearing seam, but no actual temporary closure dataset or user-editing feature is shipped. See [verification report](../IRANIAN_HOLIDAYS_VERIFICATION.md).
 
 Requirements:
 
 - نمایش جلالی؛
+- نمایش هم‌زمان هر هفت ستون روزهای هفته در عرض صفحهٔ تقویم گوشی، بدون نیاز به پیمایش افقی؛ در فضای محدود عنوان کوتاه فارسی با نام کامل دسترس‌پذیری استفاده شود. بزرگ‌نمایی متن حفظ شود و ارتفاع خانه‌ها با محتوای آن‌ها سازگار شود. این الزام مختص نمای ماه تقویم است، نه نمای هفته یا پنجرهٔ انتخاب تاریخ؛ استثنای محدود عرض هدف لمس در گوشی باریک مطابق سند طراحی و AGENTS ثبت شده است.
 - مرور ماه‌ها؛
 - نمایش رخدادهای هر روز؛
 - دسترسی از occurrence به commitment؛
@@ -401,6 +426,8 @@ Requirements:
 ---
 
 # 12. Reminder System
+
+Occurrence-level editing checkpoint (2026-10-06): Details exposes explicit single-occurrence relative reminder editing, including presets, custom minute offsets and removing reminders. Removed rules are disabled with delivery history retained; saved configuration and pending platform synchronization are reported separately. Calendar shows the selected day's occurrence times and enabled reminder configuration, with an explicit all-day label when no time exists. No arbitrary time is assigned to date-only occurrences. Whole-series reminder editing and absolute date-time reminder authoring remain outside this checkpoint; native release gates remain open. See [focused verification](../CALENDAR_REMINDER_EDIT_VERIFICATION.md).
 
 کاربر باید بتواند reminder را نسبت به occurrence تعریف کند.
 
@@ -480,6 +507,8 @@ Minimum transaction types:
 
 انتقال بین دو حساب متعلق به کاربر نباید income یا expense محسوب شود.
 
+در فهرست مالی، جهت ورودی/خروجی با شکل، رنگ معنایی و برچسب فارسی مشخص شود و از اثر واقعی ثبت بر حساب پیروی کند، از جمله انتقال‌ها و اصلاحات دارای مبلغ علامت‌دار. برداشت معمولی خطای برنامه یا اقدام مخرب نیست؛ نوع انتقال، موجودی اولیه و ثبت جبرانی باید با نام خود نمایش داده شود.
+
 ---
 
 # 15. Finance ↔ Commitment Matching
@@ -496,6 +525,21 @@ Minimum transaction types:
 - اصلاح matching قبلی.
 
 اصلاح matching نباید history قبلی را بدون ردپا حذف کند.
+
+«تعیین ارتباط» برای تراکنش مشخص باید همان تراکنش را تا انتخاب تعهد و رخداد و تأیید مبلغ حفظ کند؛ نباید صرفاً صفحهٔ عمومی مالی را باز کند. پس از تأیید ورود پیامک، اقدام «تعیین ارتباط» باید شناسهٔ تراکنش ثبت‌شده را منتقل کند. ورود به این مسیر یا انصراف از آن نباید تراکنش تازه، نتیجهٔ رخداد یا مبلغ مورد انتظار ایجاد یا تغییر دهد.
+
+Implementation checkpoint (2026-10-06): Priority 10 contextual navigation is wired from Today, transaction actions and the SMS confirmation feedback into the persistent matching architecture. The bounded flow confirms one occurrence allocation at a time, supports partial allocation and retains the form on refresh or failed confirmation. Match correction UI, explicit overpayment policy, commitment-only targets and bulk allocation remain separate work. See `docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md` for the original checkpoint; the relationship-review checkpoint below supersedes its allocation-admission limitation.
+
+### بررسی مستقل ارتباط تراکنش
+
+- «به تعهدی مربوط نیست» تصمیم صریح و مستقل از دسته‌بندی، برچسب و ارتباط مالی است. نبود ارتباط یا خروج/انصراف از فرم به معنی بررسی‌شدن نیست.
+- صف تعیین ارتباط در امروز فقط هزینه/درآمد معتبر و خنثی‌نشده با مبلغ تخصیص‌نیافته و بررسی‌نشده را نشان می‌دهد. انتقال، موجودی اولیه، اصلاح و ثبت جبرانی وارد این صف نمی‌شوند.
+- ارتباط جزئی فقط مبلغ تخصیص‌یافته را پوشش می‌دهد؛ باقی‌مانده همچنان نیازمند بررسی است. کاربر می‌تواند فقط همین باقی‌مانده را مستقل تأیید کند، بدون ایجاد ارتباط صوری یا اعلام تسویهٔ تعهد.
+- تصمیم مستقل، مبلغ و موجودی حساب، ارتباط‌های موجود، نتیجهٔ رخداد، مبلغ مورد انتظار، دسته‌بندی و برچسب‌ها را تغییر نمی‌دهد؛ سابقهٔ تصمیم و بازگشایی پس از راه‌اندازی مجدد و پشتیبان/بازیابی حفظ می‌شود.
+- بازگردانی پس از ثبت و «بازگشایی بررسی ارتباط» در مسیر تعیین ارتباط قابل دسترس است. این مسیر از عملیات تراکنش در مالی، حتی برای موارد مستقل، باز می‌شود؛ پس از بازگشایی می‌توان ارتباط واقعی ثبت کرد.
+- فرم قدیمی نباید تصمیم یا تخصیص جدیدتر را بازنویسی کند. تغییر مبلغ یا سابقهٔ تخصیص، تأیید مستقل قبلی را برای باقی‌ماندهٔ جدید نامعتبر می‌کند، بدون حذف سابقه. جمع تخصیص‌های فعال نباید از مبلغ تراکنش تجاوز کند؛ سیاست اضافه‌پرداخت نیازمند تصمیم جداگانه است.
+
+Implementation checkpoint (2026-10-07): Durable independent-remainder review, append-only reopening/Undo, partial-remainder Today classification and guarded transactional allocation admission are implemented for the bounded local relationship flow. Schema 17 includes review history in personal backups, with strict historical-schema validation retained. See [relationship review verification](../RELATIONSHIP_REVIEW_VERIFICATION.md) and [ADR 0015](../adr/0015-transaction-relationship-review.md). Native-device and installation-bound backup recovery limitations remain unchanged.
 
 ---
 
@@ -803,6 +847,16 @@ Release نباید در صورت شکست این موارد ساخته شود.
 - secret یا signing key خصوصی نباید داخل repository قرار گیرد.
 - هر cloud/AI integration آینده باید opt-in باشد.
 
+### قفل برنامه
+
+- قفل برنامه اختیاری و به‌صورت پیش‌فرض خاموش است؛ تنظیم آن باید بعد از راه‌اندازی مجدد باقی بماند.
+- فعال‌سازی و غیرفعال‌سازی نیازمند احراز هویت تازهٔ دستگاه و ذخیرهٔ موفق تنظیم است؛ لغو یا خطا نباید تنظیم را تغییر دهد.
+- در صورت فعال‌بودن، ورود اولیه و بازگشت از پس‌زمینه باید پیش از نمایش دادهٔ خصوصی قفل شوند؛ صفحه‌ها، فرم‌ها و پنجره‌های باز نیز پوشش داده شوند، بدون حذف ورودی فرم.
+- احراز هویت از اثر انگشت یا رمز دستگاه استفاده می‌کند؛ شکست یا نبود قابلیت باید با پیام فارسی و تلاش دوباره همراه باشد، نه دورزدن قفل یا حذف داده.
+- قفل رابط کاربری جایگزین رمزنگاری پایگاه داده یا پشتیبان نیست.
+
+Implementation checkpoint (2026-10-05): Priority 4 remains **partial for native release acceptance**. Root-route protection, lifecycle invalidation, authenticated setting changes, failure/retry feedback and persisted settings are implemented. The 271-test suite and isolated Android build pass; real-device authentication, process lifecycle, recents privacy and accessibility acceptance remain open. See [app-lock verification](../APP_LOCK_VERIFICATION.md).
+
 ---
 
 # 30. Release Criteria
@@ -849,6 +903,8 @@ Release نباید در صورت شکست این موارد ساخته شود.
 - snooze
 - startup rebuild
 
+Implementation checkpoint (2026-10-05): reminders remain **partial**, not release-complete. Explicit Settings permission activation, durable creation intent, cancellation retry, occurrence-action synchronization, and owned-alarm cleanup are implemented. Actual native delivery/retry/cancellation/orphan cleanup was verified only on Android 11 in an isolated debug package. Reboot recovery, newer Android permission denial/revocation, full snooze/tap journeys, lifecycle reconciliation, and interruption-safe edit recovery remain acceptance work. See [reminder verification evidence](../REMINDER_VERIFICATION.md).
+
 ### P1 — Session Packages
 
 - entitlement plans
@@ -867,6 +923,8 @@ Release نباید در صورت شکست این موارد ساخته شود.
 
 - staged imports
 - SMS adapter
+
+> Implementation checkpoint (2026-10-05): Priority 3 remains partial. Inbox provider rescans, receipt-time handling, ingestion feedback, and resolved-suggestion protection are implemented and validated by 256 passing tests and an isolated Android build. Background ingestion, pagination, native permission/replay evidence, and complete parser/account-selection journeys remain open. See [SMS verification](../SMS_VERIFICATION.md).
 - duplicate detection
 - user confirmation
 
@@ -927,3 +985,23 @@ PlanAct باید بتواند برای هر تعهد مهم کاربر یک time
 چه چیزی هنوز باقی مانده است؟**
 
 اگر محصول بتواند این زنجیره را با داده‌ی قابل اعتماد و بدون وابستگی به cloud حفظ کند، هدف اصلی PlanAct محقق شده است.
+
+## Schedule editing and actual history — Priorities 6 and 7
+
+Implementation checkpoint (2026-10-06): **Partial**. Details supports explicit scoped date/time edits, retained schedule versions, atomic outcome recording and explicit reopening without deleting earlier results or modifying financial/session ledgers. Reopening makes an occurrence actionable; it is not an exact historical status reversal. Full recurrence/termination editing, intermediate schedule audit, generation/revision safety, complete Today/Calendar journeys and interrupted reminder reopening recovery remain acceptance gates. See [schedule and actual verification](../SCHEDULE_ACTUAL_VERIFICATION.md). No existing acceptance criterion is waived by this checkpoint.
+
+## Transactional/platform consistency — Priority 5
+
+A committed commitment creation or occurrence change must be reported separately from pending reminder synchronization; external notification failure must not invite duplicate creation or imply that durable occurrence state was lost. Replacement reminder intent is persisted before external delivery, and startup recovery repairs missing/stale intent from durable rules and eligible occurrences while preserving snooze and delivery history. This is a partial checkpoint: same-time interrupted restore versus explicit reminder cancellation, command concurrency and independent native interruption/reboot evidence remain open. See docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md. Local validation: 276 tests passed and analyzer clean; no schema or dependency change.
+
+## Backup implementation status — Priority 1
+
+The production encrypted export/import path is implemented, but the backup release gate remains partial. Current key recovery is restricted to the original installation: device loss, uninstall, or another device is not supported. Export/import confirmations disclose this restriction. Strict fresh-schema validation may reject migrated current-version databases. Exhaustive entity round-trip, concurrent command/lifecycle safety, and isolated native Android picker/Keystore/crash evidence remain required. This status does not reduce the backup/restore acceptance criteria. See docs/adr/0013-production-backup-restore.md.
+
+## Settings and More navigation
+
+Display mode, app lock and reminder permissions remain in Settings. Display-mode selection must update immediately on the open Settings route, without an application restart. Backup/restore and annual holiday-package import are user-operated tools exposed in More, not duplicated in Settings. The holiday-import reference to Settings below describes the earlier entry point; the current entry point is More. All existing consent, security and persistence safeguards remain unchanged.
+
+## Independent offline holiday updates
+
+Settings permits explicit file import of signed annual holiday reference packages without an app update or internet requirement. Bundled data remains the baseline. The user reviews year, revision, source and publisher fingerprint, explicitly approves the first publisher through an independent channel, and confirms replacement. Later packages must use the same publisher and a newer revision for a previously installed year. Invalid packages or write failures retain earlier data. Imports affect only official holiday display, never schedules, reminders, entitlement or financial history. Packages persist separately from personal backups; users must retain their original files. Structural twelve-month validation and signature checks do not independently establish official source accuracy. Annual source review is still required; no future-year data is predicted. Native file-picker verification, trust recovery and key rotation remain separate gates/scope. See [ADR 0014](../adr/0014-independent-holiday-packages.md).

@@ -1,0 +1,299 @@
+[
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 1,
+    "type": "Iran",
+    "title": "آغاز نوروز",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/نوروز"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 2,
+    "type": "Iran",
+    "title": "عید نوروز",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/نوروز"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 3,
+    "type": "Iran",
+    "title": "عید نوروز",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/نوروز"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 4,
+    "type": "Iran",
+    "title": "عید نوروز",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/نوروز"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 12,
+    "type": "Iran",
+    "title": "روز جمهوری اسلامی ایران",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/روز_جمهوری_اسلامی"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 13,
+    "type": "Iran",
+    "title": "روز طبیعت",
+    "calendar": "Persian",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 3,
+    "day": 14,
+    "type": "Iran",
+    "title": "رحلت حضرت امام خمینی (ره) رهبر کبیر انقلاب و بنیان‌گذار جمهوری اسلامی ایران (۱۳۶۸ ه‍.ق)",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/مرگ_و_تشییع_سید_روح‌الله_خمینی"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 3,
+    "day": 15,
+    "type": "Iran",
+    "title": "قیام خونین ۱۵ خرداد (۱۳۴۲ ه‍.ش)",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/تظاهرات_۱۵_خرداد"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 11,
+    "day": 22,
+    "type": "Iran",
+    "title": "پیروزی انقلاب اسلامی ایران و سقوط نظام شاهنشاهی (۱۳۵۷ ه‍.ش)",
+    "calendar": "Persian",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 12,
+    "day": 29,
+    "type": "Iran",
+    "title": "روز ملی‌شدن صنعت نفت ایران (۱۳۲۹ ه‍.ش)",
+    "calendar": "Persian",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/نهضت_ملی‌شدن_صنعت_نفت_ایران"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 9,
+    "type": "Iran",
+    "title": "تاسوعای حسینی",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "beginningPersianYear": 1272,
+      "beginningPersianYearReference": "https://upload.wikimedia.org/wikipedia/commons/8/8f/تقویم_فارسی_سال_۱۲۷۲_هجری_شمسی.pdf#page=14"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 1,
+    "day": 10,
+    "type": "Iran",
+    "title": "عاشورای حسینی",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "beginningPersianYear": 1272,
+      "beginningPersianYearReference": "https://upload.wikimedia.org/wikipedia/commons/8/8f/تقویم_فارسی_سال_۱۲۷۲_هجری_شمسی.pdf#page=14"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 2,
+    "day": 20,
+    "type": "Iran",
+    "title": "اربعین حسینی",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "beginningPersianYear": 1272,
+      "beginningPersianYearReference": "https://upload.wikimedia.org/wikipedia/commons/8/8f/تقویم_فارسی_سال_۱۲۷۲_هجری_شمسی.pdf#page=17"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 2,
+    "day": 28,
+    "type": "Iran",
+    "title": "رحلت حضرت رسول اکرم (ص) (۱۱ ه‍.ق) – شهادت حضرت امام حسن مجتبی (ع) (۵۰ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 3,
+    "day": 8,
+    "type": "Iran",
+    "title": "شهادت حضرت امام حسن عسکری (ع) (۲۶۰ ه‍.ق) و آغاز امامت حضرت ولی عصر (عج)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 3,
+    "day": 17,
+    "type": "Iran",
+    "title": "ولادت حضرت رسول اکرم (ص) (۵۳ سال قبل از هجرت) و روز اخلاق و مهرورزی",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 3,
+    "day": 17,
+    "type": "Iran",
+    "title": "ولادت حضرت امام جعفر صادق (ع) مؤسس مذهب جعفری (۸۳ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 6,
+    "day": 3,
+    "type": "Iran",
+    "title": "شهادت حضرت فاطمهٔ زهرا (س) (۱۱ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 7,
+    "day": 13,
+    "type": "Iran",
+    "title": "ولادت حضرت امام علی (ع) (۲۳ سال قبل از هجرت)",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/علی"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 7,
+    "day": 27,
+    "type": "Iran",
+    "title": "مبعث حضرت رسول اکرم (ص) (۱۳ سال قبل از هجرت)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 8,
+    "day": 15,
+    "type": "Iran",
+    "title": "ولادت حضرت قائم (عج) (۲۵۵ ه‍.ق) و روز جهانی مستضعفان",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 9,
+    "day": 21,
+    "type": "Iran",
+    "title": "شهادت حضرت امام علی (ع) (۴۰ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 10,
+    "day": 1,
+    "type": "Iran",
+    "title": "عید سعید فطر",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "beginningPersianYear": 1272,
+      "beginningPersianYearReference": "https://upload.wikimedia.org/wikipedia/commons/8/8f/تقویم_فارسی_سال_۱۲۷۲_هجری_شمسی.pdf#page=8"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 10,
+    "day": 2,
+    "type": "Iran",
+    "title": "تعطیل به مناسبت عید سعید فطر",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 10,
+    "day": 25,
+    "type": "Iran",
+    "title": "شهادت حضرت امام جعفر صادق (ع) (۱۴۸ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "holiday": true,
+    "month": 12,
+    "day": 10,
+    "type": "Iran",
+    "title": "عید سعید قربان",
+    "calendar": "Hijri",
+    "rule": "simple",
+    "metadata": {
+      "wikipedia": "https://fa.wikipedia.org/wiki/عید_قربان"
+    }
+  },
+  {
+    "holiday": true,
+    "month": 12,
+    "day": 18,
+    "type": "Iran",
+    "title": "عید سعید غدیر خم (۱۰ ه‍.ق)",
+    "calendar": "Hijri",
+    "rule": "simple"
+  },
+  {
+    "calendar": "Hijri",
+    "rule": "end of month",
+    "month": 2,
+    "type": "Iran",
+    "title": "شهادت حضرت امام رضا (ع) (۲۰۳ ه‍.ق) (۳۰ صَفَر یا انتهای ماه)",
+    "holiday": true
+  }
+]

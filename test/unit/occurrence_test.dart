@@ -39,6 +39,35 @@ void main() {
     expect(first.every((item) => item.currentScheduledAt is LocalDate), isTrue);
   });
 
+  test(
+    'uses the occurrence date as the logical key instead of the sequence index',
+    () {
+      final schedule = ScheduleDefinition.create(
+        cycleId: cycleId,
+        mode: ScheduleMode.openEndedRecurring,
+        timeSemantics: TimeSemantics.allDayLocalDate,
+        startDate: LocalDate(2026, 1, 3),
+        recurrenceRule: RecurrenceRule(
+          frequency: RecurrenceFrequency.weekly,
+          weekdays: {DateTime.saturday},
+        ),
+        generationHorizonDays: 60,
+      );
+      final generated = const OccurrenceGenerator().generate(
+        schedule: schedule,
+        through: LocalDate(2026, 1, 31),
+      );
+
+      expect(generated.map((item) => item.occurrenceKey), [
+        '${schedule.id.value}:2026-1-3',
+        '${schedule.id.value}:2026-1-10',
+        '${schedule.id.value}:2026-1-17',
+        '${schedule.id.value}:2026-1-24',
+        '${schedule.id.value}:2026-1-31',
+      ]);
+    },
+  );
+
   test('does not replace a manually rescheduled existing occurrence', () {
     final schedule = ScheduleDefinition.create(
       cycleId: cycleId,

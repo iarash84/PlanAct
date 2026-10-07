@@ -171,10 +171,10 @@ class TransactionMatch {
     required this.transactionId,
     required this.transactionAmount,
     required this.createdAt,
-    required this.allocations,
+    required List<MatchAllocation> allocations,
     this.status = MatchStatus.active,
     this.correctedMatchId,
-  }) {
+  }) : allocations = List.unmodifiable(allocations) {
     if (allocations.isEmpty) {
       throw const ValidationError('A match must contain an allocation');
     }

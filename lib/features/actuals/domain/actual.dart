@@ -1,8 +1,42 @@
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/scheduling/domain/occurrence.dart';
 
 /// The outcome recorded for one planned occurrence.
-enum ActualOutcome { completed, attended, cancelled, missed, noShow, partial }
+enum ActualOutcome {
+  completed,
+  attended,
+  cancelled,
+  missed,
+  noShow,
+  partial,
+
+  /// An explicit reopening event; earlier results remain historical.
+  reopened,
+}
+
+/// Explicit reopening preserves all earlier results and changes no ledgers.
+OccurrenceStatus statusForActual(Occurrence occurrence, ActualOutcome outcome) {
+  final resolved = {
+    OccurrenceStatus.completed,
+    OccurrenceStatus.cancelled,
+    OccurrenceStatus.skipped,
+  }.contains(occurrence.status);
+  if ((outcome == ActualOutcome.reopened) != resolved) {
+    throw const ValidationError('Explicit reopening is required for history.');
+  }
+  return switch (outcome) {
+    ActualOutcome.completed ||
+    ActualOutcome.attended => OccurrenceStatus.completed,
+    ActualOutcome.cancelled => OccurrenceStatus.cancelled,
+    ActualOutcome.missed || ActualOutcome.noShow => OccurrenceStatus.skipped,
+    ActualOutcome.partial => OccurrenceStatus.pendingDecision,
+    ActualOutcome.reopened =>
+      occurrence.isManualOverride
+          ? OccurrenceStatus.rescheduled
+          : OccurrenceStatus.scheduled,
+  };
+}
 
 enum EvidenceType { note, document, localReference }
 

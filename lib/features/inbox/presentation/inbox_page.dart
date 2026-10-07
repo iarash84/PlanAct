@@ -1,4 +1,8 @@
+import 'package:planact/app/theme/planact_status_colors.dart';
+
 import 'dart:async';
+
+import 'package:planact/core/ids/stable_id.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -6,7 +10,9 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
+import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
@@ -22,17 +28,22 @@ class InboxPage extends StatefulWidget {
     required this.inbox,
     required this.finance,
     this.smsSource,
+    this.onDetermineRelationship,
   });
 
   final InboxUseCases inbox;
   final FinanceRepository finance;
   final AndroidSmsSource? smsSource;
+  final Future<void> Function(StableId transactionId)? onDetermineRelationship;
 
   @override
   State<InboxPage> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPage> {
+class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
+  StreamSubscription<AndroidSmsMessage>? _smsSubscription;
+  bool _reloading = false;
+  bool _reloadRequested = false;
   static const _logger = AppLogger();
   static const _projection = InboxReviewProjection();
   List<InboxReviewItem> _items = const [];
@@ -46,10 +57,44 @@ class _InboxPageState extends State<InboxPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _smsSubscription = widget.smsSource?.messages.listen(
+      (_) async {
+        // The broadcast may precede insertion by the default SMS application.
+        // Import only provider rows; never create a second broadcast identity.
+        await Future<void>.delayed(const Duration(seconds: 2));
+        if (mounted) await _reload();
+      },
+      onError: (Object error) {
+        if (mounted) {
+          setState(
+            () => _smsError =
+                'دریافت پیامک قطع شد؛ برای همگام‌سازی دوباره تلاش کنید.',
+          );
+        }
+      },
+    );
     _reload();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_working) _reload();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _smsSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _reload() async {
+    if (_reloading) {
+      _reloadRequested = true;
+      return;
+    }
+    _reloading = true;
     if (mounted) setState(() => _loading = true);
     try {
       await _syncSms();
@@ -80,6 +125,12 @@ class _InboxPageState extends State<InboxPage> {
         _error = 'بارگذاری صف بررسی انجام نشد.';
         _loading = false;
       });
+    } finally {
+      _reloading = false;
+      if (_reloadRequested && mounted) {
+        _reloadRequested = false;
+        unawaited(_reload());
+      }
     }
   }
 
@@ -98,6 +149,8 @@ class _InboxPageState extends State<InboxPage> {
         return;
       }
       final messages = await source.readRelevantMessages();
+      var unsupported = 0;
+      var failed = 0;
       for (final message in messages) {
         try {
           await widget.inbox.stageSms(
@@ -106,15 +159,22 @@ class _InboxPageState extends State<InboxPage> {
             currency: 'IRR',
             importedAt: message.receivedAt,
           );
+        } on DuplicateSmsImport {
+          // Already persisted under another provider identity (e.g. restore).
+        } on ValidationError {
+          unsupported++;
         } on Exception {
-          // Duplicate and unsupported messages remain governed by the staging
-          // and parser rules; one malformed message must not block the queue.
+          failed++;
         }
       }
       if (mounted) {
         setState(() {
           _smsAccess = true;
-          _smsError = null;
+          _smsError = failed > 0
+              ? 'ثبت برخی پیامک‌ها انجام نشد؛ دوباره تلاش کنید.'
+              : unsupported > 0
+              ? 'برخی پیامک‌ها قابل تشخیص نبودند و تراکنشی از آن‌ها ثبت نشد.'
+              : null;
         });
       }
     } catch (error) {
@@ -229,13 +289,28 @@ class _InboxPageState extends State<InboxPage> {
       );
       return;
     }
+    AccountEntry? imported;
     await _runAction(() async {
-      await widget.inbox.confirm(
+      imported = await widget.inbox.confirm(
         suggestion: item.suggestion,
         account: account,
         finance: widget.finance,
       );
     });
+    if (mounted && imported != null) {
+      final id = imported!.id;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('تراکنش ثبت شد.'),
+          action: widget.onDetermineRelationship == null
+              ? null
+              : SnackBarAction(
+                  label: 'تعیین ارتباط',
+                  onPressed: () => widget.onDetermineRelationship!(id),
+                ),
+        ),
+      );
+    }
   }
 
   Future<void> _reject(InboxReviewItem item) async {
@@ -483,7 +558,7 @@ class _SmsStatusCard extends StatelessWidget {
   );
 }
 
-class _ReviewCard extends StatelessWidget {
+class _ReviewCard extends StatefulWidget {
   const _ReviewCard({
     required this.item,
     required this.busy,
@@ -499,9 +574,16 @@ class _ReviewCard extends StatelessWidget {
   final VoidCallback onReject;
 
   @override
+  State<_ReviewCard> createState() => _ReviewCardState();
+}
+
+class _ReviewCardState extends State<_ReviewCard> {
+  bool _showDetails = false;
+
+  @override
   Widget build(BuildContext context) {
-    final draft = item.suggestion.draft;
-    final amount = '${draft.amount.minorUnits} ${draft.amount.currency}';
+    final draft = widget.item.suggestion.draft;
+    final amount = PersianMoneyText.money(draft.amount);
     final date = PersianDateFormatter.date(
       JalaliDate.fromDateTime(draft.occurredAt),
     );
@@ -524,42 +606,52 @@ class _ReviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '${item.sourceLabel} · ${_direction(draft.direction)} · $date',
+              '${widget.item.sourceLabel} · ${_direction(draft.direction)} · $date',
             ),
-            if (draft.bank != null) Text('بانک: ${draft.bank}'),
-            if (draft.accountHint != null)
-              Text('راهنمای حساب: ${draft.accountHint}'),
-            Text('حساب پیشنهادی: ${item.account?.name ?? 'نیازمند انتخاب'}'),
-            if (draft.reference != null)
-              Text('شناسه پیگیری: ${draft.reference}'),
-            const SizedBox(height: PlanActSpacing.sm),
             Text(
-              'چرا این پیشنهاد؟',
-              style: Theme.of(context).textTheme.labelLarge,
+              'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}',
             ),
-            for (final reason in item.reasons) Text('• $reason'),
-            for (final warning in item.warnings)
+            for (final warning in widget.item.warnings)
               Text(
                 'هشدار: $warning',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: TextStyle(
+                  color: PlanActStatusColors.of(context).attention,
+                ),
               ),
+            TextButton.icon(
+              onPressed: () => setState(() => _showDetails = !_showDetails),
+              icon: Icon(_showDetails ? Icons.expand_less : Icons.expand_more),
+              label: Text(_showDetails ? 'بستن جزئیات' : 'جزئیات پیشنهاد'),
+            ),
+            if (_showDetails) ...[
+              if (draft.bank != null) Text('بانک: ${draft.bank}'),
+              if (draft.accountHint != null)
+                Text('راهنمای حساب: ${draft.accountHint}'),
+              if (draft.reference != null)
+                Text('شناسه پیگیری: ${draft.reference}'),
+              Text(
+                'چرا این پیشنهاد؟',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              for (final reason in widget.item.reasons) Text('• $reason'),
+            ],
             const SizedBox(height: PlanActSpacing.sm),
             Wrap(
               spacing: PlanActSpacing.sm,
               runSpacing: PlanActSpacing.xs,
               children: [
                 FilledButton.icon(
-                  onPressed: busy ? null : onConfirm,
+                  onPressed: widget.busy ? null : widget.onConfirm,
                   icon: const Icon(Icons.check),
                   label: const Text('تأیید و ثبت'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: busy ? null : onEdit,
+                  onPressed: widget.busy ? null : widget.onEdit,
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('ویرایش'),
                 ),
                 TextButton.icon(
-                  onPressed: busy ? null : onReject,
+                  onPressed: widget.busy ? null : widget.onReject,
                   icon: const Icon(Icons.close),
                   label: const Text('رد کردن'),
                 ),
@@ -597,19 +689,22 @@ class _InboxStateCard extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     child: Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: 16),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(message, textAlign: TextAlign.center),
-          if (actionLabel != null) ...[
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+            if (actionLabel != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
           ],
-        ],
+        ),
       ),
     ),
   );

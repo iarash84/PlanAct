@@ -1,4 +1,8 @@
+import 'package:planact/core/application/command_gate.dart';
+
 import 'dart:convert';
+
+import 'package:planact/features/calendar/application/week_timeline.dart';
 
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
@@ -8,13 +12,26 @@ import 'package:planact/features/commitments/data/drift_commitment_repository.da
 import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 
-class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
+class DriftCommitmentPlanRepository
+    implements
+        CommandGateProvider,
+        CommitmentPlanRepository,
+        CommitmentPlanTransaction,
+        CalendarRangeRepository {
   DriftCommitmentPlanRepository(this.database);
+
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
 
   @override
-  Future<void> save(CommitmentPlan plan) async {
+  Future<T> runTransaction<T>(Future<T> Function() action) =>
+      CommandGate.runFor(this, () async => database.transaction(action));
+
+  @override
+  Future<void> save(CommitmentPlan plan) => CommandGate.runFor(this, () async {
     await database.transaction(() async {
       await database
           .into(database.commitmentCycles)
@@ -79,11 +96,17 @@ class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
               ),
             );
       }
+      final reminders = DriftReminderRepository(database);
+      for (final rule in plan.reminders) {
+        await reminders.saveRule(rule);
+      }
     });
-  }
+  });
 
   @override
-  Future<void> saveOccurrence(Occurrence occurrence) async {
+  Future<void> saveOccurrence(
+    Occurrence occurrence,
+  ) => CommandGate.runFor(this, () async {
     final schedule =
         await (database.select(database.scheduleDefinitions)..where(
               (table) => table.id.equals(occurrence.scheduleDefinitionId.value),
@@ -113,33 +136,86 @@ class DriftCommitmentPlanRepository implements CommitmentPlanRepository {
             isManualOverride: occurrence.isManualOverride,
           ),
         );
-  }
+  });
 
   @override
-  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) async {
-    final cycle =
-        await (database.select(database.commitmentCycles)
-              ..where((t) => t.commitmentId.equals(commitmentId.value)))
-            .getSingleOrNull();
-    if (cycle == null) return null;
-    final schedule = await (database.select(
-      database.scheduleDefinitions,
-    )..where((t) => t.cycleId.equals(cycle.id))).getSingleOrNull();
-    if (schedule == null) return null;
-    final rows = await (database.select(
-      database.occurrences,
-    )..where((t) => t.scheduleDefinitionId.equals(schedule.id))).get();
-    final commitment = await DriftCommitmentRepository(database)
-        .findById(commitmentId);
-    if (commitment == null) return null;
-    return CommitmentPlan(
-      commitment: commitment,
-      cycle: _cycle(cycle),
-      schedule: _schedule(schedule),
-      occurrences: rows.map(_occurrence).toList(growable: false),
-      reminders: const [],
+  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) =>
+      CommandGate.runFor(this, () async {
+        final cycle =
+            await (database.select(database.commitmentCycles)
+                  ..where((t) => t.commitmentId.equals(commitmentId.value)))
+                .getSingleOrNull();
+        if (cycle == null) return null;
+        final schedule =
+            await (database.select(database.scheduleDefinitions)
+                  ..where((t) => t.cycleId.equals(cycle.id))
+                  ..orderBy([(t) => OrderingTerm.desc(t.version)])
+                  ..limit(1))
+                .getSingleOrNull();
+        if (schedule == null) return null;
+        final rows = await (database.select(
+          database.occurrences,
+        )..where((t) => t.cycleId.equals(cycle.id))).get();
+        final commitment = await DriftCommitmentRepository(database)
+            .findById(commitmentId);
+        if (commitment == null) return null;
+        final rules = await DriftReminderRepository(database).listRules();
+        final occurrenceIds = rows.map((row) => row.id).toSet();
+        return CommitmentPlan(
+          commitment: commitment,
+          cycle: _cycle(cycle),
+          schedule: _schedule(schedule),
+          occurrences: rows.map(_occurrence).toList(growable: false),
+          reminders: rules
+              .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
+              .toList(growable: false),
+        );
+      });
+
+  @override
+  Future<Map<String, List<Occurrence>>> loadWeek(
+    LocalDate start,
+  ) => CommandGate.runFor(this, () async {
+    final localStart = DateTime(start.year, start.month, start.day);
+    final finish = start.addDays(7);
+    final localEnd = DateTime(finish.year, finish.month, finish.day);
+    final predicates = <String>[];
+    final variables = <Variable>[];
+    for (var i = 0; i < 7; i++) {
+      final date = _date(start.addDays(i));
+      predicates.add(
+        '(o.current_scheduled_value = ? OR o.current_scheduled_value LIKE ?)',
+      );
+      variables.add(Variable<String>('date:$date'));
+      variables.add(Variable<String>('local:${date}T%'));
+    }
+    predicates.add(
+      '(o.current_scheduled_value >= ? AND o.current_scheduled_value < ?)',
     );
-  }
+    variables.add(
+      Variable<String>('instant:${localStart.toUtc().toIso8601String()}'),
+    );
+    variables.add(
+      Variable<String>('instant:${localEnd.toUtc().toIso8601String()}'),
+    );
+    final rows = await database
+        .customSelect(
+          'SELECT o.*, c.commitment_id AS owner_id FROM occurrences o '
+          'JOIN commitment_cycles c ON c.id = o.cycle_id '
+          'WHERE ${predicates.join(' OR ')}',
+          variables: variables,
+          readsFrom: {database.occurrences, database.commitmentCycles},
+        )
+        .get();
+    final result = <String, List<Occurrence>>{};
+    for (final row in rows) {
+      final occurrence = _occurrence(database.occurrences.map(row.data));
+      result
+          .putIfAbsent(row.read<String>('owner_id'), () => [])
+          .add(occurrence);
+    }
+    return result;
+  });
 
   static String _date(LocalDate value) =>
       '${value.year}-${value.month}-${value.day}';

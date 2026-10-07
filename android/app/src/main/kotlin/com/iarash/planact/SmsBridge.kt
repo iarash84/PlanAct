@@ -87,6 +87,7 @@ object SmsBridge {
             "readRelevant" -> {
                 if (!hasAccess(activity)) { result.success(emptyList<Map<String, Any>>()); return }
                 val rows = mutableListOf<Map<String, Any>>()
+                try {
                 activity.contentResolver.query(
                     Telephony.Sms.Inbox.CONTENT_URI,
                     arrayOf(Telephony.Sms._ID, Telephony.Sms.BODY, Telephony.Sms.DATE),
@@ -105,6 +106,11 @@ object SmsBridge {
                     }
                 }
                 result.success(rows)
+                } catch (_: SecurityException) {
+                    result.error("sms_access_revoked", "SMS access is unavailable", null)
+                } catch (_: Exception) {
+                    result.error("sms_read_failed", "SMS import failed", null)
+                }
             }
             else -> result.notImplemented()
         }

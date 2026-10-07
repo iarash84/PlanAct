@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -53,7 +54,7 @@ class FinancialExpectationUseCases {
     String? currency,
     StableId? accountId,
     DateTime? now,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _validate(amount, currency);
     final timestamp = (now ?? DateTime.now()).toUtc();
     final item = FinancialExpectation(
@@ -68,7 +69,7 @@ class FinancialExpectationUseCases {
     );
     await repository.saveExpectation(item);
     return item;
-  }
+  });
 
   Future<FinancialExpectation> update(
     FinancialExpectation expectation, {
@@ -77,7 +78,7 @@ class FinancialExpectationUseCases {
     FinancialExpectationDirection? direction,
     StableId? accountId,
     DateTime? now,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _validate(amount, currency);
     final item = FinancialExpectation(
       id: expectation.id,
@@ -92,18 +93,19 @@ class FinancialExpectationUseCases {
     );
     await repository.saveExpectation(item);
     return item;
-  }
+  });
 
-  Future<FinancialExpectation?> getByOccurrence(StableId occurrenceId) async {
-    final items = await repository.listExpectations();
-    for (final item in items) {
-      if (item.occurrenceId == occurrenceId &&
-          item.status == FinancialExpectationStatus.active) {
-        return item;
-      }
-    }
-    return null;
-  }
+  Future<FinancialExpectation?> getByOccurrence(StableId occurrenceId) =>
+      CommandGate.runFor(repository, () async {
+        final items = await repository.listExpectations();
+        for (final item in items) {
+          if (item.occurrenceId == occurrenceId &&
+              item.status == FinancialExpectationStatus.active) {
+            return item;
+          }
+        }
+        return null;
+      });
 
   Future<List<FinancialExpectationSettlement>> outstanding() async =>
       (await _settlements())
@@ -118,39 +120,40 @@ class FinancialExpectationUseCases {
   Future<FinancialExpectation> archive(
     FinancialExpectation item, {
     DateTime? now,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final archived = item.archive(now ?? DateTime.now());
     await repository.saveExpectation(archived);
     return archived;
-  }
+  });
 
-  Future<List<FinancialExpectationSettlement>> _settlements() async {
-    final active = (await repository.listExpectations()).where(
-      (item) => item.status == FinancialExpectationStatus.active,
-    );
-    final matches = _legacyMatches ?? await repository.listMatches();
-    return active
-        .map((item) {
-          var total = 0;
-          for (final match in matches) {
-            if (match.status != MatchStatus.active) continue;
-            for (final allocation in match.allocations) {
-              if (allocation.occurrenceId == item.occurrenceId &&
-                  item.currency != null &&
-                  allocation.amount.currency == item.currency) {
-                total += allocation.amount.minorUnits;
+  Future<List<FinancialExpectationSettlement>> _settlements() =>
+      CommandGate.runFor(repository, () async {
+        final active = (await repository.listExpectations()).where(
+          (item) => item.status == FinancialExpectationStatus.active,
+        );
+        final matches = _legacyMatches ?? await repository.listMatches();
+        return active
+            .map((item) {
+              var total = 0;
+              for (final match in matches) {
+                if (match.status != MatchStatus.active) continue;
+                for (final allocation in match.allocations) {
+                  if (allocation.occurrenceId == item.occurrenceId &&
+                      item.currency != null &&
+                      allocation.amount.currency == item.currency) {
+                    total += allocation.amount.minorUnits;
+                  }
+                }
               }
-            }
-          }
-          return FinancialExpectationSettlement(
-            expectation: item,
-            allocatedAmount: item.currency == null
-                ? null
-                : Money(minorUnits: total, currency: item.currency!),
-          );
-        })
-        .toList(growable: false);
-  }
+              return FinancialExpectationSettlement(
+                expectation: item,
+                allocatedAmount: item.currency == null
+                    ? null
+                    : Money(minorUnits: total, currency: item.currency!),
+              );
+            })
+            .toList(growable: false);
+      });
 
   void _validate(int amount, String? currency) {
     if (amount <= 0) {

@@ -48,15 +48,24 @@ void main() {
     );
     expect(full.isFull, isTrue);
 
-    final overpaid = await useCases.match(
+    // The domain can project legacy/explicit-policy credit, but repository
+    // admission has no policy authorizing over-allocation.
+    final overpaid = TransactionMatch(
+      id: full.id,
       transactionId: transactionId,
       transactionAmount: const Money(minorUnits: 500, currency: 'IRR'),
       createdAt: DateTime.utc(2026, 2, 6),
-      occurrenceIds: [occurrenceA, occurrenceB],
-      allocations: const [
-        Money(minorUnits: 400, currency: 'IRR'),
-        Money(minorUnits: 300, currency: 'IRR'),
-      ],
+      allocations: full.allocations,
+    );
+    await expectLater(
+      useCases.match(
+        transactionId: transactionId,
+        transactionAmount: const Money(minorUnits: 700, currency: 'IRR'),
+        createdAt: DateTime.utc(2026, 2, 6),
+        occurrenceIds: [occurrenceA],
+        allocations: const [Money(minorUnits: 1, currency: 'IRR')],
+      ),
+      throwsException,
     );
     expect(overpaid.isOverpayment, isTrue);
     expect(overpaid.overpayment, const Money(minorUnits: 200, currency: 'IRR'));

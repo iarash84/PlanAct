@@ -1,8 +1,8 @@
 # AGENTS.md — Personal Commitment Manager
 
 This file is the repository-level execution contract for human developers and AI coding agents.
-It defines **how PlanAct must be implemented**, while `PRD.md` defines **what product behavior must exist and why**.
-Read both files before changing product behavior. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.
+It defines **how PlanAct must be implemented**, while `docs/product/PRD.md` defines **what product behavior must exist and why**.
+Read both files before changing product behavior. Read `docs/DESIGN_SYSTEM.md` before meaningful presentation or design-system work. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.
 
 ## 1. Product mission
 
@@ -243,6 +243,8 @@ Planned-vs-actual logic belongs outside UI and must be testable.
 
 Financial matching between transactions and occurrences is many-to-many to support partial payments, multiple payments, overpayment, and corrected matches.
 
+Transaction relationship review is separate from real matches, categories and tags. Only explicit confirmation may resolve an unmatched remainder as independent; navigation/cancellation is not review. Persist append-only independent/reopened decisions with transaction amount, allocation/history fingerprints and monotonic per-transaction revision. Undo/reopening appends history; it must not reverse financial entries or remove matches. A changed amount or allocation history invalidates the old decision for the current remainder, without deleting it. Today must classify eligible unreversed income/expense remainders through the domain projection, not suppress a whole transaction because any active match exists. Production allocation admission and review compare-and-append must validate fresh durable state transactionally; CommandGate alone is not serialization. New review history belongs in personal backup logical preservation and schema compatibility tests. See docs/adr/0015-transaction-relationship-review.md.
+
 ## 11. Persistence and migration rules
 
 - Use foreign keys, indexes, transactional writes, and explicit migrations from the beginning.
@@ -280,6 +282,7 @@ Restore must:
 - Secrets/keys belong in secure platform storage.
 - Sensitive exports require explicit user action and privacy warning.
 - App lock/biometric protection is part of release hardening for sensitive data.
+- App-lock protection must cover the root navigation stack, including modal and pushed routes, without discarding form state. Setting changes require fresh device authentication and successful persistence before changing the effective setting. Background transitions must invalidate in-flight authentication results; failures must not silently disable protection. Device-authenticator absence is not permission to introduce a recovery bypass. Native authentication/lifecycle and recents privacy require independent device evidence; Flutter tests alone do not prove these release gates.
 - Do not add telemetry or crash reporting that uploads personal data without a deliberate privacy review.
 
 ## 14. Coding conventions for vibe coding
@@ -338,7 +341,7 @@ Before marking a task complete, verify:
 
 For every prompt:
 
-1. Read this file and the task-specific prompt.
+1. Read this file and the task-specific prompt; also read `docs/product/PRD.md` for product behavior changes and `docs/DESIGN_SYSTEM.md` before meaningful UI/design-system work.
 2. Inspect the existing repository before proposing structure.
 3. State the minimum implementation plan internally and keep the code change focused.
 4. Reuse existing conventions and dependencies.
@@ -377,7 +380,7 @@ Do not:
 When instructions conflict, use this order:
 
 1. Explicit approved ADR / latest approved product decision.
-2. `PRD.md` for product scope, user-visible behavior, acceptance criteria, release priorities, and non-goals.
+2. `docs/product/PRD.md` for product scope, user-visible behavior, acceptance criteria, release priorities, and non-goals.
 3. `AGENTS.md` for implementation constraints, architecture rules, data-integrity rules, testing expectations, and agent workflow.
 4. `docs/ARCHITECTURE_AND_DOMAIN_RULES.md` for deeper architecture/domain detail that does not contradict items above.
 5. Current milestone/task prompt, provided it stays within approved product scope and architecture.
@@ -385,15 +388,27 @@ When instructions conflict, use this order:
 
 Interpretation rules:
 
-- `PRD.md` owns **what/why**; `AGENTS.md` owns **how/safeguards**.
+- `docs/product/PRD.md` owns **what/why**; `AGENTS.md` owns **how/safeguards**.
 - A task prompt may narrow scope but must not silently weaken a PRD acceptance criterion or an AGENTS data-integrity rule.
-- When `PRD.md` changes product behavior, update `AGENTS.md` in the same change if implementation rules are affected.
+- When `docs/product/PRD.md` changes product behavior, update `AGENTS.md` in the same change if implementation rules are affected.
 - When `AGENTS.md` introduces a durable product-visible constraint, verify whether `PRD.md` also needs an update.
 - If there is still a conflict, preserve user data/history, prefer the least irreversible option, and require an explicit ADR/product decision before shipping behavior that changes semantics.
 
+For presentation and visual-design decisions, use this additional order, subject to the product and engineering hierarchy above:
+
+1. Product/domain requirements and established product behavior in `docs/product/PRD.md`.
+2. Design governance in `AGENTS.md`.
+3. The visual specification in `docs/DESIGN_SYSTEM.md`.
+4. Shared PlanAct `ThemeData`, `ColorScheme`, `ThemeExtension`s or equivalent tokens.
+5. Shared PlanAct components.
+6. Feature-local composition.
+7. One-off local styling, only when genuinely unavoidable and documented.
+
+Feature widgets must not silently override a shared visual rule. If current implementation and the visual specification disagree, determine whether the implementation predates the current shared contract; follow the shared contract unless that would break product behavior, and record an intentional exception. Do not treat a current implementation detail as approval to create further visual variants.
+
 ## 20. PRD ↔ AGENTS consistency contract
 
-`PRD.md` and `AGENTS.md` are complementary and must evolve together.
+`docs/product/PRD.md` and `AGENTS.md` are complementary and must evolve together.
 
 Before completing a feature that changes product behavior, verify all of the following:
 
@@ -579,34 +594,41 @@ Avoid duplicating classification rules inside widgets.
 
 ---
 
+## Brand Identity
+
+PlanAct must remain recognizably PlanAct rather than looking like an unbranded Flutter/Material sample. Derive its visual personality from the actual brand assets and the product's calm, trustworthy, organized, focused, modern, approachable, financially credible, action-oriented, low-noise, Persian-first character. The identity should be expressed consistently through color families, surface hierarchy, selected and interaction states, Persian typography, shape, icon treatment, motion, and visual hierarchy—not by repeatedly placing the logo on screens.
+
+Use the logo primarily in appropriate brand moments such as the launcher, startup/splash, About, and deliberately chosen root-branding moments. Do not add it to every AppBar or use decorative logo repetition as a substitute for a coherent visual system. Material 3 remains the interaction and component foundation; it is not PlanAct's brand identity.
+
+Before proposing a foundational palette or identity change, inspect the actual app icon/launcher assets and current theme implementation; do not infer palette values from this guidance alone.
+
 ## Design System First
 
-Repeated visual decisions must be centralized.
+`docs/DESIGN_SYSTEM.md` is the authoritative concrete visual specification; `AGENTS.md` governs how that specification is maintained. Before adding or changing a recurring color, text style, radius, spacing, shadow/elevation, animation timing, or component pattern, inspect the specification, current theme/tokens, and shared components.
 
-Do not repeatedly introduce arbitrary:
+Repeated visual decisions MUST be centralized in the existing `ThemeData`, `ColorScheme`, `TextTheme`, component themes, PlanAct tokens (including a `ThemeExtension` or equivalent where semantic roles require it), or shared components. Reuse a fitting semantic role. If multiple surfaces need a missing role, extend the shared system rather than creating feature-local alternatives. Feature presentation code must not become a second design system, and local styles must not silently override shared rules.
 
-* colors
-* font sizes
-* font weights
-* paddings
-* gaps
-* corner radii
-* elevations
-* animation durations
-* animation curves
+Centralize design decisions, not every geometry literal. Component-specific geometry may remain local when it is genuinely unique; recurring visual values and patterns may not. A one-off style is acceptable only when it is necessary for a specific surface, does not conflict with shared semantics, and its reason and scope are documented. Avoid both copy-pasted local UI and universal widgets with sprawling APIs.
 
-inside feature widgets.
+App-wide visual consistency is required; app-wide architectural rewriting is not. Apply changes proportionally: a small isolated behavior or UI adjustment does not require redesigning the app, while a shared design-system change or broad visual refactor requires reviewing all affected surfaces and updating any equivalent surfaces that would otherwise be left in a knowingly incompatible visual language.
 
-If a visual value or pattern can reasonably occur in multiple places, implement it through:
+## Brand Colors and Semantic Colors
 
-* ThemeData
-* ColorScheme
-* TextTheme
-* component themes
-* PlanAct design tokens
-* reusable PlanAct components
+Keep brand hierarchy and business/status meaning distinct. Material brand roles such as primary, secondary, tertiary, their containers, surfaces, and outlines establish product hierarchy. Success, warning, danger/error, information, attention, overdue, paused, archived, and disabled are semantic roles. Do not map a Material brand role to a business state merely because its color looks convenient (for example, `tertiary == success` or `error == overdue`); a role may serve both purposes only when the meaning is deliberately defined, semantically correct, and documented.
 
-Prefer extending the design system over solving the same visual problem locally.
+Use `ColorScheme` for Material brand and surface roles and the existing PlanAct semantic-color mechanism (currently `PlanActColors`, or an architecture-aligned `ThemeExtension` if needed) for non-Material statuses. Semantic foreground/container pairings and contrast must be defined for each brightness; do not assume a Light value is valid in Dark. Never communicate a status by color alone. Official external brand colors are limited exceptions for representing that external entity, not substitutes for PlanAct brand or status colors.
+
+## Material 3 and Theme Parity
+
+Use Material 3 components and interaction conventions. When a shared PlanAct theme role or component treatment exists, do not leave recurring components at framework defaults or compensate with extensive screen-local styling. Prefer theme-level configuration for recurring Material components.
+
+Light and Dark are both intentional designs. A design-system change is incomplete until both have been reviewed; Dark must not be produced by mechanically inverting Light. Check text and icon contrast, surface levels, outlines, selected and disabled states, semantic colors, chips/badges, navigation, dialogs, and sheets. PlanAct's identity and status meanings must remain recognizable in both themes.
+
+## App-Wide Visual Coverage
+
+For a broad visual redesign or shared design-system change, create or update a concise coverage inventory of applicable user-visible surfaces. Depending on what exists or is affected, include the root shell/navigation, Today, Calendar, Quick Add, Quick Capture, Commitment Details, Finance, Inbox, More, Settings, About, App Lock, startup/splash, dialogs, bottom sheets, forms, date pickers, and loading/empty/error/other state views. Mark each applicable surface as **Compliant**, **Migrated**, or **Intentionally Unchanged**, with a short reason for the latter. No applicable surface may remain **Not Reviewed** for work claiming app-wide visual consistency.
+
+The inventory is proportional to scope: a tiny isolated change does not require a full-app audit. A shared component change must include its known consumers; a broad refactor must consider the full applicable inventory. Do not knowingly leave equivalent screens visually stale after changing their shared pattern.
 
 ---
 
@@ -618,7 +640,7 @@ Typography must therefore be intentionally designed for Persian readability.
 
 Text hierarchy must be semantic and reusable.
 
-Do not assign arbitrary font sizes directly inside feature widgets when a suitable semantic typography token exists.
+Before meaningful UI work, follow the font strategy and semantic roles in `docs/DESIGN_SYSTEM.md`; prioritize Persian readability and line height, correct shaping, mixed Persian/Latin content, Persian digits where appropriate, and legible numeric/money content. Reuse semantic theme typography and locale-aware formatters; do not invent feature-local font families, arbitrary font sizes/weights, or scattered digit replacements.
 
 Typography should distinguish roles such as:
 
@@ -637,26 +659,7 @@ RTL, text scaling, and mixed Persian/Latin content must remain usable.
 
 ## Semantic Colors
 
-Colors must represent meaning consistently.
-
-Define semantic roles such as appropriate:
-
-* primary
-* secondary
-* surface
-* success
-* warning
-* error
-* attention
-* archived
-* disabled
-* selected
-
-Do not use arbitrary colors inside feature widgets.
-
-Do not communicate status using color alone.
-
-Color meaning must remain consistent in light and dark themes.
+Use the brand/status separation in **Brand Colors and Semantic Colors** and the role definitions in `docs/DESIGN_SYSTEM.md`. Keep meaning consistent across surfaces and define appropriate Light and Dark values. Do not introduce arbitrary feature-local colors or communicate status by color alone.
 
 ---
 
@@ -751,6 +754,8 @@ Always verify:
 
 Do not make interactive elements artificially small for visual compactness.
 
+For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar Month-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
+
 ---
 
 ## RTL Consistency
@@ -776,16 +781,14 @@ When introducing a new directional interaction, compare it with existing PlanAct
 
 ## Changes to Shared UI
 
-Before creating a new visual component, inspect existing shared components and themes.
+Before creating a new visual component:
 
-If an equivalent pattern already exists:
+1. Search existing shared components, themes, and tokens for an equivalent pattern.
+2. Reuse it if suitable.
+3. Improve the shared implementation when that is the appropriate way to preserve consistency.
+4. Create a new abstraction only when it represents a recurring product pattern not served by existing components.
 
-* reuse it, or
-* improve the shared implementation
-
-Do not create near-duplicate implementations inside separate feature folders.
-
-If a new reusable pattern is introduced, consider whether it belongs in the shared design system.
+Keep shared component APIs small and semantic; avoid near-duplicates in feature folders and avoid giant universal widgets with many unrelated options. If changing a shared component affects other presentation surfaces, inspect and update those consumers as required by the app-wide coverage rule. Do not perform an unrelated architecture rewrite as a visual-consistency exercise.
 
 ---
 
@@ -804,8 +807,17 @@ For any meaningful feature or UI change, check:
 9. Are new arbitrary design values being introduced?
 10. Does the change affect another part of the core user journey?
 11. Are relevant tests present?
+12. Does the change follow `docs/DESIGN_SYSTEM.md` and reuse the current PlanAct design system?
+13. Is it visually aligned with related surfaces, including affected shared-component consumers?
+14. Did it introduce recurring raw visual values or near-duplicate patterns that belong in shared tokens/components?
+15. Does it work intentionally in both Light and Dark?
+16. Are RTL semantics, Persian typography, text scaling, touch targets, contrast, and color-independent status cues usable?
+17. Are applicable loading, error, empty, saving, and disabled states coherent?
+18. Is any visual exception genuinely necessary, scoped, and documented?
 
 A change should not be considered complete until applicable items are addressed.
+
+For broad visual/design-system tasks, also complete the app-wide visual coverage inventory above; no applicable surface may remain unreviewed. Do not claim app-wide consistency based only on the edited screen.
 
 ---
 
@@ -829,3 +841,28 @@ After meaningful changes run:
 * relevant widget/integration tests
 
 Do not report a task as complete when analysis or relevant tests fail.
+
+
+## Offline Iranian holiday safeguards
+
+Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Current-year 1405 coverage is checked against all twelve time.ir published months; do not describe that secondary source as independent verification of the official PDF. Future-year coverage and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
+
+## Schedule/actual checkpoint safeguards
+
+Priorities 6 and 7 are partial as recorded in docs/SCHEDULE_ACTUAL_VERIFICATION.md. Explicit reopening appends a result, preserves earlier history, and restores an actionable scheduled/rescheduled occurrence; it must not be described as an exact prior-status, financial, or entitlement reversal. Persisted outcome enum indices must remain stable. Date/time editing must reject unsupported recurrence/termination semantics rather than silently changing session counts or recurrence phase. Full intermediate schedule audit, version-safe generation, durable concurrency revisions, and interrupted reminder reopening remain required gates, not waived requirements.
+
+## Transactional/platform consistency
+
+Domain commits and external platform delivery are separate outcomes. Do not report a committed creation or occurrence mutation as wholly failed because subsequent reminder synchronization failed. Persist replacement reminder intent transactionally before platform cancellation/scheduling; reconcile from durable rules and occurrences without destroying delivery, snooze or cancellation history. CommandGate admission is not general command serialization. The Priority 5 checkpoint and unresolved same-time restore/concurrency/native gates are recorded in docs/TRANSACTIONAL_PLATFORM_VERIFICATION.md.
+
+## Production backup verification status
+
+The production adapter decisions and unresolved release gates are recorded in docs/adr/0013-production-backup-restore.md and the PRD implementation-status note. Do not describe installation-bound encrypted exports as portable device-loss recovery. Do not weaken isolated schema validation to bypass migrated-schema incompatibility without tested compatibility rules. Backup integration must prove in-flight command exclusion, repository/listener rebind, full logical-state preservation, and isolated native platform behavior before release.
+
+## Independent holiday package safeguards
+
+Annual packages use explicit first-publisher fingerprint approval and pinned Ed25519 signer continuity; a valid signature is not evidence of official source accuracy or factual completeness. Keep source review separate from structural coverage validation. Preserve old data on rejection or transactional failure, never reset trust silently, and never mutate personal history on reference-data imports. Public package storage is outside personal backup/restore; retain original packages. See docs/adr/0014-independent-holiday-packages.md.
+
+## Calendar Week safeguards
+
+The month fit-to-screen touch-width exception applies only to Month, never Week. The user-approved 2026-10-07 Week redesign supersedes horizontal phone scrolling: use a single vertical Saturday–Friday agenda with pinned day headings, readable wrapping rows, the shared commitment identity marker, actual status text/icons and standard 48dp targets. No phone horizontal day scrolling or blank 24-hour grid. Open the current week at today with earlier days accessible above; other weeks start Saturday. Keep compact empty days, whole-week empty/add, loading/retry, holidays/overlapping reasons/incomplete coverage and existing navigation/details/reminder flows. Retain the timeline automatically only when actual available width accommodates all seven readable day/lane columns at the current text scale; otherwise use the agenda, without new settings. Recorded LocalDate occurrences are all-day; recorded DateTime occurrences are point starts. Equal starts do not prove conflicts. Do not fabricate ends/durations or persist visual card footprints. Optional explicit interval/midnight layout inputs are pure synthetic seams, not parallel event storage. Identity palette colors remain independent of actual status text/icons. Bounded durable Week reads must respect local/date/instant serialization, preserve every historical status, and never generate or mutate schedules. Existing Today eager plan reads are not eliminated by this scoped Calendar change.

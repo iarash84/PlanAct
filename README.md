@@ -164,28 +164,34 @@
 
 <span dir="ltr">PlanAct</span> در حال توسعه مرحله‌ای است و بخش‌های اصلی دامنه، زمان‌بندی، جلسات، یادآوری، ثبت واقعیت، مالی، تطبیق، <span dir="ltr">Inbox</span>، اتوماسیون و پیش‌بینی محلی در آن پیاده‌سازی شده‌اند. قابلیت‌های هوش مصنوعی محلی اختیاری هستند و خاموش کردن آن‌ها نباید هیچ جریان اصلی برنامه را مختل کند.
 
-## انتشار نسخه برای استفاده
+## توسعه و انتشار نسخه
 
-برای هر تغییر در شاخه اصلی یا Pull Request، GitHub Actions به‌صورت خودکار قالب‌بندی، تحلیل کد و تست‌ها را اجرا می‌کند.
+برای راهنمای شاخه‌ها، بررسی محلی، Pull Request، CI، همگام‌سازی و انتشار Android به [راهنمای workflow توسعه](docs/development-workflow.md) مراجعه کنید.
 
-برای ساخت نسخه قابل انتشار در GitHub:
+بررسی مشترک محلی را از ریشه repository اجرا کنید. در Windows PowerShell:
 
-1. مقدار `version` در <span dir="ltr"><code>pubspec.yaml</code></span> را به نسخه جدید تغییر دهید؛ برای مثال `1.1.0+2`.
-2. تغییرات را commit و به شاخه اصلی push کنید.
-3. یک tag با قالب `vMAJOR.MINOR.PATCH` بسازید؛ برای مثال `v1.1.0`.
-4. tag را به GitHub push کنید:
+```powershell
+.\tool\ci.ps1
+```
 
-   ```bash
-   git tag v1.1.0
-   git push origin v1.1.0
-   ```
+در Linux و macOS:
 
-پس از push شدن tag، workflow انتشار نسخه را اجرا می‌کند، تست‌ها و تحلیل را دوباره انجام می‌دهد، APK اندروید را می‌سازد و آن را در GitHub Release همان tag قرار می‌دهد.
+```bash
+bash tool/ci.sh
+```
 
-> در وضعیت فعلی، build اندروید با signing موجود پروژه ساخته می‌شود و برای تست و انتشار داخلی مناسب است. برای انتشار عمومی در Google Play یا توزیع تجاری، باید keystore اختصاصی ایجاد و مقادیر حساس آن در GitHub Actions Secrets تنظیم شود؛ کلید امضای خصوصی نباید در repository قرار بگیرد.
+این بررسی شامل دریافت وابستگی‌ها، format check، analyze، تست‌ها و build سازگار Android release است؛ برای build کامل محلی به signing معتبر نیاز دارید. راهنمای [workflow توسعه](docs/development-workflow.md) جزئیات اجرای PowerShell و حالت اجرای بدون build اندروید را توضیح می‌دهد.
 
-## مجوز و انتشار
+انتشار از GitHub Actions و به‌صورت دستی از `master` انجام می‌شود؛ پس از موفقیت validation و ساخت artifact امضاشده، tag و GitHub Release ساخته می‌شوند. tag را دستی ایجاد و push نکنید. کلید خصوصی signing نباید در repository قرار بگیرد.
 
-جزئیات مجوز، مدل تجاری و شرایط انتشار در مرحله انتشار رسمی محصول اعلام خواهد شد.
+## مجوز / License
+
+PlanAct به‌صورت Source-Available / Non-Commercial منتشر می‌شود. کد منبع به‌صورت عمومی در دسترس است و افراد می‌توانند برای اهداف مجاز غیرتجاری، کد را بررسی، مطالعه، تغییر، فورک و استفاده کنند. استفاده شخصی، آموزشی، پژوهشی و پروژه‌های سرگرمی‌محور در محدوده مجوز مجاز است، اما استفاده تجاری، توزیع تجاری، فروش نسخه اصلی یا نسخه‌های تغییر یافته، یا استفاده در محصول یا سرویس تجاری بدون مجوز جداگانه از مالک حق نشر ممنوع است.
+
+PlanAct is source-available software distributed under the PolyForm Noncommercial License 1.0.0. The source code is publicly available so people may inspect, study, modify, fork, and use it for permitted non-commercial purposes. Personal, educational, research, and hobby use is allowed where permitted by the license, but commercial use, commercial distribution, sale of the software or modified versions, or incorporation into a commercial product or service requires separate permission from the copyright holder.
+
+متن کامل و authoritative مجوز رسمی در فایل `LICENSE` قرار دارد. The complete authoritative legal text is available in the `LICENSE` file.
+
+نام رسمی مجوز در مستندات پروژه به‌صورت `PolyForm Noncommercial License 1.0.0` حفظ می‌شود. The official license name is preserved as `PolyForm Noncommercial License 1.0.0`.
 
 </div>

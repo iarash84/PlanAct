@@ -123,10 +123,10 @@ class ReminderInstance {
   final String? platformNotificationId;
 
   ReminderInstance cancel() =>
-      _copyWith(status: ReminderInstanceStatus.cancelled);
+      _copyWith(status: ReminderInstanceStatus.cancelled, snoozedUntil: null);
 
   ReminderInstance deliver() =>
-      _copyWith(status: ReminderInstanceStatus.delivered);
+      _copyWith(status: ReminderInstanceStatus.delivered, snoozedUntil: null);
 
   ReminderInstance snoozeUntil(DateTime instant) => _copyWith(
     status: ReminderInstanceStatus.snoozed,
@@ -153,6 +153,11 @@ class ReminderInstance {
     snoozedUntil: snoozedUntil,
     platformNotificationId: platformNotificationId,
   );
+}
+
+/// Scheduling intent remains durable while the user has not granted access.
+class ReminderPermissionUnavailable implements Exception {
+  const ReminderPermissionUnavailable();
 }
 
 /// Platform-neutral notification operation. Implementations belong in adapters.

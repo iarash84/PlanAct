@@ -1,4 +1,20 @@
+import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
+import 'package:planact/features/calendar/application/holiday_package_service.dart';
+import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
+import 'package:planact/features/backup/presentation/backup_settings_card.dart';
+import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
+import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/scheduling/presentation/edit_schedule_dialog.dart';
+import 'package:planact/features/actuals/data/drift_actual_repository.dart';
+import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
@@ -7,6 +23,7 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
@@ -35,12 +52,33 @@ import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
+import 'package:planact/features/reminders/application/reminder_service.dart';
+import 'package:planact/features/reminders/application/reminder_platform.dart';
+import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/reconciliation/application/contextual_reconciliation.dart';
+import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
+import 'package:planact/features/reconciliation/domain/relationship_review.dart';
+import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
+import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
+import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
 
 class PlanActApp extends StatefulWidget {
-  const PlanActApp({super.key, this.repository, this.planRepository});
+  const PlanActApp({
+    super.key,
+    this.repository,
+    this.tagRepository,
+    this.planRepository,
+    this.holidayPackages,
+    this.backupActions,
+    this.backupMessage,
+  });
+  final HolidayPackageService? holidayPackages;
+  final BackupActions? backupActions;
+  final String? backupMessage;
 
   final CommitmentRepository? repository;
+  final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
 
   @override
@@ -51,6 +89,8 @@ class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
   bool _appLockEnabled = false;
+  bool _appLockSettingLoaded = false;
+  String? _appLockSettingError;
   late final AppLockController _appLockController = AppLockController(
     authenticator: LocalAppAuthenticator(),
   );
@@ -64,21 +104,49 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
-      _settings!.readAppLockEnabled().then((enabled) {
-        if (mounted) setState(() => _appLockEnabled = enabled);
-      });
+      _loadAppLockSetting();
     }
   }
 
-  Future<void> _setAppLock(bool enabled) async {
-    if (enabled) {
-      final enabledAfterAuth = await _appLockController.enable();
-      if (!enabledAfterAuth) return;
-    } else {
-      _appLockController.disable();
+  Future<void> _loadAppLockSetting() async {
+    try {
+      final enabled = await _settings!.readAppLockEnabled();
+      if (enabled) _appLockController.lock();
+      if (mounted) {
+        setState(() {
+          _appLockEnabled = enabled;
+          _appLockSettingLoaded = true;
+          _appLockSettingError = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _appLockSettingError =
+              'خواندن تنظیمات قفل برنامه ممکن نشد. دوباره تلاش کنید.',
+        );
+      }
     }
-    await _settings?.writeAppLockEnabled(enabled);
-    if (mounted) setState(() => _appLockEnabled = enabled);
+  }
+
+  bool _changingAppLock = false;
+
+  Future<void> _setAppLock(bool enabled) async {
+    if (_changingAppLock) throw StateError('App lock change already running');
+    if (enabled == _appLockEnabled) return;
+    _changingAppLock = true;
+    try {
+      final settings = _settings;
+      if (settings == null) throw StateError('Persistent settings unavailable');
+      await _appLockController.changeSetting(
+        enabled: enabled,
+        persist: settings.writeAppLockEnabled,
+      );
+      if (!mounted) return;
+      setState(() => _appLockEnabled = enabled);
+    } finally {
+      _changingAppLock = false;
+    }
   }
 
   @override
@@ -91,25 +159,46 @@ class _PlanActAppState extends State<PlanActApp> {
       themeMode: _themeMode,
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
-        child: child ?? const SizedBox.shrink(),
-      ),
-      home: AppLockGate(
-        enabled: _appLockEnabled,
-        controller: _appLockController,
-        child: HomeShell(
-          repository: widget.repository,
-          planRepository: widget.planRepository,
-          settings: _settings,
-          themeMode: _themeMode,
-          appLockEnabled: _appLockEnabled,
-          appLockController: _appLockController,
-          onAppLockChanged: _setAppLock,
-          onThemeModeChanged: (mode) async {
-            setState(() => _themeMode = mode);
-            await _settings?.writeThemeMode(mode);
-          },
+        child: AppLockGate(
+          enabled: _appLockEnabled,
+          controller: _appLockController,
+          child: child ?? const SizedBox.shrink(),
         ),
       ),
+      home: !_appLockSettingLoaded && _settings != null
+          ? Scaffold(
+              body: Center(
+                child: _appLockSettingError == null
+                    ? const CircularProgressIndicator()
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_appLockSettingError!),
+                          TextButton(
+                            onPressed: _loadAppLockSetting,
+                            child: const Text('تلاش دوباره'),
+                          ),
+                        ],
+                      ),
+              ),
+            )
+          : HomeShell(
+              holidayPackages: widget.holidayPackages,
+              backupActions: widget.backupActions,
+              backupMessage: widget.backupMessage,
+              repository: widget.repository,
+              tagRepository: widget.tagRepository,
+              planRepository: widget.planRepository,
+              settings: _settings,
+              themeMode: _themeMode,
+              appLockEnabled: _appLockEnabled,
+              appLockController: _appLockController,
+              onAppLockChanged: _setAppLock,
+              onThemeModeChanged: (mode) async {
+                setState(() => _themeMode = mode);
+                await _settings?.writeThemeMode(mode);
+              },
+            ),
     );
   }
 }
@@ -118,8 +207,12 @@ class HomeShell extends StatefulWidget {
   const HomeShell({
     super.key,
     this.repository,
+    this.tagRepository,
     this.planRepository,
     this.settings,
+    this.holidayPackages,
+    this.backupActions,
+    this.backupMessage,
     this.themeMode = ThemeMode.system,
     this.appLockEnabled = false,
     this.appLockController,
@@ -131,8 +224,12 @@ class HomeShell extends StatefulWidget {
   static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
+  final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
+  final HolidayPackageService? holidayPackages;
+  final BackupActions? backupActions;
+  final String? backupMessage;
   final ThemeMode themeMode;
   final bool appLockEnabled;
   final AppLockController? appLockController;
@@ -147,6 +244,11 @@ class _HomeShellState extends State<HomeShell> {
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
+  late final TagRepository _tagRepository =
+      widget.tagRepository ??
+      (_repository is DriftCommitmentRepository
+          ? DriftTagRepository(_repository.database)
+          : InMemoryTagRepository());
   late final CommitmentPlanRepository _planRepository =
       widget.planRepository ??
       (_repository is DriftCommitmentRepository
@@ -156,11 +258,32 @@ class _HomeShellState extends State<HomeShell> {
       _repository is DriftCommitmentRepository
       ? DriftEntitlementPlanRepository(_repository.database)
       : null;
+  Future<bool> _enableReminders() async {
+    final repository = _repository;
+    if (repository is! DriftCommitmentRepository) return false;
+    final platform = AndroidReminderPlatformAdapter();
+    return CommandGate.runFor(repository, () async {
+      if (!await platform.requestPermission()) return false;
+      if (!await platform.requestExactAlarmPermission()) return false;
+      await ReminderService(
+        repository: DriftReminderRepository(repository.database),
+        platform: platform,
+      ).reconcile(now: DateTime.now().toUtc());
+      return true;
+    });
+  }
+
   late final CreateCommitmentPlan _createCommitmentPlan = CreateCommitmentPlan(
     commitments: _repository,
     plans: _planRepository,
     entitlements: _entitlementRepository,
     financialExpectations: _expectationUseCases,
+    reminderService: _repository is DriftCommitmentRepository
+        ? ReminderService(
+            repository: DriftReminderRepository(_repository.database),
+            platform: AndroidReminderPlatformAdapter(),
+          )
+        : null,
   );
   int _selectedIndex = 0;
   final GlobalKey<FinancePageState> _financePageKey =
@@ -171,6 +294,8 @@ class _HomeShellState extends State<HomeShell> {
       : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
   final Map<String, List<DateTime>> _scheduledDates = {};
+  Map<String, List<Occurrence>> _calendarOccurrences = {};
+  List<ReminderRule> _calendarReminderRules = [];
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
   String? _todayError;
@@ -194,9 +319,30 @@ class _HomeShellState extends State<HomeShell> {
     _refresh();
   }
 
+  Future<void> _tagsChanged() async {
+    await _refresh();
+    if (_todayError != null) throw StateError('Tag refresh failed');
+  }
+
   Future<void> _refresh() async {
     try {
-      final items = await _repository.list();
+      final persisted = await _repository.list();
+      final allTags = await _tagRepository.list();
+      final items = <Commitment>[];
+      for (final item in persisted) {
+        final ids = await _tagRepository.tagsFor(
+          item.id.value,
+          TaggableType.commitment,
+        );
+        items.add(
+          item.withTags(
+            allTags
+                .where((tag) => ids.contains(tag.id))
+                .map((tag) => tag.label)
+                .toSet(),
+          ),
+        );
+      }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};
       for (final item in items) {
@@ -205,15 +351,30 @@ class _HomeShellState extends State<HomeShell> {
         plans[item.id] = plan.occurrences;
         schedules[item.id.value] = [
           for (final occurrence in plan.occurrences)
-            if (occurrence.currentScheduledAt is DateTime)
-              occurrence.currentScheduledAt as DateTime,
+            if (occurrence.currentScheduledAt case final DateTime date)
+              date.isUtc ? date.toLocal() : date
+            else if (occurrence.currentScheduledAt case final LocalDate date)
+              DateTime(date.year, date.month, date.day),
         ];
       }
+      final reminderRules =
+          await _createCommitmentPlan.reminderService?.repository.listRules() ??
+          <ReminderRule>[];
       final expectations = await _expectationRepository.listExpectations();
       final matches = await _expectationRepository.listMatches();
       final accounts = await _financeRepository.listAccounts();
       final entries = await _financeRepository.listEntries();
       final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+      final reviewEntries = <RelationshipReviewEntry>[];
+      final reviewRepository = _reconciliation.repository;
+      if (reviewRepository is RelationshipReviewRepository) {
+        for (final entry in entries) {
+          reviewEntries.addAll(
+            await (reviewRepository as RelationshipReviewRepository)
+                .reviewHistory(entry),
+          );
+        }
+      }
       final dashboard = _attentionEngine.build(
         now: DateTime.now(),
         commitments: items,
@@ -223,6 +384,7 @@ class _HomeShellState extends State<HomeShell> {
         inboxSuggestions: inboxSuggestions,
         entries: entries,
         accounts: accounts,
+        reviewEntries: reviewEntries,
       );
       final actionCenter = _attentionEngine.buildActionCenter(
         now: DateTime.now(),
@@ -233,10 +395,15 @@ class _HomeShellState extends State<HomeShell> {
         inboxSuggestions: inboxSuggestions,
         entries: entries,
         accounts: accounts,
+        reviewEntries: reviewEntries,
       );
       if (mounted) {
         setState(() {
           _commitments = items;
+          _calendarOccurrences = {
+            for (final entry in plans.entries) entry.key.value: entry.value,
+          };
+          _calendarReminderRules = reminderRules;
           _scheduledDates
             ..clear()
             ..addAll(schedules);
@@ -254,51 +421,93 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
-  Future<void> _showCapture() async {
-    final draft = await showModalBottomSheet<CommitmentDraft>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => const QuickCaptureSheet(),
-    );
-    if (draft == null || draft.title.trim().isEmpty) return;
-    if (draft.scheduledDates.isEmpty) return;
-    try {
-      final startAt = draft.scheduledDates.first;
-      await _createCommitmentPlan(
-        title: draft.title,
-        startAt: startAt,
-        kind: draft.kind,
-        priority: draft.priority,
-        description: draft.description,
-        tags: draft.tags,
-        attachmentIds: draft.attachmentIds,
-        frequency: draft.frequency,
-        weekdays: draft.weekdays,
-        occurrenceCount: draft.occurrenceCount,
-        endDate: draft.endDate,
-        reminderOffsets: draft.reminderOffsets,
-        entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
-            ? draft.entitlementUnits
-            : null,
-        financialDirection: draft.financialMeaning.expectationDirection,
-        financialAmount: draft.financialAmount,
-      );
-      await _refresh();
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('ثبت تعهد انجام نشد؛ دوباره تلاش کنید.'),
-          action: SnackBarAction(label: 'بستن', onPressed: _hideSnackBar),
+  late final ReconciliationUseCases _reconciliation = ReconciliationUseCases(
+    _repository is DriftCommitmentRepository
+        ? DriftReconciliationRepository(_repository.database)
+        : InMemoryReconciliationRepository(),
+  );
+
+  Future<void> _openRelationship(StableId transactionId) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => TransactionRelationshipPage(
+          transactionId: transactionId,
+          flow: ContextualReconciliation(
+            finance: _financeRepository,
+            commitments: _repository,
+            plans: _planRepository,
+            reconciliation: _reconciliation,
+          ),
         ),
-      );
+      ),
+    );
+    if (saved == true) {
+      await _refresh();
+      _showMessage('ارتباط تراکنش ثبت شد.');
     }
   }
 
-  void _hideSnackBar() {
-    if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  Future<void> _openInbox() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: const Text('صندوق ورودی')),
+          body: InboxPage(
+            inbox: _inboxUseCases,
+            finance: _financeRepository,
+            onDetermineRelationship: _openRelationship,
+            smsSource: AndroidSmsSource(),
+          ),
+        ),
+      ),
+    );
+    await _refresh();
+  }
+
+  Future<void> _showCapture() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => QuickCaptureSheet(
+        onSave: _saveCapturedCommitment,
+        tagRepository: _tagRepository,
+      ),
+    );
+  }
+
+  Future<void> _saveCapturedCommitment(CommitmentDraft draft) async {
+    final startAt = draft.scheduledDates.first;
+    final plan = await _createCommitmentPlan(
+      title: draft.title,
+      startAt: startAt,
+      kind: draft.kind,
+      priority: draft.priority,
+      color: draft.color,
+      description: draft.description,
+      tags: draft.tags,
+      attachmentIds: draft.attachmentIds,
+      frequency: draft.frequency,
+      weekdays: draft.weekdays,
+      occurrenceCount: draft.occurrenceCount,
+      endDate: draft.endDate,
+      reminderOffsets: draft.reminderOffsets,
+      entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
+          ? draft.entitlementUnits
+          : null,
+      financialDirection: draft.financialMeaning.expectationDirection,
+      financialAmount: draft.financialAmount,
+    );
+    try {
+      await _refresh();
+    } catch (_) {
+      _showMessage('تعهد و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
+    }
+    if (plan.reminderDeliveryPending) {
+      _showMessage(
+        'تعهد ذخیره شد؛ هماهنگ‌سازی یادآوری هنوز انجام نشده است. مجوزهای یادآوری را در تنظیمات بررسی کنید؛ با بازکردن دوباره برنامه، هماهنگ‌سازی تکرار می‌شود.',
+      );
+    }
   }
 
   void _showMessage(String message) {
@@ -335,39 +544,48 @@ class _HomeShellState extends State<HomeShell> {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (_) =>
-          QuickFinancialEntrySheet(accounts: accounts, income: income),
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => QuickFinancialEntrySheet(
+        accounts: accounts,
+        income: income,
+        tagRepository: _tagRepository,
+        onSave: _saveQuickFinancialEntry,
+      ),
     );
     if (!mounted || result == null) return;
     if (result.moreOptions) {
       _goToFinance();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _financePageKey.currentState?.openTransactionForm(income: income);
+          _financePageKey.currentState?.openTransactionForm(
+            income: income,
+            initialTags: result.tags,
+          );
         }
       });
       return;
     }
+  }
+
+  Future<void> _saveQuickFinancialEntry(QuickFinancialEntry result) async {
+    await FinanceUseCases(_financeRepository).record(
+      account: result.account!,
+      type: result.income ? AccountEntryType.income : AccountEntryType.expense,
+      amount: Money(
+        minorUnits: result.amount,
+        currency: result.account!.currency,
+      ),
+      occurredAt: DateTime.now(),
+      note: result.note,
+      tags: result.tags,
+      category: result.income ? 'دریافت' : 'عمومی',
+    );
     try {
-      await FinanceUseCases(_financeRepository).record(
-        account: result.account!,
-        type: result.income
-            ? AccountEntryType.income
-            : AccountEntryType.expense,
-        amount: Money(
-          minorUnits: result.amount,
-          currency: result.account!.currency,
-        ),
-        occurredAt: DateTime.now(),
-        note: result.note,
-        category: result.income ? 'دریافت' : 'عمومی',
-      );
       await _refresh();
-      if (mounted) {
-        _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
-      }
+      _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
     } catch (_) {
-      if (mounted) _showMessage('ثبت انجام نشد؛ دوباره تلاش کنید.');
+      _showMessage('تراکنش و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
     }
   }
 
@@ -408,8 +626,8 @@ class _HomeShellState extends State<HomeShell> {
     setState(() => _selectedIndex = 2);
     _pageController.animateToPage(
       2,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: PlanActMotion.duration(context),
+      curve: PlanActMotion.curve,
     );
   }
 
@@ -496,10 +714,15 @@ class _HomeShellState extends State<HomeShell> {
                         builder: (_) => CommitmentDetailsPage(
                           commitment: commitment,
                           repository: _repository,
+                          tagRepository: _tagRepository,
                           planRepository: _planRepository,
                           expectationRepository: _expectationRepository,
                           occurrenceExecutor: PersistedOccurrenceActionExecutor(
                             plans: _planRepository,
+                            actuals: _repository is DriftCommitmentRepository
+                                ? DriftActualRepository(_repository.database)
+                                : null,
+                            reminders: _createCommitmentPlan.reminderService,
                             replacements:
                                 _repository is DriftCommitmentRepository
                                 ? DriftReplacementRepository(
@@ -513,7 +736,7 @@ class _HomeShellState extends State<HomeShell> {
                                   )
                                 : null,
                           ),
-                          onSaved: _refresh,
+                          onSaved: _tagsChanged,
                         ),
                       ),
                     );
@@ -687,36 +910,64 @@ class _HomeShellState extends State<HomeShell> {
         actionCenter: _todayActionCenter,
         error: _todayError,
         onRetry: _refresh,
+        onRefresh: _refresh,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
         onReview: (item) {
-          final page = item.type == TodayActionItemType.financialReview ? 2 : 3;
-          setState(() => _selectedIndex = page);
+          if (item.attentionAction == AttentionAction.classifyTransaction &&
+              item.sourceReference != null) {
+            _openRelationship(StableId.parse(item.sourceReference!));
+            return;
+          }
+          if (item.type != TodayActionItemType.financialReview) {
+            _openInbox();
+            return;
+          }
+          setState(() => _selectedIndex = 2);
           _pageController.animateToPage(
-            page,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
+            2,
+            duration: PlanActMotion.duration(context),
+            curve: PlanActMotion.curve,
           );
         },
       ),
       CalendarPage(
+        holidayProvider:
+            widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
+        occurrences: _calendarOccurrences,
+        weekLoader: _planRepository is DriftCommitmentPlanRepository
+            ? _planRepository.loadWeek
+            : null,
+        reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,
+        onAdd: _showCapture,
       ),
       FinancePage(
         key: _financePageKey,
         repository: _financeRepository,
+        onDetermineRelationship: _openRelationship,
+        tagRepository: _tagRepository,
+        onTagsChanged: _tagsChanged,
+        onDataChanged: _refresh,
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
-        inbox: InboxPage(
-          inbox: _inboxUseCases,
-          finance: _financeRepository,
-          smsSource: AndroidSmsSource(),
-        ),
+        onInbox: _openInbox,
+        holidayPackages: widget.holidayPackages,
+        onHolidaysChanged: () => setState(() {}),
+        backupActions: widget.backupActions,
+        backupMessage: widget.backupMessage,
         settings: SettingsPage(
+          holidayPackages: widget.holidayPackages,
+          onHolidaysChanged: () => setState(() {}),
+          enableReminders: _repository is DriftCommitmentRepository
+              ? _enableReminders
+              : null,
+          backupActions: widget.backupActions,
+          backupMessage: widget.backupMessage,
           settings: widget.settings,
           themeMode: widget.themeMode,
           appLockEnabled: widget.appLockEnabled,
@@ -731,29 +982,7 @@ class _HomeShellState extends State<HomeShell> {
     final titles = ['امروز', 'تقویم', 'مدیریت مالی', 'بیشتر'];
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Transform.scale(
-                  scale: 1.14,
-                  child: Image.asset(
-                    'assets/icons/app_icon.png',
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(titles[_selectedIndex]),
-          ],
-        ),
+        title: Text(titles[_selectedIndex]),
         actions: [
           PopupMenuButton<_AppMenuAction>(
             tooltip: 'گزینه‌های بیشتر',
@@ -789,8 +1018,23 @@ class _HomeShellState extends State<HomeShell> {
       body: SafeArea(
         child: PageView(
           controller: _pageController,
-          onPageChanged: (index) => setState(() => _selectedIndex = index),
-          children: pages,
+          onPageChanged: (index) {
+            setState(() => _selectedIndex = index);
+            if (index == 0) _refresh();
+          },
+          children: pages
+              .map(
+                (page) => Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: PlanActSpacing.contentWidth,
+                    ),
+                    child: page,
+                  ),
+                ),
+              )
+              .toList(),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -804,8 +1048,8 @@ class _HomeShellState extends State<HomeShell> {
           setState(() => _selectedIndex = index);
           _pageController.animateToPage(
             index,
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOutCubic,
+            duration: PlanActMotion.duration(context),
+            curve: PlanActMotion.curve,
           );
         },
         destinations: const [
@@ -842,7 +1086,9 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.expectationRepository,
     required this.occurrenceExecutor,
     required this.onSaved,
+    this.tagRepository,
   });
+  final TagRepository? tagRepository;
   final Commitment commitment;
   final CommitmentRepository repository;
   final CommitmentPlanRepository planRepository;
@@ -859,11 +1105,13 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
     text: widget.commitment.description ?? '',
   );
   late CommitmentPriority _priority = widget.commitment.priority;
+  late CommitmentColor? _color = widget.commitment.color;
   bool _saving = false;
   bool get _dirty =>
       _title.text != widget.commitment.title ||
       _description.text != (widget.commitment.description ?? '') ||
-      _priority != widget.commitment.priority;
+      _priority != widget.commitment.priority ||
+      _color != widget.commitment.color;
   @override
   void initState() {
     super.initState();
@@ -910,6 +1158,8 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             ? null
             : _description.text.trim(),
         priority: _priority,
+        color: _color,
+        updateColor: true,
       );
       await widget.onSaved();
       if (mounted) Navigator.pop(context);
@@ -960,6 +1210,11 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             decoration: const InputDecoration(labelText: 'توضیحات'),
           ),
           const SizedBox(height: 16),
+          CommitmentColorPicker(
+            selected: _color,
+            enabled: !_saving,
+            onChanged: (color) => setState(() => _color = color),
+          ),
           DropdownButtonFormField<CommitmentPriority>(
             initialValue: _priority,
             decoration: const InputDecoration(labelText: 'اولویت'),
@@ -976,6 +1231,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             },
           ),
           const SizedBox(height: 24),
+          if (widget.tagRepository case final TagRepository tags)
+            RecordTagEditor(
+              repository: tags,
+              recordId: widget.commitment.id.value,
+              type: TaggableType.commitment,
+              onChanged: () async {
+                // Re-read durable state before any later metadata/status command.
+                await widget.repository.findById(widget.commitment.id);
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
+            )
+          else
+            TagLabels(labels: widget.commitment.tags),
+          const SizedBox(height: PlanActSpacing.lg),
           FutureBuilder<CommitmentPlan?>(
             future: widget.planRepository.findByCommitmentId(
               widget.commitment.id,
@@ -992,22 +1262,96 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                     OccurrenceActionRow(
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
-                      onChanged: widget.onSaved,
-                    ),
-                  const SizedBox(height: 16),
-                  const Text('انتظار مالی نوبت‌ها'),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
-                  ),
-                  const SizedBox(height: 8),
-                  for (final occurrence in occurrences)
-                    _FinancialExpectationOccurrenceRow(
-                      occurrence: occurrence,
-                      useCases: FinancialExpectationUseCases(
-                        widget.expectationRepository,
+                      key: ValueKey(
+                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}',
                       ),
+                      onChanged: () async {
+                        await widget.onSaved();
+                        if (mounted) setState(() {});
+                      },
+                      onEdit: widget.planRepository is CommitmentPlanTransaction
+                          ? (selected) async {
+                              final selection =
+                                  await showDialog<ScheduleEditSelection>(
+                                    context: context,
+                                    builder: (_) => EditScheduleDialog(
+                                      occurrence: selected,
+                                      recurring:
+                                          snapshot.data!.schedule.mode !=
+                                          ScheduleMode.oneOff,
+                                    ),
+                                  );
+                              if (selection == null || !mounted) return;
+                              try {
+                                final executor = widget.occurrenceExecutor;
+                                final pending =
+                                    await EditCommitmentSchedule(
+                                      widget.planRepository,
+                                      reminders:
+                                          executor
+                                              is PersistedOccurrenceActionExecutor
+                                          ? executor.reminders
+                                          : null,
+                                    )(
+                                      commitmentId: widget.commitment.id,
+                                      expected: selected,
+                                      scheduledAt: selection.scheduledAt,
+                                      scope: selection.scope,
+                                      now: DateTime.now(),
+                                    );
+                                await widget.onSaved();
+                                if (!context.mounted) return;
+                                setState(() {});
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      pending
+                                          ? 'زمان ذخیره شد؛ هماهنگ‌سازی یادآوری در انتظار است.'
+                                          : 'زمان ذخیره شد؛ سوابق قبلی محفوظ است.',
+                                    ),
+                                  ),
+                                );
+                              } catch (_) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'تغییر زمان انجام نشد. نوبت‌های گذشته، دستی یا تغییر تاریخ سری ماهانه و سالانه قابل ویرایش نیستند؛ نوبت را دوباره بررسی کنید.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          : null,
                     ),
+                  if (widget.occurrenceExecutor
+                      case final PersistedOccurrenceActionExecutor executor)
+                    if (executor.reminders != null)
+                      for (final occurrence in occurrences)
+                        OccurrenceReminders(
+                          key: ValueKey(
+                            'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
+                          ),
+                          occurrence: occurrence,
+                          service: executor.reminders!,
+                          onSaved: widget.onSaved,
+                        ),
+                  const SizedBox(height: 16),
+                  ExpansionTile(
+                    title: const Text('انتظار مالی نوبت‌ها'),
+                    children: [
+                      const Text(
+                        'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
+                      ),
+                      for (final occurrence in occurrences)
+                        _FinancialExpectationOccurrenceRow(
+                          occurrence: occurrence,
+                          useCases: FinancialExpectationUseCases(
+                            widget.expectationRepository,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               );
             },
@@ -1107,68 +1451,59 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
   CommitmentPriority.urgent => 'فوری',
 };
 
-class _MorePage extends StatefulWidget {
-  const _MorePage({required this.inbox, required this.settings});
+class _MorePage extends StatelessWidget {
+  const _MorePage({
+    required this.onInbox,
+    required this.settings,
+    this.holidayPackages,
+    this.onHolidaysChanged,
+    this.backupActions,
+    this.backupMessage,
+  });
 
-  final Widget inbox;
+  final VoidCallback onInbox;
   final Widget settings;
+  final HolidayPackageService? holidayPackages;
+  final VoidCallback? onHolidaysChanged;
+  final BackupActions? backupActions;
+  final String? backupMessage;
 
   @override
-  State<_MorePage> createState() => _MorePageState();
-}
-
-enum _MoreChild { inbox, settings }
-
-class _MorePageState extends State<_MorePage> {
-  _MoreChild? _child;
-
-  void _open(_MoreChild child) {
-    setState(() => _child = child);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final child = _child;
-    if (child != null) {
-      final (title, page) = switch (child) {
-        _MoreChild.inbox => ('صندوق ورودی', widget.inbox),
-        _MoreChild.settings => ('تنظیمات', widget.settings),
-      };
-      return Column(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.arrow_back),
-            title: Text(title),
-            onTap: () => setState(() => _child = null),
-          ),
-          const Divider(height: 1),
-          Expanded(child: page),
-        ],
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.inbox_outlined),
-            title: const Text('صندوق ورودی'),
-            subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open(_MoreChild.inbox),
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.inbox_outlined),
+          title: const Text('صندوق ورودی'),
+          subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onInbox,
+        ),
+      ),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.settings_outlined),
+          title: const Text('تنظیمات'),
+          subtitle: const Text('نمایش، امنیت و مجوزهای برنامه'),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => Scaffold(
+                appBar: AppBar(title: const Text('تنظیمات')),
+                body: settings,
+              ),
+            ),
           ),
         ),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('تنظیمات'),
-            subtitle: const Text('تنظیمات عمومی برنامه'),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: () => _open(_MoreChild.settings),
-          ),
+      ),
+      if (holidayPackages != null)
+        HolidayPackageSettingsCard(
+          service: holidayPackages!,
+          onInstalled: onHolidaysChanged ?? () {},
         ),
-      ],
-    );
-  }
+      if (backupActions != null)
+        BackupSettingsCard(actions: backupActions!, message: backupMessage),
+    ],
+  );
 }

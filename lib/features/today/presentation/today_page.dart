@@ -1,9 +1,11 @@
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
-import 'package:planact/app/theme/planact_colors.dart';
+import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
@@ -17,6 +19,7 @@ class TodayPage extends StatelessWidget {
     this.actionCenter,
     this.error,
     this.onRetry,
+    this.onRefresh,
     required this.onAdd,
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
@@ -29,6 +32,7 @@ class TodayPage extends StatelessWidget {
   final TodayActionCenter? actionCenter;
   final String? error;
   final VoidCallback? onRetry;
+  final Future<void> Function()? onRefresh;
   final VoidCallback onAdd;
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
@@ -38,7 +42,8 @@ class TodayPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final today = JalaliDate.now();
     final center = actionCenter;
-    return ListView(
+    final content = ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         PlanActSpacing.lg,
         PlanActSpacing.md,
@@ -81,7 +86,10 @@ class TodayPage extends StatelessWidget {
             const SizedBox(height: PlanActSpacing.xl),
           ],
           if (center.today.isNotEmpty) ...[
-            const _SectionHeader(title: 'امروز', color: PlanActColors.primary),
+            _SectionHeader(
+              title: 'امروز',
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.today.map(
               (item) => _ActionItemCard(
@@ -93,9 +101,9 @@ class TodayPage extends StatelessWidget {
             const SizedBox(height: PlanActSpacing.xl),
           ],
           if (center.upcoming.isNotEmpty) ...[
-            const _SectionHeader(
+            _SectionHeader(
               title: 'آینده نزدیک',
-              color: PlanActColors.info,
+              color: PlanActStatusColors.of(context).info,
             ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.upcoming.map(
@@ -109,6 +117,9 @@ class TodayPage extends StatelessWidget {
         ],
       ],
     );
+    return onRefresh == null
+        ? content
+        : RefreshIndicator(onRefresh: onRefresh!, child: content);
   }
 }
 
@@ -217,19 +228,42 @@ class _ActionItemCard extends StatelessWidget {
         ? const <String>[]
         : <String>[
             if (details.amountMinorUnits != null)
-              '${MoneyInputFormatter.format(details.amountMinorUnits!)} ${details.currency ?? ''}',
+              PersianMoneyText.amount(
+                details.amountMinorUnits!,
+                details.currency ?? '',
+              ),
             if (details.accountName != null) 'حساب: ${details.accountName}',
             if (details.description != null) details.description!,
           ];
     return Card(
       child: ListTile(
-        leading: Icon(
-          item.type == TodayActionItemType.occurrence
-              ? Icons.event_available
-              : Icons.priority_high,
-        ),
+        leading: item.commitment != null
+            ? CommitmentIdentityMarker(
+                key: ValueKey('today-identity-${item.id}'),
+                commitment: item.commitment!,
+                icon: item.type == TodayActionItemType.occurrence
+                    ? Icons.event_available
+                    : Icons.priority_high,
+              )
+            : Icon(
+                item.type == TodayActionItemType.occurrence
+                    ? Icons.event_available
+                    : Icons.priority_high,
+              ),
         title: Text(item.title),
-        subtitle: Text([item.subtitle, ...financial].join(' · ')),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              [
+                item.subtitle,
+                if (financial.isNotEmpty) financial.first,
+              ].join(' · '),
+            ),
+            if (item.commitment case final Commitment commitment)
+              TagLabels(labels: commitment.tags),
+          ],
+        ),
         trailing: TextButton(
           onPressed: item.commitment == null
               ? onReview

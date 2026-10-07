@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/domain/tag.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -7,6 +14,7 @@ import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/core/money/currency.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -17,8 +25,16 @@ class FinancePage extends StatefulWidget {
     super.key,
     required this.repository,
     this.expectationRepository,
+    this.tagRepository,
+    this.onTagsChanged,
+    this.onDataChanged,
+    this.onDetermineRelationship,
   });
 
+  final Future<void> Function(StableId transactionId)? onDetermineRelationship;
+  final TagRepository? tagRepository;
+  final Future<void> Function()? onTagsChanged;
+  final Future<void> Function()? onDataChanged;
   final FinanceRepository repository;
   final FinancialExpectationRepository? expectationRepository;
 
@@ -27,18 +43,23 @@ class FinancePage extends StatefulWidget {
 }
 
 class FinancePageState extends State<FinancePage> {
-  Future<void> openTransactionForm({required bool income}) =>
-      income ? _addIncome() : _addExpense();
+  Future<void> openTransactionForm({
+    required bool income,
+    Set<String> initialTags = const {},
+  }) => _recordTransaction(income: income, initialTags: initialTags);
 
   static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
-  FinancialExpectationUseCases? get _expectations =>
-      widget.expectationRepository == null
-      ? null
-      : FinancialExpectationUseCases(widget.expectationRepository!);
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
   bool _loading = true;
+  String? _loadError;
+  bool _hasLoaded = false;
+  List<Tag> _tags = [];
+  Map<String, Set<StableId>> _entryTags = {};
+  StableId? _tagFilter;
+  Set<String>? _tagMatches;
+  bool _filterBusy = false;
   String? _categoryFilter;
   AccountEntryType? _typeFilter;
 
@@ -49,13 +70,39 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Future<void> _refresh() async {
+    if (mounted && !_hasLoaded) setState(() => _loading = true);
     try {
       final accounts = await widget.repository.listAccounts();
       final entries = await widget.repository.listEntries();
+      final tags = await widget.tagRepository?.list() ?? <Tag>[];
+      final memberships = <String, Set<StableId>>{};
+      if (widget.tagRepository case final TagRepository repository) {
+        for (final entry in entries) {
+          memberships[entry.id.value] = await repository.tagsFor(
+            entry.id.value,
+            TaggableType.accountEntry,
+          );
+        }
+      }
+      final selected = tags.any((tag) => tag.id == _tagFilter)
+          ? _tagFilter
+          : null;
+      final matches = selected == null
+          ? null
+          : await widget.tagRepository!.recordsWithTag(
+              selected,
+              TaggableType.accountEntry,
+            );
       if (mounted) {
         setState(() {
+          _tags = tags;
+          _entryTags = memberships;
+          _tagFilter = selected;
+          _tagMatches = matches;
           _accounts = accounts;
           _entries = entries;
+          _hasLoaded = true;
+          _loadError = null;
           _loading = false;
         });
       }
@@ -65,11 +112,62 @@ class FinancePageState extends State<FinancePage> {
         fields: {'errorType': error.runtimeType.toString()},
       );
       if (mounted) {
-        setState(() => _loading = false);
-        _showMessage('بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.');
+        setState(() {
+          _loading = false;
+          _loadError = 'بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.';
+        });
       }
     }
   }
+
+  Future<void> _filterTag(StableId? id) async {
+    if (_filterBusy) return;
+    setState(() => _filterBusy = true);
+    try {
+      final matches = id == null
+          ? null
+          : await widget.tagRepository!.recordsWithTag(
+              id,
+              TaggableType.accountEntry,
+            );
+      if (mounted) {
+        setState(() {
+          _tagFilter = id;
+          _tagMatches = matches;
+        });
+      }
+    } catch (_) {
+      if (mounted) _showMessage('فیلتر برچسب انجام نشد؛ دوباره تلاش کنید.');
+    } finally {
+      if (mounted) setState(() => _filterBusy = false);
+    }
+  }
+
+  Future<void> _tagsChanged() async {
+    await widget.onTagsChanged?.call();
+    await _refresh();
+    if (_loadError != null) throw StateError('Tag refresh failed');
+  }
+
+  Future<void> _editEntryTags(AccountEntry entry) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) => SingleChildScrollView(
+      padding: EdgeInsetsDirectional.only(
+        start: PlanActSpacing.page,
+        end: PlanActSpacing.page,
+        top: PlanActSpacing.lg,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + PlanActSpacing.lg,
+      ),
+      child: RecordTagEditor(
+        repository: widget.tagRepository!,
+        recordId: entry.id.value,
+        type: TaggableType.accountEntry,
+        onChanged: _tagsChanged,
+      ),
+    ),
+  );
 
   Future<void> _editAccount(FinancialAccount account) async {
     try {
@@ -87,6 +185,7 @@ class FinancePageState extends State<FinancePage> {
       }
       await _finance.updateAccount(account: account, name: result);
       await _refresh();
+      await widget.onDataChanged?.call();
     } catch (_) {
       if (mounted) _showMessage('ویرایش حساب انجام نشد؛ دوباره تلاش کنید.');
     }
@@ -190,7 +289,7 @@ class FinancePageState extends State<FinancePage> {
                       inputFormatters: const [MoneyInputFormatter()],
                       decoration: const InputDecoration(
                         labelText: 'موجودی اولیه (اختیاری)',
-                        suffixText: 'تومان',
+                        suffixText: 'ریال',
                       ),
                     ),
                   ],
@@ -207,7 +306,7 @@ class FinancePageState extends State<FinancePage> {
       final account = FinancialAccount(
         id: StableId.generate(),
         name: result.name,
-        currency: 'تومان',
+        currency: CurrencyCodes.irr,
         type: result.type,
         bank: result.bank,
       );
@@ -218,6 +317,7 @@ class FinancePageState extends State<FinancePage> {
             : Money(minorUnits: value, currency: account.currency),
       );
       await _refresh();
+      await widget.onDataChanged?.call();
     } catch (error) {
       _logger.error(
         'Finance account creation failed',
@@ -232,152 +332,211 @@ class FinancePageState extends State<FinancePage> {
 
   Future<void> _addIncome() => _recordTransaction(income: true);
 
-  Future<void> _addExpense() => _recordTransaction(income: false);
-
-  Future<void> _recordTransaction({required bool income}) async {
+  Future<void> _recordTransaction({
+    required bool income,
+    Set<String> initialTags = const {},
+  }) async {
+    var draftTags = {...initialTags};
     if (_accounts.isEmpty) {
       _showMessage('ابتدا یک حساب اضافه کنید.');
       return;
     }
     final amount = TextEditingController();
     final note = TextEditingController();
-    var account = _accounts.first;
+    final formAccounts = List<FinancialAccount>.of(_accounts);
+    var account = formAccounts.first;
     var occurredAt = DateTime.now();
     String? formError;
+    var saving = false;
+    Future<void>? sheetRemoved;
     try {
       final result = await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        builder: (context) => StatefulBuilder(
-          builder: (context, setDialogState) => PlanActFormSheet(
-            title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
-            primaryLabel: 'ثبت',
-            onPrimary: () {
-              final value = int.tryParse(
-                MoneyInputFormatter.normalize(amount.text),
-              );
-              if (value != null && value > 0) {
-                Navigator.pop(context, true);
-              } else {
-                setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
-              }
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<FinancialAccount>(
-                  initialValue: account,
-                  decoration: const InputDecoration(labelText: 'حساب'),
-                  items: _accounts
-                      .map(
-                        (item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item.name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) setDialogState(() => account = value);
-                  },
-                ),
-                TextField(
-                  controller: amount,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: const [MoneyInputFormatter()],
-                  decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
-                ),
-                TextField(
-                  controller: note,
-                  decoration: InputDecoration(
-                    labelText: income ? 'شرح درآمد' : 'شرح هزینه',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
+        isDismissible: false,
+        enableDrag: false,
+        builder: (context) {
+          sheetRemoved ??= ModalRoute.of(context)!.completed.then((_) {});
+          return StatefulBuilder(
+            builder: (context, setDialogState) => PopScope(
+              canPop: !saving,
+              child: PlanActFormSheet(
+                title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
+                primaryLabel: 'ثبت',
+                isLoading: saving,
+                onPrimary: () async {
+                  if (saving) return;
+                  final value = int.tryParse(
+                    MoneyInputFormatter.normalize(amount.text),
+                  );
+                  if (value == null || value <= 0) {
+                    setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
+                    return;
+                  }
+                  setDialogState(() {
+                    saving = true;
+                    formError = null;
+                  });
+                  try {
+                    await _finance.record(
+                      account: account,
+                      type: income
+                          ? AccountEntryType.income
+                          : AccountEntryType.expense,
+                      amount: Money(
+                        minorUnits: value,
+                        currency: account.currency,
+                      ),
+                      occurredAt: occurredAt,
+                      note: note.text.trim().isEmpty ? null : note.text.trim(),
+                      category: income ? 'دریافت' : 'عمومی',
+                      tags: draftTags,
+                    );
+                    if (context.mounted) {
+                      setDialogState(() => saving = false);
+                      Navigator.pop(context, true);
+                    }
+                  } catch (error) {
+                    _logger.error(
+                      'Finance transaction creation failed',
+                      fields: {'errorType': error.runtimeType.toString()},
+                    );
+                    if (context.mounted) {
+                      setDialogState(() {
+                        saving = false;
+                        formError = 'ثبت تراکنش انجام نشد؛ اطلاعات شما حفظ شده است. دوباره تلاش کنید.';
+                      });
+                    }
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final selected = await showDialog<DateTime>(
-                            context: context,
-                            builder: (_) => _FinanceJalaliDatePicker(
-                              initialDate: occurredAt,
+                    DropdownButtonFormField<FinancialAccount>(
+                      initialValue: account,
+                      decoration: const InputDecoration(labelText: 'حساب'),
+                      items: formAccounts
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(item.name),
                             ),
-                          );
-                          if (selected == null) return;
-                          setDialogState(() {
-                            occurredAt = DateTime(
-                              selected.year,
-                              selected.month,
-                              selected.day,
-                              occurredAt.hour,
-                              occurredAt.minute,
-                            );
-                          });
-                        },
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: Text(
-                          '${occurredAt.year}/${occurredAt.month}/${occurredAt.day}',
-                        ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => account = value);
+                        }
+                      },
+                    ),
+                    TextField(
+                      controller: amount,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: const [MoneyInputFormatter()],
+                      decoration: InputDecoration(
+                        labelText:
+                            'مبلغ به ${CurrencyCodes.label(account.currency)}',
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final selected = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(occurredAt),
-                          );
-                          if (selected == null) return;
-                          setDialogState(() {
-                            occurredAt = DateTime(
-                              occurredAt.year,
-                              occurredAt.month,
-                              occurredAt.day,
-                              selected.hour,
-                              selected.minute,
-                            );
-                          });
-                        },
-                        icon: const Icon(Icons.schedule_outlined),
-                        label: Text(
-                          '${occurredAt.hour.toString().padLeft(2, '0')}:${occurredAt.minute.toString().padLeft(2, '0')}',
-                        ),
+                    TextField(
+                      controller: note,
+                      decoration: InputDecoration(
+                        labelText: income ? 'شرح درآمد' : 'شرح هزینه',
                       ),
                     ),
+                    DraftTagPicker(
+                      repository: widget.tagRepository,
+                      selected: draftTags,
+                      enabled: !saving,
+                      onChanged: (tags) =>
+                          setDialogState(() => draftTags = tags),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selected = await showDialog<DateTime>(
+                                context: context,
+                                builder: (_) => PlanActJalaliDatePicker(
+                                  initialDate: occurredAt,
+                                ),
+                              );
+                              if (selected == null) return;
+                              setDialogState(() {
+                                occurredAt = DateTime(
+                                  selected.year,
+                                  selected.month,
+                                  selected.day,
+                                  occurredAt.hour,
+                                  occurredAt.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.calendar_today_outlined),
+                            label: Text(
+                              PersianDateFormatter.date(
+                                JalaliDate.fromDateTime(occurredAt),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final selected = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(occurredAt),
+                              );
+                              if (selected == null) return;
+                              setDialogState(() {
+                                occurredAt = DateTime(
+                                  occurredAt.year,
+                                  occurredAt.month,
+                                  occurredAt.day,
+                                  selected.hour,
+                                  selected.minute,
+                                );
+                              });
+                            },
+                            icon: const Icon(Icons.schedule_outlined),
+                            label: Text(
+                              PersianNumbers.format(
+                                '${occurredAt.hour.toString().padLeft(2, '0')}:${occurredAt.minute.toString().padLeft(2, '0')}',
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (formError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            formError!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                if (formError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        formError!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
-      final value = int.tryParse(MoneyInputFormatter.normalize(amount.text));
-      if (result != true || value == null || value <= 0) return;
-      await _finance.record(
-        account: account,
-        type: income ? AccountEntryType.income : AccountEntryType.expense,
-        amount: Money(minorUnits: value, currency: account.currency),
-        occurredAt: occurredAt,
-        note: note.text.trim().isEmpty ? null : note.text.trim(),
-        category: income ? 'دریافت' : 'عمومی',
-      );
-      await _refresh();
+      if (result == true) {
+        await _refresh();
+        await widget.onDataChanged?.call();
+        if (mounted && _loadError == null) _showMessage('تراکنش ثبت شد.');
+      }
     } catch (error) {
       _logger.error(
         'Finance transaction creation failed',
@@ -385,6 +544,7 @@ class FinancePageState extends State<FinancePage> {
       );
       if (mounted) _showMessage('ثبت تراکنش انجام نشد؛ دوباره تلاش کنید.');
     } finally {
+      if (sheetRemoved != null) await sheetRemoved;
       amount.dispose();
       note.dispose();
     }
@@ -418,6 +578,7 @@ class FinancePageState extends State<FinancePage> {
     try {
       await _finance.voidEntry(original: entry, account: account);
       await _refresh();
+      await widget.onDataChanged?.call();
       if (mounted) _showMessage('تراکنش با ثبت جبرانی خنثی شد.');
     } catch (_) {
       if (mounted) _showMessage('حذف امن تراکنش انجام نشد.');
@@ -429,14 +590,15 @@ class FinancePageState extends State<FinancePage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _money(Money money) =>
-      '${_digits(money.minorUnits.abs())} ${money.currency}';
-
-  String _digits(int value) => MoneyInputFormatter.format(value);
+  String _money(Money money) => PersianMoneyText.money(money);
 
   List<AccountEntry> get _filteredEntries {
     final entries =
         _entries
+            .where(
+              (entry) =>
+                  _tagMatches == null || _tagMatches!.contains(entry.id.value),
+            )
             .where((entry) => _typeFilter == null || entry.type == _typeFilter)
             .where(
               (entry) =>
@@ -448,8 +610,13 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Widget _buildSummary() {
-    final currency = _accounts.isEmpty ? 'تومان' : _accounts.first.currency;
-    final summary = cashFlowSummary(_entries, currency);
+    final currency = _accounts.isEmpty
+        ? CurrencyCodes.irr
+        : _accounts.first.currency;
+    final summary = cashFlowSummary(
+      _entries.where((entry) => entry.amount.currency == currency),
+      currency,
+    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -461,13 +628,23 @@ class FinancePageState extends State<FinancePage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Text('ورودی: ${_digits(summary.incoming)} $currency'),
-            Text('خروجی: ${_digits(summary.outgoing)} $currency'),
-            Text('خالص: ${_digits(summary.net.abs())} $currency'),
+            Text(
+              'ورودی: ${PersianMoneyText.amount(summary.incoming, currency)}',
+            ),
+            Text(
+              'خروجی: ${PersianMoneyText.amount(summary.outgoing, currency)}',
+            ),
+            Text(
+              'خالص: ${PersianMoneyText.amount(summary.net.abs(), currency)}',
+            ),
             const SizedBox(height: 8),
             const Text(
               'این گزارش فقط بر اساس تراکنش‌های ثبت‌شده روی دستگاه است.',
             ),
+            if (_accounts.any((account) => account.currency != currency))
+              const Text(
+                'حساب‌هایی با واحد پول دیگر در این جمع لحاظ نشده‌اند.',
+              ),
           ],
         ),
       ),
@@ -520,14 +697,58 @@ class FinancePageState extends State<FinancePage> {
       appBar: AppBar(title: const Text('مالی')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
+          : !_hasLoaded
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_loadError ?? 'اطلاعات مالی در دسترس نیست.'),
+                  TextButton(
+                    onPressed: _refresh,
+                    child: const Text('تلاش دوباره'),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (_loadError != null)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.warning_amber_outlined),
+                        title: const Text(
+                          'اطلاعات نمایش‌داده‌شده ممکن است قدیمی باشد.',
+                        ),
+                        subtitle: Text(_loadError!),
+                        trailing: TextButton(
+                          onPressed: _refresh,
+                          child: const Text('تلاش دوباره'),
+                        ),
+                      ),
+                    ),
                   _buildSummary(),
                   const SizedBox(height: 12),
                   _buildFilters(),
+                  if (widget.tagRepository != null) ...[
+                    if (_filterBusy) const LinearProgressIndicator(),
+                    TagFilter(
+                      tags: _tags,
+                      selected: _tagFilter,
+                      enabled: !_filterBusy,
+                      onChanged: _filterTag,
+                    ),
+                    TextButton(
+                      onPressed: () => showTagManager(
+                        context,
+                        repository: widget.tagRepository!,
+                        onChanged: _tagsChanged,
+                      ),
+                      child: const Text('مدیریت برچسب‌ها'),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -593,60 +814,75 @@ class FinancePageState extends State<FinancePage> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  if (_expectations != null) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      'انتظارهای مالی',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const Card(
-                      child: ListTile(
-                        leading: Icon(Icons.info_outline),
-                        title: Text(
-                          'انتظار مالی برای هر نوبت از بخش تعهد ثبت می‌شود.',
-                        ),
-                        subtitle: Text(
-                          'مبلغ، ارز و حساب اختیاری هستند و بدون انتخاب شما ساخته نمی‌شوند.',
-                        ),
-                      ),
-                    ),
-                  ],
                   Text(
                     'آخرین تراکنش‌ها',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   if (_filteredEntries.isEmpty)
                     const Card(
-                      child: ListTile(title: Text('هزینه‌ای ثبت نشده است.')),
+                      child: ListTile(
+                        title: Text('تراکنشی با این فیلترها پیدا نشد.'),
+                      ),
                     ),
                   for (final entry in _filteredEntries)
                     Card(
                       child: ListTile(
-                        leading: Icon(
-                          entry.type == AccountEntryType.income
-                              ? Icons.add_circle_outline
-                              : Icons.remove_circle_outline,
-                          color: entry.type == AccountEntryType.income
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.error,
-                        ),
+                        leading: TransactionDirectionIcon(entry: entry),
                         title: Text(
-                          '${entry.type == AccountEntryType.income ? 'ورودی' : 'خروجی'} · ${_money(entry.amount)}',
+                          '${transactionLabel(entry)} · ${_money(entry.amount)}',
                         ),
-                        subtitle: Text(
-                          [
-                            '${entry.occurredAt.toLocal().year}/${entry.occurredAt.toLocal().month}/${entry.occurredAt.toLocal().day}',
-                            '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                            if (entry.category != null) entry.category!,
-                            entry.note ?? 'بدون شرح',
-                          ].join(' · '),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              [
+                                PersianDateFormatter.date(
+                                  JalaliDate.fromDateTime(
+                                    entry.occurredAt.toLocal(),
+                                  ),
+                                ),
+                                PersianNumbers.format(
+                                  '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                ),
+                                if (entry.category != null) entry.category!,
+                                entry.note ?? 'بدون شرح',
+                              ].join(' · '),
+                            ),
+                            TagLabels(
+                              labels: _tags
+                                  .where(
+                                    (tag) =>
+                                        _entryTags[entry.id.value]?.contains(
+                                          tag.id,
+                                        ) ??
+                                        false,
+                                  )
+                                  .map((tag) => tag.label),
+                            ),
+                          ],
                         ),
                         trailing: PopupMenuButton<String>(
                           tooltip: 'عملیات تراکنش',
                           onSelected: (value) {
                             if (value == 'void') _voidEntry(entry);
+                            if (value == 'tags') _editEntryTags(entry);
+                            if (value == 'relationship') {
+                              widget.onDetermineRelationship?.call(entry.id);
+                            }
                           },
-                          itemBuilder: (context) => const [
+                          itemBuilder: (context) => [
+                            if (widget.onDetermineRelationship != null &&
+                                (entry.type == AccountEntryType.income ||
+                                    entry.type == AccountEntryType.expense))
+                              const PopupMenuItem(
+                                value: 'relationship',
+                                child: Text('تعیین ارتباط'),
+                              ),
+                            if (widget.tagRepository != null)
+                              const PopupMenuItem(
+                                value: 'tags',
+                                child: Text('برچسب‌های تراکنش'),
+                              ),
                             PopupMenuItem(
                               value: 'void',
                               child: Text('حذف امن تراکنش'),
@@ -736,136 +972,4 @@ class _AccountEditDialogState extends State<_AccountEditDialog> {
       decoration: const InputDecoration(labelText: 'نام حساب'),
     ),
   );
-}
-
-class _FinanceJalaliDatePicker extends StatefulWidget {
-  const _FinanceJalaliDatePicker({required this.initialDate});
-
-  final DateTime initialDate;
-
-  @override
-  State<_FinanceJalaliDatePicker> createState() =>
-      _FinanceJalaliDatePickerState();
-}
-
-class _FinanceJalaliDatePickerState extends State<_FinanceJalaliDatePicker> {
-  late JalaliDate _selected;
-  late JalaliDate _month;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = JalaliDate.fromDateTime(widget.initialDate);
-    _month = JalaliDate(_selected.year, _selected.month, 1);
-  }
-
-  void _changeMonth(int offset) {
-    setState(() => _month = _month.addMonths(offset));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final firstWeekdayOffset = _month.weekDay - 1;
-    final dayCount = _month.monthLength;
-    final cellCount = firstWeekdayOffset + dayCount;
-
-    return AlertDialog(
-      titlePadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
-      contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      title: Row(
-        children: [
-          IconButton(
-            tooltip: 'ماه قبل',
-            onPressed: () => _changeMonth(-1),
-            icon: const Icon(Icons.chevron_right),
-          ),
-          Expanded(
-            child: Center(
-              child: Text(
-                PersianDateFormatter.month(_month),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'ماه بعد',
-            onPressed: () => _changeMonth(1),
-            icon: const Icon(Icons.chevron_left),
-          ),
-        ],
-      ),
-      content: SizedBox(
-        width: 320,
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  for (final name in PersianDateFormatter.weekdayNames)
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          name.substring(0, 1),
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: cellCount,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                ),
-                itemBuilder: (context, index) {
-                  if (index < firstWeekdayOffset) return const SizedBox();
-                  final day = index - firstWeekdayOffset + 1;
-                  final date = JalaliDate(_month.year, _month.month, day);
-                  final isSelected = date == _selected;
-                  return InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () => Navigator.of(context).pop(date.toDateTime()),
-                    child: Center(
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        alignment: Alignment.center,
-                        decoration: isSelected
-                            ? BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                shape: BoxShape.circle,
-                              )
-                            : null,
-                        child: Text(
-                          PersianNumbers.format(day),
-                          style: TextStyle(
-                            color: isSelected
-                                ? Theme.of(context).colorScheme.onPrimary
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('انصراف'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

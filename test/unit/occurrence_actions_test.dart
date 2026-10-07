@@ -39,11 +39,15 @@ void main() {
     expect(action.consequence, contains('جبرانی'));
   });
 
-  test('completed occurrence has no reversible actions', () {
-    expect(
-      availableOccurrenceActions(_occurrence(OccurrenceStatus.completed)),
-      isEmpty,
+  test('completed occurrence exposes explicit historical reopening only', () {
+    final actions = availableOccurrenceActions(
+      _occurrence(OccurrenceStatus.completed),
     );
+    expect(actions.map((action) => action.type), [
+      OccurrenceActionType.restore,
+    ]);
+    expect(actions.single.consequence, contains('نتیجهٔ قبلی محفوظ'));
+    expect(actions.single.consequence, contains('اعتبار جلسه تغییر نمی‌کند'));
   });
 
   test('cancelled occurrence exposes restore and makeup only', () {

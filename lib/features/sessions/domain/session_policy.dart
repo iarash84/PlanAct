@@ -1,7 +1,5 @@
 import 'package:planact/core/errors/app_error.dart';
 
-enum CancellationActor { provider, user }
-
 enum SessionOutcome {
   completed,
   providerCancelled,
@@ -55,7 +53,7 @@ class SessionPolicy {
       SessionOutcome.lateCancelled => lateCancellationConsumes,
       SessionOutcome.noShow => noShowConsumes,
       SessionOutcome.holiday => holidayConsumes,
-      SessionOutcome.absent => absenceCount >= freeAbsenceQuota,
+      SessionOutcome.absent => absenceCount > freeAbsenceQuota,
       SessionOutcome.makeup => true,
     };
     final requiresMakeup = switch (outcome) {

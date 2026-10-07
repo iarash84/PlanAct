@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -17,6 +18,18 @@ abstract interface class FinanceRepository {
   Future<void> createAccount(
     FinancialAccount account, {
     AccountEntry? openingBalance,
+  });
+}
+
+/// Creation and optional classification must commit together or not at all.
+abstract interface class TaggedFinanceCreation {
+  Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags);
+}
+
+abstract interface class AtomicFinanceCorrection {
+  Future<void> saveCorrection({
+    required AccountEntry reversal,
+    required AccountEntry corrected,
   });
 }
 
@@ -100,7 +113,8 @@ class FinanceUseCases {
     String? note,
     String? category,
     AccountEntrySource source = AccountEntrySource.manual,
-  }) async {
+    Set<String> tags = const {},
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
     final entry = AccountEntry(
@@ -114,9 +128,15 @@ class FinanceUseCases {
       category: category,
       source: source,
     );
-    await repository.saveEntry(entry);
+    if (tags.isEmpty) {
+      await repository.saveEntry(entry);
+    } else if (repository case final TaggedFinanceCreation tagged) {
+      await tagged.createTaggedEntry(entry, tags);
+    } else {
+      throw StateError('Atomic tagged creation is not supported.');
+    }
     return entry;
-  }
+  });
 
   Future<(AccountEntry, AccountEntry)> transfer({
     required FinancialAccount from,
@@ -125,7 +145,7 @@ class FinanceUseCases {
     required DateTime occurredAt,
     TransferMethod method = TransferMethod.cardToCard,
     TransferFeePolicy feePolicy = const NoTransferFeePolicy(),
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(from);
     _assertActive(to);
     if (from.id == to.id) {
@@ -173,23 +193,25 @@ class FinanceUseCases {
       fee: feeEntry,
     );
     return (outgoing, incoming);
-  }
+  });
 
-  Future<void> archive(FinancialAccount account) async {
-    await repository.saveAccount(account.archive());
-  }
+  Future<void> archive(FinancialAccount account) =>
+      CommandGate.runFor(repository, () async {
+        await repository.saveAccount(account.archive());
+      });
 
-  Future<void> restore(FinancialAccount account) async {
-    await repository.saveAccount(account.restore());
-  }
+  Future<void> restore(FinancialAccount account) =>
+      CommandGate.runFor(repository, () async {
+        await repository.saveAccount(account.restore());
+      });
 
   Future<void> updateAccount({
     required FinancialAccount account,
     required String name,
     FinancialAccountType? type,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     await repository.saveAccount(account.update(name: name, type: type));
-  }
+  });
 
   /// Corrects an immutable ledger entry by recording an opposite-signed
   /// reversal followed by the corrected entry. The original remains auditable.
@@ -201,7 +223,7 @@ class FinanceUseCases {
     required DateTime occurredAt,
     String? note,
     String? category,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
     final reversal = AccountEntry(
@@ -229,16 +251,20 @@ class FinanceUseCases {
       category: category,
       source: AccountEntrySource.manual,
     );
-    await repository.saveEntry(reversal);
-    await repository.saveEntry(corrected);
+    if (repository case AtomicFinanceCorrection atomic) {
+      await atomic.saveCorrection(reversal: reversal, corrected: corrected);
+    } else {
+      await repository.saveEntry(reversal);
+      await repository.saveEntry(corrected);
+    }
     return corrected;
-  }
+  });
 
   Future<AccountEntry> voidEntry({
     required AccountEntry original,
     required FinancialAccount account,
     DateTime? occurredAt,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     final reversal = AccountEntry(
       id: StableId.generate(timestamp: occurredAt),
@@ -254,7 +280,7 @@ class FinanceUseCases {
     );
     await repository.saveEntry(reversal);
     return reversal;
-  }
+  });
 
   Future<Money> balance(FinancialAccount account) async =>
       rebuildBalance(account, await repository.listEntries());

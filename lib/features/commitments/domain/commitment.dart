@@ -1,3 +1,5 @@
+import 'package:planact/features/commitments/domain/commitment_color.dart';
+export 'package:planact/features/commitments/domain/commitment_color.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/classification/domain/tag.dart';
@@ -17,6 +19,7 @@ class Commitment {
     this.kind = CommitmentKind.oneOff,
     this.priority = CommitmentPriority.normal,
     this.description,
+    this.color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
   }) : title = _validateTitle(title),
@@ -33,6 +36,7 @@ class Commitment {
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
+    CommitmentColor? color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
   }) {
@@ -43,6 +47,7 @@ class Commitment {
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );
@@ -55,6 +60,7 @@ class Commitment {
   final CommitmentKind kind;
   final CommitmentPriority priority;
   final String? description;
+  final CommitmentColor? color;
   final Set<String> tags;
   final List<String> attachmentIds;
 
@@ -118,6 +124,7 @@ class Commitment {
       kind: kind,
       priority: priority ?? this.priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );
@@ -131,8 +138,22 @@ class Commitment {
     kind: kind,
     priority: priority,
     description: description,
+    color: color,
     tags: labels,
     attachmentIds: attachmentIds,
+  );
+
+  Commitment withColor(CommitmentColor? color) => Commitment(
+    id: id,
+    title: title,
+    createdAt: createdAt,
+    status: status,
+    kind: kind,
+    priority: priority,
+    description: description,
+    tags: tags,
+    attachmentIds: attachmentIds,
+    color: color,
   );
 
   Commitment _copyWith({required CommitmentStatus status}) {
@@ -144,6 +165,7 @@ class Commitment {
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );

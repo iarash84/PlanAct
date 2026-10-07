@@ -1,4 +1,8 @@
+import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/features/actuals/application/actual_use_cases.dart';
+import 'package:planact/features/actuals/domain/actual.dart';
 import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
@@ -107,10 +111,21 @@ List<OccurrenceAction> availableOccurrenceActions(
         ),
       );
     case OccurrenceStatus.completed:
-      // Completed occurrences are historical and cannot be reopened silently.
-      break;
+      actions.add(
+        const OccurrenceAction(
+          type: OccurrenceActionType.restore,
+          label: 'بازگردانی نتیجه',
+          consequence: 'نتیجهٔ قبلی محفوظ می‌ماند و بازگشایی ثبت می‌شود. پرداخت و اعتبار جلسه تغییر نمی‌کند.',
+        ),
+      );
   }
   return List.unmodifiable(actions);
+}
+
+/// The occurrence is committed; only external reminder delivery needs retry.
+class OccurrenceReminderDeliveryPending implements Exception {
+  const OccurrenceReminderDeliveryPending(this.occurrence);
+  final Occurrence occurrence;
 }
 
 abstract interface class OccurrenceActionExecutor {
@@ -131,17 +146,58 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     required this.plans,
     this.replacements,
     this.policyRepository,
+    this.reminders,
+    this.actuals,
   });
 
   final CommitmentPlanRepository plans;
   final ReplacementRepository? replacements;
   final SessionPolicyRepository? policyRepository;
+  final ReminderService? reminders;
+  final OccurrenceActualWriter? actuals;
+
+  Future<Occurrence> recordResult(
+    Occurrence occurrence,
+    ActualOutcome outcome, {
+    String? note,
+  }) => CommandGate.runFor(plans, () async {
+    final writer = actuals;
+    if (writer == null) {
+      throw StateError('An atomic actual writer is required.');
+    }
+    final updated = await writer.recordOccurrenceActual(
+      expected: occurrence,
+      outcome: outcome,
+      recordedAt: DateTime.now().toUtc(),
+      note: note,
+    );
+    await _synchronize(updated);
+    return updated;
+  });
+
+  Future<void> _synchronize(Occurrence occurrence) async {
+    final resolved =
+        occurrence.status == OccurrenceStatus.completed ||
+        occurrence.status == OccurrenceStatus.cancelled ||
+        occurrence.status == OccurrenceStatus.skipped;
+    try {
+      await reminders?.synchronizeOccurrence(
+        occurrenceId: occurrence.id,
+        occurrenceStart: occurrence.currentScheduledAt is DateTime
+            ? occurrence.currentScheduledAt as DateTime
+            : null,
+        resolved: resolved,
+      );
+    } catch (_) {
+      throw OccurrenceReminderDeliveryPending(occurrence);
+    }
+  }
 
   Future<void> execute({
     required Occurrence occurrence,
     required OccurrenceActionType action,
     DateTime? scheduledAt,
-  }) async {
+  }) => CommandGate.runFor(plans, () async {
     final available = availableOccurrenceActions(
       occurrence,
       policy: await policyRepository?.findByCycle(occurrence.cycleId),
@@ -173,61 +229,81 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
       case OccurrenceActionType.cancel:
         await cancel(occurrence, outcome: SessionOutcome.userCancelled);
     }
-  }
+  });
 
   @override
-  Future<void> complete(Occurrence occurrence) async {
-    if (occurrence.status == OccurrenceStatus.completed) return;
-    await plans.saveOccurrence(
-      occurrence.withStatus(OccurrenceStatus.completed),
-    );
-  }
+  Future<void> complete(Occurrence occurrence) =>
+      CommandGate.runFor(plans, () async {
+        if (actuals != null) {
+          await recordResult(occurrence, ActualOutcome.completed);
+          return;
+        }
+        final updated = occurrence.withStatus(OccurrenceStatus.completed);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
+      });
 
   @override
   Future<void> cancel(
     Occurrence occurrence, {
     required SessionOutcome outcome,
-  }) async {
+  }) => CommandGate.runFor(plans, () async {
+    if (actuals != null) {
+      await recordResult(
+        occurrence,
+        outcome == SessionOutcome.noShow
+            ? ActualOutcome.noShow
+            : ActualOutcome.cancelled,
+      );
+      return;
+    }
     final nextStatus = outcome == SessionOutcome.noShow
         ? OccurrenceStatus.skipped
         : OccurrenceStatus.cancelled;
-    if (occurrence.status == nextStatus) return;
-    await plans.saveOccurrence(occurrence.withStatus(nextStatus));
-  }
+    final updated = occurrence.withStatus(nextStatus);
+    await plans.saveOccurrence(updated);
+    await _synchronize(updated);
+  });
 
   @override
-  Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt) async {
-    if (occurrence.currentScheduledAt == scheduledAt &&
-        occurrence.status == OccurrenceStatus.rescheduled) {
-      return;
-    }
-    await plans.saveOccurrence(occurrence.reschedule(scheduledAt));
-  }
+  Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt) =>
+      CommandGate.runFor(plans, () async {
+        final updated = occurrence.reschedule(scheduledAt);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
+      });
 
   @override
-  Future<void> restore(Occurrence occurrence) async {
-    if (occurrence.status == OccurrenceStatus.scheduled) return;
-    await plans.saveOccurrence(
-      occurrence.withStatus(OccurrenceStatus.scheduled),
-    );
-  }
+  Future<void> restore(Occurrence occurrence) =>
+      CommandGate.runFor(plans, () async {
+        if (actuals != null) {
+          await recordResult(occurrence, ActualOutcome.reopened);
+          return;
+        }
+        final updated = occurrence.withStatus(OccurrenceStatus.scheduled);
+        await plans.saveOccurrence(updated);
+        await _synchronize(updated);
+      });
 
   @override
-  Future<void> createMakeup(Occurrence occurrence, DateTime scheduledAt) async {
-    final repository = replacements;
-    if (repository == null) {
-      throw StateError('A replacement repository is required for makeup.');
-    }
-    final existing = await repository.listByOriginal(occurrence.id);
-    if (existing.any((item) => item.scheduledAt == scheduledAt.toUtc())) return;
-    await repository.save(
-      ReplacementOccurrence.create(
-        originalOccurrenceId: occurrence.id,
-        scheduledAt: scheduledAt,
-        reason: ReplacementReason.makeup,
-      ),
-    );
-  }
+  Future<void> createMakeup(Occurrence occurrence, DateTime scheduledAt) =>
+      CommandGate.runFor(plans, () async {
+        final repository = replacements;
+        if (repository == null) {
+          throw StateError('A replacement repository is required for makeup.');
+        }
+        final existing = await repository.listByOriginal(occurrence.id);
+        if (existing.any((item) => item.scheduledAt == scheduledAt.toUtc())) {
+          return;
+        }
+        await repository.save(
+          ReplacementOccurrence.create(
+            originalOccurrenceId: occurrence.id,
+            scheduledAt: scheduledAt,
+            reason: ReplacementReason.makeup,
+          ),
+        );
+      });
 
   DateTime _requireDate(DateTime? value, String message) {
     if (value == null) throw ValidationError(message);

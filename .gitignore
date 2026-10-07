@@ -57,3 +57,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Local diagnostic artifacts
+/build-error.txt
+/android/build/reports/

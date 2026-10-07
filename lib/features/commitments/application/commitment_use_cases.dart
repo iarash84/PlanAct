@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
@@ -14,21 +15,23 @@ class CreateCommitment {
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
+    CommitmentColor? color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final commitment = Commitment.create(
       title: title,
       now: now,
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );
     await repository.save(commitment);
     return commitment;
-  }
+  });
 }
 
 class PauseCommitment {
@@ -41,7 +44,7 @@ class PauseCommitment {
   Future<Commitment> _update(
     StableId id,
     Commitment Function(Commitment) transition,
-  ) async {
+  ) => CommandGate.runFor(repository, () async {
     final current = await repository.findById(id);
     if (current == null) {
       throw NotFoundError('Commitment was not found');
@@ -49,7 +52,7 @@ class PauseCommitment {
     final updated = transition(current);
     await repository.save(updated);
     return updated;
-  }
+  });
 }
 
 class ResumeCommitment {
@@ -57,15 +60,16 @@ class ResumeCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) {
-      throw NotFoundError('Commitment was not found');
-    }
-    final updated = current.resume();
-    await repository.save(updated);
-    return updated;
-  }
+  Future<Commitment> call(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await repository.findById(id);
+        if (current == null) {
+          throw NotFoundError('Commitment was not found');
+        }
+        final updated = current.resume();
+        await repository.save(updated);
+        return updated;
+      });
 }
 
 class ArchiveCommitment {
@@ -73,18 +77,20 @@ class ArchiveCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call(StableId id) async {
-    final current = await _load(id);
-    final updated = current.archive();
-    await repository.save(updated);
-    return updated;
-  }
+  Future<Commitment> call(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await _load(id);
+        final updated = current.archive();
+        await repository.save(updated);
+        return updated;
+      });
 
-  Future<Commitment> _load(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) throw NotFoundError('Commitment was not found');
-    return current;
-  }
+  Future<Commitment> _load(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await repository.findById(id);
+        if (current == null) throw NotFoundError('Commitment was not found');
+        return current;
+      });
 }
 
 class RestoreCommitment {
@@ -92,13 +98,14 @@ class RestoreCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) throw NotFoundError('Commitment was not found');
-    final updated = current.restore();
-    await repository.save(updated);
-    return updated;
-  }
+  Future<Commitment> call(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await repository.findById(id);
+        if (current == null) throw NotFoundError('Commitment was not found');
+        final updated = current.restore();
+        await repository.save(updated);
+        return updated;
+      });
 }
 
 class CompleteCommitment {
@@ -106,13 +113,14 @@ class CompleteCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) throw NotFoundError('Commitment was not found');
-    final updated = current.complete();
-    await repository.save(updated);
-    return updated;
-  }
+  Future<Commitment> call(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await repository.findById(id);
+        if (current == null) throw NotFoundError('Commitment was not found');
+        final updated = current.complete();
+        await repository.save(updated);
+        return updated;
+      });
 }
 
 class CancelCommitment {
@@ -120,13 +128,14 @@ class CancelCommitment {
 
   final CommitmentRepository repository;
 
-  Future<Commitment> call(StableId id) async {
-    final current = await repository.findById(id);
-    if (current == null) throw NotFoundError('Commitment was not found');
-    final updated = current.cancel();
-    await repository.save(updated);
-    return updated;
-  }
+  Future<Commitment> call(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        final current = await repository.findById(id);
+        if (current == null) throw NotFoundError('Commitment was not found');
+        final updated = current.cancel();
+        await repository.save(updated);
+        return updated;
+      });
 }
 
 class UpdateCommitmentMetadata {
@@ -139,15 +148,18 @@ class UpdateCommitmentMetadata {
     required String title,
     required String? description,
     required CommitmentPriority priority,
-  }) async {
+    CommitmentColor? color,
+    bool updateColor = false,
+  }) => CommandGate.runFor(repository, () async {
     final current = await repository.findById(commitmentId);
     if (current == null) throw NotFoundError('Commitment was not found');
-    final updated = current.updateMetadata(
-      title: title,
-      description: description,
-      priority: priority,
-    );
+    final updated = (updateColor ? current.withColor(color) : current)
+        .updateMetadata(
+          title: title,
+          description: description,
+          priority: priority,
+        );
     await repository.save(updated);
     return updated;
-  }
+  });
 }

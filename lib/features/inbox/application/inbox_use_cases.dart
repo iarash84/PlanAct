@@ -1,3 +1,5 @@
+import 'package:planact/core/application/command_gate.dart';
+
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -13,6 +15,24 @@ abstract interface class InboxRepository {
   Future<List<InboxSuggestion>> listSuggestions();
   Future<void> saveImport(StagedImport item);
   Future<void> saveSuggestion(InboxSuggestion suggestion);
+}
+
+/// Implementations with a shared durable database must commit all three writes
+/// in one transaction. The entry ID is stable across retries and restarts.
+abstract interface class AtomicInboxStaging {
+  Future<InboxSuggestion> stageAtomically({
+    required StagedImport staged,
+    required InboxSuggestion suggestion,
+  });
+
+  Future<void> rejectAtomically(StableId suggestionId);
+}
+
+abstract interface class AtomicInboxConfirmation {
+  Future<AccountEntry> confirmAtomically({
+    required StableId suggestionId,
+    required AccountEntry entry,
+  });
 }
 
 /// Normalizes an external source into a staged import. Adapters must not write
@@ -67,6 +87,10 @@ class InMemoryInboxRepository implements InboxRepository {
   @override
   Future<void> saveSuggestion(InboxSuggestion suggestion) async =>
       _suggestions[suggestion.id] = suggestion;
+}
+
+class DuplicateSmsImport extends ValidationError {
+  const DuplicateSmsImport() : super('این پیامک قبلاً وارد شده است.');
 }
 
 class ParsedSms {
@@ -202,54 +226,72 @@ class InboxUseCases {
   final InboxRepository repository;
   final LocalSmsParser parser;
 
-  Future<List<InboxSuggestion>> listPendingSuggestions() async {
-    await expireRawText();
-    return (await repository.listSuggestions())
-        .where(
-          (item) =>
-              item.status == SuggestionStatus.pending ||
-              item.status == SuggestionStatus.edited,
-        )
-        .toList(growable: false);
-  }
+  Future<List<InboxSuggestion>> listPendingSuggestions() =>
+      CommandGate.runFor(repository, () async {
+        await expireRawText();
+        return (await repository.listSuggestions())
+            .where(
+              (item) =>
+                  item.status == SuggestionStatus.pending ||
+                  item.status == SuggestionStatus.edited,
+            )
+            .toList(growable: false);
+      });
 
-  Future<void> expireRawText({DateTime? now}) async {
-    final at = (now ?? DateTime.now()).toUtc();
-    for (final item in await repository.listImports()) {
-      if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
-      final deadline = item.retentionUntil;
-      if (deadline != null && !at.isBefore(deadline)) {
-        await repository.saveImport(item.expireRawText());
-      }
-    }
-  }
+  Future<void> expireRawText({DateTime? now}) =>
+      CommandGate.runFor(repository, () async {
+        final at = (now ?? DateTime.now()).toUtc();
+        for (final item in await repository.listImports()) {
+          if (item.retentionStatus == RawTextRetentionStatus.expired) continue;
+          final deadline = item.retentionUntil;
+          if (deadline != null && !at.isBefore(deadline)) {
+            await repository.saveImport(item.expireRawText());
+          }
+        }
+      });
 
   Future<InboxSuggestion> stageSms({
     required String rawText,
     required String sourceKey,
     required String currency,
     DateTime? importedAt,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     final normalized = rawText.trim();
     final fingerprint = sha256.convert(utf8.encode(normalized)).toString();
-    final existing = await repository.listImports();
-    final sourceDuplicate = existing.where(
-      (item) => item.provenance.sourceKey == sourceKey,
-    );
-    if (sourceDuplicate.isNotEmpty) {
-      final stagedId = sourceDuplicate.first.id;
-      return (await repository.listSuggestions()).firstWhere(
-        (item) => item.stagedImportId == stagedId,
+    if (repository is! AtomicInboxStaging) {
+      final existing = await repository.listImports();
+      final sourceDuplicate = existing.where(
+        (item) => item.provenance.sourceKey == sourceKey,
       );
+      if (sourceDuplicate.isNotEmpty) {
+        final stagedId = sourceDuplicate.first.id;
+        return (await repository.listSuggestions()).firstWhere(
+          (item) => item.stagedImportId == stagedId,
+        );
+      }
+      if (existing.any((item) => item.fingerprint == fingerprint)) {
+        throw const DuplicateSmsImport();
+      }
     }
-    final fingerprintDuplicate = existing.where(
-      (item) => item.fingerprint == fingerprint,
-    );
-    if (fingerprintDuplicate.isNotEmpty) {
-      throw const ValidationError('This source item was already imported');
+    if (normalized.isEmpty ||
+        normalized.length > 100000 ||
+        sourceKey.trim().isEmpty) {
+      throw const ValidationError('متن یا شناسهٔ پیامک معتبر نیست.');
     }
     final parsed = parser.parse(text: normalized, currency: currency);
     final imported = (importedAt ?? DateTime.now()).toUtc();
+    // Provider receipt time is the explicit fallback for undated bank messages,
+    // not the time at which an old message happens to be imported.
+    final sourceOccurredAt =
+        importedAt != null &&
+            !RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
+                .hasMatch(normalized)
+        ? importedAt.toUtc()
+        : parsed.occurredAt;
+    final occurredAt = DateTime.fromMillisecondsSinceEpoch(
+      (sourceOccurredAt.millisecondsSinceEpoch ~/ 1000) * 1000,
+      isUtc: true,
+    );
     final retentionUntil = imported.add(const Duration(days: 30));
     final staged = StagedImport(
       id: _stableImportId(fingerprint, importedAt),
@@ -263,10 +305,10 @@ class InboxUseCases {
       retentionUntil: retentionUntil,
     );
     final draft = TransactionDraft(
-      id: _stableImportId('$fingerprint:draft', parsed.occurredAt),
+      id: _stableImportId('$fingerprint:draft', occurredAt),
       stagedImportId: staged.id,
       amount: parsed.amount,
-      occurredAt: parsed.occurredAt,
+      occurredAt: occurredAt,
       type: parsed.direction == TransactionDirection.incoming
           ? 'income'
           : 'expense',
@@ -284,15 +326,18 @@ class InboxUseCases {
       stagedImportId: staged.id,
       draft: draft,
     );
+    if (repository case final AtomicInboxStaging atomic) {
+      return atomic.stageAtomically(staged: staged, suggestion: suggestion);
+    }
     await repository.saveImport(staged);
     await repository.saveSuggestion(suggestion);
     return suggestion;
-  }
+  });
 
   Future<InboxSuggestion> edit(
     InboxSuggestion suggestion,
     TransactionDraft draft,
-  ) async {
+  ) => CommandGate.runFor(repository, () async {
     if (suggestion.status == SuggestionStatus.confirmed ||
         suggestion.status == SuggestionStatus.rejected) {
       throw const ValidationError('Resolved suggestions cannot be edited');
@@ -300,26 +345,42 @@ class InboxUseCases {
     if (draft.stagedImportId != suggestion.stagedImportId) {
       throw const ValidationError('Draft does not belong to this import');
     }
+    final stored = (await repository.listSuggestions()).firstWhere(
+      (item) => item.id == suggestion.id,
+    );
+    if (stored.status == SuggestionStatus.confirmed ||
+        stored.status == SuggestionStatus.rejected) {
+      throw const ValidationError('پیشنهاد بررسی‌شده قابل ویرایش نیست.');
+    }
     final edited = suggestion.withDraft(draft);
     await repository.saveSuggestion(edited);
     return edited;
-  }
+  });
 
-  Future<void> reject(InboxSuggestion suggestion) async {
-    if (suggestion.status == SuggestionStatus.confirmed) {
-      throw const ValidationError('Confirmed suggestions cannot be rejected');
-    }
-    await repository.saveSuggestion(
-      suggestion.withStatus(SuggestionStatus.rejected),
-    );
-    final imports = await repository.listImports();
-    final staged = imports.firstWhere(
-      (item) => item.id == suggestion.stagedImportId,
-    );
-    await repository.saveImport(staged.withStatus(StagedItemStatus.rejected));
-  }
+  Future<void> reject(InboxSuggestion suggestion) => CommandGate.runFor(
+    repository,
+    () async {
+      if (repository case final AtomicInboxStaging atomic) {
+        await atomic.rejectAtomically(suggestion.id);
+        return;
+      }
+      if (suggestion.status == SuggestionStatus.confirmed) {
+        throw const ValidationError('Confirmed suggestions cannot be rejected');
+      }
+      await repository.saveSuggestion(
+        suggestion.withStatus(SuggestionStatus.rejected),
+      );
+      final imports = await repository.listImports();
+      final staged = imports.firstWhere(
+        (item) => item.id == suggestion.stagedImportId,
+      );
+      await repository.saveImport(staged.withStatus(StagedItemStatus.rejected));
+    },
+  );
 
-  Future<void> rollback(InboxSuggestion suggestion) async {
+  Future<void> rollback(
+    InboxSuggestion suggestion,
+  ) => CommandGate.runFor(repository, () async {
     final storedSuggestion = (await repository.listSuggestions()).firstWhere(
       (item) => item.id == suggestion.id,
       orElse: () => suggestion,
@@ -332,13 +393,13 @@ class InboxUseCases {
       (item) => item.id == storedSuggestion.stagedImportId,
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.rolledBack));
-  }
+  });
 
   Future<AccountEntry> confirm({
     required InboxSuggestion suggestion,
     required FinancialAccount account,
     required FinanceRepository finance,
-  }) async {
+  }) => CommandGate.runFor(repository, () async {
     if (suggestion.status == SuggestionStatus.rejected ||
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
@@ -352,9 +413,12 @@ class InboxUseCases {
       );
     }
     final entry = AccountEntry(
-      id: StableId.generate(timestamp: suggestion.draft.occurredAt),
+      id: _stableImportId(
+        '${suggestion.stagedImportId.value}:financial-entry',
+        suggestion.draft.occurredAt,
+      ),
       accountId: account.id,
-      type: suggestion.draft.direction == TransactionDirection.incoming
+      type: suggestion.draft.type == 'income'
           ? AccountEntryType.income
           : AccountEntryType.expense,
       amount: suggestion.draft.amount,
@@ -362,6 +426,20 @@ class InboxUseCases {
       referenceId: suggestion.draft.reference,
       note: suggestion.draft.merchant,
     );
+    if (repository case final AtomicInboxConfirmation atomic) {
+      return atomic.confirmAtomically(
+        suggestionId: suggestion.id,
+        entry: entry,
+      );
+    }
+    final stored = (await repository.listSuggestions()).firstWhere(
+      (item) => item.id == suggestion.id,
+    );
+    if (stored.status == SuggestionStatus.confirmed) {
+      return (await finance.listEntries()).firstWhere(
+        (item) => item.id == entry.id,
+      );
+    }
     await finance.saveEntry(entry);
     await repository.saveSuggestion(
       suggestion.withStatus(SuggestionStatus.confirmed),
@@ -371,7 +449,7 @@ class InboxUseCases {
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.confirmed));
     return entry;
-  }
+  });
 
   StableId _stableImportId(String input, DateTime? timestamp) {
     final digest = sha256.convert(utf8.encode(input)).bytes;

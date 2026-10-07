@@ -1,3 +1,4 @@
+import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
@@ -19,6 +20,7 @@ class CommitmentPlan {
     required this.schedule,
     required this.occurrences,
     required this.reminders,
+    this.reminderDeliveryPending = false,
   });
 
   final Commitment commitment;
@@ -26,12 +28,19 @@ class CommitmentPlan {
   final ScheduleDefinition schedule;
   final List<Occurrence> occurrences;
   final List<ReminderRule> reminders;
+
+  /// Presentation feedback only; durable instances remain the retry source.
+  final bool reminderDeliveryPending;
 }
 
 abstract interface class CommitmentPlanRepository {
   Future<void> save(CommitmentPlan plan);
   Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId);
   Future<void> saveOccurrence(Occurrence occurrence);
+}
+
+abstract interface class CommitmentPlanTransaction {
+  Future<T> runTransaction<T>(Future<T> Function() action);
 }
 
 class InMemoryCommitmentPlanRepository implements CommitmentPlanRepository {
@@ -89,6 +98,7 @@ class CreateCommitmentPlan {
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
+    CommitmentColor? color,
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
     RecurrenceFrequency? frequency,
@@ -103,7 +113,7 @@ class CreateCommitmentPlan {
     int? financialAmount,
     @Deprecated('Use reminderOffsets to support multiple reminders.')
     Duration? reminderOffset,
-  }) async {
+  }) => CommandGate.runFor(commitments, () async {
     if (entitlementUnits != null && entitlementUnits <= 0) {
       throw const ValidationError('Entitlement units must be positive');
     }
@@ -128,6 +138,7 @@ class CreateCommitmentPlan {
       kind: kind,
       priority: priority,
       description: description,
+      color: color,
       tags: tags,
       attachmentIds: attachmentIds,
     );
@@ -198,48 +209,85 @@ class CreateCommitmentPlan {
       occurrences: List.unmodifiable(occurrences),
       reminders: List.unmodifiable(reminders),
     );
-    await commitments.save(commitment);
-    await plans.save(plan);
-    if (entitlementUnits != null) {
-      final repository = entitlements;
-      if (repository == null) {
-        throw StateError(
-          'Entitlement repository is required for session plans.',
+    Future<void> persist() => CommandGate.runFor(commitments, () async {
+      await commitments.save(commitment);
+      await plans.save(plan);
+      if (reminderService case final service?) {
+        for (final rule in reminders) {
+          final occurrence = occurrences.firstWhere(
+            (item) => item.id == rule.occurrenceId,
+          );
+          await service.repository.saveRule(rule);
+          await service.repository.saveInstance(
+            ReminderInstance.fromRule(
+              rule: rule,
+              occurrenceStart: occurrence.currentScheduledAt as DateTime,
+            ),
+          );
+        }
+      }
+      if (entitlementUnits != null) {
+        final repository = entitlements;
+        if (repository == null) {
+          throw StateError(
+            'Entitlement repository is required for session plans.',
+          );
+        }
+        final entitlement = EntitlementPlan.create(
+          cycleId: cycle.id,
+          totalUnits: entitlementUnits,
+          unitType: EntitlementUnitType.session,
+          validFrom: startAt,
+          plannedExpiry: entitlementExpiry,
         );
+        await repository.save(entitlement);
       }
-      final entitlement = EntitlementPlan.create(
-        cycleId: cycle.id,
-        totalUnits: entitlementUnits,
-        unitType: EntitlementUnitType.session,
-        validFrom: startAt,
-        plannedExpiry: entitlementExpiry,
-      );
-      await repository.save(entitlement);
+      if (financialDirection != null && financialAmount != null) {
+        final expectationUseCases = financialExpectations;
+        if (expectationUseCases == null) {
+          throw StateError('Financial expectation use cases are required.');
+        }
+        for (final occurrence in occurrences) {
+          await expectationUseCases.create(
+            occurrenceId: occurrence.id,
+            direction: financialDirection,
+            amount: financialAmount,
+          );
+        }
+      }
+    });
+
+    if (plans case final CommitmentPlanTransaction transaction) {
+      await transaction.runTransaction(persist);
+    } else {
+      await persist();
     }
-    if (financialDirection != null && financialAmount != null) {
-      final expectationUseCases = financialExpectations;
-      if (expectationUseCases == null) {
-        throw StateError('Financial expectation use cases are required.');
-      }
-      for (final occurrence in occurrences) {
-        await expectationUseCases.create(
-          occurrenceId: occurrence.id,
-          direction: financialDirection,
-          amount: financialAmount,
-        );
-      }
-    }
+    var reminderDeliveryPending = false;
     if (reminderService != null) {
       for (final reminder in reminders) {
         final occurrence = occurrences.firstWhere(
           (item) => item.id == reminder.occurrenceId,
         );
-        await reminderService!.schedule(
-          rule: reminder,
-          occurrenceStart: occurrence.currentScheduledAt as DateTime,
-        );
+        try {
+          await reminderService!.schedule(
+            rule: reminder,
+            occurrenceStart: occurrence.currentScheduledAt as DateTime,
+          );
+        } catch (_) {
+          // The domain transaction has committed. Platform failure must not
+          // invite a duplicate creation; durable rules are retried at startup.
+          reminderDeliveryPending = true;
+        }
       }
     }
-    return plan;
-  }
+    if (!reminderDeliveryPending) return plan;
+    return CommitmentPlan(
+      commitment: plan.commitment,
+      cycle: plan.cycle,
+      schedule: plan.schedule,
+      occurrences: plan.occurrences,
+      reminders: plan.reminders,
+      reminderDeliveryPending: reminderDeliveryPending,
+    );
+  });
 }

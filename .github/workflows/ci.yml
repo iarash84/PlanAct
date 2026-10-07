@@ -2,21 +2,34 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
   pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
-    name: Analyze and test
+    name: Validate Flutter and Android release build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -24,14 +37,39 @@ jobs:
           flutter-version: '3.47.5'
           cache: true
 
-      - name: Install dependencies
-        run: flutter pub get --enforce-lockfile
+      - name: Print toolchain versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+          java -version
+          chmod +x android/gradlew
+          (cd android && ./gradlew --version)
 
-      - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Configure ephemeral CI signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/planact-ci.jks"
+          keytool -genkeypair -v \
+            -keystore "$keystore_path" \
+            -storepass ci-password \
+            -keypass ci-password \
+            -alias ci \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -dname "CN=PlanAct CI, OU=CI, O=PlanAct, L=Local, S=Local, C=US"
+          {
+            echo "ANDROID_KEYSTORE_PATH=$keystore_path"
+            echo 'ANDROID_KEYSTORE_PASSWORD=ci-password'
+            echo 'ANDROID_KEY_ALIAS=ci'
+            echo 'ANDROID_KEY_PASSWORD=ci-password'
+          } >> "$GITHUB_ENV"
 
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
+      - name: Run shared validation
+        env:
+          PLANACT_BUILD_NAME: ci
+          PLANACT_BUILD_NUMBER: ${{ github.run_number }}
+        run: bash tool/ci.sh

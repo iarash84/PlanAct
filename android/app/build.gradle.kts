@@ -26,6 +26,8 @@ val releaseSigningConfigured = releaseStoreFile?.isFile == true &&
     !releaseStorePassword.isNullOrBlank() &&
     !releaseKeyAlias.isNullOrBlank() &&
     !releaseKeyPassword.isNullOrBlank()
+val allowUnsignedRelease =
+    providers.environmentVariable("PLANACT_ALLOW_UNSIGNED_RELEASE").orNull == "true"
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
@@ -70,6 +72,12 @@ android {
 
     buildTypes {
         debug {
+            // Opt-in isolated verification must never replace personal data in
+            // the normal installation. Release identity remains unchanged.
+            if (providers.environmentVariable("PLANACT_ISOLATED_VERIFICATION").orNull == "true") {
+                applicationIdSuffix = ".verification"
+                versionNameSuffix = "-verification"
+            }
             // Debug remains debuggable and uses the machine-local debug key only.
             isMinifyEnabled = false
             isShrinkResources = false
@@ -91,7 +99,7 @@ android {
 
 val verifyReleaseSigning = tasks.register("verifyReleaseSigning") {
     doLast {
-        if (!releaseSigningConfigured) {
+        if (!releaseSigningConfigured && !allowUnsignedRelease) {
             throw GradleException(
                 "Release signing is not configured. Set ANDROID_KEYSTORE_PATH, " +
                     "ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, and ANDROID_KEY_PASSWORD, " +
