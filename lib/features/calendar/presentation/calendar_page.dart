@@ -96,68 +96,107 @@ class _CalendarPageState extends State<CalendarPage> {
         LayoutBuilder(
           builder: (context, constraints) {
             final scaler = MediaQuery.textScalerOf(context);
-            final cellWidth = math.max(
-              PlanActSpacing.touchTarget,
-              scaler.scale(40) + 16,
+            // Seven columns stay in the viewport, including on narrow phones.
+            // The documented narrow-grid exception applies to width, not height.
+            final cellWidth = (constraints.maxWidth - 6 * 3) / 7;
+            final labelStyle = theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurfaceVariant,
             );
-            final width = math.max(constraints.maxWidth, cellWidth * 7 + 18);
-            final cellHeight = math.max(96.0, scaler.scale(80) + 24);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: width,
-                child: Column(
-                  children: [
-                    Row(
-                      children: PersianDateFormatter.weekdayNames
-                          .map(
-                            (name) => Expanded(
-                              child: Center(
-                                child: Text(
-                                  name,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    const SizedBox(height: PlanActSpacing.xs),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: cellCount,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 7,
-                        crossAxisSpacing: 3,
-                        mainAxisSpacing: 3,
-                        mainAxisExtent: cellHeight,
-                      ),
-                      itemBuilder: (context, index) {
-                        final day = index - leading + 1;
-                        if (day < 1 || day > _month.monthLength) {
-                          return const SizedBox.shrink();
-                        }
-                        final date = JalaliDate(_month.year, _month.month, day);
-                        final items = _commitmentsFor(date);
-                        return _CalendarDay(
-                          date: date,
-                          selected: _selectedDay == date,
-                          isToday: today == date,
-                          holidays: holidays
-                              .where((holiday) => holiday.date == date)
-                              .toList(),
-                          commitments: items,
-                          onTap: () => setState(() => _selectedDay = date),
-                        );
-                      },
-                    ),
-                  ],
+            double textHeight(String text, TextStyle? style) {
+              final painter = TextPainter(
+                text: TextSpan(text: text, style: style),
+                textDirection: Directionality.of(context),
+                textScaler: scaler,
+              )..layout(maxWidth: cellWidth - 4);
+              final height = painter.height;
+              painter.dispose();
+              return height;
+            }
+
+            final compact = PersianDateFormatter.weekdayNames.any((name) {
+              final painter = TextPainter(
+                text: TextSpan(text: name, style: labelStyle),
+                textDirection: Directionality.of(context),
+                textScaler: scaler,
+              )..layout();
+              final tooWide = painter.width > cellWidth;
+              painter.dispose();
+              return tooWide;
+            });
+            final numberHeight = List.generate(
+              _month.monthLength,
+              (index) => textHeight(
+                PersianNumbers.format(index + 1),
+                theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+            ).reduce(math.max);
+            final countHeight = textHeight(
+              PersianNumbers.format(widget.commitments.length),
+              theme.textTheme.labelSmall,
+            );
+            final cellHeight = math.max(
+              96.0,
+              numberHeight +
+                  textHeight('تعطیل', theme.textTheme.labelSmall) +
+                  countHeight +
+                  PlanActSpacing.sm,
+            );
+            return Column(
+              children: [
+                Row(
+                  children: List.generate(7, (index) {
+                    final name = PersianDateFormatter.weekdayNames[index];
+                    return Expanded(
+                      child: Semantics(
+                        label: name,
+                        child: ExcludeSemantics(
+                          child: Text(
+                            compact
+                                ? PersianDateFormatter
+                                      .compactWeekdayNames[index]
+                                : name,
+                            textAlign: TextAlign.center,
+                            style: labelStyle,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: PlanActSpacing.xs),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: cellCount,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 7,
+                    crossAxisSpacing: 3,
+                    mainAxisSpacing: 3,
+                    mainAxisExtent: cellHeight,
+                  ),
+                  itemBuilder: (context, index) {
+                    final day = index - leading + 1;
+                    if (day < 1 || day > _month.monthLength) {
+                      return const SizedBox.shrink();
+                    }
+                    final date = JalaliDate(_month.year, _month.month, day);
+                    final items = _commitmentsFor(date);
+                    return _CalendarDay(
+                      date: date,
+                      selected: _selectedDay == date,
+                      isToday: today == date,
+                      holidays: holidays
+                          .where((holiday) => holiday.date == date)
+                          .toList(),
+                      commitments: items,
+                      onTap: () => setState(() => _selectedDay = date),
+                    );
+                  },
+                ),
+              ],
             );
           },
         ),
@@ -321,6 +360,7 @@ class _CalendarDay extends StatelessWidget {
         : '';
     final countLabel = commitments.isEmpty ? 'بدون تعهد' : '$count تعهد';
     return Semantics(
+      key: ValueKey('calendar-day-${date.day}'),
       button: true,
       selected: selected,
       label: '$dateLabel$selectionLabel$todayLabel$holidayLabel، $countLabel',
@@ -335,7 +375,7 @@ class _CalendarDay extends StatelessWidget {
             onTap: onTap,
             borderRadius: PlanActRadius.chip,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(4, 5, 4, 3),
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
               decoration: BoxDecoration(
                 borderRadius: PlanActRadius.chip,
                 border: isToday

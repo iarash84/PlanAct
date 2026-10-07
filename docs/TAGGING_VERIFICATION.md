@@ -49,13 +49,14 @@ This does not close the installation-bound key recovery, migrated-schema compati
 | Commitment Details | Compliant | Existing scrollable metadata flow plus shared editor; persisted detach/save integration |
 | Today and timeline rows | Compliant | Shared read-only labels, no feature-local palette or new status meaning |
 | Finance | Compliant | Shared labels/filter/editor; critical journey in both themes with RTL and unchanged ledger |
-| Calendar, Quick Capture, Settings, root navigation | Intentionally Unchanged | No new tagging interaction or shared theme change in this scope; existing capture seeding retained |
+| Quick Capture, quick financial entry, full income/expense form | Migrated | Shared draft-only tag picker; Persian save/cancel disclosure, normalized selected chips, review/retry coverage in Light/Dark RTL |
+| Calendar, Settings, root navigation | Intentionally Unchanged | No shared theme change; creation callbacks are wired without changing unrelated navigation/settings work |
 
 No palette, font, motion or component-theme redesign. Automated Light/Dark journey success is not measured contrast, narrow-device text scaling, keyboard or screen-reader acceptance.
 
 ## Validation and remaining gates
 
-Final local validation:
+Original editing-flow validation (before the creation-time extension below):
 
 - Dart formatting: all 14 changed Dart files formatted; follow-up check reports 0 changed.
 - Flutter analysis: no issues found.
@@ -63,3 +64,21 @@ Final local validation:
 - Git whitespace check: passed. Final working tree contains 9 modified and 7 new files for the combined tagging change; no schema/dependency files changed.
 
 Real-device Persian shaping/text scaling, touch/contrast and accessibility, keyboard/IME and sheet behavior remain independent acceptance checks. Native backup, reminder, app-lock and SMS gates are unchanged; no Android build or device exercise is claimed for this checkpoint.
+
+## Creation-time extension — 2026-10-06
+
+The shared draft picker reads reusable labels and retains selected/new labels only in the creation draft. It does not call tag creation or attachment commands. Cancellation therefore leaves no new label or membership. Editing existing records keeps its immediate-save semantics. Normalization and typed stable identities reuse the existing tagging model; no hidden default tag is introduced.
+
+Quick Capture exposes the picker in the basic step and labels in review; all commitment creation entry points use this same flow. Quick income/expense and the full Finance form also use it. More Options carries draft tag selections into the full form. Quick creation now waits for persistence before dismissing; failed writes retain the draft for retry. Committed creation followed by a refresh failure is distinguished from failure to save.
+
+Commitment creation reuses the existing transaction encompassing commitment tags and the plan. Finance uses an explicit atomic-creation capability: the Drift adapter writes the ledger entry, normalized tags and typed memberships in one transaction. Unsupported adapters reject tagged creation before writing an entry, rather than attempting best-effort links. Account choices are snapshotted for the form so background refresh does not invalidate the selected account during sheet dismissal.
+
+Creation scope is commitments and expense/income entries; transfer creation and automatic tag propagation to financial corrections remain unchanged. No schema, migration, package dependency, backup format or architecture policy change is needed. Existing full-state backup coverage remains applicable to the same tables.
+
+Additional evidence:
+
+- [Creation repository tests](../test/repository/tagged_creation_test.dart): file-backed restart with shared normalized identities and typed links; injected attachment failure rolls back commitment/plan or expense, labels and links; retry creates exactly one record; unsupported adapter fails before writing.
+- [Creation widget tests](../test/widget/tagged_creation_test.dart): Light/Dark RTL draft reuse, normalization/deduplication, removal and cancellation without writes; commitment review and retry preserve tags; quick income/expense retry preserves tags; full income/expense atomically persists initial and new selections.
+- Full local suite after this extension: **363 passed, 0 failed**, including existing editing, migration, backup/restore, quick creation and concurrent Today/settings/Finance regression tests. Flutter analysis reports no issues; changed Dart files are formatted.
+
+This checkpoint is local automated evidence, not Android/device acceptance. Unrelated concurrent Today/settings/navigation/transaction-direction changes are preserved.

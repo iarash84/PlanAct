@@ -752,7 +752,7 @@ Always verify:
 
 Do not make interactive elements artificially small for visual compactness.
 
-For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling.
+For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
 
 ---
 

@@ -1,4 +1,6 @@
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
+import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
+import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -430,8 +432,8 @@ class _HomeShellState extends State<HomeShell> {
     }
   }
 
-  void _openInbox() {
-    Navigator.of(context).push(
+  Future<void> _openInbox() async {
+    await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
           appBar: AppBar(title: const Text('صندوق ورودی')),
@@ -444,6 +446,7 @@ class _HomeShellState extends State<HomeShell> {
         ),
       ),
     );
+    await _refresh();
   }
 
   Future<void> _showCapture() async {
@@ -451,7 +454,10 @@ class _HomeShellState extends State<HomeShell> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => QuickCaptureSheet(onSave: _saveCapturedCommitment),
+      builder: (_) => QuickCaptureSheet(
+        onSave: _saveCapturedCommitment,
+        tagRepository: _tagRepository,
+      ),
     );
   }
 
@@ -476,7 +482,11 @@ class _HomeShellState extends State<HomeShell> {
       financialDirection: draft.financialMeaning.expectationDirection,
       financialAmount: draft.financialAmount,
     );
-    await _refresh();
+    try {
+      await _refresh();
+    } catch (_) {
+      _showMessage('تعهد و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
+    }
     if (plan.reminderDeliveryPending) {
       _showMessage(
         'تعهد ذخیره شد؛ هماهنگ‌سازی یادآوری هنوز انجام نشده است. مجوزهای یادآوری را در تنظیمات بررسی کنید؛ با بازکردن دوباره برنامه، هماهنگ‌سازی تکرار می‌شود.',
@@ -518,39 +528,48 @@ class _HomeShellState extends State<HomeShell> {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (_) =>
-          QuickFinancialEntrySheet(accounts: accounts, income: income),
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => QuickFinancialEntrySheet(
+        accounts: accounts,
+        income: income,
+        tagRepository: _tagRepository,
+        onSave: _saveQuickFinancialEntry,
+      ),
     );
     if (!mounted || result == null) return;
     if (result.moreOptions) {
       _goToFinance();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _financePageKey.currentState?.openTransactionForm(income: income);
+          _financePageKey.currentState?.openTransactionForm(
+            income: income,
+            initialTags: result.tags,
+          );
         }
       });
       return;
     }
+  }
+
+  Future<void> _saveQuickFinancialEntry(QuickFinancialEntry result) async {
+    await FinanceUseCases(_financeRepository).record(
+      account: result.account!,
+      type: result.income ? AccountEntryType.income : AccountEntryType.expense,
+      amount: Money(
+        minorUnits: result.amount,
+        currency: result.account!.currency,
+      ),
+      occurredAt: DateTime.now(),
+      note: result.note,
+      tags: result.tags,
+      category: result.income ? 'دریافت' : 'عمومی',
+    );
     try {
-      await FinanceUseCases(_financeRepository).record(
-        account: result.account!,
-        type: result.income
-            ? AccountEntryType.income
-            : AccountEntryType.expense,
-        amount: Money(
-          minorUnits: result.amount,
-          currency: result.account!.currency,
-        ),
-        occurredAt: DateTime.now(),
-        note: result.note,
-        category: result.income ? 'دریافت' : 'عمومی',
-      );
       await _refresh();
-      if (mounted) {
-        _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
-      }
+      _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
     } catch (_) {
-      if (mounted) _showMessage('ثبت انجام نشد؛ دوباره تلاش کنید.');
+      _showMessage('تراکنش و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
     }
   }
 
@@ -875,6 +894,7 @@ class _HomeShellState extends State<HomeShell> {
         actionCenter: _todayActionCenter,
         error: _todayError,
         onRetry: _refresh,
+        onRefresh: _refresh,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
@@ -911,10 +931,15 @@ class _HomeShellState extends State<HomeShell> {
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
         onTagsChanged: _tagsChanged,
+        onDataChanged: _refresh,
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
         onInbox: _openInbox,
+        holidayPackages: widget.holidayPackages,
+        onHolidaysChanged: () => setState(() {}),
+        backupActions: widget.backupActions,
+        backupMessage: widget.backupMessage,
         settings: SettingsPage(
           holidayPackages: widget.holidayPackages,
           onHolidaysChanged: () => setState(() {}),
@@ -973,7 +998,10 @@ class _HomeShellState extends State<HomeShell> {
       body: SafeArea(
         child: PageView(
           controller: _pageController,
-          onPageChanged: (index) => setState(() => _selectedIndex = index),
+          onPageChanged: (index) {
+            setState(() => _selectedIndex = index);
+            if (index == 0) _refresh();
+          },
           children: pages
               .map(
                 (page) => Align(
@@ -1395,10 +1423,21 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
 };
 
 class _MorePage extends StatelessWidget {
-  const _MorePage({required this.onInbox, required this.settings});
+  const _MorePage({
+    required this.onInbox,
+    required this.settings,
+    this.holidayPackages,
+    this.onHolidaysChanged,
+    this.backupActions,
+    this.backupMessage,
+  });
 
   final VoidCallback onInbox;
   final Widget settings;
+  final HolidayPackageService? holidayPackages;
+  final VoidCallback? onHolidaysChanged;
+  final BackupActions? backupActions;
+  final String? backupMessage;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -1417,7 +1456,7 @@ class _MorePage extends StatelessWidget {
         child: ListTile(
           leading: const Icon(Icons.settings_outlined),
           title: const Text('تنظیمات'),
-          subtitle: const Text('تنظیمات عمومی برنامه'),
+          subtitle: const Text('نمایش، امنیت و مجوزهای برنامه'),
           trailing: const Icon(Icons.chevron_left),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
@@ -1429,6 +1468,13 @@ class _MorePage extends StatelessWidget {
           ),
         ),
       ),
+      if (holidayPackages != null)
+        HolidayPackageSettingsCard(
+          service: holidayPackages!,
+          onInstalled: onHolidaysChanged ?? () {},
+        ),
+      if (backupActions != null)
+        BackupSettingsCard(actions: backupActions!, message: backupMessage),
     ],
   );
 }

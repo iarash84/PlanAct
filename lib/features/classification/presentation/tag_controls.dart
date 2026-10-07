@@ -17,6 +17,150 @@ class TagLabels extends StatelessWidget {
   );
 }
 
+/// Draft-only selection: reads reusable labels but never writes before creation.
+class DraftTagPicker extends StatefulWidget {
+  const DraftTagPicker({
+    super.key,
+    this.repository,
+    required this.selected,
+    required this.onChanged,
+    this.enabled = true,
+  });
+  final TagRepository? repository;
+  final Set<String> selected;
+  final ValueChanged<Set<String>> onChanged;
+  final bool enabled;
+
+  @override
+  State<DraftTagPicker> createState() => _DraftTagPickerState();
+}
+
+class _DraftTagPickerState extends State<DraftTagPicker> {
+  final _label = TextEditingController();
+  List<Tag> _tags = [];
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _label.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final tags = await widget.repository?.list() ?? <Tag>[];
+      if (mounted) {
+        setState(() {
+          _tags = tags;
+          _loading = false;
+          _error = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = 'خواندن برچسب‌ها انجام نشد؛ دوباره تلاش کنید.';
+        });
+      }
+    }
+  }
+
+  void _toggle(String label, bool selected) {
+    final key = normalizeTagKey(label);
+    final labels = {...widget.selected}
+      ..removeWhere((value) => normalizeTagKey(value) == key);
+    if (selected) labels.add(label);
+    widget.onChanged(Set.unmodifiable(labels));
+  }
+
+  void _add() {
+    if (!widget.enabled) return;
+    final label = normalizeTagLabel(_label.text);
+    if (label.isEmpty) {
+      setState(() => _error = 'نام برچسب را وارد کنید.');
+      return;
+    }
+    final existing = _tags
+        .where((tag) => tag.normalizedLabel == normalizeTagKey(label))
+        .firstOrNull;
+    _toggle(existing?.label ?? label, true);
+    _label.clear();
+    setState(() => _error = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = <String, String>{
+      for (final tag in _tags) tag.normalizedLabel: tag.label,
+      for (final label in widget.selected) normalizeTagKey(label): label,
+    };
+    final selected = widget.selected.map(normalizeTagKey).toSet();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'برچسب‌ها (اختیاری)',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const Text(
+          'برچسب‌ها همراه با ثبت نهایی ذخیره می‌شوند؛ انصراف تغییری ایجاد نمی‌کند.',
+        ),
+        if (_loading) const LinearProgressIndicator(),
+        if (_error != null) ...[
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              _error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+          TextButton(
+            onPressed: widget.enabled && !_loading ? _load : null,
+            child: const Text('تلاش دوباره'),
+          ),
+        ],
+        Wrap(
+          spacing: PlanActSpacing.sm,
+          runSpacing: PlanActSpacing.xs,
+          children: [
+            for (final entry in labels.entries)
+              FilterChip(
+                label: Text('#${entry.value}'),
+                selected: selected.contains(entry.key),
+                onSelected: widget.enabled
+                    ? (value) => _toggle(entry.value, value)
+                    : null,
+              ),
+          ],
+        ),
+        const SizedBox(height: PlanActSpacing.sm),
+        TextField(
+          key: const ValueKey('draft-tag-label'),
+          controller: _label,
+          enabled: widget.enabled,
+          decoration: const InputDecoration(labelText: 'برچسب جدید'),
+          onSubmitted: (_) => _add(),
+        ),
+        OutlinedButton.icon(
+          onPressed: widget.enabled ? _add : null,
+          icon: const Icon(Icons.add),
+          label: const Text('افزودن برچسب به پیش‌نویس'),
+        ),
+      ],
+    );
+  }
+}
+
 /// A single optional tag filter. Null means all records, not untagged records.
 class TagFilter extends StatelessWidget {
   const TagFilter({

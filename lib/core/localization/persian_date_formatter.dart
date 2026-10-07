@@ -27,6 +27,17 @@ abstract final class PersianDateFormatter {
     'جمعه',
   ];
 
+  // Distinct compact labels for a seven-column calendar; semantics use full names.
+  static const compactWeekdayNames = <String>[
+    'ش',
+    'ی',
+    'د',
+    'س',
+    'چ',
+    'پ',
+    'ج',
+  ];
+
   static String month(JalaliDate date) =>
       '${monthNames[date.month - 1]} ${PersianNumbers.format(date.year)}';
 

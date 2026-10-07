@@ -15,7 +15,7 @@ Statuses describe implementation/source review, not universal visual certificati
 | Root shell and navigation | Migrated | Removed repeated AppBar logo; theme-owned primary selected container, readable 840dp content width, reduced-motion-aware page transitions. Existing navigation destinations and page controller retained. |
 | Today / Attention / Next | Migrated | Brightness-aware information/status accents and shared typography. Central domain classification and actions preserved. |
 | Commitment rows | Migrated | Success/attention/inactive roles; cancellation/archival no longer error-colored. Text/icon labels retained. |
-| Calendar | Migrated | Holiday information replaces error semantics, selected/unselected foreground correctness, shared radius, minimum cell targets and scalable horizontal calendar plane. Existing holiday coverage warning and all reasons preserved. |
+| Calendar | Migrated | Holiday information, selected/unselected foregrounds and shared radius retained. Follow-up phone fix fits seven RTL columns without horizontal scrolling, uses compact weekday labels with full semantics, and measures text-scale-aware cell height. Narrow target-width exception documented in DESIGN_SYSTEM/AGENTS/PRD. Existing holiday coverage warning and all reasons preserved. |
 | Quick Add | Migrated | Shared form action overflow, live error announcements, typography, fields/buttons/sheet treatment. Local scheduling and default semantics retained. |
 | Quick Capture | Migrated | Shared form changes and reduced-motion-aware step switch. Capture command, draft, retries and progressive disclosure preserved. |
 | Commitment Details | Migrated | Shared typography, Material fields/cards/dialogs/actions. Existing occurrence, reminders, tags, financial expectation and historical controls retained; no new detail-page architecture. |
@@ -44,11 +44,18 @@ Statuses describe implementation/source review, not universal visual certificati
 - Final post-fix full run: flutter test --no-pub — 343 tests passed in approximately 72 seconds.
 - Final flutter analyze --no-pub: no issues found (5.8 seconds). Formatting completed and git diff --check passed.
 
+## Calendar phone follow-up validation
+
+- Focused files: calendar_page.dart, PersianDateFormatter compact weekday labels, design_system_test.dart and new calendar_responsive_test.dart; governance/spec/product requirements updated with the bounded target-width exception. Previous tagging, Today, Settings and Finance work was preserved.
+- Twelve new widget cases cover 320/360/390dp, Light/Dark, RTL and 100%/200% text scale. They assert no horizontal scrollable, all weekday columns in bounds and RTL order, all 31 date targets in bounds and selectable with full Persian semantics, and month navigation without overflow. Existing holiday/count/selected-day/reminder and picker regressions also pass.
+- Focused Dart formatting completed. Flutter analyze: no issues found. Final flutter test --no-pub: **375 tests passed**. Git diff --check passed.
+- No domain/persistence/schema/backup behavior, dependency or migration changed. Physical-device font metrics, TalkBack and visual acceptance remain unverified; this is not native release certification.
+
 ## Remaining production validation / limitations
 
 - No Android physical-device screenshots, TalkBack/focus traversal, native date/time/authentication dialogs, system bars/recents evidence, or profile frame/memory measurements were collected.
 - Existing Android/native integration gates remain separate; Flutter tests do not prove security or notification release readiness.
-- Calendar requires horizontal scrolling on very narrow screens or enlarged text to retain seven-column ordering and minimum target dimensions. This is intentional rather than shrinking digits, hiding holidays or clipping labels.
+- The Calendar-page follow-up supersedes the migration's horizontal-scroll behavior: all seven columns fit even on narrow phones. At 320dp, day targets are approximately 40dp wide with at least 48dp height; this explicitly documented exception trades minimum target width for simultaneous weekday visibility. Text scaling, holiday/count cues and full Persian semantics remain. The modal date picker intentionally retains minimum 48dp cells and horizontal scrolling when needed; no shared picker consumer changed in this follow-up.
 - Root uses existing bottom navigation rather than introducing a rail or new state-management architecture. The readable width cap is not a complete tablet-specific redesign.
 - Test coverage demonstrates specified pairs and journeys, not exhaustive screenshots of every content combination, brightness, text scaler or viewport. Additional device visual acceptance is required before claiming comprehensive production UI certification.
 - All durable domain and product release limitations in existing verification documents remain in force.

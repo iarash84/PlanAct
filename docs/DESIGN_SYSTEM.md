@@ -135,7 +135,7 @@ RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/en
 
 ## Accessibility and responsive behavior
 
-- Maintain a minimum 48×48dp interactive target.
+- Maintain a minimum 48×48dp interactive target, except the Calendar page's seven-column month grid on narrow screens: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This explicitly approved fit-to-screen exception does not apply to other controls or the modal date picker.
 - Target WCAG 2.1 AA contrast as a baseline: 4.5:1 for normal text and 3:1 for large text and essential non-text controls; verify foregrounds against their actual Light and Dark surfaces.
 - Support system text scaling without clipping, fixed-height text regions, or reducing font size to conceal overflow.
 - Give icon-only actions meaningful Persian semantic labels; ensure focus and keyboard behavior where applicable.
@@ -161,7 +161,7 @@ Before adding a recurring pattern, inspect the existing theme, tokens, and share
 
 ## Implemented migration checkpoint (2026-10-06)
 
-Shared body line heights are 1.6 (large/medium), 1.5 (small), and 1.4 for small labels, retaining system sans. Root single-column content is capped at 840dp; modal sheets at 640dp. Form actions wrap via an overflow bar and errors are live semantic announcements. Calendar and the shared Jalali picker preserve 48dp minimum cells through horizontal scrolling when required and grow with text scale; Finance now reuses that picker. Existing previous/next semantics are retained consistently.
+Shared body line heights are 1.6 (large/medium), 1.5 (small), and 1.4 for small labels, retaining system sans. Root single-column content is capped at 840dp; modal sheets at 640dp. Form actions wrap via an overflow bar and errors are live semantic announcements. Calendar now fits all seven RTL weekday columns to the viewport without horizontal scrolling. When full weekday names do not fit at the current text scale, use distinct Persian short labels with full-name semantics. Cell height grows from measured, wrapping day/holiday/count text; fonts and system scaling are not reduced. With 12dp page gutters and 3dp gaps, 320dp screens have approximately 40dp-wide day targets: the narrowly scoped width exception above is intentional, not a claim of 48dp-wide targets. The shared modal Jalali picker remains intentionally unchanged, preserving 48dp cells via horizontal scrolling when required; its explicit date-selection flow is outside this Calendar-page fix. Finance reuses that picker. Existing previous/next semantics are retained consistently.
 
 PlanActMotion.duration respects platform disableAnimations; root navigation and capture transitions consume it. Startup has no decorative entrance animation, glow or custom shadow. Logos remain in launcher/startup/About, not repeated in root AppBars. Shared divider, progress, popup menu, segmented button and bottom-sheet treatments are theme-owned.
 

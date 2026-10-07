@@ -1,14 +1,12 @@
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
-import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/reminders/presentation/reminder_permissions_card.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
-import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/features/settings/presentation/app_lock_settings_card.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({
     super.key,
     this.holidayPackages,
@@ -36,6 +34,19 @@ class SettingsPage extends StatelessWidget {
   final Future<void> Function(bool enabled)? onAppLockChanged;
   final VoidCallback? onAbout;
   final Future<bool> Function()? enableReminders;
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late ThemeMode _themeMode = widget.themeMode;
+
+  @override
+  void didUpdateWidget(covariant SettingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.themeMode != widget.themeMode) _themeMode = widget.themeMode;
+  }
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -71,7 +82,7 @@ class SettingsPage extends StatelessWidget {
                     icon: Icon(Icons.dark_mode_outlined),
                   ),
                 ],
-                selected: {themeMode},
+                selected: {_themeMode},
                 onSelectionChanged: (selection) => _change(selection.first),
               ),
             ),
@@ -81,17 +92,13 @@ class SettingsPage extends StatelessWidget {
       const SizedBox(height: 20),
       Text('امنیت', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 12),
-      AppLockSettingsCard(enabled: appLockEnabled, change: onAppLockChanged),
+      AppLockSettingsCard(
+        enabled: widget.appLockEnabled,
+        change: widget.onAppLockChanged,
+      ),
       const SizedBox(height: 20),
-      if (enableReminders != null)
-        ReminderPermissionsCard(enable: enableReminders!),
-      if (holidayPackages != null)
-        HolidayPackageSettingsCard(
-          service: holidayPackages!,
-          onInstalled: onHolidaysChanged ?? () {},
-        ),
-      if (backupActions != null)
-        BackupSettingsCard(actions: backupActions!, message: backupMessage),
+      if (widget.enableReminders != null)
+        ReminderPermissionsCard(enable: widget.enableReminders!),
       Text('درباره', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 12),
       Card(
@@ -100,13 +107,15 @@ class SettingsPage extends StatelessWidget {
           title: const Text('درباره پلن‌اکت'),
           subtitle: const Text('نسخه، build و اطلاعات محلی برنامه'),
           trailing: const Icon(Icons.chevron_left),
-          onTap: onAbout,
+          onTap: widget.onAbout,
         ),
       ),
     ],
   );
 
   void _change(ThemeMode? value) {
-    if (value != null) onThemeModeChanged(value);
+    if (value == null) return;
+    setState(() => _themeMode = value);
+    widget.onThemeModeChanged(value);
   }
 }

@@ -21,6 +21,11 @@ abstract interface class FinanceRepository {
   });
 }
 
+/// Creation and optional classification must commit together or not at all.
+abstract interface class TaggedFinanceCreation {
+  Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags);
+}
+
 abstract interface class AtomicFinanceCorrection {
   Future<void> saveCorrection({
     required AccountEntry reversal,
@@ -108,6 +113,7 @@ class FinanceUseCases {
     String? note,
     String? category,
     AccountEntrySource source = AccountEntrySource.manual,
+    Set<String> tags = const {},
   }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
@@ -122,7 +128,13 @@ class FinanceUseCases {
       category: category,
       source: source,
     );
-    await repository.saveEntry(entry);
+    if (tags.isEmpty) {
+      await repository.saveEntry(entry);
+    } else if (repository case final TaggedFinanceCreation tagged) {
+      await tagged.createTaggedEntry(entry, tags);
+    } else {
+      throw StateError('Atomic tagged creation is not supported.');
+    }
     return entry;
   });
 

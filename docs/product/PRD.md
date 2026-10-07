@@ -298,7 +298,8 @@ Plan و Actual نباید یکی باشند.
 
 - برچسب اختیاری، قابل استفادهٔ مجدد و مستقل از دسته‌بندی تراکنش و وضعیت تعهد است؛ نبود برچسب به معنی مقدار پیش‌فرض نیست.
 - کاربر می‌تواند در جزئیات تعهد یا از عملیات تراکنش، برچسب بسازد یا برچسب موجود را به همان مورد اضافه کند. برداشتن برچسب فقط اتصال همان مورد را حذف می‌کند، نه خود برچسب یا سایر اتصال‌ها.
-- اتصال‌ها بلافاصله ذخیره می‌شوند و به ذخیرهٔ فرم عنوان/توضیحات وابسته نیستند؛ رابط باید این موضوع را روشن کند و برای موفقیت، انتظار و خطا بازخورد فارسی بدهد.
+- در ویرایش مورد موجود، اتصال‌ها بلافاصله ذخیره می‌شوند و به ذخیرهٔ فرم عنوان/توضیحات وابسته نیستند؛ رابط باید این موضوع را روشن کند و برای موفقیت، انتظار و خطا بازخورد فارسی بدهد.
+- هنگام ایجاد تعهد و ثبت سریع یا کامل هزینه/درآمد، کاربر بتواند برچسب موجود را انتخاب کند یا نام جدید وارد کند. انتخاب‌ها تا ثبت نهایی پیش‌نویس هستند؛ انصراف هیچ برچسب یا اتصالی ذخیره نمی‌کند. ثبت مورد، ساخت نام‌های جدید و اتصال‌ها باید اتمیک باشد؛ خطا فرم و انتخاب‌ها را برای تلاش دوباره حفظ کند. رفتن از ثبت سریع به «گزینه‌های بیشتر» انتخاب برچسب‌ها را منتقل کند.
 - تغییر نام سراسری باید هویت پایدار و همهٔ اتصال‌ها را حفظ کند. نام خالی یا نام تکراری پس از حذف فاصله‌های ابتدا/انتها، علامت ابتدایی `#` و یکسان‌سازی حروف لاتین پذیرفته نشود؛ ساخت نام موجود همان برچسب را استفاده کند، نه نسخهٔ تکراری.
 - حذف سراسری نیازمند تأیید صریح با توضیح حذف اتصال‌ها و نبود بازگردانی است؛ خود تعهدها، تراکنش‌ها، رخدادها، نتایج و ledger نباید حذف یا تغییر کنند.
 - برچسب‌های تعهد در Today و خط زمانی و برچسب‌های تراکنش در Finance دیده شوند. Finance از فیلتر اختیاری یک برچسب پشتیبانی کند؛ «همهٔ برچسب‌ها» فیلتر را پاک کند، نه اینکه فقط موارد بدون برچسب را نشان دهد.
@@ -397,6 +398,8 @@ Occurrenceهای گذشته نباید به‌طور مخفی بازنویسی �
 
 هر آیتم باید action واضح داشته باشد.
 
+صفحهٔ امروز با کشیدن به پایین، حتی در حالت خالی، باید دوباره داده‌های محلی و اقدامات نیازمند رسیدگی را بخواند. بازگشت به امروز، بازگشت از صندوق ورودی و ثبت یا خنثی‌سازی تراکنش در بخش مالی نیز باید نمای امروز را تازه کنند. تازه‌سازی صرفاً بازخوانی و محاسبهٔ نمای موجود است و نباید تراکنش، ارتباط یا سابقهٔ جدید ایجاد کند؛ تراکنش‌های نیازمند تعیین ارتباط مطابق قواعد Attention نمایش داده می‌شوند، نه همهٔ تراکنش‌ها به‌عنوان اقدام معوق.
+
 ---
 
 # 11. Calendar
@@ -410,6 +413,7 @@ Priority 8 checkpoint (2026-10-06): **Current-year official holiday coverage imp
 Requirements:
 
 - نمایش جلالی؛
+- نمایش هم‌زمان هر هفت ستون روزهای هفته در عرض صفحهٔ تقویم گوشی، بدون نیاز به پیمایش افقی؛ در فضای محدود عنوان کوتاه فارسی با نام کامل دسترس‌پذیری استفاده شود. بزرگ‌نمایی متن حفظ شود و ارتفاع خانه‌ها با محتوای آن‌ها سازگار شود. این الزام مختص صفحهٔ تقویم است، نه پنجرهٔ انتخاب تاریخ؛ استثنای محدود عرض هدف لمس در گوشی باریک مطابق سند طراحی و AGENTS ثبت شده است.
 - مرور ماه‌ها؛
 - نمایش رخدادهای هر روز؛
 - دسترسی از occurrence به commitment؛
@@ -499,6 +503,8 @@ Minimum transaction types:
 مبالغ باید به شکل integer در smallest supported unit ذخیره شوند و محاسبات مالی نباید به floating-point وابسته باشند.
 
 انتقال بین دو حساب متعلق به کاربر نباید income یا expense محسوب شود.
+
+در فهرست مالی، جهت ورودی/خروجی با شکل، رنگ معنایی و برچسب فارسی مشخص شود و از اثر واقعی ثبت بر حساب پیروی کند، از جمله انتقال‌ها و اصلاحات دارای مبلغ علامت‌دار. برداشت معمولی خطای برنامه یا اقدام مخرب نیست؛ نوع انتقال، موجودی اولیه و ثبت جبرانی باید با نام خود نمایش داده شود.
 
 ---
 
@@ -977,6 +983,10 @@ A committed commitment creation or occurrence change must be reported separately
 ## Backup implementation status — Priority 1
 
 The production encrypted export/import path is implemented, but the backup release gate remains partial. Current key recovery is restricted to the original installation: device loss, uninstall, or another device is not supported. Export/import confirmations disclose this restriction. Strict fresh-schema validation may reject migrated current-version databases. Exhaustive entity round-trip, concurrent command/lifecycle safety, and isolated native Android picker/Keystore/crash evidence remain required. This status does not reduce the backup/restore acceptance criteria. See docs/adr/0013-production-backup-restore.md.
+
+## Settings and More navigation
+
+Display mode, app lock and reminder permissions remain in Settings. Display-mode selection must update immediately on the open Settings route, without an application restart. Backup/restore and annual holiday-package import are user-operated tools exposed in More, not duplicated in Settings. The holiday-import reference to Settings below describes the earlier entry point; the current entry point is More. All existing consent, security and persistence safeguards remain unchanged.
 
 ## Independent offline holiday updates
 

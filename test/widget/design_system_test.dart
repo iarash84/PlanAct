@@ -87,8 +87,12 @@ void main() {
       expect(targets, findsWidgets);
       for (final element in targets.evaluate()) {
         final size = tester.getSize(find.byWidget(element.widget));
-        expect(size.width, greaterThanOrEqualTo(48));
+        // Calendar-only narrow-grid exception: all seven targets fit the page.
+        expect(size.width, greaterThanOrEqualTo(39));
         expect(size.height, greaterThanOrEqualTo(48));
+        final rect = tester.getRect(find.byWidget(element.widget));
+        expect(rect.left, greaterThanOrEqualTo(0));
+        expect(rect.right, lessThanOrEqualTo(320));
       }
     });
 

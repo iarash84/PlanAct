@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -89,7 +91,11 @@ class QuickFinancialEntrySheet extends StatefulWidget {
     super.key,
     required this.accounts,
     required this.income,
+    this.tagRepository,
+    this.onSave,
   });
+  final TagRepository? tagRepository;
+  final Future<void> Function(QuickFinancialEntry entry)? onSave;
   final List<FinancialAccount> accounts;
   final bool income;
 
@@ -104,6 +110,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
   late FinancialAccount _account = widget.accounts.first;
   String? _error;
   bool _saving = false;
+  Set<String> _tags = {};
 
   @override
   void dispose() {
@@ -112,7 +119,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final amount = int.tryParse(MoneyInputFormatter.normalize(_amount.text));
     if (amount == null || amount <= 0) {
       setState(() => _error = 'مبلغ معتبر وارد کنید.');
@@ -120,67 +127,94 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
     }
     if (_saving) return;
     setState(() => _saving = true);
-    Navigator.pop(
-      context,
-      QuickFinancialEntry(
-        account: _account,
-        amount: amount,
-        note: _note.text.trim().isEmpty ? null : _note.text.trim(),
-        income: widget.income,
-      ),
+    final entry = QuickFinancialEntry(
+      account: _account,
+      amount: amount,
+      note: _note.text.trim().isEmpty ? null : _note.text.trim(),
+      income: widget.income,
+      tags: Set.unmodifiable(_tags),
     );
+    try {
+      await widget.onSave?.call(entry);
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.pop(context, widget.onSave == null ? entry : null);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = 'ثبت انجام نشد؛ اطلاعات و برچسب‌های شما حفظ شده است. دوباره تلاش کنید.';
+        });
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context) => PlanActFormSheet(
-    title: widget.income ? 'ثبت سریع درآمد' : 'ثبت سریع هزینه',
-    primaryLabel: 'ثبت',
-    onPrimary: _submit,
-    isLoading: _saving,
-    error: _error,
-    primaryKey: const ValueKey('quick-financial-save'),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          key: const ValueKey('quick-financial-amount'),
-          controller: _amount,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
-        ),
-        DropdownButtonFormField<FinancialAccount>(
-          key: const ValueKey('quick-financial-account'),
-          initialValue: _account,
-          decoration: const InputDecoration(labelText: 'حساب'),
-          items: widget.accounts
-              .map(
-                (account) =>
-                    DropdownMenuItem(value: account, child: Text(account.name)),
-              )
-              .toList(),
-          onChanged: (value) => setState(() => _account = value ?? _account),
-        ),
-        TextField(
-          key: const ValueKey('quick-financial-note'),
-          controller: _note,
-          decoration: InputDecoration(
-            labelText: widget.income
-                ? 'شرح درآمد (اختیاری)'
-                : 'یادداشت (اختیاری)',
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_saving,
+    child: PlanActFormSheet(
+      title: widget.income ? 'ثبت سریع درآمد' : 'ثبت سریع هزینه',
+      primaryLabel: 'ثبت',
+      onPrimary: _submit,
+      isLoading: _saving,
+      error: _error,
+      primaryKey: const ValueKey('quick-financial-save'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            key: const ValueKey('quick-financial-amount'),
+            controller: _amount,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: const [MoneyInputFormatter()],
+            decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
           ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton(
-            onPressed: () =>
-                Navigator.pop(context, const QuickFinancialEntry.moreOptions()),
-            child: const Text('گزینه‌های بیشتر'),
+          DropdownButtonFormField<FinancialAccount>(
+            key: const ValueKey('quick-financial-account'),
+            initialValue: _account,
+            decoration: const InputDecoration(labelText: 'حساب'),
+            items: widget.accounts
+                .map(
+                  (account) => DropdownMenuItem(
+                    value: account,
+                    child: Text(account.name),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _account = value ?? _account),
           ),
-        ),
-      ],
+          TextField(
+            key: const ValueKey('quick-financial-note'),
+            controller: _note,
+            decoration: InputDecoration(
+              labelText: widget.income
+                  ? 'شرح درآمد (اختیاری)'
+                  : 'یادداشت (اختیاری)',
+            ),
+          ),
+          DraftTagPicker(
+            repository: widget.tagRepository,
+            selected: _tags,
+            enabled: !_saving,
+            onChanged: (tags) => setState(() => _tags = tags),
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton(
+              onPressed: _saving
+                  ? null
+                  : () => Navigator.pop(
+                      context,
+                      QuickFinancialEntry.moreOptions(tags: _tags),
+                    ),
+              child: const Text('گزینه‌های بیشتر'),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -191,8 +225,9 @@ class QuickFinancialEntry {
     required this.amount,
     required this.note,
     required this.income,
+    this.tags = const {},
   }) : moreOptions = false;
-  const QuickFinancialEntry.moreOptions()
+  const QuickFinancialEntry.moreOptions({this.tags = const {}})
     : account = null,
       amount = 0,
       note = null,
@@ -203,6 +238,7 @@ class QuickFinancialEntry {
   final String? note;
   final bool income;
   final bool moreOptions;
+  final Set<String> tags;
 }
 
 class QuickTransferSheet extends StatefulWidget {

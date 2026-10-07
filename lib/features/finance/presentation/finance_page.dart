@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
@@ -26,12 +27,14 @@ class FinancePage extends StatefulWidget {
     this.expectationRepository,
     this.tagRepository,
     this.onTagsChanged,
+    this.onDataChanged,
     this.onDetermineRelationship,
   });
 
   final Future<void> Function(StableId transactionId)? onDetermineRelationship;
   final TagRepository? tagRepository;
   final Future<void> Function()? onTagsChanged;
+  final Future<void> Function()? onDataChanged;
   final FinanceRepository repository;
   final FinancialExpectationRepository? expectationRepository;
 
@@ -40,8 +43,10 @@ class FinancePage extends StatefulWidget {
 }
 
 class FinancePageState extends State<FinancePage> {
-  Future<void> openTransactionForm({required bool income}) =>
-      income ? _addIncome() : _addExpense();
+  Future<void> openTransactionForm({
+    required bool income,
+    Set<String> initialTags = const {},
+  }) => _recordTransaction(income: income, initialTags: initialTags);
 
   static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
@@ -180,6 +185,7 @@ class FinancePageState extends State<FinancePage> {
       }
       await _finance.updateAccount(account: account, name: result);
       await _refresh();
+      await widget.onDataChanged?.call();
     } catch (_) {
       if (mounted) _showMessage('ویرایش حساب انجام نشد؛ دوباره تلاش کنید.');
     }
@@ -311,6 +317,7 @@ class FinancePageState extends State<FinancePage> {
             : Money(minorUnits: value, currency: account.currency),
       );
       await _refresh();
+      await widget.onDataChanged?.call();
     } catch (error) {
       _logger.error(
         'Finance account creation failed',
@@ -325,16 +332,19 @@ class FinancePageState extends State<FinancePage> {
 
   Future<void> _addIncome() => _recordTransaction(income: true);
 
-  Future<void> _addExpense() => _recordTransaction(income: false);
-
-  Future<void> _recordTransaction({required bool income}) async {
+  Future<void> _recordTransaction({
+    required bool income,
+    Set<String> initialTags = const {},
+  }) async {
+    var draftTags = {...initialTags};
     if (_accounts.isEmpty) {
       _showMessage('ابتدا یک حساب اضافه کنید.');
       return;
     }
     final amount = TextEditingController();
     final note = TextEditingController();
-    var account = _accounts.first;
+    final formAccounts = List<FinancialAccount>.of(_accounts);
+    var account = formAccounts.first;
     var occurredAt = DateTime.now();
     String? formError;
     var saving = false;
@@ -381,6 +391,7 @@ class FinancePageState extends State<FinancePage> {
                       occurredAt: occurredAt,
                       note: note.text.trim().isEmpty ? null : note.text.trim(),
                       category: income ? 'دریافت' : 'عمومی',
+                      tags: draftTags,
                     );
                     if (context.mounted) {
                       setDialogState(() => saving = false);
@@ -405,7 +416,7 @@ class FinancePageState extends State<FinancePage> {
                     DropdownButtonFormField<FinancialAccount>(
                       initialValue: account,
                       decoration: const InputDecoration(labelText: 'حساب'),
-                      items: _accounts
+                      items: formAccounts
                           .map(
                             (item) => DropdownMenuItem(
                               value: item,
@@ -433,6 +444,13 @@ class FinancePageState extends State<FinancePage> {
                       decoration: InputDecoration(
                         labelText: income ? 'شرح درآمد' : 'شرح هزینه',
                       ),
+                    ),
+                    DraftTagPicker(
+                      repository: widget.tagRepository,
+                      selected: draftTags,
+                      enabled: !saving,
+                      onChanged: (tags) =>
+                          setDialogState(() => draftTags = tags),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -516,6 +534,7 @@ class FinancePageState extends State<FinancePage> {
       );
       if (result == true) {
         await _refresh();
+        await widget.onDataChanged?.call();
         if (mounted && _loadError == null) _showMessage('تراکنش ثبت شد.');
       }
     } catch (error) {
@@ -559,6 +578,7 @@ class FinancePageState extends State<FinancePage> {
     try {
       await _finance.voidEntry(original: entry, account: account);
       await _refresh();
+      await widget.onDataChanged?.call();
       if (mounted) _showMessage('تراکنش با ثبت جبرانی خنثی شد.');
     } catch (_) {
       if (mounted) _showMessage('حذف امن تراکنش انجام نشد.');
@@ -807,16 +827,9 @@ class FinancePageState extends State<FinancePage> {
                   for (final entry in _filteredEntries)
                     Card(
                       child: ListTile(
-                        leading: Icon(
-                          entry.type == AccountEntryType.income
-                              ? Icons.add_circle_outline
-                              : Icons.remove_circle_outline,
-                          color: entry.type == AccountEntryType.income
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.error,
-                        ),
+                        leading: TransactionDirectionIcon(entry: entry),
                         title: Text(
-                          '${entry.type == AccountEntryType.income ? 'ورودی' : 'خروجی'} · ${_money(entry.amount)}',
+                          '${transactionLabel(entry)} · ${_money(entry.amount)}',
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

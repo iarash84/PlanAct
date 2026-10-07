@@ -18,6 +18,7 @@ class TodayPage extends StatelessWidget {
     this.actionCenter,
     this.error,
     this.onRetry,
+    this.onRefresh,
     required this.onAdd,
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
@@ -30,6 +31,7 @@ class TodayPage extends StatelessWidget {
   final TodayActionCenter? actionCenter;
   final String? error;
   final VoidCallback? onRetry;
+  final Future<void> Function()? onRefresh;
   final VoidCallback onAdd;
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
@@ -39,7 +41,8 @@ class TodayPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final today = JalaliDate.now();
     final center = actionCenter;
-    return ListView(
+    final content = ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         PlanActSpacing.lg,
         PlanActSpacing.md,
@@ -113,6 +116,9 @@ class TodayPage extends StatelessWidget {
         ],
       ],
     );
+    return onRefresh == null
+        ? content
+        : RefreshIndicator(onRefresh: onRefresh!, child: content);
   }
 }
 

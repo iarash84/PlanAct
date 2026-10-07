@@ -1,5 +1,7 @@
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -10,7 +12,8 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
-  const QuickCaptureSheet({super.key, this.onSave});
+  const QuickCaptureSheet({super.key, this.onSave, this.tagRepository});
+  final TagRepository? tagRepository;
 
   /// Persists before closing; a failed save leaves the form intact for retry.
   final Future<void> Function(CommitmentDraft draft)? onSave;
@@ -243,6 +246,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ],
         onChanged: (value) =>
             setState(() => _draft = _draft.copyWith(priority: value)),
+      ),
+      const SizedBox(height: PlanActSpacing.md),
+      DraftTagPicker(
+        repository: widget.tagRepository,
+        selected: _draft.tags,
+        enabled: !_saving,
+        onChanged: (tags) =>
+            setState(() => _draft = _draft.copyWith(tags: tags)),
       ),
       const SizedBox(height: PlanActSpacing.md),
       RadioGroup<CommitmentCategory>(
@@ -544,6 +555,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         _draft.reviewSummary(),
         style: Theme.of(context).textTheme.titleMedium,
       ),
+      if (_draft.tags.isNotEmpty) TagLabels(labels: _draft.tags),
       const SizedBox(height: PlanActSpacing.md),
       const Text(
         'برای اصلاح هر بخش، با بازگشت به مرحلهٔ مربوطه اطلاعات را تغییر دهید.',

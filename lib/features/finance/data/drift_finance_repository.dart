@@ -5,14 +5,38 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
 
 class DriftFinanceRepository
-    implements CommandGateProvider, FinanceRepository, AtomicFinanceCorrection {
+    implements
+        CommandGateProvider,
+        FinanceRepository,
+        AtomicFinanceCorrection,
+        TaggedFinanceCreation {
   DriftFinanceRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          await saveEntry(entry);
+          final repository = DriftTagRepository(database);
+          for (final label in tags) {
+            final tag = await repository.getOrCreate(label);
+            await repository.attach(
+              recordId: entry.id.value,
+              tag: tag,
+              type: TaggableType.accountEntry,
+            );
+          }
+        }),
+      );
 
   @override
   Future<List<FinancialAccount>> listAccounts() =>
