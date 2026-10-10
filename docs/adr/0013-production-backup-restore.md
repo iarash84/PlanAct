@@ -19,6 +19,14 @@ limitation. Portable key recovery requires a separate approved product/security
 decision; this implementation must not be described as complete device-loss
 protection.
 
+## Superseding key-ownership decision (2026-10-10)
+
+ADR 0018 supersedes the installation-bound limitation above for **new production
+exports**: format 2 uses a fresh independent user recovery key per export.
+Format 1 remains installation-key-only. Storage, strict schema validation,
+rollback, drainage, repository ownership and native verification constraints
+in this ADR remain in force. See [ADR 0018](0018-independent-recovery-key-backups.md).
+
 ## Snapshot and privacy
 
 VACUUM INTO creates a consistent snapshot containing every SQLite table, not a

@@ -15,7 +15,7 @@ import 'package:sqlite3/sqlite3.dart';
 class _Keys implements BackupKeyStorage {
   @override
   Future<Uint8List> loadKey(String keyId) async =>
-      Uint8List.fromList(List.filled(32, 7));
+      throw StateError('Installation keys unavailable on fresh install');
 }
 
 class _Rebuild implements BackupRebuildHook {
@@ -177,17 +177,22 @@ void main() {
             encryptor: AesGcmBackupEncryptor(),
             nonceGenerator: SecureBackupNonce(),
           );
+          final recoveryKey = Uint8List.fromList(List.filled(32, 37));
           final package = BackupPackage.decode(
             (await service.create(
               payload: exported,
               appVersion: 'test',
+              recoveryKey: recoveryKey,
               createdAt: DateTime.utc(2026),
             )).encode(),
           );
           if (rollback) {
-            await expectLater(service.restore(package), throwsException);
+            await expectLater(
+              service.restore(package, recoveryKey: recoveryKey),
+              throwsException,
+            );
           } else {
-            await service.restore(package);
+            await service.restore(package, recoveryKey: recoveryKey);
           }
           final reopened = AppDatabase(NativeDatabase(live));
           try {

@@ -1,6 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:planact/features/backup/application/backup_service.dart';
+import 'package:planact/features/backup/data/secure_backup_keys.dart';
+import 'package:planact/features/backup/domain/backup_encryption.dart';
+import 'package:planact/features/backup/domain/backup_package.dart';
+
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,6 +78,17 @@ Future<void> createHistorical(File file, String fixture) async {
   } finally {
     raw.close();
   }
+}
+
+class _NoKeys implements BackupKeyStorage {
+  @override
+  Future<Uint8List> loadKey(String _) async =>
+      throw StateError('No installation key');
+}
+
+class _Rebuild implements BackupRebuildHook {
+  @override
+  Future<void> rebuild() async {}
 }
 
 void main() {
@@ -149,6 +165,33 @@ void main() {
             redact: true,
           );
           await storage.validatePayload(bytes);
+          final service = BackupService(
+            storage: storage,
+            validator: const BackupValidator(currentSchemaVersion: 18),
+            rebuildHook: _Rebuild(),
+            keyStorage: _NoKeys(),
+            encryptor: AesGcmBackupEncryptor(),
+            nonceGenerator: SecureBackupNonce(),
+          );
+          final key = Uint8List.fromList(List.filled(32, 42));
+          final package = await service.create(
+            payload: bytes,
+            appVersion: 'test',
+            createdAt: DateTime.utc(2026),
+            recoveryKey: key,
+          );
+          await service.restore(
+            BackupPackage.decode(package.encode()),
+            recoveryKey: key,
+          );
+          final cold = AppDatabase.forTesting(NativeDatabase(storage.live));
+          expect(
+            (await cold.customSelect('SELECT title FROM commitments').get())
+                .single
+                .read<String>('title'),
+            'historical',
+          );
+          await cold.close();
           await storage.writeSafetySnapshot(bytes);
           await storage.writeTemporary(bytes);
           final exported = sqlite.sqlite3.open(storage.temporary.path);
