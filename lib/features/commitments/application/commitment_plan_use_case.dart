@@ -1,4 +1,5 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
@@ -102,6 +103,7 @@ class CreateCommitmentPlan {
     Set<String> tags = const {},
     List<String> attachmentIds = const [],
     RecurrenceFrequency? frequency,
+    RecurrenceCalendar recurrenceCalendar = RecurrenceCalendar.gregorian,
     Set<int> weekdays = const {},
     int? dayOfMonth,
     int? occurrenceCount,
@@ -162,6 +164,7 @@ class CreateCommitmentPlan {
           occurrenceCount ?? (kind == CommitmentKind.oneOff ? 1 : null),
     ).activate();
     final localDate = LocalDate.fromDateTime(startAt);
+    final jalali = JalaliDate.fromDateTime(startAt);
     final schedule = ScheduleDefinition.create(
       cycleId: cycle.id,
       mode: kind == CommitmentKind.oneOff
@@ -180,14 +183,34 @@ class CreateCommitmentPlan {
           : RecurrenceRule(
               frequency: frequency ?? RecurrenceFrequency.weekly,
               weekdays: weekdays,
-              dayOfMonth: dayOfMonth ?? startAt.day,
+              calendar: recurrenceCalendar,
+              dayOfMonth:
+                  dayOfMonth ??
+                  (recurrenceCalendar == RecurrenceCalendar.jalali
+                      ? jalali.day
+                      : startAt.day),
+              monthOfYear: recurrenceCalendar == RecurrenceCalendar.jalali
+                  ? jalali.month
+                  : startAt.month,
               monthEndPolicy: MonthEndPolicy.clampToLastDay,
             ),
       endDate: endDate == null ? null : LocalDate.fromDateTime(endDate),
       occurrenceCount: occurrenceCount,
+      generationHorizonDays: frequency == RecurrenceFrequency.yearly
+          ? 800
+          : 120,
+      generationReminderOffsets: effectiveReminderOffsets,
+      generationFinancialExpectation: financialDirection == null
+          ? null
+          : FinancialExpectationTemplate(
+              direction: financialDirection,
+              amount: financialAmount!,
+            ),
     );
     final through = endDate == null
-        ? localDate.addDays(kind == CommitmentKind.oneOff ? 0 : 90)
+        ? localDate.addDays(
+            kind == CommitmentKind.oneOff ? 0 : schedule.generationHorizonDays,
+          )
         : LocalDate.fromDateTime(endDate);
     final occurrences = OccurrenceGenerator().generate(
       schedule: schedule,

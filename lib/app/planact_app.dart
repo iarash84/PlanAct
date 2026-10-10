@@ -1,3 +1,4 @@
+import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
@@ -240,7 +241,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
@@ -316,7 +317,49 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    WidgetsBinding.instance.addObserver(this);
+    _maintainSchedules();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _maintainSchedules();
+  }
+
+  Future<void> _maintainSchedules() async {
+    try {
+      final plans = _planRepository;
+      if (plans is RecurringScheduleMaintenance) {
+        await ExtendRecurringSchedules(plans as RecurringScheduleMaintenance)
+            .call(DateTime.now());
+      }
+      await _refresh();
+      if (_repository case final DriftCommitmentRepository repository) {
+        try {
+          await ReminderService(
+            repository: DriftReminderRepository(repository.database),
+            platform: AndroidReminderPlatformAdapter(),
+          ).reconcile(now: DateTime.now().toUtc());
+        } catch (_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'زمان‌بندی ثبت شده است؛ هماهنگی یادآوری دوباره تلاش می‌شود.',
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {
+      await _refresh();
+      if (mounted) {
+        setState(
+          () => _todayError = 'ادامهٔ زمان‌بندی یا هماهنگی یادآوری انجام نشد. با بازگشت به برنامه دوباره تلاش می‌شود.',
+        );
+      }
+    }
   }
 
   Future<void> _tagsChanged() async {
@@ -488,9 +531,14 @@ class _HomeShellState extends State<HomeShell> {
       tags: draft.tags,
       attachmentIds: draft.attachmentIds,
       frequency: draft.frequency,
+      recurrenceCalendar: draft.recurrenceCalendar,
       weekdays: draft.weekdays,
-      occurrenceCount: draft.occurrenceCount,
-      endDate: draft.endDate,
+      occurrenceCount: draft.termination == RecurrenceTermination.count
+          ? draft.occurrenceCount
+          : null,
+      endDate: draft.termination == RecurrenceTermination.endDate
+          ? draft.endDate
+          : null,
       reminderOffsets: draft.reminderOffsets,
       entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
           ? draft.entitlementUnits
@@ -896,6 +944,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
   }

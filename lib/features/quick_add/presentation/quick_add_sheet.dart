@@ -21,43 +21,45 @@ class QuickAddSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('افزودن سریع', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          _ActionTile(
-            key: const ValueKey('quick-add-expense'),
-            icon: Icons.remove_circle_outline,
-            title: 'هزینه',
-            subtitle: 'ثبت سریع برداشت از یک حساب',
-            onTap: () => Navigator.pop(context, QuickAddAction.expense),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-income'),
-            icon: Icons.add_circle_outline,
-            title: 'درآمد',
-            subtitle: 'ثبت سریع واریز به یک حساب',
-            onTap: () => Navigator.pop(context, QuickAddAction.income),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-transfer'),
-            icon: Icons.swap_horiz,
-            title: 'انتقال',
-            subtitle: 'جابجایی بین حساب‌های خودتان',
-            onTap: () => Navigator.pop(context, QuickAddAction.transfer),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-commitment'),
-            icon: Icons.add_task,
-            title: 'تعهد',
-            subtitle: 'باز کردن مراحل ثبت تعهد',
-            onTap: () => Navigator.pop(context, QuickAddAction.commitment),
-          ),
-        ],
+    child: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('افزودن سریع', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            _ActionTile(
+              key: const ValueKey('quick-add-expense'),
+              icon: Icons.remove_circle_outline,
+              title: 'هزینه',
+              subtitle: 'ثبت سریع برداشت از یک حساب',
+              onTap: () => Navigator.pop(context, QuickAddAction.expense),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-income'),
+              icon: Icons.add_circle_outline,
+              title: 'درآمد',
+              subtitle: 'ثبت سریع واریز به یک حساب',
+              onTap: () => Navigator.pop(context, QuickAddAction.income),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-transfer'),
+              icon: Icons.swap_horiz,
+              title: 'انتقال',
+              subtitle: 'جابجایی بین حساب‌های خودتان',
+              onTap: () => Navigator.pop(context, QuickAddAction.transfer),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-commitment'),
+              icon: Icons.add_task,
+              title: 'تعهد',
+              subtitle: 'باز کردن مراحل ثبت تعهد',
+              onTap: () => Navigator.pop(context, QuickAddAction.commitment),
+            ),
+          ],
+        ),
       ),
     ),
   );

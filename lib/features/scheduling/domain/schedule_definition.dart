@@ -1,5 +1,6 @@
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/finance/domain/financial_expectation.dart';
 
 enum ScheduleMode {
   oneOff,
@@ -13,6 +14,9 @@ enum TimeSemantics { floatingLocalTime, fixedInstant, allDayLocalDate }
 enum RecurrenceFrequency { daily, weekly, monthly, yearly }
 
 enum MonthEndPolicy { skip, clampToLastDay }
+
+/// Recurrence arithmetic is independent of the user's display calendar.
+enum RecurrenceCalendar { gregorian, jalali }
 
 class LocalDate implements Comparable<LocalDate> {
   LocalDate(this.year, this.month, this.day) {
@@ -79,6 +83,9 @@ class RecurrenceRule {
     this.interval = 1,
     Set<int> weekdays = const {},
     this.dayOfMonth,
+    this.monthOfYear,
+    this.legacyCalendarSemantics = false,
+    this.calendar = RecurrenceCalendar.gregorian,
     this.monthEndPolicy = MonthEndPolicy.skip,
   }) : weekdays = Set.unmodifiable(weekdays) {
     if (interval < 1) {
@@ -96,6 +103,9 @@ class RecurrenceRule {
   final int interval;
   final Set<int> weekdays;
   final int? dayOfMonth;
+  final int? monthOfYear;
+  final bool legacyCalendarSemantics;
+  final RecurrenceCalendar calendar;
   final MonthEndPolicy monthEndPolicy;
 }
 
@@ -115,6 +125,8 @@ class ScheduleDefinition {
     this.recurrenceRule,
     this.endDate,
     this.occurrenceCount,
+    this.generationReminderOffsets = const [],
+    this.generationFinancialExpectation,
   }) {
     _validate();
   }
@@ -131,6 +143,8 @@ class ScheduleDefinition {
     LocalDate? endDate,
     int? occurrenceCount,
     int generationHorizonDays = 90,
+    List<Duration> generationReminderOffsets = const [],
+    FinancialExpectationTemplate? generationFinancialExpectation,
   }) => ScheduleDefinition(
     id: StableId.generate(),
     cycleId: cycleId,
@@ -146,6 +160,8 @@ class ScheduleDefinition {
     version: 1,
     effectiveFrom: startDate,
     generationHorizonDays: generationHorizonDays,
+    generationReminderOffsets: List.unmodifiable(generationReminderOffsets),
+    generationFinancialExpectation: generationFinancialExpectation,
   );
 
   final StableId id;
@@ -162,6 +178,8 @@ class ScheduleDefinition {
   final int version;
   final LocalDate effectiveFrom;
   final int generationHorizonDays;
+  final List<Duration> generationReminderOffsets;
+  final FinancialExpectationTemplate? generationFinancialExpectation;
 
   ScheduleDefinition nextVersion({
     required LocalDate effectiveFrom,
@@ -188,10 +206,20 @@ class ScheduleDefinition {
       version: version + 1,
       effectiveFrom: effectiveFrom,
       generationHorizonDays: generationHorizonDays,
+      generationReminderOffsets: generationReminderOffsets,
+      generationFinancialExpectation: generationFinancialExpectation,
     );
   }
 
   void _validate() {
+    if (recurrenceRule?.monthOfYear case final month?) {
+      if (month < 1 || month > 12) {
+        throw const ValidationError('Invalid recurrence month');
+      }
+    }
+    if (endDate != null && occurrenceCount != null) {
+      throw const ValidationError('Choose one termination mode');
+    }
     if (version < 1 || generationHorizonDays < 1) {
       throw const ValidationError('Invalid schedule version or horizon');
     }

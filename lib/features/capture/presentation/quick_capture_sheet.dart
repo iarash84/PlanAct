@@ -52,7 +52,10 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       description: _description.text.trim().isEmpty
           ? null
           : _description.text.trim(),
-      occurrenceCount: int.tryParse(_count.text.trim()),
+      occurrenceCount: int.tryParse(
+        MoneyInputFormatter.normalize(_count.text.trim()),
+      ),
+      clearOccurrenceCount: _count.text.trim().isEmpty,
       entitlementUnits: int.tryParse(
         MoneyInputFormatter.normalize(_entitlementUnits.text.trim()),
       ),
@@ -336,6 +339,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       if (_draft.isRecurring) ...[
         const SizedBox(height: PlanActSpacing.md),
         DropdownButtonFormField<RecurrenceFrequency>(
+          isExpanded: true,
           initialValue: _draft.frequency,
           decoration: const InputDecoration(labelText: 'تکرار'),
           items: const [
@@ -359,6 +363,32 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           onChanged: (value) =>
               setState(() => _draft = _draft.copyWith(frequency: value)),
         ),
+        if (_draft.frequency == RecurrenceFrequency.monthly ||
+            _draft.frequency == RecurrenceFrequency.yearly) ...[
+          const SizedBox(height: PlanActSpacing.md),
+          DropdownButtonFormField<RecurrenceCalendar>(
+            key: const ValueKey('recurrence-calendar'),
+            isExpanded: true,
+            initialValue: _draft.recurrenceCalendar,
+            decoration: const InputDecoration(labelText: 'تقویم تکرار'),
+            items: const [
+              DropdownMenuItem(
+                value: RecurrenceCalendar.jalali,
+                child: Text('شمسی'),
+              ),
+              DropdownMenuItem(
+                value: RecurrenceCalendar.gregorian,
+                child: Text('میلادی'),
+              ),
+            ],
+            onChanged: (value) => setState(
+              () => _draft = _draft.copyWith(recurrenceCalendar: value),
+            ),
+          ),
+          const Text(
+            'روز و ماه از تاریخ شروع در تقویم تکرار گرفته می‌شود. اگر روز در ماه مقصد وجود نداشته باشد، آخرین روز همان ماه انتخاب می‌شود؛ روز اصلی برای نوبت‌های بعد حفظ می‌شود. نمایش تاریخ‌ها همیشه شمسی است.',
+          ),
+        ],
         if (_draft.frequency == RecurrenceFrequency.weekly) ...[
           const SizedBox(height: PlanActSpacing.sm),
           Wrap(
@@ -386,11 +416,64 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           ),
         ],
         const SizedBox(height: PlanActSpacing.md),
-        TextField(
-          controller: _count,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'تعداد جلسات (اختیاری)'),
+        DropdownButtonFormField<RecurrenceTermination>(
+          key: const ValueKey('recurrence-termination'),
+          isExpanded: true,
+          initialValue: _draft.termination,
+          decoration: const InputDecoration(labelText: 'پایان تکرار'),
+          items: const [
+            DropdownMenuItem(
+              value: RecurrenceTermination.open,
+              child: Text('بدون پایان'),
+            ),
+            DropdownMenuItem(
+              value: RecurrenceTermination.endDate,
+              child: Text('تا تاریخ مشخص'),
+            ),
+            DropdownMenuItem(
+              value: RecurrenceTermination.count,
+              child: Text('تعداد مشخص'),
+            ),
+          ],
+          onChanged: (value) =>
+              setState(() => _draft = _draft.copyWith(termination: value)),
         ),
+        if (_draft.termination == RecurrenceTermination.open)
+          const Text(
+            'نوبت‌های آینده در بازهٔ محدود ساخته می‌شوند و با بازکردن یا بازگشت به برنامه ادامه می‌یابند؛ تعداد ساخته‌شده به معنی پایان تکرار نیست.',
+          ),
+        if (_draft.termination == RecurrenceTermination.count)
+          TextField(
+            key: const ValueKey('recurrence-count'),
+            controller: _count,
+            keyboardType: TextInputType.number,
+            inputFormatters: const [MoneyInputFormatter()],
+            decoration: const InputDecoration(labelText: 'تعداد نوبت‌ها'),
+          ),
+        if (_draft.termination == RecurrenceTermination.endDate)
+          OutlinedButton.icon(
+            key: const ValueKey('recurrence-end-date'),
+            onPressed: () async {
+              final picked = await showDialog<DateTime>(
+                context: context,
+                builder: (_) => PlanActJalaliDatePicker(
+                  initialDate:
+                      _draft.endDate ?? _draft.startAt ?? DateTime.now(),
+                ),
+              );
+              if (picked != null && mounted) {
+                setState(() => _draft = _draft.copyWith(endDate: picked));
+              }
+            },
+            icon: const Icon(Icons.event_outlined),
+            label: Text(
+              _draft.endDate == null
+                  ? 'انتخاب تاریخ پایان'
+                  : PersianDateFormatter.date(
+                      JalaliDate.fromDateTime(_draft.endDate!),
+                    ),
+            ),
+          ),
       ],
       const SizedBox(height: PlanActSpacing.lg),
       _reminderPicker(),

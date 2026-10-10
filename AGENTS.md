@@ -192,6 +192,8 @@ Do not convert date-only values to midnight UTC as a storage shortcut.
 
 Month-end, leap-year, DST, timezone changes, holidays, pauses, conflicts, and schedule changes are explicit edge cases, not afterthoughts.
 
+Monthly/yearly recurrence must persist its reference calendar and original day/month anchors independently of display conversion. The user-approved 2026-10-10 missing-day policy clamps to the last day of the same target month without changing the original anchor (Jalali Esfand 30 returns in leap years). Never implement annual recurrence by adding a fixed number of days. Legacy rules without calendar metadata retain their original Gregorian semantics; do not silently reinterpret them or repair saved dates/history. Bounded rolling materialization is an explicit startup/resume application command, not a read-side effect. Production generation must read fresh state transactionally, respect effective schedule-version boundaries and insert new logical slots without updating occupied manual/resolved/historical rows; reminder and financial generation intent must commit with those new rows. See docs/MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md for evidence and unresolved acceptance gates.
+
 ## 8. Session-policy rules
 
 The domain must support configurable policies including:

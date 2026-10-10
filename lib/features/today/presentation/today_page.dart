@@ -141,10 +141,12 @@ class _SectionHeader extends StatelessWidget {
         ),
       ),
       const SizedBox(width: PlanActSpacing.sm),
-      Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge
-            ?.copyWith(fontWeight: FontWeight.bold),
+      Expanded(
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
       ),
     ],
   );

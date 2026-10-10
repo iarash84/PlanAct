@@ -7,6 +7,21 @@ enum FinancialExpectationDirection { outgoing, incoming }
 
 enum FinancialExpectationStatus { active, archived }
 
+/// Explicit series configuration, not a historical expectation or settlement.
+class FinancialExpectationTemplate {
+  const FinancialExpectationTemplate({
+    required this.direction,
+    required this.amount,
+    this.currency,
+    this.accountId,
+  });
+
+  final FinancialExpectationDirection direction;
+  final int amount;
+  final String? currency;
+  final StableId? accountId;
+}
+
 class FinancialExpectation {
   FinancialExpectation({
     required this.id,

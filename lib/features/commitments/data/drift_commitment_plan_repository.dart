@@ -2,6 +2,13 @@ import 'package:planact/core/application/command_gate.dart';
 
 import 'dart:convert';
 
+import 'package:planact/features/finance/domain/financial_expectation.dart';
+import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
+
+import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
+
 import 'package:planact/features/calendar/application/week_timeline.dart';
 
 import 'package:drift/drift.dart';
@@ -19,7 +26,8 @@ class DriftCommitmentPlanRepository
         CommandGateProvider,
         CommitmentPlanRepository,
         CommitmentPlanTransaction,
-        CalendarRangeRepository {
+        CalendarRangeRepository,
+        RecurringScheduleMaintenance {
   DriftCommitmentPlanRepository(this.database);
 
   @override
@@ -61,7 +69,13 @@ class DriftCommitmentPlanRepository
               localTime: Value(_time(plan.schedule.localTime)),
               timeZoneId: Value(plan.schedule.timeZoneId),
               fixedInstant: Value(plan.schedule.fixedInstant),
-              recurrenceRule: Value(_rule(plan.schedule.recurrenceRule)),
+              recurrenceRule: Value(
+                _rule(
+                  plan.schedule.recurrenceRule,
+                  plan.schedule.generationReminderOffsets,
+                  plan.schedule.generationFinancialExpectation,
+                ),
+              ),
               endDate: Value(
                 plan.schedule.endDate == null
                     ? null
@@ -173,6 +187,246 @@ class DriftCommitmentPlanRepository
       });
 
   @override
+  Future<int> extendRecurringSchedules(LocalDate today) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      // Acquire SQLite's writer before reading: admission is not serialization.
+      await database.customStatement(
+        'UPDATE schema_metadata SET value = value WHERE key = ?',
+        ['schema_version'],
+      );
+      final cycles = await database.select(database.commitmentCycles).get();
+      var inserted = 0;
+      for (final cycle in cycles) {
+        if (cycle.status != CommitmentCycleStatus.active.index) continue;
+        final owner = await DriftCommitmentRepository(database)
+            .findById(StableId.parse(cycle.commitmentId));
+        if (owner == null || owner.status != CommitmentStatus.active) continue;
+        final rows =
+            await (database.select(database.scheduleDefinitions)
+                  ..where((t) => t.cycleId.equals(cycle.id))
+                  ..orderBy([(t) => OrderingTerm.asc(t.version)]))
+                .get();
+        final existing = await (database.select(
+          database.occurrences,
+        )..where((t) => t.cycleId.equals(cycle.id))).get();
+        final occupiedKeys = existing.map((r) => r.occurrenceKey).toSet();
+        final occupiedDates = existing.map((r) {
+          final value = _parseValue(r.originalScheduledValue);
+          return value is LocalDate
+              ? value
+              : LocalDate.fromDateTime(value as DateTime);
+        }).toSet();
+        for (var i = 0; i < rows.length; i++) {
+          var schedule = _schedule(rows[i]);
+          if (schedule.mode == ScheduleMode.oneOff) continue;
+          var through = today.addDays(schedule.generationHorizonDays);
+          if (i + 1 < rows.length) {
+            final boundary = _parseDate(rows[i + 1].effectiveFrom).addDays(-1);
+            if (boundary.compareTo(through) < 0) through = boundary;
+          }
+          if (through.compareTo(today) < 0) continue;
+          final metadata =
+              jsonDecode(rows[i].recurrenceRule!) as Map<String, dynamic>;
+          final originals = existing
+              .where(
+                (r) =>
+                    r.scheduleDefinitionId == rows[i].id &&
+                    !r.isManualOverride &&
+                    r.originalScheduledValue == r.currentScheduledValue &&
+                    r.occurrenceKey ==
+                        '${rows[i].id}:${_date(occupiedDate(r))}',
+              )
+              .toList();
+          var changedMetadata = false;
+          if (!metadata.containsKey('generationReminderMinutes')) {
+            final inferred = await _inferReminders(originals, owner.title);
+            if (inferred != null) {
+              metadata['generationReminderMinutes'] = inferred;
+              changedMetadata = true;
+            }
+          }
+          if (!metadata.containsKey('generationFinancialExpectation')) {
+            final inferred = await _inferFinancial(originals);
+            if (inferred != null) {
+              metadata['generationFinancialExpectation'] = inferred;
+              changedMetadata = true;
+            }
+          }
+          if (changedMetadata) {
+            // Upgrading payload must not reinterpret old null-day/yearly rules.
+            metadata['legacyCalendarSemantics'] =
+                schedule.recurrenceRule!.legacyCalendarSemantics;
+            metadata['formatVersion'] = 2;
+            await (database.update(
+              database.scheduleDefinitions,
+            )..where((t) => t.id.equals(rows[i].id))).write(
+              db.ScheduleDefinitionsCompanion(
+                recurrenceRule: Value(jsonEncode(metadata)),
+              ),
+            );
+            final fresh = await (database.select(
+              database.scheduleDefinitions,
+            )..where((t) => t.id.equals(rows[i].id))).getSingle();
+            schedule = _schedule(fresh);
+          }
+          final generated = const OccurrenceGenerator().generate(
+            schedule: schedule,
+            through: through,
+            windowStart: today,
+          );
+          for (final occurrence in generated) {
+            final date = occurrence.currentScheduledAt is LocalDate
+                ? occurrence.currentScheduledAt as LocalDate
+                : LocalDate.fromDateTime(
+                    occurrence.currentScheduledAt as DateTime,
+                  );
+            // Edits retain stable keys/IDs from prior versions. A migrated or
+            // resolved slot already owns its original date, even if moved.
+            final occupied =
+                occupiedKeys.contains(occurrence.occurrenceKey) ||
+                occupiedDates.contains(date);
+            if (occupied) continue;
+            await database
+                .into(database.occurrences)
+                .insert(
+                  db.OccurrencesCompanion.insert(
+                    id: occurrence.id.value,
+                    cycleId: cycle.id,
+                    scheduleDefinitionId: schedule.id.value,
+                    occurrenceKey: occurrence.occurrenceKey,
+                    timeSemantics: schedule.timeSemantics.index,
+                    originalScheduledValue: _value(
+                      occurrence.originalScheduledAt,
+                      schedule.timeSemantics,
+                    ),
+                    currentScheduledValue: _value(
+                      occurrence.currentScheduledAt,
+                      schedule.timeSemantics,
+                    ),
+                    status: occurrence.status.index,
+                    isManualOverride: false,
+                  ),
+                  mode: InsertMode.insertOrIgnore,
+                );
+            final changed = await database
+                .customSelect('SELECT changes() AS n')
+                .getSingle();
+            if (changed.read<int>('n') == 0) continue;
+            inserted++;
+            occupiedKeys.add(occurrence.occurrenceKey);
+            occupiedDates.add(date);
+            final template = schedule.generationFinancialExpectation;
+            if (template != null) {
+              final now = DateTime.now().toUtc();
+              await DriftFinancialExpectationRepository(database)
+                  .saveExpectation(
+                    FinancialExpectation(
+                      id: StableId.generate(),
+                      occurrenceId: occurrence.id,
+                      direction: template.direction,
+                      amount: template.amount,
+                      currency: template.currency,
+                      accountId: template.accountId,
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+            }
+            final reminders = DriftReminderRepository(database);
+            for (final offset in schedule.generationReminderOffsets) {
+              final rule = ReminderRule.beforeOccurrence(
+                occurrenceId: occurrence.id,
+                offset: offset,
+                title: owner.title,
+              );
+              await reminders.saveRule(rule);
+              if (occurrence.currentScheduledAt is DateTime) {
+                await reminders.saveInstance(
+                  ReminderInstance.fromRule(
+                    rule: rule,
+                    occurrenceStart: occurrence.currentScheduledAt as DateTime,
+                  ),
+                );
+              }
+            }
+          }
+        }
+      }
+      return inserted;
+    }),
+  );
+
+  static LocalDate occupiedDate(db.Occurrence r) {
+    final value = _parseValue(r.originalScheduledValue);
+    return value is LocalDate
+        ? value
+        : LocalDate.fromDateTime(value as DateTime);
+  }
+
+  Future<List<int>?> _inferReminders(
+    List<db.Occurrence> originals,
+    String title,
+  ) async {
+    if (originals.isEmpty) return null;
+    List<int>? template;
+    for (final occurrence in originals) {
+      final rules = await (database.select(
+        database.reminderRules,
+      )..where((t) => t.occurrenceId.equals(occurrence.id))).get();
+      if (rules.isEmpty ||
+          rules.any(
+            (r) =>
+                !r.enabled ||
+                r.anchor != ReminderAnchor.occurrenceStart.index ||
+                r.absoluteAt != null ||
+                r.offsetSeconds > 0 ||
+                r.offsetSeconds % 60 != 0 ||
+                r.body != null ||
+                (r.title != null && r.title != title),
+          )) {
+        return null;
+      }
+      final offsets = rules.map((r) => -r.offsetSeconds ~/ 60).toSet().toList()
+        ..sort();
+      if (offsets.length != rules.length) return null;
+      if (template != null && jsonEncode(template) != jsonEncode(offsets)) {
+        return null;
+      }
+      template = offsets;
+    }
+    return template;
+  }
+
+  Future<Map<String, Object?>?> _inferFinancial(
+    List<db.Occurrence> originals,
+  ) async {
+    if (originals.isEmpty) return null;
+    Map<String, Object?>? template;
+    for (final occurrence in originals) {
+      final items = await (database.select(
+        database.financialExpectations,
+      )..where((t) => t.occurrenceId.equals(occurrence.id))).get();
+      if (items.length != 1 ||
+          items.single.status != FinancialExpectationStatus.active.index) {
+        return null;
+      }
+      final item = items.single;
+      final current = <String, Object?>{
+        'direction': item.direction,
+        'amount': item.minorUnits,
+        'currency': item.currency,
+        'accountId': item.accountId,
+      };
+      if (template != null && jsonEncode(template) != jsonEncode(current)) {
+        return null;
+      }
+      template = current;
+    }
+    return template;
+  }
+
+  @override
   Future<Map<String, List<Occurrence>>> loadWeek(
     LocalDate start,
   ) => CommandGate.runFor(this, () async {
@@ -232,9 +486,47 @@ class DriftCommitmentPlanRepository
     return LocalTime(p[0], p[1]);
   }
 
-  static String? _rule(RecurrenceRule? value) => value == null
+  static Map<String, Object?>? _financialJson(
+    FinancialExpectationTemplate? t,
+  ) => t == null
+      ? null
+      : {
+          'direction': t.direction.index,
+          'amount': t.amount,
+          'currency': t.currency,
+          'accountId': t.accountId?.value,
+        };
+
+  static FinancialExpectationTemplate? _parseFinancial(String? json) {
+    if (json == null) return null;
+    final m =
+        (jsonDecode(json)
+                as Map<String, dynamic>)['generationFinancialExpectation']
+            as Map<String, dynamic>?;
+    if (m == null) return null;
+    return FinancialExpectationTemplate(
+      direction: FinancialExpectationDirection.values[m['direction'] as int],
+      amount: m['amount'] as int,
+      currency: m['currency'] as String?,
+      accountId: m['accountId'] == null
+          ? null
+          : StableId.parse(m['accountId'] as String),
+    );
+  }
+
+  static String? _rule(
+    RecurrenceRule? value,
+    List<Duration> offsets,
+    FinancialExpectationTemplate? financial,
+  ) => value == null
       ? null
       : jsonEncode({
+          'formatVersion': 2,
+          'generationFinancialExpectation': _financialJson(financial),
+          'legacyCalendarSemantics': value.legacyCalendarSemantics,
+          'calendar': value.calendar.name,
+          'monthOfYear': value.monthOfYear,
+          'generationReminderMinutes': offsets.map((o) => o.inMinutes).toList(),
           'frequency': value.frequency.index,
           'interval': value.interval,
           'weekdays': value.weekdays.toList(),
@@ -249,6 +541,12 @@ class DriftCommitmentPlanRepository
       interval: m['interval'] as int,
       weekdays: (m['weekdays'] as List).cast<int>().toSet(),
       dayOfMonth: m['dayOfMonth'] as int?,
+      monthOfYear: m['monthOfYear'] as int?,
+      legacyCalendarSemantics:
+          m['legacyCalendarSemantics'] == true || m['formatVersion'] == null,
+      calendar: m['calendar'] == null
+          ? RecurrenceCalendar.gregorian
+          : RecurrenceCalendar.values.byName(m['calendar'] as String),
       monthEndPolicy: MonthEndPolicy.values[m['monthEndPolicy'] as int],
     );
   }
@@ -311,6 +609,15 @@ class DriftCommitmentPlanRepository
     version: r.version,
     effectiveFrom: _parseDate(r.effectiveFrom),
     generationHorizonDays: r.generationHorizonDays,
+    generationFinancialExpectation: _parseFinancial(r.recurrenceRule),
+    generationReminderOffsets: r.recurrenceRule == null
+        ? const []
+        : ((jsonDecode(r.recurrenceRule!)
+                          as Map<String, dynamic>)['generationReminderMinutes']
+                      as List? ??
+                  const [])
+              .map((m) => Duration(minutes: m as int))
+              .toList(),
   );
   Occurrence _occurrence(db.Occurrence r) => Occurrence(
     id: StableId.parse(r.id),

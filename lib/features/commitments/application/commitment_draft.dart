@@ -14,6 +14,8 @@ class CommitmentDraft {
     this.kind = CommitmentKind.oneOff,
     this.startAt,
     this.frequency = RecurrenceFrequency.weekly,
+    this.recurrenceCalendar = RecurrenceCalendar.jalali,
+    this.termination = RecurrenceTermination.open,
     this.weekdays = const {},
     this.dayOfMonth,
     this.occurrenceCount,
@@ -36,6 +38,8 @@ class CommitmentDraft {
   final CommitmentKind kind;
   final DateTime? startAt;
   final RecurrenceFrequency frequency;
+  final RecurrenceCalendar recurrenceCalendar;
+  final RecurrenceTermination termination;
   final Set<int> weekdays;
   final int? dayOfMonth;
   final int? occurrenceCount;
@@ -63,6 +67,9 @@ class CommitmentDraft {
     CommitmentKind? kind,
     DateTime? startAt,
     RecurrenceFrequency? frequency,
+    RecurrenceCalendar? recurrenceCalendar,
+    RecurrenceTermination? termination,
+    bool clearOccurrenceCount = false,
     Set<int>? weekdays,
     int? dayOfMonth,
     int? occurrenceCount,
@@ -84,9 +91,13 @@ class CommitmentDraft {
     kind: kind ?? this.kind,
     startAt: startAt ?? this.startAt,
     frequency: frequency ?? this.frequency,
+    recurrenceCalendar: recurrenceCalendar ?? this.recurrenceCalendar,
+    termination: termination ?? this.termination,
     weekdays: weekdays ?? this.weekdays,
     dayOfMonth: dayOfMonth ?? this.dayOfMonth,
-    occurrenceCount: occurrenceCount ?? this.occurrenceCount,
+    occurrenceCount: clearOccurrenceCount
+        ? null
+        : occurrenceCount ?? this.occurrenceCount,
     endDate: endDate ?? this.endDate,
     entitlement: entitlement ?? this.entitlement,
     entitlementUnits: entitlementUnits ?? this.entitlementUnits,
@@ -119,10 +130,28 @@ class CommitmentDraft {
         (financialAmount == null || financialAmount! <= 0)) {
       return 'مبلغ مورد انتظار را وارد کنید.';
     }
-    if (isRecurring && occurrenceCount != null && occurrenceCount! <= 0) {
+    if (isRecurring &&
+        termination == RecurrenceTermination.count &&
+        (occurrenceCount == null || occurrenceCount! <= 0)) {
+      return 'تعداد تکرار را وارد کنید.';
+    }
+    if (isRecurring &&
+        termination == RecurrenceTermination.endDate &&
+        endDate == null) {
+      return 'تاریخ پایان را انتخاب کنید.';
+    }
+    if (isRecurring &&
+        termination == RecurrenceTermination.count &&
+        occurrenceCount != null &&
+        occurrenceCount! <= 0) {
       return 'تعداد تکرار باید مثبت باشد.';
     }
-    if (endDate != null && startAt != null && endDate!.isBefore(startAt!)) {
+    if (termination == RecurrenceTermination.endDate &&
+        endDate != null &&
+        startAt != null &&
+        LocalDate.fromDateTime(endDate!)
+                .compareTo(LocalDate.fromDateTime(startAt!)) <
+            0) {
       return 'پایان برنامه نمی‌تواند قبل از شروع باشد.';
     }
     return null;
@@ -131,7 +160,11 @@ class CommitmentDraft {
   String reviewSummary() {
     final schedule = !isRecurring
         ? 'یک‌بار در ${startAt == null ? 'زمان انتخاب‌شده' : 'تاریخ انتخاب‌شده'}'
-        : 'تکرار ${_frequencyLabel(frequency)}';
+        : 'تکرار ${_frequencyLabel(frequency)} · ${recurrenceCalendar == RecurrenceCalendar.jalali ? 'تقویم شمسی' : 'تقویم میلادی'} · ${switch (termination) {
+            RecurrenceTermination.open => 'بدون پایان',
+            RecurrenceTermination.count => '${PersianNumbers.format(occurrenceCount ?? 0)} نوبت',
+            RecurrenceTermination.endDate => 'تا تاریخ پایان انتخاب‌شده',
+          }}';
     final package = switch (entitlement) {
       EntitlementDraft.none => 'بدون بستهٔ جلسه',
       EntitlementDraft.unlimited => 'بدون محدودیت تعداد جلسه',
@@ -156,6 +189,8 @@ class CommitmentDraft {
     RecurrenceFrequency.yearly => 'سالانه',
   };
 }
+
+enum RecurrenceTermination { open, endDate, count }
 
 enum CommitmentCategory {
   classCourse,
