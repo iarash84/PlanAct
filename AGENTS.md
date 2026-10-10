@@ -304,6 +304,12 @@ These conventions operationalize the roadmap and exist to keep AI-generated chan
 
 At minimum, each completed feature must include relevant tests at the lowest effective layer.
 
+Derive expected behavior from approved product acceptance criteria, not from the implementation under test. Explicitly challenge assumptions about display versus recurrence calendars, currency/storage units, termination and generation horizons, correction versus deletion, and commit versus platform-delivery outcomes where relevant. A test that reproduces an implementation assumption is not independent evidence of product correctness.
+
+Match evidence to the claim: domain tests prove calculations; production database round-trips and cold reopen prove durability; route-level widget journeys prove navigation and refresh behavior; isolated native/device checks prove platform behavior. For scale or layout claims, use realistic data volumes, a stated reference-device performance budget, narrow screens and large text as applicable. Passing test counts or a successful build do not substitute for missing journey or native evidence.
+
+Significant defect fixes must add regression coverage at the lowest effective layer and identify which acceptance criterion or missing check allowed the defect to escape. Keep this process note brief and actionable; do not expand the fix into unrelated refactoring.
+
 - Domain unit tests: state machines, recurrence, session policy, entitlement folding, money math, reconciliation.
 - Repository/database tests: constraints, transactions, migrations, indexes where meaningful.
 - Scenario tests: language/music/swimming classes, monthly bill, bank↔wallet transfer, partial payment, restore.
@@ -336,6 +342,11 @@ Before marking a task complete, verify:
 - No sensitive data is newly logged.
 - Code is formatted/analyzed according to repository tooling.
 - Documentation/ADR is updated if a durable architecture decision was made.
+- The acceptance contract in Section 17 is satisfied by evidence for the actual entry path and affected consumers, not only isolated components.
+- Implementation status, verification status, missing evidence and release blockers are reported separately using the PRD readiness definitions.
+- Material open gaps have an owner, next action and explicit exposure/release decision in the existing verification record or PR; documentation alone does not make an incomplete capability ready.
+
+A completed infrastructure task is not a completed user capability. Required failed or unexecuted acceptance checks prevent claiming the affected capability ready for release. Review and release acceptance follow [the development workflow](docs/development-workflow.md); CI health and product readiness are separate gates.
 
 ## 17. How an AI coding agent must work
 
@@ -343,7 +354,7 @@ For every prompt:
 
 1. Read this file and the task-specific prompt; also read `docs/product/PRD.md` for product behavior changes and `docs/DESIGN_SYSTEM.md` before meaningful UI/design-system work.
 2. Inspect the existing repository before proposing structure.
-3. State the minimum implementation plan internally and keep the code change focused.
+3. Before a meaningful behavior change, record the concise acceptance contract below and trace the existing user path; then state the minimum implementation plan and keep the code change focused.
 4. Reuse existing conventions and dependencies.
 5. Implement only the current task and prerequisites explicitly allowed by the prompt.
 6. Add tests before or alongside business logic.
@@ -355,7 +366,23 @@ For every prompt:
    - domain decisions made,
    - migrations/dependencies added,
    - tests run and result,
-   - known limitations / next task.
+   - known limitations / next task,
+   - acceptance evidence, unexecuted checks and release-blocking gaps, separately from implemented scope.
+
+### Acceptance contract and bounded delivery
+
+For meaningful feature or behavior changes, put a short acceptance contract in the task/PR or existing feature verification document before implementation. It must state:
+
+- the user outcome, actual entry route and prerequisites (including permissions/accounts when relevant);
+- observable success criteria, failure/cancellation/retry behavior and correction/Undo where applicable;
+- durable state and restart, migration, backup/restore or platform implications where applicable;
+- affected downstream surfaces, explicit scope/non-goals and evidence required for acceptance.
+
+Trace **user action → application command → domain rule → durable write → UI refresh → related consumers** before changing that path. Deliver the smallest complete vertical slice within approved scope; narrow the capability, not its required error, durability or confirmation guarantees. Explicitly scoped infrastructure work is allowed but must be labeled foundation, not user-ready. Do not broaden a task to close every existing gap; identify unmet prerequisites and stop or report partial status when completion requires an unapproved decision.
+
+Acceptance review must be separate from implementation and compare the contract with observable evidence, including plausible counterexamples, rather than repeat the agent's completion claim. An agent's self-review is useful but is not independent release sign-off; missing independent review must be reported. The workflow defines the review/evidence record without requiring duplicated feature documentation.
+
+Apply this proportionally: typo-only/documentation-only changes need consistency/link/diff checks, not artificial device journeys; behavior-neutral refactors need relevant regression evidence. This exception does not waive any applicable existing data-integrity or native release gate.
 
 ## 18. Explicitly prohibited shortcuts
 
@@ -833,7 +860,7 @@ Tests must validate behavior, not merely implementation details.
 
 In-memory tests are not sufficient proof of persistence behavior.
 
-After meaningful changes run:
+After meaningful code changes run:
 
 * `dart format`
 * `flutter analyze`
