@@ -18,6 +18,16 @@ class AppLockSettingsCard extends StatefulWidget {
 class _AppLockSettingsCardState extends State<AppLockSettingsCard> {
   bool _busy = false;
   String? _message;
+  // A pushed Settings route can retain its original widget configuration.
+  // Project only a successfully authenticated and persisted command locally;
+  // durable state and effective protection remain owned by the application.
+  late bool _enabled = widget.enabled;
+
+  @override
+  void didUpdateWidget(covariant AppLockSettingsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled != widget.enabled) _enabled = widget.enabled;
+  }
 
   Future<void> _change(bool enabled) async {
     if (_busy) return;
@@ -28,11 +38,10 @@ class _AppLockSettingsCardState extends State<AppLockSettingsCard> {
     try {
       await widget.change!(enabled);
       if (mounted) {
-        setState(
-          () => _message = enabled
-              ? 'قفل برنامه فعال شد.'
-              : 'قفل برنامه غیرفعال شد.',
-        );
+        setState(() {
+          _enabled = enabled;
+          _message = enabled ? 'قفل برنامه فعال شد.' : 'قفل برنامه غیرفعال شد.';
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -55,7 +64,7 @@ class _AppLockSettingsCardState extends State<AppLockSettingsCard> {
           subtitle: Text(
             _busy ? 'در حال تأیید و ذخیره…' : 'ورود و بازگشت به برنامه با اثر انگشت یا رمز قفل دستگاه؛ تغییر این گزینه نیز نیازمند تأیید هویت است.',
           ),
-          value: widget.enabled,
+          value: _enabled,
           onChanged: _busy || widget.change == null ? null : _change,
         ),
         if (_message != null)

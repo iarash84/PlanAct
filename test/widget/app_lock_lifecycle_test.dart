@@ -69,6 +69,48 @@ void main() {
     expect(find.text('private draft'), findsOneWidget);
   });
 
+  testWidgets('root lock hides modal form and retains its draft', (
+    tester,
+  ) async {
+    final auth = _Auth();
+    final controller = AppLockController(authenticator: auth);
+    addTearDown(controller.dispose);
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigator,
+        builder: (_, child) =>
+            AppLockGate(enabled: true, controller: controller, child: child!),
+        home: const Scaffold(body: Text('home')),
+      ),
+    );
+    await tester.pump();
+    auth.requests.last.complete(true);
+    await tester.pumpAndSettle();
+    unawaited(
+      showDialog<void>(
+        context: navigator.currentContext!,
+        builder: (_) => const AlertDialog(content: TextField()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'modal draft');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('پلن‌اکت قفل است'), findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    auth.requests.last.complete(true);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('modal draft'), findsOneWidget);
+  });
+
   testWidgets('native prompt inactive/resume does not repeat authentication', (
     tester,
   ) async {
