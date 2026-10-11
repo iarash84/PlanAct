@@ -16,6 +16,9 @@ enum TransactionDirection { incoming, outgoing, unknown }
 
 enum ParseQuality { high, medium, low, unsupported }
 
+/// Unknown is intentional for legacy records; never infer from saved timestamps.
+enum TransactionDateSource { unknown, extracted, receipt }
+
 class ImportProvenance {
   ImportProvenance({
     required this.source,
@@ -99,6 +102,8 @@ class TransactionDraft {
     this.balance,
     this.quality = ParseQuality.low,
     this.confidence = 0,
+    this.dateSource = TransactionDateSource.unknown,
+    this.receivedAt,
   });
 
   final StableId id;
@@ -114,6 +119,8 @@ class TransactionDraft {
   final Money? balance;
   final ParseQuality quality;
   final int confidence;
+  final TransactionDateSource dateSource;
+  final DateTime? receivedAt;
 }
 
 class InboxSuggestion {
@@ -122,18 +129,21 @@ class InboxSuggestion {
     required this.stagedImportId,
     required this.draft,
     this.status = SuggestionStatus.pending,
+    this.revision = 0,
   });
 
   final StableId id;
   final StableId stagedImportId;
   final TransactionDraft draft;
   final SuggestionStatus status;
+  final int revision;
 
   InboxSuggestion withDraft(TransactionDraft next) => InboxSuggestion(
     id: id,
     stagedImportId: stagedImportId,
     draft: next,
     status: SuggestionStatus.edited,
+    revision: revision + 1,
   );
 
   InboxSuggestion withStatus(SuggestionStatus next) => InboxSuggestion(
@@ -141,5 +151,6 @@ class InboxSuggestion {
     stagedImportId: stagedImportId,
     draft: draft,
     status: next,
+    revision: revision + 1,
   );
 }

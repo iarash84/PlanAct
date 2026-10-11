@@ -2,6 +2,105 @@
 
 Status: **Partial implementation, not release complete**.
 
+## Independent Inbox review repair acceptance contract (2026-10-11)
+
+Entry: Inbox review queue after explicit import; reviewing persisted suggestions
+requires neither SMS permission nor a new scan. Unconfirmed suggestions offer
+Persian rejection with explicit recovery via Undo and the rejected-items filter.
+Confirmed suggestions remain historical and guide users to existing Finance
+correction, never deletion or Inbox rollback. Rejection removes only the committed
+item from the pending queue; failed writes retain it and offer retry. Each item has
+its own pending state; other rows and scrolling remain usable. Refresh retains
+scroll, bank/status filters, ordering and open form state. Duplicate row commands
+are suppressed; stale reads/commands must not overwrite newer review revisions.
+Receipt date and extracted transaction date are separately labelled; absent bank
+or date provenance remains unknown, including legacy records. Equal-date ordering
+uses stable IDs. No parser expansion, native ingestion change or dependencies.
+
+Trace: row action → Inbox command → fresh transactional review/revision guard →
+suggestion/import + versioned metadata write → keyed lazy-list refresh → Finance
+and explicit rescan. Recovery appends review history and reopens the same draft;
+it does not reverse a confirmed entry or restore expired raw SMS. Versioned
+metadata uses the existing schema table: legacy absence maps to unknown/revision
+zero, without rewriting saved dates. Personal backup must preserve this metadata
+while retaining existing raw-text redaction. Evidence required: reject/recover,
+failed-save retry, different-row concurrency, duplicates/stale work, rescan,
+file-backed cold reopen, legacy compatibility and production snapshot preservation;
+route-level equal-time/unknown-bank/filter/scroll/large-list responsiveness checks.
+Native frame-time budgets and independent acceptance remain separate release gates.
+
+## Independent Inbox review repair implementation and evidence
+
+Implemented scope:
+
+- Inbox rejection and explicit recovery compare fresh status and monotonic revision
+  inside one SQLite transaction, update suggestion/import together, and append
+  rejected/reopened decisions. Edits and confirmation append decisions too. A
+  confirmed suggestion has no Inbox rejection/recovery control and directs the
+  user to Finance correction. Review never removes or reverses financial entries.
+- Per-ID admission/pending feedback replaces the global row lock. Failed rejection
+  retains the item and offers Persian retry; committed rejection offers Undo.
+  Rejected-items browsing can recover after the transient Undo feedback expires.
+- Keyed lazy rows, a retained scroll controller, bank/status filters and stable
+  receipt/import-time plus ID ordering preserve browsing context. Refresh epochs
+  discard pre-commit results. Open edit/confirmation routes are not replaced by
+  refresh. The new cancellation journey caught premature edit-controller disposal;
+  disposal now waits for the sheet's closing route to finish.
+- Parser evidence, bank/direction/quality, receipt timestamp, extracted-versus-
+  receipt date origin, revision and review history persist in per-item version-1
+  metadata. Undated parsing returns absence, not a parser-generated current time;
+  an explicit provider receipt fallback is visibly proposed before confirmation.
+
+Compatibility and backup:
+
+- SQLite schema remains version 18; no table, column, dependency or native change.
+  This is a versioned metadata evolution using the existing schema_metadata table,
+  not a destructive schema migration. Missing legacy metadata reads as revision
+  zero with unknown evidence/bank/date origin. First explicit write creates metadata
+  without inferring old provenance or rewriting saved dates. Unsupported metadata
+  versions fail rather than being silently reinterpreted.
+- File-backed tests remove metadata to exercise legacy compatibility, cold reopen
+  rejection/recovery revisions, and replay the same source after restart. Production
+  redacted snapshot/export is opened in an isolated database: bank, review revision
+  and append-only history survive; raw SMS stays redacted, and recovery still works.
+  Existing migration and backup/schema compatibility suites passed in the full run.
+
+Automated verification (2026-10-11):
+
+- `dart format lib/features/inbox test/widget/inbox_review_repair_test.dart test/widget/inbox_account_selection_test.dart test/repository/inbox_review_repair_test.dart test/unit/inbox_test.dart` passed.
+- `flutter analyze` passed with no issues; rerun after final presentation copy passed.
+- `flutter test test/widget/inbox_review_repair_test.dart test/widget/inbox_account_selection_test.dart test/repository/inbox_review_repair_test.dart`: **10 passed**.
+- `flutter test`: **545 passed** (full suite). Final heading/number-format copy then
+  passed `flutter test test/widget/inbox_review_repair_test.dart test/widget/inbox_account_selection_test.dart`: **7 passed**.
+- Final `dart format --output=none --set-exit-if-changed` for the affected Dart paths
+  and `git diff --check` passed; temporary full-suite output was removed.
+- New repository evidence covers mistaken rejection/recovery, stale duplicate
+  commands, injected transactional write failure/retry, different-item concurrency,
+  rescan, cold restart, metadata absence, equal-time stable ID ordering and unknown
+  bank filtering, plus production redacted backup preservation.
+- New route evidence covers concurrent pending rows, delayed stale refresh after
+  commit, duplicate taps, failure/retry/Undo, bank/status retention, Dark RTL at 1.5x
+  text scale, lifecycle refresh with an edited form open, and a 1,000-row lazy queue
+  with scrolling while a rejection waits. Existing account journeys protect explicit
+  financial admission, failure/cancellation and cold reopen in Light/Dark.
+
+Readiness and unexecuted gates:
+
+- Bounded review repair is implemented and automated checks pass. This is not
+  independent acceptance sign-off or native responsiveness evidence. The 1,000-row
+  fixture proves lazy rendering/interaction, not a device frame-time budget.
+- Owner: release QA/product reviewer. Next: independently review Inbox rejection,
+  recovery, confirmed-item correction guidance and filter/form retention on an
+  isolated reference Android device; record device/specification, frame-time budget,
+  narrow-screen/large-text usability and real provider date behavior. Exposure:
+  development checkpoint only; do not claim SMS/review capability release-ready
+  until these checks and the existing SMS/backup native gates are accepted.
+- No native build/install/provider access or fresh-install native restore was run
+  for this repair. Existing ingestion identity limitations and native permission,
+  provider compatibility, restore and performance gates remain unchanged. Edit-save
+  failure reports visibly but does not retain a closed edit draft for automatic retry;
+  the requested rejection retry and open-form refresh guarantees are covered.
+
 ## Bounded consent/resume acceptance contract (2026-10-11)
 
 Entry: Inbox with Android permission independently granted. Permission, navigation,

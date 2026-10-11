@@ -886,6 +886,20 @@ revocation and reference-device responsiveness require independent device eviden
 Existing global fingerprint identity limitations are not proof of lossless imports.
 See [SMS verification](docs/SMS_VERIFICATION.md).
 
+## Inbox review safeguards
+
+Unconfirmed suggestions may be explicitly rejected and reopened for review;
+confirmed suggestions require the existing Finance correction/reversal path,
+never Inbox deletion or recovery. Production review commands compare fresh durable
+status and monotonic per-item revision transactionally and append decision history.
+Recovery reopens the same draft without restoring expired raw SMS or reversing any
+ledger entry. Rescan preserves the latest decision. Versioned per-item metadata in
+schema_metadata preserves parser bank/direction/quality, receipt evidence and date
+origin through personal backup; missing legacy metadata means unknown, not inferred
+values or rewritten dates. Receipt fallback dates must be visibly proposed before
+financial confirmation. Review pending/error/retry belongs to the item, not a global
+queue lock; refresh must retain browsing/form context and discard stale results.
+
 ## Offline Iranian holiday safeguards
 
 Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Current-year 1405 coverage is checked against all twelve time.ir published months; do not describe that secondary source as independent verification of the official PDF. Future-year coverage and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.

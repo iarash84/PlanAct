@@ -28,10 +28,18 @@ abstract interface class AtomicInboxStaging {
   Future<void> rejectAtomically(StableId suggestionId);
 }
 
+abstract interface class AtomicInboxReview {
+  Future<void> reviewAtomically(
+    InboxSuggestion suggestion, {
+    required bool recover,
+  });
+}
+
 abstract interface class AtomicInboxConfirmation {
   Future<AccountEntry> confirmAtomically({
     required StableId suggestionId,
     required AccountEntry entry,
+    int? expectedRevision,
   });
 }
 
@@ -112,7 +120,7 @@ class ParsedSms {
   });
 
   final Money amount;
-  final DateTime occurredAt;
+  final DateTime? occurredAt;
   final TransactionDirection direction;
   final ParseQuality quality;
   final int confidence;
@@ -167,7 +175,7 @@ class GenericBankSmsParser implements SmsFormatParser {
     final dateMatch = RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
         .firstMatch(text);
     final occurredAt = dateMatch == null
-        ? DateTime.now().toUtc()
+        ? null
         : DateTime.utc(
             int.parse(dateMatch.group(1)!),
             int.parse(dateMatch.group(2)!),
@@ -291,12 +299,7 @@ class InboxUseCases {
     final imported = (importedAt ?? DateTime.now()).toUtc();
     // Provider receipt time is the explicit fallback for undated bank messages,
     // not the time at which an old message happens to be imported.
-    final sourceOccurredAt =
-        importedAt != null &&
-            !RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
-                .hasMatch(normalized)
-        ? importedAt.toUtc()
-        : parsed.occurredAt;
+    final sourceOccurredAt = parsed.occurredAt ?? imported;
     final occurredAt = DateTime.fromMillisecondsSinceEpoch(
       (sourceOccurredAt.millisecondsSinceEpoch ~/ 1000) * 1000,
       isUtc: true,
@@ -329,6 +332,12 @@ class InboxUseCases {
       balance: parsed.balance,
       quality: parsed.quality,
       confidence: parsed.confidence,
+      receivedAt: importedAt?.toUtc(),
+      dateSource: parsed.occurredAt != null
+          ? TransactionDateSource.extracted
+          : importedAt != null
+          ? TransactionDateSource.receipt
+          : TransactionDateSource.unknown,
     );
     final suggestion = InboxSuggestion(
       id: _stableImportId('$fingerprint:suggestion', importedAt),
@@ -369,8 +378,8 @@ class InboxUseCases {
   Future<void> reject(InboxSuggestion suggestion) => CommandGate.runFor(
     repository,
     () async {
-      if (repository case final AtomicInboxStaging atomic) {
-        await atomic.rejectAtomically(suggestion.id);
+      if (repository case final AtomicInboxReview atomic) {
+        await atomic.reviewAtomically(suggestion, recover: false);
         return;
       }
       if (suggestion.status == SuggestionStatus.confirmed) {
@@ -390,6 +399,10 @@ class InboxUseCases {
   Future<void> rollback(
     InboxSuggestion suggestion,
   ) => CommandGate.runFor(repository, () async {
+    if (repository case final AtomicInboxReview atomic) {
+      await atomic.reviewAtomically(suggestion, recover: true);
+      return;
+    }
     final storedSuggestion = (await repository.listSuggestions()).firstWhere(
       (item) => item.id == suggestion.id,
       orElse: () => suggestion,
@@ -400,6 +413,9 @@ class InboxUseCases {
     final imports = await repository.listImports();
     final staged = imports.firstWhere(
       (item) => item.id == storedSuggestion.stagedImportId,
+    );
+    await repository.saveSuggestion(
+      storedSuggestion.withStatus(SuggestionStatus.pending),
     );
     await repository.saveImport(staged.withStatus(StagedItemStatus.rolledBack));
   });
@@ -439,6 +455,7 @@ class InboxUseCases {
       return atomic.confirmAtomically(
         suggestionId: suggestion.id,
         entry: entry,
+        expectedRevision: suggestion.revision,
       );
     }
     final stored = (await repository.listSuggestions()).firstWhere(

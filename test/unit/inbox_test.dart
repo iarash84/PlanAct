@@ -190,7 +190,7 @@ void main() {
       );
       expect(
         (await inbox.listSuggestions()).single.status,
-        SuggestionStatus.rejected,
+        SuggestionStatus.pending,
       );
     },
   );

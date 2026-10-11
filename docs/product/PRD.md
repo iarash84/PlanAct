@@ -1043,3 +1043,20 @@ Display mode, app lock and reminder permissions remain in Settings. Display-mode
 ## Independent offline holiday updates
 
 Settings permits explicit file import of signed annual holiday reference packages without an app update or internet requirement. Bundled data remains the baseline. The user reviews year, revision, source and publisher fingerprint, explicitly approves the first publisher through an independent channel, and confirms replacement. Later packages must use the same publisher and a newer revision for a previously installed year. Invalid packages or write failures retain earlier data. Imports affect only official holiday display, never schedules, reminders, entitlement or financial history. Packages persist separately from personal backups; users must retain their original files. Structural twelve-month validation and signature checks do not independently establish official source accuracy. Annual source review is still required; no future-year data is predicted. Native file-picker verification, trust recovery and key rotation remain separate gates/scope. See [ADR 0014](../adr/0014-independent-holiday-packages.md).
+
+
+## Inbox review repair checkpoint (2026-10-11)
+
+Inbox supports explicit rejection of unconfirmed suggestions and explicit recovery
+to the same review draft, including after restart. Rejection is not deletion and
+recovery is not a financial reversal. Confirmed suggestions remain historical;
+users are directed to the existing Finance correction/reversal path. Review
+decisions append history with monotonic revisions; rescan cannot reset them.
+Bank and review-status filters, stable receipt/import ordering and per-item pending
+feedback preserve browsing and open forms during refresh. Extracted transaction
+dates, provider receipt evidence and unknown legacy date origins are distinct;
+fallback dates are visibly proposed before final financial confirmation. Versioned
+metadata is preserved in personal backups without restoring raw SMS. No table
+schema change or dependency is required. Automated evidence and unresolved native,
+performance and independent acceptance gates are recorded in SMS_VERIFICATION.md.
+Priority 3 remains partial, not release-ready.

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/errors/app_error.dart';
@@ -16,6 +18,7 @@ class DriftInboxRepository
         InboxRepository,
         AtomicInboxConfirmation,
         AtomicInboxStaging,
+        AtomicInboxReview,
         SmsScanStore {
   DriftInboxRepository(this.database);
 
@@ -24,6 +27,96 @@ class DriftInboxRepository
 
   final db.AppDatabase database;
   static const smsScanMetadataKey = 'sms_scan_v1';
+
+  String _key(String id) => 'inbox_review_v1:$id';
+
+  Future<Map<String, dynamic>> _metadata(String id) async {
+    final value = await database.readMetadata(_key(id));
+    if (value == null) {
+      return {'version': 1, 'revision': 0, 'history': <dynamic>[]};
+    }
+    final result = jsonDecode(value) as Map<String, dynamic>;
+    if (result['version'] != 1) throw StateError('Unsupported Inbox metadata');
+    return result;
+  }
+
+  Future<void> _decision(
+    String id,
+    Map<String, dynamic> metadata,
+    String action,
+  ) async {
+    metadata['revision'] = (metadata['revision'] as int) + 1;
+    metadata['history'] = [
+      ...metadata['history'] as List<dynamic>,
+      {
+        'revision': metadata['revision'],
+        'action': action,
+        'at': DateTime.now().toUtc().toIso8601String(),
+      },
+    ];
+    await database.writeMetadata(_key(id), jsonEncode(metadata));
+  }
+
+  @override
+  Future<void> reviewAtomically(
+    InboxSuggestion suggestion, {
+    required bool recover,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final row = await (database.select(
+        database.inboxSuggestions,
+      )..where((t) => t.id.equals(suggestion.id.value))).getSingle();
+      final metadata = await _metadata(row.id);
+      if (metadata['revision'] != suggestion.revision ||
+          row.status != suggestion.status.index) {
+        throw const ValidationError(
+          'تغییر جدیدی ثبت شده است؛ ابتدا بازخوانی کنید.',
+        );
+      }
+      if (recover
+          ? row.status != SuggestionStatus.rejected.index
+          : row.status != SuggestionStatus.pending.index &&
+                row.status != SuggestionStatus.edited.index) {
+        throw const ValidationError(
+          'تراکنش تأییدشده را از بخش مالی اصلاح کنید.',
+        );
+      }
+      await (database.update(
+        database.inboxSuggestions,
+      )..where((t) => t.id.equals(row.id))).write(
+        db.InboxSuggestionsCompanion(
+          status: Value(
+            (recover ? SuggestionStatus.pending : SuggestionStatus.rejected)
+                .index,
+          ),
+        ),
+      );
+      final staged = await (database.select(
+        database.stagedImports,
+      )..where((t) => t.id.equals(row.stagedImportId))).getSingle();
+      await (database.update(
+        database.stagedImports,
+      )..where((t) => t.id.equals(staged.id))).write(
+        db.StagedImportsCompanion(
+          status: Value(
+            (recover ? StagedItemStatus.rolledBack : StagedItemStatus.rejected)
+                .index,
+          ),
+          retentionStatus: Value(
+            staged.retentionStatus == RawTextRetentionStatus.expired.index
+                ? staged.retentionStatus
+                : (recover
+                          ? RawTextRetentionStatus.pending
+                          : RawTextRetentionStatus.rejected)
+                      .index,
+          ),
+          lastDecisionAt: Value(DateTime.now().toUtc()),
+        ),
+      );
+      await _decision(row.id, metadata, recover ? 'reopened' : 'rejected');
+    }),
+  );
 
   @override
   Future<String?> readSmsScan() =>
@@ -75,45 +168,18 @@ class DriftInboxRepository
   );
 
   @override
-  Future<void> rejectAtomically(StableId suggestionId) => CommandGate.runFor(
-    this,
-    () => database.transaction(() async {
-      final suggestion =
-          await (database.select(database.inboxSuggestions)
-                ..where((table) => table.id.equals(suggestionId.value)))
-              .getSingleOrNull();
-      if (suggestion == null) throw StateError('Suggestion was not found');
-      if (suggestion.status == SuggestionStatus.confirmed.index) {
-        throw const ValidationError('Confirmed suggestions cannot be rejected');
-      }
-      final staged =
-          await (database.select(database.stagedImports)
-                ..where((table) => table.id.equals(suggestion.stagedImportId)))
-              .getSingleOrNull();
-      if (staged == null) throw StateError('Import was not found');
-      await (database.update(
-        database.inboxSuggestions,
-      )..where((table) => table.id.equals(suggestionId.value))).write(
-        db.InboxSuggestionsCompanion(
-          status: Value(SuggestionStatus.rejected.index),
-        ),
-      );
-      await (database.update(
-        database.stagedImports,
-      )..where((table) => table.id.equals(staged.id))).write(
-        db.StagedImportsCompanion(
-          status: Value(StagedItemStatus.rejected.index),
-          retentionStatus: Value(RawTextRetentionStatus.rejected.index),
-          lastDecisionAt: Value(DateTime.now().toUtc()),
-        ),
-      );
-    }),
-  );
+  Future<void> rejectAtomically(StableId suggestionId) async {
+    final suggestion = (await listSuggestions()).firstWhere(
+      (s) => s.id == suggestionId,
+    );
+    await reviewAtomically(suggestion, recover: false);
+  }
 
   @override
   Future<AccountEntry> confirmAtomically({
     required StableId suggestionId,
     required AccountEntry entry,
+    int? expectedRevision,
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
@@ -145,6 +211,13 @@ class DriftInboxRepository
         }
         return persisted.single;
       }
+      final metadata = await _metadata(suggestion.id);
+      if (expectedRevision != null &&
+          metadata['revision'] != expectedRevision) {
+        throw const ValidationError(
+          'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
+        );
+      }
       if (suggestion.status != SuggestionStatus.confirmed.index) {
         if (suggestion.minorUnits != entry.amount.minorUnits ||
             suggestion.currency != entry.amount.currency ||
@@ -165,6 +238,7 @@ class DriftInboxRepository
           throw StateError('Account is unavailable for this import');
         }
         await DriftFinanceRepository(database).saveEntry(entry);
+        await _decision(suggestion.id, metadata, 'confirmed');
         await (database.update(
           database.inboxSuggestions,
         )..where((table) => table.id.equals(suggestionId.value))).write(
@@ -212,31 +286,65 @@ class DriftInboxRepository
       });
 
   @override
-  Future<List<InboxSuggestion>> listSuggestions() =>
-      CommandGate.runFor(this, () async {
-        final rows = await database.select(database.inboxSuggestions).get();
-        return rows
-            .map(
-              (row) => InboxSuggestion(
-                id: StableId.parse(row.id),
-                stagedImportId: StableId.parse(row.stagedImportId),
-                status: SuggestionStatus.values[row.status],
-                draft: TransactionDraft(
-                  id: StableId.parse(row.draftId),
-                  stagedImportId: StableId.parse(row.stagedImportId),
-                  amount: Money(
-                    minorUnits: row.minorUnits,
-                    currency: row.currency,
-                  ),
-                  occurredAt: row.occurredAt.toUtc(),
-                  type: row.type,
-                  merchant: row.merchant,
-                  reference: row.reference,
-                ),
+  Future<List<InboxSuggestion>> listSuggestions() => CommandGate.runFor(
+    this,
+    () async {
+      final rows = await database.select(database.inboxSuggestions).get();
+      final metadataRows = await (database.select(
+        database.schemaMetadata,
+      )..where((t) => t.key.like('inbox_review_v1:%'))).get();
+      final byId = {for (final row in metadataRows) row.key: row.value};
+      final result = <InboxSuggestion>[];
+      for (final row in rows) {
+        final value = byId[_key(row.id)];
+        final metadata = value == null
+            ? <String, dynamic>{'version': 1, 'revision': 0}
+            : jsonDecode(value) as Map<String, dynamic>;
+        if (metadata['version'] != 1) {
+          throw StateError('Unsupported Inbox metadata');
+        }
+        result.add(
+          InboxSuggestion(
+            id: StableId.parse(row.id),
+            stagedImportId: StableId.parse(row.stagedImportId),
+            status: SuggestionStatus.values[row.status],
+            revision: metadata['revision'] as int,
+            draft: TransactionDraft(
+              id: StableId.parse(row.draftId),
+              stagedImportId: StableId.parse(row.stagedImportId),
+              amount: Money(minorUnits: row.minorUnits, currency: row.currency),
+              occurredAt: row.occurredAt.toUtc(),
+              type: row.type,
+              merchant: row.merchant,
+              reference: row.reference,
+              bank: metadata['bank'] as String?,
+              receivedAt: metadata['receivedAt'] == null
+                  ? null
+                  : DateTime.parse(metadata['receivedAt'] as String),
+              direction: TransactionDirection.values.byName(
+                metadata['direction'] as String? ?? 'unknown',
               ),
-            )
-            .toList(growable: false);
-      });
+              quality: ParseQuality.values.byName(
+                metadata['quality'] as String? ?? 'low',
+              ),
+              confidence: metadata['confidence'] as int? ?? 0,
+              balance: metadata['balance'] == null
+                  ? null
+                  : Money(
+                      minorUnits: metadata['balance'] as int,
+                      currency: metadata['balanceCurrency'] as String,
+                    ),
+              accountHint: metadata['accountHint'] as String?,
+              dateSource: TransactionDateSource.values.byName(
+                metadata['dateSource'] as String? ?? 'unknown',
+              ),
+            ),
+          ),
+        );
+      }
+      return result;
+    },
+  );
 
   @override
   Future<void> saveImport(StagedImport item) =>
@@ -272,6 +380,32 @@ class DriftInboxRepository
           (stored.status == SuggestionStatus.confirmed.index ||
               stored.status == SuggestionStatus.rejected.index)) {
         throw const ValidationError('پیشنهاد بررسی‌شده قابل بازنویسی نیست.');
+      }
+      final metadata = await _metadata(suggestion.id.value);
+      if (stored != null &&
+          suggestion.revision != (metadata['revision'] as int) + 1) {
+        throw const ValidationError(
+          'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
+        );
+      }
+      metadata.addAll({
+        'bank': suggestion.draft.bank,
+        'direction': suggestion.draft.direction.name,
+        'quality': suggestion.draft.quality.name,
+        'confidence': suggestion.draft.confidence,
+        'accountHint': suggestion.draft.accountHint,
+        'dateSource': suggestion.draft.dateSource.name,
+        'receivedAt': suggestion.draft.receivedAt?.toIso8601String(),
+        'balance': suggestion.draft.balance?.minorUnits,
+        'balanceCurrency': suggestion.draft.balance?.currency,
+      });
+      if (stored == null) {
+        await database.writeMetadata(
+          _key(suggestion.id.value),
+          jsonEncode(metadata),
+        );
+      } else {
+        await _decision(suggestion.id.value, metadata, 'edited');
       }
       await database
           .into(database.inboxSuggestions)

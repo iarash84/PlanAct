@@ -94,6 +94,8 @@ void main() {
           );
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
+          await tester.ensureVisible(find.text('تأیید و ثبت'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید و ثبت'));
           await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید نهایی'));

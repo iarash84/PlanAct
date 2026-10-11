@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
@@ -54,6 +55,13 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   List<InboxReviewItem> _items = const [];
   bool _loading = true;
   bool _working = false;
+  final Set<StableId> _pending = {};
+  final ScrollController _scroll = ScrollController();
+  SuggestionStatus? _status;
+  String? _bank;
+  bool _oldestFirst = false;
+  List<String> _banks = [];
+  int _epoch = 0;
   bool? _smsAccess;
   String? _smsError;
   String? _error;
@@ -90,6 +98,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _smsSubscription?.cancel();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -99,10 +108,11 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       return;
     }
     _reloading = true;
-    if (mounted) setState(() => _loading = true);
+    final epoch = _epoch;
     try {
       await _syncSms();
-      final suggestions = await widget.inbox.listPendingSuggestions();
+      await widget.inbox.expireRawText();
+      final suggestions = await widget.inbox.repository.listSuggestions();
       final imports = await widget.inbox.repository.listImports();
       final accounts = await widget.finance.listAccounts();
       final entries = await widget.finance.listEntries();
@@ -111,10 +121,18 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         imports: imports,
         accounts: accounts,
         entries: entries,
+        status: _status,
+        bank: _bank,
+        oldestFirst: _oldestFirst,
       );
-      if (!mounted) return;
+      if (!mounted || epoch != _epoch) {
+        _reloadRequested = true;
+        return;
+      }
       setState(() {
         _items = items;
+        _banks = suggestions.map((s) => s.draft.bank ?? '').toSet().toList()
+          ..sort();
         _error = null;
         _loading = false;
       });
@@ -124,6 +142,10 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         fields: {'errorType': error.runtimeType.toString()},
       );
       if (!mounted) return;
+      if (epoch != _epoch) {
+        _reloadRequested = true;
+        return;
+      }
       setState(() {
         _error = 'بارگذاری صف بررسی انجام نشد.';
         _loading = false;
@@ -247,8 +269,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   }
 
   Future<void> _confirm(InboxReviewItem item) async {
-    if (_working) return;
-    setState(() => _working = true);
+    if (!_pending.add(item.suggestion.id)) return;
+    setState(() => _epoch++);
     AccountEntry? imported;
     var refreshFailed = false;
     try {
@@ -265,6 +287,14 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         ),
       );
       if (imported != null) {
+        if (mounted) {
+          setState(() {
+            _epoch++;
+            _items = _items
+                .where((i) => i.suggestion.id != item.suggestion.id)
+                .toList();
+          });
+        }
         try {
           await _reload();
           await widget.onDataChanged?.call();
@@ -274,7 +304,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         }
       }
     } finally {
-      if (mounted) setState(() => _working = false);
+      if (mounted) setState(() => _pending.remove(item.suggestion.id));
     }
     if (mounted && imported != null) {
       final id = imported.id;
@@ -296,114 +326,201 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _reject(InboxReviewItem item) async {
-    await _runAction(() => widget.inbox.reject(item.suggestion));
+  Future<void> _reject(InboxReviewItem item, {bool recover = false}) async {
+    final id = item.suggestion.id;
+    if (!_pending.add(id)) return;
+    setState(() {
+      _epoch++;
+    });
+    try {
+      if (recover) {
+        await widget.inbox.rollback(item.suggestion);
+      } else {
+        await widget.inbox.reject(item.suggestion);
+      }
+      if (!mounted) return;
+      setState(() {
+        _epoch++;
+        _items = _items.where((i) => i.suggestion.id != id).toList();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            recover
+                ? 'پیشنهاد به صف بررسی برگشت.'
+                : 'پیشنهاد رد شد؛ تراکنشی حذف یا ثبت نشد.',
+          ),
+          action: recover
+              ? null
+              : SnackBarAction(
+                  label: 'بازگردانی',
+                  onPressed: () async {
+                    final current =
+                        (await widget.inbox.repository.listSuggestions())
+                            .firstWhere((s) => s.id == id);
+                    final restored = InboxReviewItem(
+                      suggestion: current,
+                      import: item.import,
+                      proposedAction: item.proposedAction,
+                      reasons: item.reasons,
+                      warnings: item.warnings,
+                      supportedActions: item.supportedActions,
+                      account: item.account,
+                    );
+                    await _reject(restored, recover: true);
+                  },
+                ),
+        ),
+      );
+      await _reload();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'ذخیره انجام نشد؛ پیشنهاد حفظ شد. دوباره تلاش کنید.',
+            ),
+            action: SnackBarAction(
+              label: 'تلاش دوباره',
+              onPressed: () => _reject(item, recover: recover),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _pending.remove(id));
+    }
   }
 
   Future<void> _edit(InboxReviewItem item) async {
-    final draft = item.suggestion.draft;
-    final amountController = TextEditingController(
-      text: draft.amount.minorUnits.toString(),
-    );
-    final merchantController = TextEditingController(
-      text: draft.merchant ?? '',
-    );
-    final referenceController = TextEditingController(
-      text: draft.reference ?? '',
-    );
-    var selectedDirection = draft.direction;
-    final type = await showPlanActFormSheet<String>(
-      context: context,
-      title: 'ویرایش پیشنهاد تراکنش',
-      primaryLabel: 'ذخیره و بررسی',
-      builder: (_) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('مقادیر تشخیص‌داده‌شده از قبل وارد شده‌اند.'),
-          const SizedBox(height: PlanActSpacing.md),
-          TextField(
-            controller: amountController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [MoneyInputFormatter()],
-            decoration: const InputDecoration(labelText: 'مبلغ'),
-          ),
-          const SizedBox(height: PlanActSpacing.sm),
-          TextField(
-            controller: merchantController,
-            decoration: const InputDecoration(labelText: 'پذیرنده یا شرح'),
-          ),
-          const SizedBox(height: PlanActSpacing.sm),
-          TextField(
-            controller: referenceController,
-            decoration: const InputDecoration(labelText: 'شناسه پیگیری'),
-          ),
-          const SizedBox(height: PlanActSpacing.sm),
-          DropdownButtonFormField<TransactionDirection>(
-            initialValue: draft.direction,
-            decoration: const InputDecoration(labelText: 'نوع تراکنش'),
-            items: const [
-              DropdownMenuItem(
-                value: TransactionDirection.outgoing,
-                child: Text('هزینه / برداشت'),
+    if (!_pending.add(item.suggestion.id)) return;
+    setState(() => _epoch++);
+    try {
+      final draft = item.suggestion.draft;
+      final amountController = TextEditingController(
+        text: draft.amount.minorUnits.toString(),
+      );
+      final merchantController = TextEditingController(
+        text: draft.merchant ?? '',
+      );
+      final referenceController = TextEditingController(
+        text: draft.reference ?? '',
+      );
+      var selectedDirection = draft.direction;
+      TransitionRoute<dynamic>? editRoute;
+      final type = await showPlanActFormSheet<String>(
+        context: context,
+        title: 'ویرایش پیشنهاد تراکنش',
+        primaryLabel: 'ذخیره و بررسی',
+        builder: (sheetContext) {
+          editRoute = ModalRoute.of(sheetContext) as TransitionRoute<dynamic>?;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('مقادیر تشخیص‌داده‌شده از قبل وارد شده‌اند.'),
+              const SizedBox(height: PlanActSpacing.md),
+              TextField(
+                controller: amountController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [MoneyInputFormatter()],
+                decoration: const InputDecoration(labelText: 'مبلغ'),
               ),
-              DropdownMenuItem(
-                value: TransactionDirection.incoming,
-                child: Text('درآمد / واریز'),
+              const SizedBox(height: PlanActSpacing.sm),
+              TextField(
+                controller: merchantController,
+                decoration: const InputDecoration(labelText: 'پذیرنده یا شرح'),
+              ),
+              const SizedBox(height: PlanActSpacing.sm),
+              TextField(
+                controller: referenceController,
+                decoration: const InputDecoration(labelText: 'شناسه پیگیری'),
+              ),
+              const SizedBox(height: PlanActSpacing.sm),
+              DropdownButtonFormField<TransactionDirection>(
+                initialValue: draft.direction == TransactionDirection.unknown
+                    ? null
+                    : draft.direction,
+                decoration: const InputDecoration(labelText: 'نوع تراکنش'),
+                items: const [
+                  DropdownMenuItem(
+                    value: TransactionDirection.outgoing,
+                    child: Text('هزینه / برداشت'),
+                  ),
+                  DropdownMenuItem(
+                    value: TransactionDirection.incoming,
+                    child: Text('درآمد / واریز'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) selectedDirection = value;
+                },
               ),
             ],
-            onChanged: (value) {
-              if (value != null) selectedDirection = value;
-            },
-          ),
-        ],
-      ),
-      onPrimary: () => Navigator.of(context).pop('save'),
-    );
-    if (type != 'save' || !mounted) {
+          );
+        },
+        onPrimary: () => Navigator.of(context).pop('save'),
+      );
+      // The popped sheet remains mounted during its reverse transition.
+      await editRoute?.completed;
+      if (type != 'save' || !mounted) {
+        amountController.dispose();
+        merchantController.dispose();
+        referenceController.dispose();
+        return;
+      }
+      final amount = int.tryParse(
+        amountController.text.replaceAll(',', '').replaceAll('،', ''),
+      );
+      final merchant = merchantController.text.trim();
+      final reference = referenceController.text.trim();
       amountController.dispose();
       merchantController.dispose();
       referenceController.dispose();
-      return;
+      if (amount == null || amount <= 0) {
+        await _showMessage(
+          'مبلغ نامعتبر است',
+          'مبلغ باید بزرگ‌تر از صفر باشد.',
+        );
+        return;
+      }
+      if (selectedDirection == TransactionDirection.unknown) {
+        await _showMessage(
+          'نوع تراکنش نامشخص است',
+          'درآمد یا هزینه را صریحاً انتخاب کنید.',
+        );
+        return;
+      }
+      final edited = TransactionDraft(
+        id: draft.id,
+        stagedImportId: draft.stagedImportId,
+        amount: Money(minorUnits: amount, currency: draft.amount.currency),
+        occurredAt: draft.occurredAt,
+        type: selectedDirection == TransactionDirection.incoming
+            ? 'income'
+            : 'expense',
+        merchant: merchant.isEmpty ? null : merchant,
+        reference: reference.isEmpty ? null : reference,
+        direction: selectedDirection,
+        bank: draft.bank,
+        accountHint: draft.accountHint,
+        balance: draft.balance,
+        quality: draft.quality,
+        confidence: draft.confidence,
+        dateSource: draft.dateSource,
+        receivedAt: draft.receivedAt,
+      );
+      await _runAction(() async {
+        await widget.inbox.edit(item.suggestion, edited);
+      });
+    } finally {
+      if (mounted) setState(() => _pending.remove(item.suggestion.id));
     }
-    final amount = int.tryParse(
-      amountController.text.replaceAll(',', '').replaceAll('،', ''),
-    );
-    final merchant = merchantController.text.trim();
-    final reference = referenceController.text.trim();
-    amountController.dispose();
-    merchantController.dispose();
-    referenceController.dispose();
-    if (amount == null || amount <= 0) {
-      await _showMessage('مبلغ نامعتبر است', 'مبلغ باید بزرگ‌تر از صفر باشد.');
-      return;
-    }
-    final edited = TransactionDraft(
-      id: draft.id,
-      stagedImportId: draft.stagedImportId,
-      amount: Money(minorUnits: amount, currency: draft.amount.currency),
-      occurredAt: draft.occurredAt,
-      type: selectedDirection == TransactionDirection.incoming
-          ? 'income'
-          : 'expense',
-      merchant: merchant.isEmpty ? null : merchant,
-      reference: reference.isEmpty ? null : reference,
-      direction: selectedDirection,
-      bank: draft.bank,
-      accountHint: draft.accountHint,
-      balance: draft.balance,
-      quality: draft.quality,
-      confidence: draft.confidence,
-    );
-    await _runAction(() async {
-      await widget.inbox.edit(item.suggestion, edited);
-    });
   }
 
   Future<void> _runAction(Future<void> Function() action) async {
-    if (_working) return;
-    setState(() => _working = true);
     try {
       await action();
+      _epoch++;
       await _reload();
     } catch (error) {
       _logger.error(
@@ -413,8 +530,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (mounted) {
         await _showMessage('عملیات انجام نشد', 'اطلاعات در صف بررسی حفظ شد.');
       }
-    } finally {
-      if (mounted) setState(() => _working = false);
     }
   }
 
@@ -435,7 +550,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) {
+    if (_error != null && _items.isEmpty) {
       return RefreshIndicator(
         onRefresh: _reload,
         child: ListView(
@@ -455,56 +570,130 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         ),
       );
     }
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SmsStatusCard(
+          access: _smsAccess,
+          error: _smsError,
+          onRefresh: _reload,
+          onEnable: widget.smsSource != null && !_working && _smsAccess != true
+              ? _enableSms
+              : null,
+        ),
+        if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
+          SmsScanCard(
+            inbox: widget.inbox,
+            source: widget.smsSource!,
+            access: _smsAccess == true,
+            onChanged: _reload,
+          ),
+        const SizedBox(height: PlanActSpacing.md),
+        DropdownButtonFormField<SuggestionStatus>(
+          initialValue: _status,
+          decoration: const InputDecoration(labelText: 'وضعیت بررسی'),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('نیازمند بررسی')),
+            DropdownMenuItem(
+              value: SuggestionStatus.rejected,
+              child: Text('ردشده'),
+            ),
+            DropdownMenuItem(
+              value: SuggestionStatus.confirmed,
+              child: Text('تأییدشده'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _status = value;
+              _epoch++;
+            });
+            _reload();
+          },
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: _bank,
+          decoration: const InputDecoration(labelText: 'بانک'),
+          items: [
+            const DropdownMenuItem(value: null, child: Text('همهٔ بانک‌ها')),
+            for (final bank in _banks)
+              DropdownMenuItem(
+                value: bank,
+                child: Text(bank.isEmpty ? 'بانک نامشخص' : bank),
+              ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _bank = value;
+              _epoch++;
+            });
+            _reload();
+          },
+        ),
+        TextButton.icon(
+          onPressed: () {
+            setState(() {
+              _oldestFirst = !_oldestFirst;
+              _epoch++;
+            });
+            _reload();
+          },
+          icon: const Icon(Icons.sort),
+          label: Text(
+            _oldestFirst
+                ? 'قدیمی‌ترین دریافت / ورود ابتدا'
+                : 'جدیدترین دریافت / ورود ابتدا',
+          ),
+        ),
+        if (_error != null) Text(_error!),
+        if (_items.isEmpty)
+          const SizedBox(
+            height: 300,
+            child: _InboxStateCard(
+              icon: Icons.inbox_outlined,
+              title: 'صف بررسی خالی است',
+              message: 'اطلاعات واردشده و پیشنهادهای مالی برای بررسی در اینجا نمایش داده می‌شوند.',
+            ),
+          )
+        else
+          Text(
+            '${switch (_status) {
+              SuggestionStatus.rejected => 'ردشده',
+              SuggestionStatus.confirmed => 'تأییدشده',
+              _ => 'نیازمند بررسی',
+            }} · ${PersianNumbers.format(_items.length)}',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+      ],
+    );
     return RefreshIndicator(
       onRefresh: _reload,
-      child: ListView(
+      child: ListView.builder(
+        controller: _scroll,
+        key: const PageStorageKey('inbox-review'),
         padding: const EdgeInsets.all(PlanActSpacing.md),
-        children: [
-          _SmsStatusCard(
-            access: _smsAccess,
-            error: _smsError,
-            onRefresh: _reload,
-            onEnable:
-                widget.smsSource != null && !_working && _smsAccess != true
-                ? _enableSms
-                : null,
-          ),
-          if (widget.smsSource != null &&
-              widget.inbox.repository is SmsScanStore)
-            SmsScanCard(
-              inbox: widget.inbox,
-              source: widget.smsSource!,
-              access: _smsAccess == true,
-              onChanged: _reload,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: _items.length + 1,
+        findChildIndexCallback: (key) {
+          if (key is! ValueKey<StableId>) return null;
+          final index = _items.indexWhere((i) => i.suggestion.id == key.value);
+          return index < 0 ? null : index + 1;
+        },
+        itemBuilder: (context, index) {
+          if (index == 0) return header;
+          final item = _items[index - 1];
+          return _ReviewCard(
+            key: ValueKey(item.suggestion.id),
+            item: item,
+            busy: _pending.contains(item.suggestion.id),
+            onConfirm: () => _confirm(item),
+            onEdit: () => _edit(item),
+            onReject: () => _reject(
+              item,
+              recover: item.suggestion.status == SuggestionStatus.rejected,
             ),
-          const SizedBox(height: PlanActSpacing.md),
-          if (_items.isEmpty)
-            const SizedBox(
-              height: 300,
-              child: _InboxStateCard(
-                icon: Icons.inbox_outlined,
-                title: 'صف بررسی خالی است',
-                message: 'اطلاعات واردشده و پیشنهادهای مالی برای بررسی در اینجا نمایش داده می‌شوند.',
-              ),
-            )
-          else ...[
-            Text(
-              'نیازمند بررسی · ${_items.length}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: PlanActSpacing.sm),
-            for (final item in _items) ...[
-              _ReviewCard(
-                item: item,
-                busy: _working,
-                onConfirm: () => _confirm(item),
-                onEdit: () => _edit(item),
-                onReject: () => _reject(item),
-              ),
-              const SizedBox(height: PlanActSpacing.sm),
-            ],
-          ],
-        ],
+          );
+        },
       ),
     );
   }
@@ -573,6 +762,14 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         children: [
           Text(PersianMoneyText.money(widget.item.suggestion.draft.amount)),
           Text(
+            'تاریخ پیشنهادی برای ثبت: ${PersianDateFormatter.date(JalaliDate.fromDateTime(widget.item.suggestion.draft.occurredAt))}',
+          ),
+          if (widget.item.suggestion.draft.dateSource !=
+              TransactionDateSource.extracted)
+            const Text(
+              'تاریخ تراکنش از پیامک استخراج نشده است؛ تأیید نهایی این تاریخ پیشنهادی را ثبت می‌کند.',
+            ),
+          Text(
             'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}؛ انتخاب نهایی با شماست.',
           ),
           FinancialAccountPicker(
@@ -630,6 +827,7 @@ class _SmsStatusCard extends StatelessWidget {
 
 class _ReviewCard extends StatefulWidget {
   const _ReviewCard({
+    super.key,
     required this.item,
     required this.busy,
     required this.onConfirm,
@@ -667,7 +865,7 @@ class _ReviewCardState extends State<_ReviewCard> {
               children: [
                 Expanded(
                   child: Text(
-                    draft.merchant ?? draft.type,
+                    draft.merchant ?? _direction(draft.direction),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -675,9 +873,21 @@ class _ReviewCardState extends State<_ReviewCard> {
               ],
             ),
             const SizedBox(height: 6),
+            Text('${widget.item.sourceLabel} · ${_direction(draft.direction)}'),
             Text(
-              '${widget.item.sourceLabel} · ${_direction(draft.direction)} · $date',
+              draft.receivedAt == null
+                  ? 'تاریخ دریافت پیامک: نامشخص'
+                  : 'دریافت پیامک: ${PersianDateFormatter.date(JalaliDate.fromDateTime(draft.receivedAt!))}',
             ),
+            Text(
+              draft.dateSource == TransactionDateSource.extracted
+                  ? 'تاریخ استخراج‌شدهٔ تراکنش: $date'
+                  : draft.dateSource == TransactionDateSource.receipt
+                  ? 'تاریخ تراکنش نامشخص؛ تاریخ دریافت برای ثبت پیشنهاد شده است.'
+                  : 'تاریخ تراکنش و منشأ تاریخ ذخیره‌شده نامشخص است.',
+            ),
+            Text('بانک: ${draft.bank ?? 'نامشخص'}'),
+            if (widget.busy) const Text('در حال ذخیره…'),
             Text(
               'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}',
             ),
@@ -706,27 +916,38 @@ class _ReviewCardState extends State<_ReviewCard> {
               for (final reason in widget.item.reasons) Text('• $reason'),
             ],
             const SizedBox(height: PlanActSpacing.sm),
-            Wrap(
-              spacing: PlanActSpacing.sm,
-              runSpacing: PlanActSpacing.xs,
-              children: [
-                FilledButton.icon(
-                  onPressed: widget.busy ? null : widget.onConfirm,
-                  icon: const Icon(Icons.check),
-                  label: const Text('تأیید و ثبت'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: widget.busy ? null : widget.onEdit,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('ویرایش'),
-                ),
-                TextButton.icon(
-                  onPressed: widget.busy ? null : widget.onReject,
-                  icon: const Icon(Icons.close),
-                  label: const Text('رد کردن'),
-                ),
-              ],
-            ),
+            if (widget.item.suggestion.status == SuggestionStatus.confirmed)
+              const Text(
+                'تأییدشده؛ برای اصلاح یا برگشت تراکنش به بخش مالی بروید. حذف از صندوق ممکن نیست.',
+              )
+            else if (widget.item.suggestion.status == SuggestionStatus.rejected)
+              TextButton.icon(
+                onPressed: widget.busy ? null : widget.onReject,
+                icon: const Icon(Icons.undo),
+                label: const Text('بازگردانی به صف بررسی'),
+              )
+            else
+              Wrap(
+                spacing: PlanActSpacing.sm,
+                runSpacing: PlanActSpacing.xs,
+                children: [
+                  FilledButton.icon(
+                    onPressed: widget.busy ? null : widget.onConfirm,
+                    icon: const Icon(Icons.check),
+                    label: const Text('تأیید و ثبت'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: widget.busy ? null : widget.onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('ویرایش'),
+                  ),
+                  TextButton.icon(
+                    onPressed: widget.busy ? null : widget.onReject,
+                    icon: const Icon(Icons.close),
+                    label: const Text('رد کردن'),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
