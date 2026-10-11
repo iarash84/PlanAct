@@ -89,6 +89,10 @@ class InMemoryInboxRepository implements InboxRepository {
       _suggestions[suggestion.id] = suggestion;
 }
 
+class UnsupportedSmsFormat extends ValidationError {
+  const UnsupportedSmsFormat() : super('قالب پیامک قابل تشخیص نیست.');
+}
+
 class DuplicateSmsImport extends ValidationError {
   const DuplicateSmsImport() : super('این پیامک قبلاً وارد شده است.');
 }
@@ -278,7 +282,12 @@ class InboxUseCases {
         sourceKey.trim().isEmpty) {
       throw const ValidationError('متن یا شناسهٔ پیامک معتبر نیست.');
     }
-    final parsed = parser.parse(text: normalized, currency: currency);
+    final ParsedSms parsed;
+    try {
+      parsed = parser.parse(text: normalized, currency: currency);
+    } on ValidationError {
+      throw const UnsupportedSmsFormat();
+    }
     final imported = (importedAt ?? DateTime.now()).toUtc();
     // Provider receipt time is the explicit fallback for undated bank messages,
     // not the time at which an old message happens to be imported.

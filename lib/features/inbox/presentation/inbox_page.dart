@@ -12,7 +12,6 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
-import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
@@ -20,6 +19,8 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
+import 'package:planact/features/inbox/application/sms_ingestion.dart';
+import 'package:planact/features/inbox/presentation/sms_scan_card.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -150,35 +151,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         }
         return;
       }
-      final messages = await source.readRelevantMessages();
-      var unsupported = 0;
-      var failed = 0;
-      for (final message in messages) {
-        try {
-          await widget.inbox.stageSms(
-            rawText: message.body,
-            sourceKey: message.sourceKey,
-            currency: 'IRR',
-            importedAt: message.receivedAt,
-          );
-        } on DuplicateSmsImport {
-          // Already persisted under another provider identity (e.g. restore).
-        } on ValidationError {
-          unsupported++;
-        } on Exception {
-          failed++;
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _smsAccess = true;
-          _smsError = failed > 0
-              ? 'ثبت برخی پیامک‌ها انجام نشد؛ دوباره تلاش کنید.'
-              : unsupported > 0
-              ? 'برخی پیامک‌ها قابل تشخیص نبودند و تراکنشی از آن‌ها ثبت نشد.'
-              : null;
-        });
-      }
+      // Permission is not consent to inspect historical provider rows.
+      if (mounted) setState(() => _smsAccess = true);
     } catch (error) {
       _logger.error(
         'SMS sync failed',
@@ -495,6 +469,14 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                 ? _enableSms
                 : null,
           ),
+          if (widget.smsSource != null &&
+              widget.inbox.repository is SmsScanStore)
+            SmsScanCard(
+              inbox: widget.inbox,
+              source: widget.smsSource!,
+              access: _smsAccess == true,
+              onChanged: _reload,
+            ),
           const SizedBox(height: PlanActSpacing.md),
           if (_items.isEmpty)
             const SizedBox(
@@ -630,7 +612,7 @@ class _SmsStatusCard extends StatelessWidget {
         error ??
             switch (access) {
               true =>
-                'مجوز فعال است؛ پیامک‌های مرتبط به‌صورت محلی بررسی می‌شوند.',
+                'مجوز فعال است؛ بازهٔ خواندن پیامک را جداگانه انتخاب کنید.',
               false => 'دسترسی خواندن و دریافت پیامک فعال نیست؛ ورود خودکار انجام نمی‌شود.',
               null => 'وضعیت مجوز پیامک هنوز بررسی نشده است.',
             },

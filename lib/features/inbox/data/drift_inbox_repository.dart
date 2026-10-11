@@ -5,6 +5,7 @@ import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/inbox/application/sms_ingestion.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -14,13 +15,31 @@ class DriftInboxRepository
         CommandGateProvider,
         InboxRepository,
         AtomicInboxConfirmation,
-        AtomicInboxStaging {
+        AtomicInboxStaging,
+        SmsScanStore {
   DriftInboxRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
 
   final db.AppDatabase database;
+  static const smsScanMetadataKey = 'sms_scan_v1';
+
+  @override
+  Future<String?> readSmsScan() =>
+      CommandGate.runFor(this, () => database.readMetadata(smsScanMetadataKey));
+
+  @override
+  Future<void> writeSmsScan(String? expected, String value) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          if (await database.readMetadata(smsScanMetadataKey) != expected) {
+            throw StateError('SMS scan changed; reload before retrying');
+          }
+          await database.writeMetadata(smsScanMetadataKey, value);
+        }),
+      );
 
   @override
   Future<InboxSuggestion> stageAtomically({

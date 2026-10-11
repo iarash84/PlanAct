@@ -46,6 +46,18 @@ class AndroidSmsMessage {
   }
 }
 
+class SmsProviderRow {
+  const SmsProviderRow(this.timestamp, this.id, this.message);
+  final int timestamp;
+  final int id;
+  final AndroidSmsMessage? message;
+}
+
+class SmsProviderPage {
+  const SmsProviderPage(this.rows);
+  final List<SmsProviderRow> rows;
+}
+
 class AndroidSmsSource {
   AndroidSmsSource({MethodChannel? channel})
     : _channel = channel ?? const MethodChannel('planact/sms');
@@ -55,19 +67,41 @@ class AndroidSmsSource {
       await _channel.invokeMethod<bool>('requestAccess') ?? false;
   Future<bool> hasAccess() async =>
       await _channel.invokeMethod<bool>('hasAccess') ?? false;
-  Future<List<AndroidSmsMessage>> readRelevantMessages() async {
+  Future<SmsProviderPage> readPage({
+    required int from,
+    required int until,
+    required int afterTimestamp,
+    required int afterId,
+  }) async {
     final result = await _channel.invokeListMethod<Map<Object?, Object?>>(
-      'readRelevant',
+      'readPage',
+      {
+        'from': from,
+        'until': until,
+        'afterTimestamp': afterTimestamp,
+        'afterId': afterId,
+        'limit': 100,
+      },
     );
-    final messages = <AndroidSmsMessage>[];
-    for (final item in result ?? const []) {
-      try {
-        messages.add(AndroidSmsMessage.fromMap(item));
-      } on AndroidSmsParseError {
-        continue;
-      }
+    if (result == null || result.length > 100) {
+      throw const AndroidSmsParseError('صفحهٔ پیامک معتبر نیست.');
     }
-    return messages;
+    return SmsProviderPage(
+      result
+          .map((item) {
+            final id = item['id'];
+            final timestamp = item['receivedAt'];
+            if (id is! int || id < 0 || timestamp is! int || timestamp < 0) {
+              throw const AndroidSmsParseError('نشانگر پیامک معتبر نیست.');
+            }
+            return SmsProviderRow(
+              timestamp,
+              id,
+              item['body'] == null ? null : AndroidSmsMessage.fromMap(item),
+            );
+          })
+          .toList(growable: false),
+    );
   }
 
   Stream<AndroidSmsMessage> get messages =>

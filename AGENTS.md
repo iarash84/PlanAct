@@ -872,6 +872,20 @@ After meaningful code changes run:
 Do not report a task as complete when analysis or relevant tests fail.
 
 
+## SMS bounded consent safeguards
+
+SMS permission is not historical-import consent. Inbox requires explicit bounded
+recent-range or new-only selection; navigation, refresh, lifecycle and broadcasts
+must not start a scan without an explicit ingestion action. Source queries must
+bound dates and page in stable timestamp/row-ID order off the native UI thread.
+Persist consent, fixed scan horizon and resumable progress; checkpoint only safely
+handled rows/pages, preserve resolved suggestions and replay interrupted pages
+idempotently. Resume/Retry is explicit after restart/restore. No permanent native
+service is implied. Native provider compatibility, delayed insertions, permission
+revocation and reference-device responsiveness require independent device evidence.
+Existing global fingerprint identity limitations are not proof of lossless imports.
+See [SMS verification](docs/SMS_VERIFICATION.md).
+
 ## Offline Iranian holiday safeguards
 
 Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Current-year 1405 coverage is checked against all twelve time.ir published months; do not describe that secondary source as independent verification of the official PDF. Future-year coverage and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.

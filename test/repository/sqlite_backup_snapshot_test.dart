@@ -28,6 +28,9 @@ void main() {
         "INSERT INTO financial_accounts (id,name,type,currency,status) VALUES ('a','wallet',0,'IRR',0)",
       );
       await database.writeMetadata('theme_mode', 'dark');
+      const scan =
+          '{"version":1,"from":500,"until":1500,"newOnly":false,"timestamp":1000,"id":136,"inspected":137,"unsupported":0,"complete":false}';
+      await database.writeMetadata('sms_scan_v1', scan);
       final bytes = await sqliteBackupSnapshot(
         database: database,
         target: File('${directory.path}/export.sqlite'),
@@ -60,6 +63,14 @@ void main() {
               )
               .single['value'],
           'dark',
+        );
+        expect(
+          db
+              .select(
+                "SELECT value FROM schema_metadata WHERE key='sms_scan_v1'",
+              )
+              .single['value'],
+          scan,
         );
         expect(db.select('PRAGMA integrity_check').single.values.single, 'ok');
         expect(db.select('PRAGMA foreign_key_check'), isEmpty);

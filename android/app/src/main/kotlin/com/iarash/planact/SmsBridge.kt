@@ -14,10 +14,12 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
 
 object SmsBridge {
     private val sinks = CopyOnWriteArrayList<EventChannel.EventSink>()
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val reader = Executors.newSingleThreadExecutor()
     private const val permissionRequestCode = 4101
     private const val permissionRequestedPreference = "sms_permission_requested"
     private val relevantMarkers = Regex(
@@ -84,32 +86,55 @@ object SmsBridge {
                     }
                 }
             }
-            "readRelevant" -> {
-                if (!hasAccess(activity)) { result.success(emptyList<Map<String, Any>>()); return }
-                val rows = mutableListOf<Map<String, Any>>()
-                try {
-                activity.contentResolver.query(
-                    Telephony.Sms.Inbox.CONTENT_URI,
-                    arrayOf(Telephony.Sms._ID, Telephony.Sms.BODY, Telephony.Sms.DATE),
-                    null, null, "${Telephony.Sms.DATE} DESC"
-                )?.use { cursor ->
-                    val id = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
-                    val body = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
-                    val date = cursor.getColumnIndexOrThrow(Telephony.Sms.DATE)
-                    val seen = mutableSetOf<String>()
-                    while (cursor.moveToNext() && rows.size < 500) {
-                        val text = cursor.getString(body)?.trim().orEmpty()
-                        val key = "android-sms:${cursor.getLong(id)}"
-                        if (isRelevant(text) && seen.add(key)) rows.add(mapOf(
-                            "sourceKey" to key, "body" to text, "receivedAt" to cursor.getLong(date)
-                        ))
-                    }
+            "readPage" -> {
+                val from = call.argument<Number>("from")?.toLong()
+                val until = call.argument<Number>("until")?.toLong()
+                val afterDate = call.argument<Number>("afterTimestamp")?.toLong()
+                val afterId = call.argument<Number>("afterId")?.toLong()
+                val limit = call.argument<Number>("limit")?.toInt()
+                if (from == null || until == null || afterDate == null || afterId == null ||
+                    from < 0 || until < from || limit != 100) {
+                    result.error("invalid_sms_bounds", "Explicit SMS bounds are required", null)
+                    return
                 }
-                result.success(rows)
-                } catch (_: SecurityException) {
-                    result.error("sms_access_revoked", "SMS access is unavailable", null)
-                } catch (_: Exception) {
-                    result.error("sms_read_failed", "SMS import failed", null)
+                val context = activity.applicationContext
+                reader.execute {
+                    try {
+                        if (!hasAccess(context)) throw SecurityException()
+                        val rows = mutableListOf<Map<String, Any>>()
+                        val dateColumn = Telephony.Sms.DATE
+                        val idColumn = Telephony.Sms._ID
+                        val selection = "$dateColumn >= ? AND $dateColumn <= ? AND " +
+                            "($dateColumn > ? OR ($dateColumn = ? AND $idColumn > ?))"
+                        context.contentResolver.query(
+                            Telephony.Sms.Inbox.CONTENT_URI,
+                            arrayOf(idColumn, Telephony.Sms.BODY, dateColumn), selection,
+                            arrayOf(from.toString(), until.toString(), afterDate.toString(),
+                                afterDate.toString(), afterId.toString()),
+                            "$dateColumn ASC, $idColumn ASC LIMIT 100"
+                        )?.use { cursor ->
+                            val id = cursor.getColumnIndexOrThrow(idColumn)
+                            val body = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
+                            val date = cursor.getColumnIndexOrThrow(dateColumn)
+                            while (rows.size < 100 && cursor.moveToNext()) {
+                                val rowId = cursor.getLong(id)
+                                val timestamp = cursor.getLong(date)
+                                val text = cursor.getString(body)?.trim().orEmpty()
+                                val row = mutableMapOf<String, Any>("id" to rowId,
+                                    "receivedAt" to timestamp)
+                                if (isRelevant(text)) {
+                                    row["sourceKey"] = "android-sms:$rowId"
+                                    row["body"] = text
+                                }
+                                rows.add(row)
+                            }
+                        } ?: throw IllegalStateException("Provider unavailable")
+                        mainHandler.post { result.success(rows) }
+                    } catch (_: SecurityException) {
+                        mainHandler.post { result.error("sms_access_revoked", "SMS access is unavailable", null) }
+                    } catch (_: Exception) {
+                        mainHandler.post { result.error("sms_read_failed", "SMS import failed", null) }
+                    }
                 }
             }
             else -> result.notImplemented()

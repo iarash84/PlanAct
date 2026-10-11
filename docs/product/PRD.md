@@ -956,7 +956,7 @@ Implementation checkpoint (2026-10-05): reminders remain **partial**, not releas
 - staged imports
 - SMS adapter
 
-> Implementation checkpoint (2026-10-05): Priority 3 remains partial. Inbox provider rescans, receipt-time handling, ingestion feedback, and resolved-suggestion protection are implemented and validated by 256 passing tests and an isolated Android build. Background ingestion, pagination, native permission/replay evidence, and complete parser/account-selection journeys remain open. See [SMS verification](../SMS_VERIFICATION.md).
+> Implementation checkpoint (2026-10-11): Priority 3 remains partial. Permission does not authorize history: Inbox requires explicit 7-day, 30-day or new-only consent. Source-bounded 100-row timestamp/ID pages, durable explicit resume, progress/cancel/retry and resolved-history protection are wired. Refresh/lifecycle/events never independently start ingestion; there is no permanent service. Existing metadata storage preserves consent/checkpoints through restart and backup. Native provider compatibility, permission/process-kill and reference-device performance evidence, identical-body identity policy and independent acceptance remain release gates. See [SMS verification](../SMS_VERIFICATION.md).
 - duplicate detection
 - user confirmation
 
