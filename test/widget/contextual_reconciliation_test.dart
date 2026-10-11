@@ -162,7 +162,7 @@ void main() {
     (tester) async {
       final inbox = InboxUseCases(DriftInboxRepository(database));
       await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+        rawText: 'برداشت مبلغ ۲۵۰۰ ریال 2026-09-20',
         sourceKey: 'sms:context',
         currency: 'IRR',
         importedAt: DateTime.utc(2026, 9, 20),
@@ -315,7 +315,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
       await tester.enterText(
-        find.widgetWithText(TextField, 'مبلغ ارتباط'),
+        find.byWidgetPredicate(
+          (w) =>
+              w is TextField &&
+              (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+        ),
         '400',
       );
       FocusManager.instance.primaryFocus?.unfocus();
@@ -329,7 +333,14 @@ void main() {
       expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
       expect(
         tester
-            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .widget<TextField>(
+              find.byWidgetPredicate(
+                (w) =>
+                    w is TextField &&
+                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                        false),
+              ),
+            )
             .controller!
             .text,
         '400',
@@ -352,7 +363,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .widget<TextField>(
+              find.byWidgetPredicate(
+                (w) =>
+                    w is TextField &&
+                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                        false),
+              ),
+            )
             .controller!
             .text,
         '400',
@@ -449,11 +467,19 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.ensureVisible(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
         );
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '600',
         );
         FocusManager.instance.primaryFocus?.unfocus();
@@ -551,7 +577,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '400',
         );
         FocusManager.instance.primaryFocus?.unfocus();
@@ -561,7 +591,14 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           tester
-              .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+              .widget<TextField>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is TextField &&
+                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                          false),
+                ),
+              )
               .controller!
               .text,
           '400',
@@ -580,7 +617,14 @@ void main() {
         expect(find.byType(TransactionRelationshipPage), findsOneWidget);
         expect(
           tester
-              .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+              .widget<TextField>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is TextField &&
+                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                          false),
+                ),
+              )
               .controller!
               .text,
           '400',
@@ -591,7 +635,11 @@ void main() {
         await tester.tap(find.text('بازخوانی'));
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '300',
         );
         FocusManager.instance.primaryFocus?.unfocus();

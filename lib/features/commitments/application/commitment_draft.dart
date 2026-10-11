@@ -78,6 +78,7 @@ class CommitmentDraft {
     int? entitlementUnits,
     CommitmentFinancialMeaning? financialMeaning,
     int? financialAmount,
+    bool clearFinancialAmount = false,
     CommitmentPriority? priority,
     Set<String>? tags,
     List<Duration>? reminderOffsets,
@@ -102,7 +103,9 @@ class CommitmentDraft {
     entitlement: entitlement ?? this.entitlement,
     entitlementUnits: entitlementUnits ?? this.entitlementUnits,
     financialMeaning: financialMeaning ?? this.financialMeaning,
-    financialAmount: financialAmount ?? this.financialAmount,
+    financialAmount: clearFinancialAmount
+        ? null
+        : financialAmount ?? this.financialAmount,
     priority: priority ?? this.priority,
     tags: tags ?? this.tags,
     reminderOffsets: reminderOffsets ?? this.reminderOffsets,
@@ -157,7 +160,7 @@ class CommitmentDraft {
     return null;
   }
 
-  String reviewSummary() {
+  String reviewSummary({String? formattedFinancialAmount}) {
     final schedule = !isRecurring
         ? 'یک‌بار در ${startAt == null ? 'زمان انتخاب‌شده' : 'تاریخ انتخاب‌شده'}'
         : 'تکرار ${_frequencyLabel(frequency)} · ${recurrenceCalendar == RecurrenceCalendar.jalali ? 'تقویم شمسی' : 'تقویم میلادی'} · ${switch (termination) {
@@ -175,9 +178,9 @@ class CommitmentDraft {
     final finance = switch (financialMeaning) {
       CommitmentFinancialMeaning.none => 'بدون انتظار مالی',
       CommitmentFinancialMeaning.paymentRequired =>
-        'نیازمند پرداخت (${PersianNumbers.format(financialAmount ?? 0)} تومان)',
+        'نیازمند پرداخت (${formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'})',
       CommitmentFinancialMeaning.receivable =>
-        'دارای دریافتی مورد انتظار (${PersianNumbers.format(financialAmount ?? 0)} تومان)',
+        'دارای دریافتی مورد انتظار (${formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'})',
     };
     return '$title · $schedule · $package · $finance';
   }

@@ -21,6 +21,7 @@ import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -91,6 +92,8 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
+  late MoneyUnitController _moneyUnits;
+  String? _moneyUnitError;
   bool _appLockEnabled = false;
   bool _appLockSettingLoaded = false;
   String? _appLockSettingError;
@@ -109,6 +112,28 @@ class _PlanActAppState extends State<PlanActApp> {
       });
       _loadAppLockSetting();
     }
+    _moneyUnits = MoneyUnitController(_settings);
+    _loadMoneyUnit();
+  }
+
+  Future<void> _loadMoneyUnit() async {
+    try {
+      await _moneyUnits.load();
+      if (mounted) setState(() => _moneyUnitError = null);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () =>
+              _moneyUnitError = 'خواندن واحد پول انجام نشد؛ دوباره تلاش کنید.',
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _moneyUnits.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAppLockSetting() async {
@@ -160,12 +185,32 @@ class _PlanActAppState extends State<PlanActApp> {
       theme: PlanActTheme.light(),
       darkTheme: PlanActTheme.dark(),
       themeMode: _themeMode,
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AppLockGate(
-          enabled: _appLockEnabled,
-          controller: _appLockController,
-          child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => MoneyUnitScope(
+        controller: _moneyUnits,
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: AppLockGate(
+            enabled: _appLockEnabled,
+            controller: _appLockController,
+            child: !_moneyUnits.ready
+                ? Scaffold(
+                    body: Center(
+                      child: _moneyUnitError == null
+                          ? const CircularProgressIndicator()
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(_moneyUnitError!),
+                                TextButton(
+                                  onPressed: _loadMoneyUnit,
+                                  child: const Text('تلاش دوباره'),
+                                ),
+                              ],
+                            ),
+                    ),
+                  )
+                : child ?? const SizedBox.shrink(),
+          ),
         ),
       ),
       home: !_appLockSettingLoaded && _settings != null

@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
+import 'package:planact/features/inbox/presentation/inbox_page.dart';
+
+void main() {
+  for (final dark in [false, true]) {
+    testWidgets('ambiguous SMS explicit toman edit and cancellation ($dark)', (
+      tester,
+    ) async {
+      final repository = InMemoryInboxRepository();
+      final inbox = InboxUseCases(repository);
+      final finance = InMemoryFinanceRepository();
+      await inbox.stageSms(
+        rawText: 'برداشت مبلغ 2500\nمانده 900 ریال',
+        sourceKey: 'ambiguous',
+        currency: 'IRR',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+          builder: (context, child) =>
+              Directionality(textDirection: TextDirection.rtl, child: child!),
+          home: Scaffold(
+            body: InboxPage(inbox: inbox, finance: finance),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('ویرایش'));
+      await tester.tap(find.text('ویرایش'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('ذخیره و بررسی'));
+      await tester.tap(find.text('ذخیره و بررسی'));
+      await tester.pumpAndSettle();
+      expect(find.text('واحد مبلغ نامشخص است'), findsOneWidget);
+      expect(
+        (await repository.listSuggestions())
+            .single
+            .draft
+            .currencyEvidence!
+            .requiresSelection,
+        isTrue,
+      );
+      await tester.tap(find.text('بستن'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('ویرایش'));
+      await tester.tap(find.text('ویرایش'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byType(DropdownButtonFormField<SmsMoneyUnit>),
+      );
+      await tester.tap(find.byType(DropdownButtonFormField<SmsMoneyUnit>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تومان').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('ذخیره و بررسی'));
+      await tester.tap(find.text('ذخیره و بررسی'));
+      await tester.pumpAndSettle();
+      final selected = (await repository.listSuggestions()).single;
+      expect(selected.draft.amount.minorUnits, 25000);
+      expect(selected.draft.currencyEvidence!.selectedUnit, SmsMoneyUnit.toman);
+      expect(await finance.listEntries(), isEmpty);
+      await tester.ensureVisible(find.text('ویرایش'));
+      await tester.tap(find.text('ویرایش'));
+      await tester.pumpAndSettle();
+      Navigator.of(tester.element(find.byType(TextField).first)).pop();
+      await tester.pumpAndSettle();
+      expect(
+        (await repository.listSuggestions()).single.revision,
+        selected.revision,
+      );
+      expect(
+        (await repository.listSuggestions()).single.draft.amount.minorUnits,
+        25000,
+      );
+    });
+  }
+}

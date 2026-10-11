@@ -205,6 +205,7 @@ class CreateCommitmentPlan {
           : FinancialExpectationTemplate(
               direction: financialDirection,
               amount: financialAmount!,
+              currency: 'IRR',
             ),
     );
     final through = endDate == null
@@ -275,6 +276,7 @@ class CreateCommitmentPlan {
             occurrenceId: occurrence.id,
             direction: financialDirection,
             amount: financialAmount,
+            currency: 'IRR',
           );
         }
       }

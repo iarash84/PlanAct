@@ -1,3 +1,4 @@
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 
 import 'dart:async';
@@ -14,7 +15,6 @@ import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/core/money/money.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
@@ -25,6 +25,7 @@ import 'package:planact/features/inbox/presentation/sms_scan_card.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 class InboxPage extends StatefulWidget {
   const InboxPage({
@@ -397,8 +398,17 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     setState(() => _epoch++);
     try {
       final draft = item.suggestion.draft;
+      final manualInput = PinnedMoneyInput(MoneyUnitScope.of(context));
+      SmsMoneyUnit? selectedUnit = draft.currencyEvidence?.effectiveUnit;
+      IranianMoneyUnit editUnit() => draft.currencyEvidence == null
+          ? (draft.amount.currency == 'IRR'
+                ? manualInput.unit
+                : IranianMoneyUnit.rial)
+          : selectedUnit == SmsMoneyUnit.toman
+          ? IranianMoneyUnit.toman
+          : IranianMoneyUnit.rial;
       final amountController = TextEditingController(
-        text: draft.amount.minorUnits.toString(),
+        text: editUnit().inputText(draft.amount.minorUnits),
       );
       final merchantController = TextEditingController(
         text: draft.merchant ?? '',
@@ -421,10 +431,30 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               const SizedBox(height: PlanActSpacing.md),
               TextField(
                 controller: amountController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [MoneyInputFormatter()],
-                decoration: const InputDecoration(labelText: 'مبلغ'),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: draft.currencyEvidence == null
+                      ? 'مبلغ به ${manualInput.label(draft.amount.currency)}'
+                      : 'مبلغ (واحد انتخابی)',
+                ),
               ),
+              const SizedBox(height: PlanActSpacing.sm),
+              if (draft.currencyEvidence != null)
+                DropdownButtonFormField<SmsMoneyUnit>(
+                  initialValue: selectedUnit,
+                  decoration: const InputDecoration(labelText: 'واحد مبلغ'),
+                  items: [
+                    for (final unit in SmsMoneyUnit.values)
+                      DropdownMenuItem(value: unit, child: Text(unit.label)),
+                  ],
+                  onChanged: (value) => selectedUnit = value,
+                )
+              else
+                const Text(
+                  'واحد پیامک قدیمی نامشخص است؛ مقدار ذخیره‌شده بازتفسیر نمی‌شود.',
+                ),
               const SizedBox(height: PlanActSpacing.sm),
               TextField(
                 controller: merchantController,
@@ -468,9 +498,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         referenceController.dispose();
         return;
       }
-      final amount = int.tryParse(
-        amountController.text.replaceAll(',', '').replaceAll('،', ''),
-      );
+      final amount = editUnit().parse(amountController.text);
       final merchant = merchantController.text.trim();
       final reference = referenceController.text.trim();
       amountController.dispose();
@@ -490,10 +518,37 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         );
         return;
       }
+      if (draft.currencyEvidence != null && selectedUnit == null) {
+        await _showMessage(
+          'واحد مبلغ نامشخص است',
+          'ریال یا تومان را صریحاً انتخاب کنید.',
+        );
+        return;
+      }
+      final int canonicalAmount;
+      try {
+        canonicalAmount = amount;
+      } catch (_) {
+        await _showMessage(
+          'مبلغ نامعتبر است',
+          'مبلغ خارج از محدودهٔ مجاز است.',
+        );
+        return;
+      }
       final edited = TransactionDraft(
         id: draft.id,
         stagedImportId: draft.stagedImportId,
-        amount: Money(minorUnits: amount, currency: draft.amount.currency),
+        amount: Money(
+          minorUnits: canonicalAmount,
+          currency: draft.amount.currency,
+        ),
+        currencyEvidence: draft.currencyEvidence == null
+            ? null
+            : SmsCurrencyEvidence(
+                sourceAmount: draft.currencyEvidence!.sourceAmount,
+                detectedUnit: draft.currencyEvidence!.detectedUnit,
+                selectedUnit: selectedUnit,
+              ),
         occurredAt: draft.occurredAt,
         type: selectedDirection == TransactionDirection.incoming
             ? 'income'
@@ -719,6 +774,13 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
 
   Future<void> _save() async {
     if (_saving) return;
+    if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
+        true) {
+      setState(
+        () => _error = 'واحد مبلغ نامشخص است؛ به ویرایش پیشنهاد بروید و ریال یا تومان را انتخاب کنید.',
+      );
+      return;
+    }
     final account = _account;
     if (account == null) {
       setState(() => _error = 'حساب مالی را انتخاب کنید.');
@@ -760,7 +822,23 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(PersianMoneyText.money(widget.item.suggestion.draft.amount)),
+          if (widget
+                  .item
+                  .suggestion
+                  .draft
+                  .currencyEvidence
+                  ?.requiresSelection ==
+              true)
+            const Text(
+              'واحد مبلغ پیامک نامشخص است؛ ابتدا در ویرایش پیشنهاد واحد را انتخاب کنید.',
+            )
+          else
+            Text(
+              PersianMoneyText.money(
+                widget.item.suggestion.draft.amount,
+                unit: MoneyUnitScope.of(context),
+              ),
+            ),
           Text(
             'تاریخ پیشنهادی برای ثبت: ${PersianDateFormatter.date(JalaliDate.fromDateTime(widget.item.suggestion.draft.occurredAt))}',
           ),
@@ -851,7 +929,12 @@ class _ReviewCardState extends State<_ReviewCard> {
   @override
   Widget build(BuildContext context) {
     final draft = widget.item.suggestion.draft;
-    final amount = PersianMoneyText.money(draft.amount);
+    final amount = draft.currencyEvidence?.requiresSelection == true
+        ? '${PersianNumbers.format(draft.currencyEvidence!.sourceAmount)} (واحد نامشخص)'
+        : PersianMoneyText.money(
+            draft.amount,
+            unit: MoneyUnitScope.of(context),
+          );
     final date = PersianDateFormatter.date(
       JalaliDate.fromDateTime(draft.occurredAt),
     );
@@ -887,6 +970,13 @@ class _ReviewCardState extends State<_ReviewCard> {
                   : 'تاریخ تراکنش و منشأ تاریخ ذخیره‌شده نامشخص است.',
             ),
             Text('بانک: ${draft.bank ?? 'نامشخص'}'),
+            Text(
+              draft.currencyEvidence == null
+                  ? 'واحد پیامک قدیمی نامشخص؛ مبلغ ذخیره‌شده بدون تغییر حفظ شده است.'
+                  : draft.currencyEvidence!.requiresSelection
+                  ? 'واحد مبلغ نامشخص است؛ در ویرایش، ریال یا تومان را انتخاب کنید.'
+                  : 'واحد مبلغ: ${draft.currencyEvidence!.effectiveUnit!.label}؛ ${draft.currencyEvidence!.selectedUnit == null ? 'شواهد پیامک' : 'انتخاب شما'}',
+            ),
             if (widget.busy) const Text('در حال ذخیره…'),
             Text(
               'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}',

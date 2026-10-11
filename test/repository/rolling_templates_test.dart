@@ -32,6 +32,7 @@ Future<CommitmentPlan> create(AppDatabase db) =>
     );
 
 Future<void> legacy(AppDatabase db) async {
+  await db.customStatement('UPDATE financial_expectations SET currency = NULL');
   final row = await db.select(db.scheduleDefinitions).getSingle();
   final metadata = jsonDecode(row.recurrenceRule!) as Map<String, dynamic>;
   for (final key in [

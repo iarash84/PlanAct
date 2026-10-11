@@ -31,7 +31,7 @@ void main() {
       );
       await finance.saveAccount(account);
       final suggestion = await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+        rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
         sourceKey: 'sms:one',
         currency: 'IRR',
         importedAt: DateTime.utc(2026, 9, 20),
@@ -98,13 +98,13 @@ void main() {
       final inbox = InboxUseCases(DriftInboxRepository(database));
       final staged = await Future.wait([
         inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
           sourceKey: 'sms:shared',
           currency: 'IRR',
           importedAt: DateTime.utc(2026, 9, 20),
         ),
         inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
           sourceKey: 'sms:shared',
           currency: 'IRR',
           importedAt: DateTime.utc(2026, 9, 21),
@@ -127,7 +127,7 @@ void main() {
     final repository = DriftInboxRepository(database);
     final inbox = InboxUseCases(repository);
     final suggestion = await inbox.stageSms(
-      rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+      rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
       sourceKey: 'sms:reject',
       currency: 'IRR',
     );
@@ -150,13 +150,13 @@ void main() {
       final repository = DriftInboxRepository(database);
       final inbox = InboxUseCases(repository);
       final original = await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+        rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
         sourceKey: 'sms:collision',
         currency: 'IRR',
       );
       await expectLater(
         inbox.stageSms(
-          rawText: 'برداشت مبلغ ۴۰۰۰ 2026-09-20',
+          rawText: 'برداشت مبلغ ۴۰۰۰ rial 2026-09-20',
           sourceKey: 'sms:collision',
           currency: 'IRR',
         ),
@@ -179,7 +179,7 @@ void main() {
     ''');
     await expectLater(
       inbox.stageSms(
-        rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+        rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
         sourceKey: 'sms:failed',
         currency: 'IRR',
       ),
@@ -195,7 +195,7 @@ void main() {
     final repository = DriftInboxRepository(database);
     final inbox = InboxUseCases(repository);
     final suggestion = await inbox.stageSms(
-      rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+      rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
       sourceKey: 'sms:reject-failure',
       currency: 'IRR',
     );
@@ -228,7 +228,7 @@ void main() {
     );
     await finance.saveAccount(account);
     final suggestion = await inbox.stageSms(
-      rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+      rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
       sourceKey: 'sms:confirmed',
       currency: 'IRR',
     );
@@ -262,7 +262,7 @@ void main() {
     );
     await finance.saveAccount(account);
     final suggestion = await inbox.stageSms(
-      rawText: 'برداشت مبلغ ۳۰۰۰ 2026-09-20',
+      rawText: 'برداشت مبلغ ۳۰۰۰ rial 2026-09-20',
       sourceKey: 'sms:two',
       currency: 'IRR',
     );

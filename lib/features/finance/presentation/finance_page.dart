@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -9,7 +10,6 @@ import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/core/logging/app_logger.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -233,6 +233,7 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Future<void> _addAccount() async {
+    final moneyInput = PinnedMoneyInput(MoneyUnitScope.of(context));
     final name = TextEditingController();
     final opening = TextEditingController();
     var type = FinancialAccountType.cash;
@@ -334,11 +335,13 @@ class FinancePageState extends State<FinancePage> {
                         ),
                       TextField(
                         controller: opening,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: const [MoneyInputFormatter()],
-                        decoration: const InputDecoration(
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                          signed: true,
+                        ),
+                        decoration: InputDecoration(
                           labelText: 'موجودی اولیه (اختیاری)',
-                          suffixText: 'ریال',
+                          suffixText: moneyInput.unit.label,
                         ),
                       ),
                     ],
@@ -348,7 +351,7 @@ class FinancePageState extends State<FinancePage> {
             },
           );
       await accountRoute?.completed;
-      final value = int.tryParse(opening.text.replaceAll(',', '').trim());
+      final value = moneyInput.parse(opening.text);
       if (result == null || result.name.isEmpty) return;
       if (opening.text.trim().isNotEmpty && value == null) {
         _showMessage('موجودی اولیه معتبر نیست.');
@@ -388,6 +391,7 @@ class FinancePageState extends State<FinancePage> {
     Set<String> initialTags = const {},
   }) async {
     var draftTags = {...initialTags};
+    final moneyInput = PinnedMoneyInput(MoneyUnitScope.of(context));
     final amount = TextEditingController();
     final note = TextEditingController();
     FinancialAccount? account;
@@ -420,8 +424,9 @@ class FinancePageState extends State<FinancePage> {
                     );
                     return;
                   }
-                  final value = int.tryParse(
-                    MoneyInputFormatter.normalize(amount.text),
+                  final value = moneyInput.parse(
+                    amount.text,
+                    currency: account?.currency ?? CurrencyCodes.irr,
                   );
                   if (value == null || value <= 0) {
                     setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
@@ -478,11 +483,13 @@ class FinancePageState extends State<FinancePage> {
                     ),
                     TextField(
                       controller: amount,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: const [MoneyInputFormatter()],
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: true,
+                      ),
                       decoration: InputDecoration(
                         labelText:
-                            'مبلغ به ${CurrencyCodes.label(account?.currency ?? CurrencyCodes.irr)}',
+                            'مبلغ به ${moneyInput.label(account?.currency ?? CurrencyCodes.irr)}',
                       ),
                     ),
                     TextField(
@@ -636,7 +643,8 @@ class FinancePageState extends State<FinancePage> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  String _money(Money money) => PersianMoneyText.money(money);
+  String _money(Money money) =>
+      PersianMoneyText.money(money, unit: MoneyUnitScope.of(context));
 
   List<AccountEntry> get _filteredEntries {
     final entries =
@@ -675,13 +683,13 @@ class FinancePageState extends State<FinancePage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'ورودی: ${PersianMoneyText.amount(summary.incoming, currency)}',
+              'ورودی: ${PersianMoneyText.amount(summary.incoming, currency, unit: MoneyUnitScope.of(context))}',
             ),
             Text(
-              'خروجی: ${PersianMoneyText.amount(summary.outgoing, currency)}',
+              'خروجی: ${PersianMoneyText.amount(summary.outgoing, currency, unit: MoneyUnitScope.of(context))}',
             ),
             Text(
-              'خالص: ${PersianMoneyText.amount(summary.net.abs(), currency)}',
+              'خالص: ${PersianMoneyText.amount(summary.net, currency, unit: MoneyUnitScope.of(context))}',
             ),
             const SizedBox(height: 8),
             const Text(

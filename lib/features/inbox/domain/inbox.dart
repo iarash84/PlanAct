@@ -2,6 +2,8 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 
+import 'sms_currency_evidence.dart';
+
 /// Origin of an imported item. Adapters normalize raw input before staging and
 /// must never write directly to the ledger.
 enum ImportSource { sms, file, manual }
@@ -104,6 +106,7 @@ class TransactionDraft {
     this.confidence = 0,
     this.dateSource = TransactionDateSource.unknown,
     this.receivedAt,
+    this.currencyEvidence,
   });
 
   final StableId id;
@@ -121,6 +124,7 @@ class TransactionDraft {
   final int confidence;
   final TransactionDateSource dateSource;
   final DateTime? receivedAt;
+  final SmsCurrencyEvidence? currencyEvidence;
 }
 
 class InboxSuggestion {

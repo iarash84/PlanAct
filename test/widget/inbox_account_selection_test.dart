@@ -60,7 +60,8 @@ void main() {
           await finance.saveAccount(second);
           await finance.saveAccount(account('بایگانی', archived: true));
           await inbox.stageSms(
-            rawText: '${incoming ? 'واریز' : 'برداشت'} مبلغ ۲۵۰۰ 2026-09-20',
+            rawText:
+                '${incoming ? 'واریز' : 'برداشت'} مبلغ ۲۵۰۰ rial 2026-09-20',
             sourceKey: 'sms:route',
             currency: 'IRR',
           );
@@ -151,7 +152,7 @@ void main() {
         final inbox = InboxUseCases(DriftInboxRepository(database));
         await finance.saveAccount(account('قدیمی', archived: true));
         await inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
           sourceKey: 'sms:empty',
           currency: 'IRR',
         );
@@ -198,7 +199,7 @@ void main() {
         final selected = account('حساب معتبر');
         await finance.saveAccount(selected);
         await inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
           sourceKey: 'sms:retry',
           currency: 'IRR',
         );

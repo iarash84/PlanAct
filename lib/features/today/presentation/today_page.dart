@@ -1,3 +1,4 @@
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
@@ -233,6 +234,7 @@ class _ActionItemCard extends StatelessWidget {
               PersianMoneyText.amount(
                 details.amountMinorUnits!,
                 details.currency ?? '',
+                unit: MoneyUnitScope.of(context),
               ),
             if (details.accountName != null) 'حساب: ${details.accountName}',
             if (details.description != null) details.description!,

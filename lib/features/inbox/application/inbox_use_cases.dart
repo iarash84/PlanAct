@@ -9,6 +9,7 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 abstract interface class InboxRepository {
   Future<List<StagedImport>> listImports();
@@ -117,6 +118,7 @@ class ParsedSms {
     this.bank,
     this.accountHint,
     this.balance,
+    this.currencyEvidence,
   });
 
   final Money amount;
@@ -129,6 +131,7 @@ class ParsedSms {
   final String? bank;
   final String? accountHint;
   final Money? balance;
+  final SmsCurrencyEvidence? currencyEvidence;
 }
 
 abstract interface class SmsFormatParser {
@@ -166,12 +169,35 @@ class GenericBankSmsParser implements SmsFormatParser {
   @override
   ParsedSms? tryParse({required String text, required String currency}) {
     final amountMatch = RegExp(
-      r'(?:مبلغ|amount|برداشت|واریز|purchase|withdrawal|deposit)\s*[:：]?\s*([۰-۹0-9][۰-۹0-9,،]*)',
+      r'(?:مبلغ|amount|برداشت|واریز|purchase|withdrawal|deposit)\s*[:：]?\s*(?:(ریال|تومان|rials?|tomans?|irr)\s+)?([۰-۹٠-٩0-9][۰-۹٠-٩0-9,،]*)',
       caseSensitive: false,
     ).firstMatch(text);
     if (amountMatch == null) return null;
-    final amount = _digits(amountMatch.group(1)!);
+    final int amount;
+    try {
+      amount = _digits(amountMatch.group(2)!);
+    } on FormatException {
+      throw const ValidationError('مبلغ خارج از محدودهٔ مجاز است.');
+    }
     if (amount <= 0) return null;
+    final suffixUnit = SmsCurrencyEvidence.amountBoundUnit(
+      text,
+      amountMatch.end,
+    );
+    final prefix = amountMatch.group(1);
+    final prefixUnit = prefix == null
+        ? null
+        : RegExp(r'تومان|toman', caseSensitive: false).hasMatch(prefix)
+        ? SmsMoneyUnit.toman
+        : SmsMoneyUnit.rial;
+    final unit =
+        prefixUnit != null && suffixUnit != null && prefixUnit != suffixUnit
+        ? null
+        : prefixUnit ?? suffixUnit;
+    final evidence = SmsCurrencyEvidence(
+      sourceAmount: amount,
+      detectedUnit: unit,
+    );
     final dateMatch = RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
         .firstMatch(text);
     final occurredAt = dateMatch == null
@@ -200,7 +226,11 @@ class GenericBankSmsParser implements SmsFormatParser {
       caseSensitive: false,
     ).firstMatch(text)?.group(1)?.trim();
     return ParsedSms(
-      amount: Money(minorUnits: amount, currency: currency),
+      amount: Money(
+        minorUnits: unit?.canonicalIrr(amount) ?? amount,
+        currency: 'IRR',
+      ),
+      currencyEvidence: evidence,
       occurredAt: occurredAt,
       direction: direction,
       quality: direction == TransactionDirection.unknown
@@ -218,8 +248,11 @@ class GenericBankSmsParser implements SmsFormatParser {
     value
         .replaceAll(RegExp(r'[,،]'), '')
         .replaceAllMapped(
-          RegExp(r'[۰-۹]'),
-          (m) => String.fromCharCode(m.group(0)!.codeUnitAt(0) - 1728),
+          RegExp(r'[۰-۹٠-٩]'),
+          (m) => String.fromCharCode(
+            m.group(0)!.codeUnitAt(0) -
+                (m.group(0)!.codeUnitAt(0) >= 1776 ? 1728 : 1584),
+          ),
         ),
   );
   String? _merchant(String text) => RegExp(
@@ -320,6 +353,7 @@ class InboxUseCases {
       id: _stableImportId('$fingerprint:draft', occurredAt),
       stagedImportId: staged.id,
       amount: parsed.amount,
+      currencyEvidence: parsed.currencyEvidence,
       occurredAt: occurredAt,
       type: parsed.direction == TransactionDirection.incoming
           ? 'income'
@@ -369,6 +403,10 @@ class InboxUseCases {
     if (stored.status == SuggestionStatus.confirmed ||
         stored.status == SuggestionStatus.rejected) {
       throw const ValidationError('پیشنهاد بررسی‌شده قابل ویرایش نیست.');
+    }
+    if (stored.draft.currencyEvidence != null &&
+        draft.currencyEvidence == null) {
+      throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');
     }
     final edited = suggestion.withDraft(draft);
     await repository.saveSuggestion(edited);
@@ -428,6 +466,9 @@ class InboxUseCases {
     if (suggestion.status == SuggestionStatus.rejected ||
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
+    }
+    if (suggestion.draft.currencyEvidence?.requiresSelection == true) {
+      throw const ValidationError('واحد مبلغ پیامک را صریحاً انتخاب کنید.');
     }
     if (account.status != FinancialAccountStatus.active) {
       throw const ValidationError('Archived accounts cannot receive imports');

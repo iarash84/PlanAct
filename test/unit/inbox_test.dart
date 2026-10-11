@@ -42,12 +42,12 @@ void main() {
     final inbox = InMemoryInboxRepository();
     final useCases = InboxUseCases(inbox);
     final first = await useCases.stageSms(
-      rawText: 'amount 1000 2026-09-20',
+      rawText: 'amount 1000 rial 2026-09-20',
       sourceKey: 'android-sms:42',
       currency: 'IRR',
     );
     final second = await useCases.stageSms(
-      rawText: 'amount 1000 2026-09-20',
+      rawText: 'amount 1000 rial 2026-09-20',
       sourceKey: 'android-sms:42',
       currency: 'IRR',
     );
@@ -60,7 +60,7 @@ void main() {
     () async {
       final inbox = InMemoryInboxRepository();
       final useCases = InboxUseCases(inbox);
-      const raw = 'amount 1000 2026-09-20';
+      const raw = 'amount 1000 rial 2026-09-20';
 
       await useCases.stageSms(
         rawText: raw,
@@ -94,7 +94,7 @@ void main() {
       );
       await finance.saveAccount(account);
       final suggestion = await useCases.stageSms(
-        rawText: 'amount 2500 2026-09-20',
+        rawText: 'amount 2500 rial 2026-09-20',
         sourceKey: 'sms-1',
         currency: 'IRR',
       );
@@ -123,7 +123,7 @@ void main() {
     final finance = InMemoryFinanceRepository();
     final useCases = InboxUseCases(inbox);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 2026-09-20',
+      rawText: 'amount 2500 rial 2026-09-20',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -145,7 +145,7 @@ void main() {
     final inbox = InMemoryInboxRepository();
     final useCases = InboxUseCases(inbox);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 2026-09-20',
+      rawText: 'amount 2500 rial 2026-09-20',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -153,6 +153,7 @@ void main() {
       id: suggestion.draft.id,
       stagedImportId: suggestion.stagedImportId,
       amount: const Money(minorUnits: 3000, currency: 'IRR'),
+      currencyEvidence: suggestion.draft.currencyEvidence,
       occurredAt: suggestion.draft.occurredAt,
       type: 'expense',
       merchant: 'فروشگاه ویرایش‌شده',
@@ -175,7 +176,7 @@ void main() {
       final inbox = InMemoryInboxRepository();
       final useCases = InboxUseCases(inbox);
       final suggestion = await useCases.stageSms(
-        rawText: 'amount 2500 2026-09-20',
+        rawText: 'amount 2500 rial 2026-09-20',
         sourceKey: 'sms-1',
         currency: 'IRR',
       );
@@ -207,7 +208,7 @@ void main() {
     );
     await finance.saveAccount(account);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 2026-09-20',
+      rawText: 'amount 2500 rial 2026-09-20',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -237,7 +238,7 @@ void main() {
       final useCases = InboxUseCases(inbox);
       final importedAt = DateTime.utc(2026, 1, 1);
       await useCases.stageSms(
-        rawText: 'amount 1000 2026-01-01',
+        rawText: 'amount 1000 rial 2026-01-01',
         sourceKey: 'sms-retention',
         currency: 'IRR',
         importedAt: importedAt,

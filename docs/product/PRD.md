@@ -1062,3 +1062,9 @@ metadata is preserved in personal backups without restoring raw SMS. No table
 schema change or dependency is required. Automated evidence and unresolved native,
 performance and independent acceptance gates are recorded in SMS_VERIFICATION.md.
 Priority 3 remains partial, not release-ready.
+
+## Iranian currency presentation checkpoint (2026-10-11)
+
+Settings offers rial/toman, defaulting visibly to rial. The preference is durable and affects canonical IRR displays throughout root, pushed and modal routes. Manual monetary forms snapshot and label the selected unit; changing Settings cannot reinterpret an open form. New Iranian financial expectations and account transactions retain integer IRR storage. Exact conversion preserves signed values and one tenth-toman remainder; invalid precision and overflow are rejected, never rounded. Legacy/non-IRR stored values are not migrated by this setting. SMS amount-adjacent evidence remains independent: missing/conflicting new evidence needs explicit user unit selection before confirmation. Cancellation does not write, failed settings persistence does not change the effective unit, and personal backup preserves preference/evidence.
+
+Implementation and verification are separate: shared local paths are implemented; automated conversion, durable reopen/snapshot, route/modal and pinned-form checks are recorded in [currency verification](../CURRENCY_UNIFICATION_VERIFICATION.md). Native keyboard/provider/restore, narrow-screen large-text review and independent acceptance remain required before release readiness.

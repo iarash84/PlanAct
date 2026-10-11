@@ -1,3 +1,5 @@
+import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,15 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _description = TextEditingController();
   final _count = TextEditingController();
   final _entitlementUnits = TextEditingController();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  }
+
+  PinnedMoneyInput? _pinned;
+  PinnedMoneyInput get _moneyInput =>
+      _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _financialAmount = TextEditingController();
   CommitmentDraft _draft = const CommitmentDraft();
   bool _dateSelected = false;
@@ -59,9 +70,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       entitlementUnits: int.tryParse(
         MoneyInputFormatter.normalize(_entitlementUnits.text.trim()),
       ),
-      financialAmount: int.tryParse(
-        MoneyInputFormatter.normalize(_financialAmount.text.trim()),
-      ),
+      financialAmount: _moneyInput.parse(_financialAmount.text),
+      clearFinancialAmount: _moneyInput.parse(_financialAmount.text) == null,
     );
   }
 
@@ -608,10 +618,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         const SizedBox(height: PlanActSpacing.md),
         TextField(
           controller: _financialAmount,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(
-            labelText: 'مبلغ مورد انتظار به تومان',
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: 'مبلغ مورد انتظار به ${_moneyInput.unit.label}',
           ),
           onChanged: (_) => _syncDraft(),
         ),
@@ -645,7 +654,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Text(
-        _draft.reviewSummary(),
+        _draft.reviewSummary(
+          formattedFinancialAmount: PersianMoneyText.amount(
+            _draft.financialAmount ?? 0,
+            'IRR',
+            unit: MoneyUnitScope.of(context),
+          ),
+        ),
         style: Theme.of(context).textTheme.titleMedium,
       ),
       if (_draft.tags.isNotEmpty) TagLabels(labels: _draft.tags),

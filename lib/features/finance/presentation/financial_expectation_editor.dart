@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -23,8 +24,17 @@ class FinancialExpectationEditor extends StatefulWidget {
 
 class _FinancialExpectationEditorState
     extends State<FinancialExpectationEditor> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  }
+
+  PinnedMoneyInput? _pinned;
+  PinnedMoneyInput get _moneyInput =>
+      _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _amount = TextEditingController();
-  final _currency = TextEditingController();
+  final _currency = TextEditingController(text: 'IRR');
   FinancialExpectationDirection _direction =
       FinancialExpectationDirection.outgoing;
   FinancialAccount? _account;
@@ -43,7 +53,10 @@ class _FinancialExpectationEditorState
     if (!mounted) return;
     if (item != null) {
       _existing = item;
-      _amount.text = item.amount.toString();
+      _amount.text = _moneyInput.inputText(
+        item.amount,
+        currency: item.currency ?? '',
+      );
       _currency.text = item.currency ?? '';
       _direction = item.direction;
       _account = item.accountId == null
@@ -57,7 +70,7 @@ class _FinancialExpectationEditorState
   }
 
   Future<void> _save() async {
-    final value = int.tryParse(_amount.text.trim());
+    final value = _moneyInput.parse(_amount.text, currency: _currency.text);
     final currency = _currency.text.trim();
     if (value == null || value <= 0) {
       _message('مبلغ مثبت را وارد کنید.');
@@ -136,13 +149,17 @@ class _FinancialExpectationEditorState
                       ),
                       TextField(
                         controller: _amount,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'مبلغ (واحد خرد)',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText:
+                              'مبلغ به ${_moneyInput.label(_currency.text)}',
                         ),
                       ),
                       TextField(
                         controller: _currency,
+                        onChanged: (_) => setState(() {}),
                         decoration: const InputDecoration(
                           labelText: 'ارز، مانند IRR',
                         ),

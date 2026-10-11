@@ -11,6 +11,7 @@ import 'package:planact/features/inbox/application/sms_ingestion.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 class DriftInboxRepository
     implements
@@ -212,6 +213,12 @@ class DriftInboxRepository
         return persisted.single;
       }
       final metadata = await _metadata(suggestion.id);
+      final currencyEvidence = metadata['currencyEvidence'];
+      if (currencyEvidence != null &&
+          SmsCurrencyEvidence.fromJson(currencyEvidence as Map<String, dynamic>)
+              .requiresSelection) {
+        throw const ValidationError('واحد مبلغ پیامک را صریحاً انتخاب کنید.');
+      }
       if (expectedRevision != null &&
           metadata['revision'] != expectedRevision) {
         throw const ValidationError(
@@ -317,6 +324,11 @@ class DriftInboxRepository
               type: row.type,
               merchant: row.merchant,
               reference: row.reference,
+              currencyEvidence: metadata['currencyEvidence'] == null
+                  ? null
+                  : SmsCurrencyEvidence.fromJson(
+                      metadata['currencyEvidence'] as Map<String, dynamic>,
+                    ),
               bank: metadata['bank'] as String?,
               receivedAt: metadata['receivedAt'] == null
                   ? null
@@ -388,7 +400,12 @@ class DriftInboxRepository
           'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
         );
       }
+      if (metadata['currencyEvidence'] != null &&
+          suggestion.draft.currencyEvidence == null) {
+        throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');
+      }
       metadata.addAll({
+        'currencyEvidence': suggestion.draft.currencyEvidence?.toJson(),
         'bank': suggestion.draft.bank,
         'direction': suggestion.draft.direction.name,
         'quality': suggestion.draft.quality.name,
