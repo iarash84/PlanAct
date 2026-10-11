@@ -14,7 +14,7 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
-import 'package:planact/core/money/money.dart';
+import 'package:planact/features/inbox/presentation/sms_review_editor.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
@@ -25,7 +25,6 @@ import 'package:planact/features/inbox/presentation/sms_scan_card.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
-import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 class InboxPage extends StatefulWidget {
   const InboxPage({
@@ -397,210 +396,32 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     if (!_pending.add(item.suggestion.id)) return;
     setState(() => _epoch++);
     try {
-      final draft = item.suggestion.draft;
-      final manualInput = PinnedMoneyInput(MoneyUnitScope.of(context));
-      SmsMoneyUnit? selectedUnit = draft.currencyEvidence?.effectiveUnit;
-      IranianMoneyUnit editUnit() => draft.currencyEvidence == null
-          ? (draft.amount.currency == 'IRR'
-                ? manualInput.unit
-                : IranianMoneyUnit.rial)
-          : selectedUnit == SmsMoneyUnit.toman
-          ? IranianMoneyUnit.toman
-          : IranianMoneyUnit.rial;
-      final amountController = TextEditingController(
-        text: editUnit().inputText(draft.amount.minorUnits),
-      );
-      final merchantController = TextEditingController(
-        text: draft.merchant ?? '',
-      );
-      final referenceController = TextEditingController(
-        text: draft.reference ?? '',
-      );
-      var selectedDirection = draft.direction;
-      TransitionRoute<dynamic>? editRoute;
-      final type = await showPlanActFormSheet<String>(
+      final saved = await showModalBottomSheet<bool>(
         context: context,
-        title: 'ویرایش پیشنهاد تراکنش',
-        primaryLabel: 'ذخیره و بررسی',
-        builder: (sheetContext) {
-          editRoute = ModalRoute.of(sheetContext) as TransitionRoute<dynamic>?;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('مقادیر تشخیص‌داده‌شده از قبل وارد شده‌اند.'),
-              const SizedBox(height: PlanActSpacing.md),
-              TextField(
-                controller: amountController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: draft.currencyEvidence == null
-                      ? 'مبلغ به ${manualInput.label(draft.amount.currency)}'
-                      : 'مبلغ (واحد انتخابی)',
-                ),
+        isScrollControlled: true,
+        useSafeArea: true,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (_) =>
+            SmsReviewEditor(suggestion: item.suggestion, inbox: widget.inbox),
+      );
+      if (saved == true && mounted) {
+        _epoch++;
+        await _reload();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'ویرایش ذخیره شد؛ برای ثبت مالی تأیید نهایی لازم است.',
               ),
-              const SizedBox(height: PlanActSpacing.sm),
-              if (draft.currencyEvidence != null)
-                DropdownButtonFormField<SmsMoneyUnit>(
-                  initialValue: selectedUnit,
-                  decoration: const InputDecoration(labelText: 'واحد مبلغ'),
-                  items: [
-                    for (final unit in SmsMoneyUnit.values)
-                      DropdownMenuItem(value: unit, child: Text(unit.label)),
-                  ],
-                  onChanged: (value) => selectedUnit = value,
-                )
-              else
-                const Text(
-                  'واحد پیامک قدیمی نامشخص است؛ مقدار ذخیره‌شده بازتفسیر نمی‌شود.',
-                ),
-              const SizedBox(height: PlanActSpacing.sm),
-              TextField(
-                controller: merchantController,
-                decoration: const InputDecoration(labelText: 'پذیرنده یا شرح'),
-              ),
-              const SizedBox(height: PlanActSpacing.sm),
-              TextField(
-                controller: referenceController,
-                decoration: const InputDecoration(labelText: 'شناسه پیگیری'),
-              ),
-              const SizedBox(height: PlanActSpacing.sm),
-              DropdownButtonFormField<TransactionDirection>(
-                initialValue: draft.direction == TransactionDirection.unknown
-                    ? null
-                    : draft.direction,
-                decoration: const InputDecoration(labelText: 'نوع تراکنش'),
-                items: const [
-                  DropdownMenuItem(
-                    value: TransactionDirection.outgoing,
-                    child: Text('هزینه / برداشت'),
-                  ),
-                  DropdownMenuItem(
-                    value: TransactionDirection.incoming,
-                    child: Text('درآمد / واریز'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) selectedDirection = value;
-                },
-              ),
-            ],
+            ),
           );
-        },
-        onPrimary: () => Navigator.of(context).pop('save'),
-      );
-      // The popped sheet remains mounted during its reverse transition.
-      await editRoute?.completed;
-      if (type != 'save' || !mounted) {
-        amountController.dispose();
-        merchantController.dispose();
-        referenceController.dispose();
-        return;
+        }
       }
-      final amount = editUnit().parse(amountController.text);
-      final merchant = merchantController.text.trim();
-      final reference = referenceController.text.trim();
-      amountController.dispose();
-      merchantController.dispose();
-      referenceController.dispose();
-      if (amount == null || amount <= 0) {
-        await _showMessage(
-          'مبلغ نامعتبر است',
-          'مبلغ باید بزرگ‌تر از صفر باشد.',
-        );
-        return;
-      }
-      if (selectedDirection == TransactionDirection.unknown) {
-        await _showMessage(
-          'نوع تراکنش نامشخص است',
-          'درآمد یا هزینه را صریحاً انتخاب کنید.',
-        );
-        return;
-      }
-      if (draft.currencyEvidence != null && selectedUnit == null) {
-        await _showMessage(
-          'واحد مبلغ نامشخص است',
-          'ریال یا تومان را صریحاً انتخاب کنید.',
-        );
-        return;
-      }
-      final int canonicalAmount;
-      try {
-        canonicalAmount = amount;
-      } catch (_) {
-        await _showMessage(
-          'مبلغ نامعتبر است',
-          'مبلغ خارج از محدودهٔ مجاز است.',
-        );
-        return;
-      }
-      final edited = TransactionDraft(
-        id: draft.id,
-        stagedImportId: draft.stagedImportId,
-        amount: Money(
-          minorUnits: canonicalAmount,
-          currency: draft.amount.currency,
-        ),
-        currencyEvidence: draft.currencyEvidence == null
-            ? null
-            : SmsCurrencyEvidence(
-                sourceAmount: draft.currencyEvidence!.sourceAmount,
-                detectedUnit: draft.currencyEvidence!.detectedUnit,
-                selectedUnit: selectedUnit,
-              ),
-        occurredAt: draft.occurredAt,
-        type: selectedDirection == TransactionDirection.incoming
-            ? 'income'
-            : 'expense',
-        merchant: merchant.isEmpty ? null : merchant,
-        reference: reference.isEmpty ? null : reference,
-        direction: selectedDirection,
-        bank: draft.bank,
-        accountHint: draft.accountHint,
-        balance: draft.balance,
-        quality: draft.quality,
-        confidence: draft.confidence,
-        dateSource: draft.dateSource,
-        receivedAt: draft.receivedAt,
-      );
-      await _runAction(() async {
-        await widget.inbox.edit(item.suggestion, edited);
-      });
     } finally {
       if (mounted) setState(() => _pending.remove(item.suggestion.id));
     }
   }
-
-  Future<void> _runAction(Future<void> Function() action) async {
-    try {
-      await action();
-      _epoch++;
-      await _reload();
-    } catch (error) {
-      _logger.error(
-        'Inbox action failed',
-        fields: {'errorType': error.runtimeType.toString()},
-      );
-      if (mounted) {
-        await _showMessage('عملیات انجام نشد', 'اطلاعات در صف بررسی حفظ شد.');
-      }
-    }
-  }
-
-  Future<void> _showMessage(String title, String message) => showDialog<void>(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('بستن'),
-        ),
-      ],
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -645,6 +466,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           ),
         const SizedBox(height: PlanActSpacing.md),
         DropdownButtonFormField<SuggestionStatus>(
+          isExpanded: true,
+          itemHeight: null,
           initialValue: _status,
           decoration: const InputDecoration(labelText: 'وضعیت بررسی'),
           items: const [
@@ -667,6 +490,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           },
         ),
         DropdownButtonFormField<String>(
+          isExpanded: true,
+          itemHeight: null,
           initialValue: _bank,
           decoration: const InputDecoration(labelText: 'بانک'),
           items: [
@@ -771,9 +596,38 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   FinancialAccount? _account;
   bool _saving = false;
   String? _error;
+  bool _dateAcknowledged = false;
+  bool _classificationAcknowledged = false;
 
   Future<void> _save() async {
     if (_saving) return;
+    final suggestion = widget.item.suggestion;
+    final draft = suggestion.draft;
+    if (suggestion.extractedEvidence?.isTransfer == true ||
+        draft.type == 'transfer') {
+      setState(
+        () => _error = 'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود. انتقال را در بخش مالی بین دو حساب ثبت کنید.',
+      );
+      return;
+    }
+    if (draft.type != 'income' && draft.type != 'expense') {
+      setState(
+        () => _error = 'نوع تراکنش نامشخص است؛ در ویرایش پیشنهاد جهت را بررسی و انتخاب کنید.',
+      );
+      return;
+    }
+    if (!_classificationAcknowledged) {
+      setState(() => _error = 'طبقه‌بندی درآمد یا هزینه را صریحاً تأیید کنید.');
+      return;
+    }
+    if (draft.dateSource != TransactionDateSource.extracted &&
+        draft.dateSource != TransactionDateSource.reviewer &&
+        !_dateAcknowledged) {
+      setState(
+        () => _error = 'زمان پیشنهادی را صریحاً تأیید کنید یا برای انتخاب تاریخ و ساعت به ویرایش بروید.',
+      );
+      return;
+    }
     if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
         true) {
       setState(
@@ -839,13 +693,57 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                 unit: MoneyUnitScope.of(context),
               ),
             ),
+          SmsOriginalEvidence(suggestion: widget.item.suggestion),
+          const SizedBox(height: PlanActSpacing.md),
           Text(
-            'تاریخ پیشنهادی برای ثبت: ${PersianDateFormatter.date(JalaliDate.fromDateTime(widget.item.suggestion.draft.occurredAt))}',
+            'زمان بررسی‌شده برای ثبت: ${smsReviewTimestamp(widget.item.suggestion.draft.occurredAt)}',
           ),
-          if (widget.item.suggestion.draft.dateSource !=
-              TransactionDateSource.extracted)
+          if (widget.item.suggestion.extractedEvidence?.isTransfer == true ||
+              widget.item.suggestion.draft.type == 'transfer')
             const Text(
-              'تاریخ تراکنش از پیامک استخراج نشده است؛ تأیید نهایی این تاریخ پیشنهادی را ثبت می‌کند.',
+              'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود. انتقال را در بخش مالی بین دو حساب ثبت کنید.',
+            )
+          else if (widget.item.suggestion.draft.type != 'income' &&
+              widget.item.suggestion.draft.type != 'expense')
+            const Text(
+              'نوع تراکنش نامشخص است؛ ابتدا در ویرایش پیشنهاد بررسی کنید.',
+            )
+          else
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _classificationAcknowledged,
+              onChanged: _saving
+                  ? null
+                  : (value) => setState(
+                      () => _classificationAcknowledged = value == true,
+                    ),
+              title: Text(
+                'ثبت مالی به‌عنوان ${widget.item.suggestion.draft.type == 'income' ? 'درآمد' : 'هزینه'} را تأیید می‌کنم.',
+              ),
+              subtitle: const Text(
+                'واریز و برداشت به‌تنهایی طبقه‌بندی مالی نیستند؛ انتقال بین حساب‌های خودتان را اینجا ثبت نکنید.',
+              ),
+            ),
+          if (widget.item.suggestion.draft.dateSource !=
+                  TransactionDateSource.extracted &&
+              widget.item.suggestion.draft.dateSource !=
+                  TransactionDateSource.reviewer)
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _dateAcknowledged,
+              onChanged: _saving
+                  ? null
+                  : (value) =>
+                        setState(() => _dateAcknowledged = value == true),
+              title: const Text(
+                'زمان پیشنهادی را برای ثبت تراکنش تأیید می‌کنم.',
+              ),
+              subtitle: Text(
+                widget.item.suggestion.draft.dateSource ==
+                        TransactionDateSource.receipt
+                    ? 'این زمان دریافت پیامک است، نه زمان استخراج‌شدهٔ تراکنش. برای تغییر تاریخ یا ساعت، به ویرایش بروید.'
+                    : 'منشأ زمان ذخیره‌شده نامشخص است. برای تغییر تاریخ یا ساعت، به ویرایش بروید.',
+              ),
             ),
           Text(
             'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}؛ انتخاب نهایی با شماست.',
@@ -944,17 +842,11 @@ class _ReviewCardState extends State<_ReviewCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    draft.merchant ?? _direction(draft.direction),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Text(amount, style: Theme.of(context).textTheme.titleMedium),
-              ],
+            Text(
+              draft.merchant ?? _direction(draft.direction),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
+            Text(amount, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
             Text('${widget.item.sourceLabel} · ${_direction(draft.direction)}'),
             Text(
@@ -967,6 +859,8 @@ class _ReviewCardState extends State<_ReviewCard> {
                   ? 'تاریخ استخراج‌شدهٔ تراکنش: $date'
                   : draft.dateSource == TransactionDateSource.receipt
                   ? 'تاریخ تراکنش نامشخص؛ تاریخ دریافت برای ثبت پیشنهاد شده است.'
+                  : draft.dateSource == TransactionDateSource.reviewer
+                  ? 'زمان انتخاب‌شدهٔ شما: ${smsReviewTimestamp(draft.occurredAt)}'
                   : 'تاریخ تراکنش و منشأ تاریخ ذخیره‌شده نامشخص است.',
             ),
             Text('بانک: ${draft.bank ?? 'نامشخص'}'),
@@ -994,11 +888,19 @@ class _ReviewCardState extends State<_ReviewCard> {
               label: Text(_showDetails ? 'بستن جزئیات' : 'جزئیات پیشنهاد'),
             ),
             if (_showDetails) ...[
-              if (draft.bank != null) Text('بانک: ${draft.bank}'),
-              if (draft.accountHint != null)
-                Text('راهنمای حساب: ${draft.accountHint}'),
-              if (draft.reference != null)
-                Text('شناسه پیگیری: ${draft.reference}'),
+              SmsOriginalEvidence(suggestion: widget.item.suggestion),
+              const SizedBox(height: PlanActSpacing.md),
+              Text(
+                'مقادیر فعلی بررسی',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text('بانک: ${draft.bank ?? 'نامشخص'}'),
+              Text('مبلغ بررسی‌شده: $amount'),
+              Text('جهت بررسی‌شده: ${_direction(draft.direction)}'),
+              Text('شرح بررسی‌شده: ${draft.merchant ?? 'نامشخص'}'),
+              Text('راهنمای حساب: ${maskedSmsEvidence(draft.accountHint)}'),
+              Text('شناسه پیگیری: ${maskedSmsEvidence(draft.reference)}'),
+              Text('زمان برای ثبت: ${smsReviewTimestamp(draft.occurredAt)}'),
               Text(
                 'چرا این پیشنهاد؟',
                 style: Theme.of(context).textTheme.labelLarge,
@@ -1045,8 +947,8 @@ class _ReviewCardState extends State<_ReviewCard> {
   }
 
   String _direction(TransactionDirection direction) => switch (direction) {
-    TransactionDirection.incoming => 'درآمد',
-    TransactionDirection.outgoing => 'هزینه',
+    TransactionDirection.incoming => 'واریز',
+    TransactionDirection.outgoing => 'برداشت',
     TransactionDirection.unknown => 'نوع نامشخص',
   };
 }

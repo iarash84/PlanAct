@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:shamsi_date/shamsi_date.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -119,7 +120,15 @@ class ParsedSms {
     this.accountHint,
     this.balance,
     this.currencyEvidence,
+    this.sourceDate,
+    this.sourceTime,
+    this.isTransfer = false,
   });
+
+  /// Validated original calendar date/time, not a receipt fallback or instant.
+  final String? sourceDate;
+  final String? sourceTime;
+  final bool isTransfer;
 
   final Money amount;
   final DateTime? occurredAt;
@@ -148,7 +157,7 @@ class LocalSmsParser implements SmsFormatParser {
       final result = parser.tryParse(text: text, currency: currency);
       if (result != null) return result;
     }
-    throw const ValidationError('SMS amount could not be parsed');
+    throw const UnsupportedSmsFormat();
   }
 
   @override
@@ -161,108 +170,240 @@ class LocalSmsParser implements SmsFormatParser {
   }
 }
 
-/// Explainable fallback for common Persian/English bank notification labels.
-/// Bank-specific parsers can be added without changing staging or UI.
+/// Conservative synthetic labelled templates only; not actual-bank coverage.
+/// See docs/SMS_VERIFICATION.md for the exact grammar and integration gates.
 class GenericBankSmsParser implements SmsFormatParser {
   const GenericBankSmsParser();
 
+  static const _labels = {
+    'مبلغ': 'amount',
+    'amount': 'amount',
+    'مانده': 'balance',
+    'موجودی': 'balance',
+    'balance': 'balance',
+    'نوع': 'type',
+    'type': 'type',
+    'بانک': 'bank',
+    'bank': 'bank',
+    'حساب': 'account',
+    'کارت': 'account',
+    'account': 'account',
+    'card': 'account',
+    'پیگیری': 'reference',
+    'شناسه': 'reference',
+    'ref': 'reference',
+    'reference': 'reference',
+    'پذیرنده': 'merchant',
+    'فروشگاه': 'merchant',
+    'merchant': 'merchant',
+    'تاریخ': 'date',
+    'date': 'date',
+    'ساعت': 'time',
+    'time': 'time',
+  };
+  static const _incoming = {'واریز', 'deposit', 'credit'};
+  static const _outgoing = {
+    'برداشت',
+    'خرید',
+    'پرداخت',
+    'withdrawal',
+    'purchase',
+    'debit',
+  };
+  static const _transfers = {'انتقال', 'کارت به کارت', 'transfer'};
+
   @override
   ParsedSms? tryParse({required String text, required String currency}) {
-    final amountMatch = RegExp(
-      r'(?:مبلغ|amount|برداشت|واریز|purchase|withdrawal|deposit)\s*[:：]?\s*(?:(ریال|تومان|rials?|tomans?|irr)\s+)?([۰-۹٠-٩0-9][۰-۹٠-٩0-9,،]*)',
+    if (text.length > 4096) return null;
+    final normalized = _normalizeDigits(text).trim();
+    // Reject these anywhere, including an otherwise valid labelled message.
+    if (RegExp(
+      r'رمز|ناموفق|لغو|خطا|اعلان|otp|password|failed|failure|declined|unsuccessful|notification',
       caseSensitive: false,
-    ).firstMatch(text);
-    if (amountMatch == null) return null;
-    final int amount;
-    try {
-      amount = _digits(amountMatch.group(2)!);
-    } on FormatException {
-      throw const ValidationError('مبلغ خارج از محدودهٔ مجاز است.');
+    ).hasMatch(normalized)) {
+      return null;
     }
-    if (amount <= 0) return null;
-    final suffixUnit = SmsCurrencyEvidence.amountBoundUnit(
-      text,
-      amountMatch.end,
-    );
-    final prefix = amountMatch.group(1);
-    final prefixUnit = prefix == null
-        ? null
-        : RegExp(r'تومان|toman', caseSensitive: false).hasMatch(prefix)
-        ? SmsMoneyUnit.toman
-        : SmsMoneyUnit.rial;
-    final unit =
-        prefixUnit != null && suffixUnit != null && prefixUnit != suffixUnit
-        ? null
-        : prefixUnit ?? suffixUnit;
-    final evidence = SmsCurrencyEvidence(
-      sourceAmount: amount,
-      detectedUnit: unit,
-    );
-    final dateMatch = RegExp(r'(20\d{2})[-/]([01]?\d)[-/]([0-3]?\d)')
-        .firstMatch(text);
-    final occurredAt = dateMatch == null
-        ? null
-        : DateTime.utc(
-            int.parse(dateMatch.group(1)!),
-            int.parse(dateMatch.group(2)!),
-            int.parse(dateMatch.group(3)!),
-          );
-    final lower = text.toLowerCase();
-    final incoming = RegExp(r'واریز|وصول|deposit|credit|received')
-        .hasMatch(lower);
-    final outgoing = RegExp(r'برداشت|خرید|پرداخت|withdrawal|purchase|debit')
-        .hasMatch(lower);
-    final direction = incoming && !outgoing
+    final fields = <String, String>{};
+    for (final line in normalized.split(RegExp(r'[\r\n;؛]+'))) {
+      if (line.trim().isEmpty) continue;
+      final compact = RegExp(
+        r'^(برداشت|واریز|خرید|پرداخت|withdrawal|deposit|purchase)\s+(?:مبلغ|amount)\s*[:：]?\s*(.+)$',
+        caseSensitive: false,
+      ).firstMatch(line.trim());
+      if (compact != null) {
+        if (fields.containsKey('type') || fields.containsKey('amount')) {
+          return null;
+        }
+        fields['type'] = compact.group(1)!.toLowerCase();
+        fields['amount'] = compact.group(2)!;
+        continue;
+      }
+      final label = RegExp(r'^([^:：]+)[:：]\s*(.+)$').firstMatch(line.trim());
+      if (label == null) return null;
+      final key = _labels[label.group(1)!.trim().toLowerCase()];
+      if (key == null || fields.containsKey(key)) return null;
+      fields[key] = label.group(2)!.trim();
+    }
+    final amount = _amount(fields['amount']);
+    if (amount == null || amount.$1 <= 0) return null;
+    final type = fields['type']?.toLowerCase();
+    if (type != null &&
+        !_incoming.contains(type) &&
+        !_outgoing.contains(type) &&
+        !_transfers.contains(type) &&
+        type != 'unknown' &&
+        type != 'نامعلوم') {
+      return null;
+    }
+    final direction = _incoming.contains(type)
         ? TransactionDirection.incoming
-        : outgoing && !incoming
+        : _outgoing.contains(type)
         ? TransactionDirection.outgoing
         : TransactionDirection.unknown;
-    final reference = RegExp(
-      r'(?:پیگیری|ref|reference|شناسه)\s*[:#]?\s*([\w-]+)',
-      caseSensitive: false,
-    ).firstMatch(text)?.group(1);
-    final card = RegExp(
-      r'(?:کارت|card)\s*[:：#]?\s*([0-9۰-۹* -]{4,})',
-      caseSensitive: false,
-    ).firstMatch(text)?.group(1)?.trim();
+    final balance = _amount(fields['balance']);
+    if (fields.containsKey('balance') &&
+        (balance == null || balance.$2 == null)) {
+      return null;
+    }
+    final date = _date(fields['date']);
+    final time = _time(fields['time']);
+    if ((fields.containsKey('date') && date == null) ||
+        (fields.containsKey('time') && time == null)) {
+      return null;
+    }
+    final account = fields['account'];
+    if (account != null &&
+        !RegExp(r'^(?:[0-9*]{4,32}|IR[0-9]{24})$').hasMatch(account)) {
+      return null;
+    }
+    final reference = fields['reference'];
+    if (reference != null &&
+        !RegExp(r'^[a-zA-Z0-9_-]{1,64}$').hasMatch(reference)) {
+      return null;
+    }
+    for (final key in ['bank', 'merchant']) {
+      final value = fields[key];
+      if (value != null &&
+          (value.length > (key == 'bank' ? 40 : 80) ||
+              !RegExp(r'^[a-zA-Z\u0600-\u06ff\u200c ]+$').hasMatch(value))) {
+        return null;
+      }
+    }
+    final evidence = SmsCurrencyEvidence(
+      sourceAmount: amount.$1,
+      detectedUnit: amount.$2,
+    );
     return ParsedSms(
       amount: Money(
-        minorUnits: unit?.canonicalIrr(amount) ?? amount,
+        minorUnits: amount.$2?.canonicalIrr(amount.$1) ?? amount.$1,
         currency: 'IRR',
       ),
       currencyEvidence: evidence,
-      occurredAt: occurredAt,
+      balance: balance == null
+          ? null
+          : Money(
+              minorUnits: balance.$2!.canonicalIrr(balance.$1),
+              currency: 'IRR',
+            ),
+      occurredAt: date == null || time == null
+          ? null
+          : DateTime(
+              date.year,
+              date.month,
+              date.day,
+              time.$1,
+              time.$2,
+              time.$3,
+            ),
+      sourceDate: fields['date'],
+      sourceTime: fields['time'],
+      isTransfer: _transfers.contains(type),
       direction: direction,
-      quality: direction == TransactionDirection.unknown
+      quality:
+          direction == TransactionDirection.unknown ||
+              evidence.requiresSelection ||
+              date == null ||
+              time == null
           ? ParseQuality.medium
           : ParseQuality.high,
       confidence: direction == TransactionDirection.unknown ? 55 : 80,
-      merchant: _merchant(text),
+      merchant: fields['merchant'],
       reference: reference,
-      accountHint: card,
-      bank: _bank(text),
+      accountHint: account,
+      bank: fields['bank'],
     );
   }
 
-  int _digits(String value) => int.parse(
-    value
-        .replaceAll(RegExp(r'[,،]'), '')
-        .replaceAllMapped(
-          RegExp(r'[۰-۹٠-٩]'),
-          (m) => String.fromCharCode(
-            m.group(0)!.codeUnitAt(0) -
-                (m.group(0)!.codeUnitAt(0) >= 1776 ? 1728 : 1584),
-          ),
-        ),
-  );
-  String? _merchant(String text) => RegExp(
-    r'(?:فروشگاه|merchant|پذیرنده)\s*[:：]\s*([^\n]+)',
-    caseSensitive: false,
-  ).firstMatch(text)?.group(1)?.trim();
-  String? _bank(String text) => RegExp(
-    r'(?:بانک|bank)\s*[:：]?\s*([^\n]+)',
-    caseSensitive: false,
-  ).firstMatch(text)?.group(1)?.trim();
+  String _normalizeDigits(String text) =>
+      text.replaceAllMapped(RegExp(r'[۰-۹٠-٩]'), (m) {
+        final code = m.group(0)!.codeUnitAt(0);
+        return String.fromCharCode(code - (code >= 0x6f0 ? 0x6f0 : 0x660) + 48);
+      });
+
+  (int, SmsMoneyUnit?)? _amount(String? text) {
+    if (text == null) return null;
+    final match = RegExp(
+      r'^(?:(ریال|تومان|rials?|tomans?|irr)\s+)?([0-9]+|[0-9]{1,3}(?:[,،٬][0-9]{3})+)(?:\s+(ریال|تومان|rials?|tomans?|irr))?$',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (match == null) return null;
+    final value = BigInt.tryParse(
+      match.group(2)!.replaceAll(RegExp(r'[,،٬]'), ''),
+    );
+    if (value == null || value > BigInt.from(9223372036854775807)) return null;
+    SmsMoneyUnit? unit(String? label) => label == null
+        ? null
+        : RegExp(r'تومان|toman', caseSensitive: false).hasMatch(label)
+        ? SmsMoneyUnit.toman
+        : SmsMoneyUnit.rial;
+    final prefix = unit(match.group(1));
+    final suffix = unit(match.group(3));
+    final detected = prefix != null && suffix != null && prefix != suffix
+        ? null
+        : prefix ?? suffix;
+    // Both interpretations must be safe if conflicting/missing unit needs review.
+    if ((detected == null || detected == SmsMoneyUnit.toman) &&
+        value * BigInt.from(10) > BigInt.from(9223372036854775807)) {
+      return null;
+    }
+    return (value.toInt(), detected);
+  }
+
+  DateTime? _date(String? value) {
+    if (value == null) return null;
+    final match = RegExp(r'^(\d{4})([-/])(\d{2})\2(\d{2})$').firstMatch(value);
+    if (match == null) return null;
+    final year = int.parse(match.group(1)!);
+    final month = int.parse(match.group(3)!);
+    final day = int.parse(match.group(4)!);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+    if (year >= 1300 && year <= 1499) {
+      try {
+        final jalali = Jalali(year, month, day);
+        final gregorian = jalali.toGregorian();
+        return DateTime(gregorian.year, gregorian.month, gregorian.day);
+      } on DateException {
+        return null;
+      }
+    }
+    if (year < 2000 || year > 2099) return null;
+    final date = DateTime(year, month, day);
+    return date.year == year && date.month == month && date.day == day
+        ? date
+        : null;
+  }
+
+  (int, int, int)? _time(String? value) {
+    if (value == null) return null;
+    final match = RegExp(r'^(\d{2}):(\d{2})(?::(\d{2}))?$').firstMatch(value);
+    if (match == null) return null;
+    final hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    final second = int.parse(match.group(3) ?? '0');
+    return hour < 24 && minute < 60 && second < 60
+        ? (hour, minute, second)
+        : null;
+  }
 }
 
 class InboxUseCases {
@@ -357,7 +498,9 @@ class InboxUseCases {
       occurredAt: occurredAt,
       type: parsed.direction == TransactionDirection.incoming
           ? 'income'
-          : 'expense',
+          : parsed.direction == TransactionDirection.outgoing
+          ? 'expense'
+          : 'unknown',
       merchant: parsed.merchant,
       reference: parsed.reference,
       direction: parsed.direction,
@@ -377,6 +520,13 @@ class InboxUseCases {
       id: _stableImportId('$fingerprint:suggestion', importedAt),
       stagedImportId: staged.id,
       draft: draft,
+      extractedEvidence: SmsExtractionEvidence(
+        draft: draft,
+        sourceDate: parsed.sourceDate,
+        sourceTime: parsed.sourceTime,
+        occurredAt: parsed.occurredAt,
+        isTransfer: parsed.isTransfer,
+      ),
     );
     if (repository case final AtomicInboxStaging atomic) {
       return atomic.stageAtomically(staged: staged, suggestion: suggestion);
@@ -394,7 +544,8 @@ class InboxUseCases {
         suggestion.status == SuggestionStatus.rejected) {
       throw const ValidationError('Resolved suggestions cannot be edited');
     }
-    if (draft.stagedImportId != suggestion.stagedImportId) {
+    if (draft.stagedImportId != suggestion.stagedImportId ||
+        draft.id != suggestion.draft.id) {
       throw const ValidationError('Draft does not belong to this import');
     }
     final stored = (await repository.listSuggestions()).firstWhere(
@@ -408,7 +559,12 @@ class InboxUseCases {
         draft.currencyEvidence == null) {
       throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');
     }
-    final edited = suggestion.withDraft(draft);
+    if (stored.revision != suggestion.revision) {
+      throw const ValidationError(
+        'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
+      );
+    }
+    final edited = stored.withDraft(draft);
     await repository.saveSuggestion(edited);
     return edited;
   });
@@ -467,9 +623,9 @@ class InboxUseCases {
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
     }
-    if (suggestion.draft.currencyEvidence?.requiresSelection == true) {
-      throw const ValidationError('واحد مبلغ پیامک را صریحاً انتخاب کنید.');
-    }
+    suggestion.draft.validateConfirmation(
+      extractedEvidence: suggestion.extractedEvidence,
+    );
     if (account.status != FinancialAccountStatus.active) {
       throw const ValidationError('Archived accounts cannot receive imports');
     }
@@ -507,6 +663,15 @@ class InboxUseCases {
         (item) => item.id == entry.id,
       );
     }
+    if (stored.revision != suggestion.revision ||
+        stored.status == SuggestionStatus.rejected) {
+      throw const ValidationError(
+        'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
+      );
+    }
+    stored.draft.validateConfirmation(
+      extractedEvidence: stored.extractedEvidence,
+    );
     await finance.saveEntry(entry);
     await repository.saveSuggestion(
       suggestion.withStatus(SuggestionStatus.confirmed),

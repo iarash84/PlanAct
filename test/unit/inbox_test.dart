@@ -13,41 +13,41 @@ void main() {
     final useCases = InboxUseCases(inbox);
 
     final suggestion = await useCases.stageSms(
-      rawText: 'برداشت مبلغ ۱۲,۵۰۰ فروشگاه: نانوایی 2026-09-20 ref:abc',
+      rawText: 'برداشت مبلغ ۱۲,۵۰۰\nفروشگاه: نانوایی\nتاریخ: 2026-09-20\nساعت: 12:30\nref:abc',
       sourceKey: 'sms-1',
       currency: 'IRR',
       importedAt: DateTime.utc(2026, 9, 21),
     );
 
     expect(suggestion.draft.amount.minorUnits, 12500);
-    expect(suggestion.draft.merchant, 'نانوایی 2026-09-20 ref:abc');
+    expect(suggestion.draft.merchant, 'نانوایی');
     expect(suggestion.status, SuggestionStatus.pending);
     expect((await inbox.listImports()).single.status, StagedItemStatus.pending);
   });
 
-  test(
-    'parses incoming Persian SMS as income without fabricating direction',
-    () {
-      final parsed = const LocalSmsParser().parse(
-        text: 'واریز مبلغ: ۱۲،۵۰۰ بانک: نمونه 2026-09-20 کارت: ****1234',
-        currency: 'IRR',
-      );
-      expect(parsed.amount.minorUnits, 12500);
-      expect(parsed.direction, TransactionDirection.incoming);
-      expect(parsed.accountHint, '****1234');
-    },
-  );
+  test('parses incoming Persian SMS as income without fabricating direction', () {
+    final parsed = const LocalSmsParser().parse(
+      text:
+          'واریز مبلغ: ۱۲،۵۰۰\nبانک: نمونه\nتاریخ: 2026-09-20\nکارت: ****1234',
+      currency: 'IRR',
+    );
+    expect(parsed.amount.minorUnits, 12500);
+    expect(parsed.direction, TransactionDirection.incoming);
+    expect(parsed.accountHint, '****1234');
+  });
 
   test('supports duplicate source keys after a rescan', () async {
     final inbox = InMemoryInboxRepository();
     final useCases = InboxUseCases(inbox);
     final first = await useCases.stageSms(
-      rawText: 'amount 1000 rial 2026-09-20',
+      rawText:
+          'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30',
       sourceKey: 'android-sms:42',
       currency: 'IRR',
     );
     final second = await useCases.stageSms(
-      rawText: 'amount 1000 rial 2026-09-20',
+      rawText:
+          'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30',
       sourceKey: 'android-sms:42',
       currency: 'IRR',
     );
@@ -60,7 +60,8 @@ void main() {
     () async {
       final inbox = InMemoryInboxRepository();
       final useCases = InboxUseCases(inbox);
-      const raw = 'amount 1000 rial 2026-09-20';
+      const raw =
+          'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30';
 
       await useCases.stageSms(
         rawText: raw,
@@ -80,50 +81,49 @@ void main() {
     },
   );
 
-  test(
-    'confirm mutates the finance ledger only after explicit confirmation',
-    () async {
-      final inbox = InMemoryInboxRepository();
-      final finance = InMemoryFinanceRepository();
-      final useCases = InboxUseCases(inbox);
-      final account = FinancialAccount(
-        id: StableId.generate(),
-        name: 'بانک',
-        currency: 'IRR',
-        type: FinancialAccountType.bank,
-      );
-      await finance.saveAccount(account);
-      final suggestion = await useCases.stageSms(
-        rawText: 'amount 2500 rial 2026-09-20',
-        sourceKey: 'sms-1',
-        currency: 'IRR',
-      );
+  test('confirm mutates the finance ledger only after explicit confirmation', () async {
+    final inbox = InMemoryInboxRepository();
+    final finance = InMemoryFinanceRepository();
+    final useCases = InboxUseCases(inbox);
+    final account = FinancialAccount(
+      id: StableId.generate(),
+      name: 'بانک',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    await finance.saveAccount(account);
+    final suggestion = await useCases.stageSms(
+      rawText:
+          'type: withdrawal\namount: 2500 rial\ndate: 2026-09-20\ntime: 12:30',
+      sourceKey: 'sms-1',
+      currency: 'IRR',
+    );
 
-      expect(await finance.listEntries(), isEmpty);
-      await useCases.confirm(
-        suggestion: suggestion,
-        account: account,
-        finance: finance,
-      );
+    expect(await finance.listEntries(), isEmpty);
+    await useCases.confirm(
+      suggestion: suggestion,
+      account: account,
+      finance: finance,
+    );
 
-      expect(await finance.listEntries(), hasLength(1));
-      expect(
-        (await inbox.listSuggestions()).single.status,
-        SuggestionStatus.confirmed,
-      );
-      expect(
-        (await inbox.listImports()).single.status,
-        StagedItemStatus.confirmed,
-      );
-    },
-  );
+    expect(await finance.listEntries(), hasLength(1));
+    expect(
+      (await inbox.listSuggestions()).single.status,
+      SuggestionStatus.confirmed,
+    );
+    expect(
+      (await inbox.listImports()).single.status,
+      StagedItemStatus.confirmed,
+    );
+  });
 
   test('reject preserves staging history and does not write ledger', () async {
     final inbox = InMemoryInboxRepository();
     final finance = InMemoryFinanceRepository();
     final useCases = InboxUseCases(inbox);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 rial 2026-09-20',
+      rawText:
+          'type: withdrawal\namount: 2500 rial\ndate: 2026-09-20\ntime: 12:30',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -145,7 +145,8 @@ void main() {
     final inbox = InMemoryInboxRepository();
     final useCases = InboxUseCases(inbox);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 rial 2026-09-20',
+      rawText:
+          'type: withdrawal\namount: 2500 rial\ndate: 2026-09-20\ntime: 12:30',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -170,31 +171,29 @@ void main() {
     );
   });
 
-  test(
-    'reject then rollback preserves the staged import as historical data',
-    () async {
-      final inbox = InMemoryInboxRepository();
-      final useCases = InboxUseCases(inbox);
-      final suggestion = await useCases.stageSms(
-        rawText: 'amount 2500 rial 2026-09-20',
-        sourceKey: 'sms-1',
-        currency: 'IRR',
-      );
+  test('reject then rollback preserves the staged import as historical data', () async {
+    final inbox = InMemoryInboxRepository();
+    final useCases = InboxUseCases(inbox);
+    final suggestion = await useCases.stageSms(
+      rawText:
+          'type: withdrawal\namount: 2500 rial\ndate: 2026-09-20\ntime: 12:30',
+      sourceKey: 'sms-1',
+      currency: 'IRR',
+    );
 
-      await useCases.reject(suggestion);
-      await useCases.rollback(suggestion);
+    await useCases.reject(suggestion);
+    await useCases.rollback(suggestion);
 
-      expect(await inbox.listImports(), hasLength(1));
-      expect(
-        (await inbox.listImports()).single.status,
-        StagedItemStatus.rolledBack,
-      );
-      expect(
-        (await inbox.listSuggestions()).single.status,
-        SuggestionStatus.pending,
-      );
-    },
-  );
+    expect(await inbox.listImports(), hasLength(1));
+    expect(
+      (await inbox.listImports()).single.status,
+      StagedItemStatus.rolledBack,
+    );
+    expect(
+      (await inbox.listSuggestions()).single.status,
+      SuggestionStatus.pending,
+    );
+  });
 
   test('does not confirm an already confirmed suggestion twice', () async {
     final inbox = InMemoryInboxRepository();
@@ -208,7 +207,8 @@ void main() {
     );
     await finance.saveAccount(account);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 2500 rial 2026-09-20',
+      rawText:
+          'type: withdrawal\namount: 2500 rial\ndate: 2026-09-20\ntime: 12:30',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );
@@ -231,27 +231,23 @@ void main() {
     expect(await finance.listEntries(), hasLength(1));
   });
 
-  test(
-    'expires raw text while preserving fingerprint and decision metadata',
-    () async {
-      final inbox = InMemoryInboxRepository();
-      final useCases = InboxUseCases(inbox);
-      final importedAt = DateTime.utc(2026, 1, 1);
-      await useCases.stageSms(
-        rawText: 'amount 1000 rial 2026-01-01',
-        sourceKey: 'sms-retention',
-        currency: 'IRR',
-        importedAt: importedAt,
-      );
+  test('expires raw text while preserving fingerprint and decision metadata', () async {
+    final inbox = InMemoryInboxRepository();
+    final useCases = InboxUseCases(inbox);
+    final importedAt = DateTime.utc(2026, 1, 1);
+    await useCases.stageSms(
+      rawText:
+          'type: withdrawal\namount: 1000 rial\ndate: 2026-01-01\ntime: 12:30',
+      sourceKey: 'sms-retention',
+      currency: 'IRR',
+      importedAt: importedAt,
+    );
 
-      await useCases.expireRawText(
-        now: importedAt.add(const Duration(days: 31)),
-      );
-      final stored = (await inbox.listImports()).single;
-      expect(stored.rawText, isEmpty);
-      expect(stored.fingerprint, isNotEmpty);
-      expect(stored.retentionStatus, RawTextRetentionStatus.expired);
-      expect(stored.retentionUntil, importedAt.add(const Duration(days: 30)));
-    },
-  );
+    await useCases.expireRawText(now: importedAt.add(const Duration(days: 31)));
+    final stored = (await inbox.listImports()).single;
+    expect(stored.rawText, isEmpty);
+    expect(stored.fingerprint, isNotEmpty);
+    expect(stored.retentionStatus, RawTextRetentionStatus.expired);
+    expect(stored.retentionUntil, importedAt.add(const Duration(days: 30)));
+  });
 }

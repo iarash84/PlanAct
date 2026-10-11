@@ -69,6 +69,7 @@ void main() {
       await tester.pump();
       inbox.delay = Completer<void>();
       await tester.ensureVisible(find.text('رد کردن').first);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('رد کردن').first);
       await tester.pump();
       final second = find.text('رد کردن').at(1);

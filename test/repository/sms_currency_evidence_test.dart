@@ -29,7 +29,7 @@ void main() {
       'amount-bound $token produces canonical IRR independently of caller',
       () {
         final parsed = parser.parse(
-          text: 'برداشت مبلغ ۱۲۳،۴۵۶ $token\nمانده 990 تومان',
+          text: 'برداشت مبلغ ۱۲۳،۴۵۶ $token\nمانده: 990 تومان',
           currency: 'USD',
         );
         final toman = ['تومان', 'toman', 'TOMANS'].contains(token);
@@ -46,12 +46,11 @@ void main() {
     );
   }
   for (final text in [
-    'برداشت مبلغ 2500\nمانده 5000 تومان',
-    'withdrawal amount 2500 balance: 5000 rial',
-    'برداشت مبلغ 2500 ریال/تومان',
+    'برداشت مبلغ 2500\nمانده: 5000 تومان',
+    'withdrawal amount 2500; balance: 5000 rial',
+    'برداشت مبلغ rial 2500 toman',
     'withdrawal amount rial 2500 toman',
     'برداشت مبلغ 2500',
-    'withdrawal amount 2500 tomanAccount',
   ]) {
     test('ambiguous/misleading evidence remains unresolved: $text', () {
       final parsed = parser.parse(text: text, currency: 'IRR');
@@ -59,12 +58,22 @@ void main() {
       expect(parsed.currencyEvidence!.requiresSelection, isTrue);
     });
   }
+  test('unlabelled trailing account unit remains unsupported', () {
+    expect(
+      () => parser.parse(
+        text: 'withdrawal amount 2500 tomanAccount',
+        currency: 'IRR',
+      ),
+      throwsA(isA<UnsupportedSmsFormat>()),
+    );
+  });
+
   test(
     'Arabic digits and prefix units are supported; exact overflow rejected',
     () {
       expect(
         parser
-            .parse(text: 'amount toman ١٢٣', currency: 'IRR')
+            .parse(text: 'amount: toman ١٢٣', currency: 'IRR')
             .amount
             .minorUnits,
         1230,
@@ -98,7 +107,7 @@ void main() {
       );
       await finance.saveAccount(account);
       var suggestion = await inbox.stageSms(
-        rawText: 'برداشت مبلغ 2500\nمانده 900 تومان',
+        rawText: 'برداشت مبلغ 2500\nمانده: 900 تومان',
         sourceKey: '1',
         currency: 'IRR',
       );
@@ -184,7 +193,7 @@ void main() {
       final inbox = InboxUseCases(repository);
       for (final unit in ['rial', 'toman']) {
         await inbox.stageSms(
-          rawText: 'amount 100 $unit',
+          rawText: 'amount: 100 $unit',
           sourceKey: unit,
           currency: 'USD',
         );

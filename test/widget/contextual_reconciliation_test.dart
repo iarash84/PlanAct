@@ -162,7 +162,7 @@ void main() {
     (tester) async {
       final inbox = InboxUseCases(DriftInboxRepository(database));
       await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۲۵۰۰ ریال 2026-09-20',
+        rawText: 'مبلغ: ۲۵۰۰ ریال; نوع: برداشت; تاریخ: 2026-09-20; ساعت: 00:00',
         sourceKey: 'sms:context',
         currency: 'IRR',
         importedAt: DateTime.utc(2026, 9, 20),
@@ -195,10 +195,18 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('تأیید و ثبت'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byType(DropdownButtonFormField<FinancialAccount>),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('حساب آزمون').last);
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(CheckboxListTile));
+      await tester.tap(find.byType(CheckboxListTile));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('تأیید نهایی'));
       await tester.tap(find.text('تأیید نهایی'));
       await tester.pumpAndSettle();
       final imported = (await finance.listEntries()).singleWhere(

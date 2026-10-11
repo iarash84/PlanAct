@@ -35,6 +35,10 @@ FinancialAccount account(String name, {bool archived = false}) =>
     );
 
 Future<void> selectAccount(WidgetTester tester, String name) async {
+  await tester.ensureVisible(
+    find.byType(DropdownButtonFormField<FinancialAccount>),
+  );
+  await tester.pumpAndSettle();
   await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
   await tester.pumpAndSettle();
   await tester.tap(find.text(name).last);
@@ -61,7 +65,7 @@ void main() {
           await finance.saveAccount(account('بایگانی', archived: true));
           await inbox.stageSms(
             rawText:
-                '${incoming ? 'واریز' : 'برداشت'} مبلغ ۲۵۰۰ rial 2026-09-20',
+                '${incoming ? 'واریز' : 'برداشت'} مبلغ ۲۵۰۰ rial\nتاریخ: 2026-09-20\nساعت: 12:30',
             sourceKey: 'sms:route',
             currency: 'IRR',
           );
@@ -95,9 +99,36 @@ void main() {
           );
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
+          await tester.ensureVisible(find.text('ویرایش'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('ویرایش'));
+          await tester.pumpAndSettle();
+          final bankField = find.widgetWithText(TextField, 'نام بانک');
+          await tester.ensureVisible(bankField);
+          await tester.enterText(bankField, 'بانک بررسی‌شده');
+          await tester.tap(find.text('ذخیره و بررسی'));
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          await tester.pumpAndSettle();
+          ScaffoldMessenger.of(tester.element(find.byType(InboxPage)))
+              .removeCurrentSnackBar();
+          await tester.pumpAndSettle();
           await tester.ensureVisible(find.text('تأیید و ثبت'));
           await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید و ثبت'));
+          await tester.pumpAndSettle();
+          for (
+            var i = 0;
+            i < 8 && tester.getCenter(find.byType(Checkbox)).dy > 430;
+            i++
+          ) {
+            await tester.drag(
+              find.byType(Scrollable).last,
+              const Offset(0, -200),
+            );
+            await tester.pumpAndSettle();
+          }
+          await tester.ensureVisible(find.byType(Checkbox));
+          await tester.tap(find.byType(Checkbox));
           await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید نهایی'));
           await tester.pumpAndSettle();
@@ -135,6 +166,11 @@ void main() {
             ).listSuggestions()).single.status,
             SuggestionStatus.confirmed,
           );
+          final durableSuggestion = (await DriftInboxRepository(
+            reopened,
+          ).listSuggestions()).single;
+          expect(durableSuggestion.draft.bank, 'بانک بررسی‌شده');
+          expect(durableSuggestion.extractedEvidence!.draft.bank, isNull);
           await reopened.close();
           await directory.delete(recursive: true);
         });
@@ -152,7 +188,7 @@ void main() {
         final inbox = InboxUseCases(DriftInboxRepository(database));
         await finance.saveAccount(account('قدیمی', archived: true));
         await inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial\nتاریخ: 2026-09-20\nساعت: 12:30',
           sourceKey: 'sms:empty',
           currency: 'IRR',
         );
@@ -167,6 +203,8 @@ void main() {
         await tester.tap(find.text('تأیید و ثبت'));
         await tester.pumpAndSettle();
         expect(find.textContaining('برای ثبت، حساب بسازید'), findsOneWidget);
+        await tester.ensureVisible(find.text('ساخت حساب'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('ساخت حساب'));
         await tester.pumpAndSettle();
         await tester.enterText(
@@ -199,7 +237,7 @@ void main() {
         final selected = account('حساب معتبر');
         await finance.saveAccount(selected);
         await inbox.stageSms(
-          rawText: 'برداشت مبلغ ۲۵۰۰ rial 2026-09-20',
+          rawText: 'برداشت مبلغ ۲۵۰۰ rial\nتاریخ: 2026-09-20\nساعت: 12:30',
           sourceKey: 'sms:retry',
           currency: 'IRR',
         );
@@ -216,7 +254,12 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.textContaining('خواندن حساب‌ها انجام نشد'), findsOneWidget);
         finance.fail = false;
+        await tester.ensureVisible(find.text('تلاش دوباره'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('تلاش دوباره'));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.byType(Checkbox));
+        await tester.tap(find.byType(Checkbox));
         await tester.pumpAndSettle();
         await selectAccount(tester, selected.name);
         await database.customStatement(

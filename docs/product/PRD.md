@@ -572,6 +572,12 @@ Sourceهای احتمالی:
 
 برای هر staged item باید provenance قابل نگهداری باشد.
 
+شواهد اصلی استخراج پیامک، شامل مبلغ و واحد، مانده، جهت و نشانهٔ انتقال، و تاریخ یا ساعت ناقص، باید بدون تغییر و جدا از مقادیر ویرایش‌شده نگهداری شوند. هر ویرایش صریح یک تصویر کامل از مقادیر بررسی‌شده به تاریخچه اضافه می‌کند؛ تأیید مالی باید سازگاری دقیق مبلغ و واحد ریالی را بر اساس دادهٔ پایدار تازه و در همان تراکنش نوشتن بررسی کند.
+
+نبود تاریخ یا ساعت به معنی نیمه‌شب یا زمان استخراج‌شده نیست. زمان دریافت یا زمان با منشأ نامشخص فقط با نمایش پیشنهاد و تأیید صریح کاربر برای ثبت پذیرفته می‌شود؛ انتخاب تاریخ و ساعت جدید منشأ «انتخاب کاربر» دارد و شواهد اصلی را تغییر نمی‌دهد. جهت واریز یا برداشت به‌تنهایی طبقه‌بندی درآمد یا هزینه نیست؛ تأیید نهایی باید طبقه‌بندی مالی را صریحاً بیان کند. شواهد اصلی انتقال، حتی پس از ویرایش جهت، ثبت درآمد یا هزینه را مسدود می‌کند و کاربر را به ثبت انتقال بین دو حساب در بخش مالی راهنمایی می‌کند.
+
+Implementation checkpoint (2026-10-11): bounded labelled synthetic parsing and editable Persian review have automated parser, production persistence/backup and route evidence. This is not actual-bank template coverage or release acceptance. Optional versioned metadata requires no schema migration, but additive read compatibility does not authorize older binaries to write new unknown/transfer/reviewer-provenance drafts. Priority 3 remains Partial / development-only; native/provider, real-bank corpus, downgrade-write and independent acceptance gates remain recorded in [SMS verification](../SMS_VERIFICATION.md).
+
 ---
 
 # 17. Duplicate Detection

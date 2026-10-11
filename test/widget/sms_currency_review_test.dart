@@ -15,7 +15,7 @@ void main() {
       final inbox = InboxUseCases(repository);
       final finance = InMemoryFinanceRepository();
       await inbox.stageSms(
-        rawText: 'برداشت مبلغ 2500\nمانده 900 ریال',
+        rawText: 'برداشت مبلغ 2500\nمانده: 900 ریال',
         sourceKey: 'ambiguous',
         currency: 'IRR',
       );
@@ -36,7 +36,10 @@ void main() {
       await tester.ensureVisible(find.text('ذخیره و بررسی'));
       await tester.tap(find.text('ذخیره و بررسی'));
       await tester.pumpAndSettle();
-      expect(find.text('واحد مبلغ نامشخص است'), findsOneWidget);
+      expect(
+        find.text('واحد مبلغ نامشخص است؛ ریال یا تومان را انتخاب کنید.'),
+        findsOneWidget,
+      );
       expect(
         (await repository.listSuggestions())
             .single
@@ -45,11 +48,7 @@ void main() {
             .requiresSelection,
         isTrue,
       );
-      await tester.tap(find.text('بستن'));
-      await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('ویرایش'));
-      await tester.tap(find.text('ویرایش'));
-      await tester.pumpAndSettle();
+      expect(find.text('ویرایش پیشنهاد تراکنش'), findsOneWidget);
       await tester.ensureVisible(
         find.byType(DropdownButtonFormField<SmsMoneyUnit>),
       );
@@ -64,6 +63,8 @@ void main() {
       expect(selected.draft.amount.minorUnits, 25000);
       expect(selected.draft.currencyEvidence!.selectedUnit, SmsMoneyUnit.toman);
       expect(await finance.listEntries(), isEmpty);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('ویرایش'));
       await tester.tap(find.text('ویرایش'));
       await tester.pumpAndSettle();

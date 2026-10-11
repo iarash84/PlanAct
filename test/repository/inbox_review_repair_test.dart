@@ -132,7 +132,7 @@ void main() {
       final inbox = InboxUseCases(repo);
       final at = DateTime.utc(2026, 1, 1);
       await inbox.stageSms(
-        rawText: 'برداشت مبلغ 1000 2026-01-01',
+        rawText: 'برداشت مبلغ 1000; date: 2026-01-01; time: 12:00',
         sourceKey: 'a',
         currency: 'IRR',
         importedAt: at,

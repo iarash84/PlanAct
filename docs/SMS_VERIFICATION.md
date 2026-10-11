@@ -2,6 +2,315 @@
 
 Status: **Partial implementation, not release complete**.
 
+## Final bounded extraction/review integration validation (2026-10-11)
+
+This section supersedes subtask-only pending parent actions and full-suite limitations
+below; earlier counts are historical evidence, not the final integrated result.
+The acceptance contracts below remain the scope: explicit bounded scan → durable
+original evidence → Persian edit/save → explicit classification/time/account review
+→ transactional confirmation → Inbox/downstream refresh. No automatic ledger writes,
+actual-bank coverage, native release approval or general free-text recovery is claimed.
+
+### Exact final automated evidence
+
+- Scoped formatting covered all **17 changed/new Dart files**: the initial 15 were
+  already formatted; the two integration fixture files were formatted after correction.
+- Full analyzer: **no issues**, final run 8.6 seconds.
+- First full suite: **655 passed, 3 failed** (658 total). Failures were
+  `projects source, deterministic reason, account and duplicate warning` and
+  `confirmation failure does not resolve pending review` in
+  [projection fixtures](../test/unit/inbox_review_projection_test.dart), and
+  `SMS confirmation routes the imported entry, not another transaction` in
+  [contextual route](../test/widget/contextual_reconciliation_test.dart).
+  They used unsupported unlabelled/trailing-date fixture text. Only those SMS fixtures
+  were changed to supported labelled input with explicit units/date/time; the route
+  now scrolls to account selection and performs the required classification acknowledgement.
+  Conservative parser rejection was not weakened. A first focused retry found the
+  account control off-screen (**13 passed, 1 failed**); explicit scrolling fixed that
+  test interaction. Final focused regression run: **14 passed, 0 failed**.
+- Final **full Flutter suite: 658 passed, 0 failed**, 5m31s.
+  Temporary local command-output files were removed after validation; this record
+  retains the results, and the committed tests provide reproducible checks.
+  This includes older schema/migration fixture suites, legacy missing metadata,
+  [full logical backup/restore](../test/repository/backup_full_state_test.dart),
+  [schema compatibility](../test/repository/relationship_schema_fixture_test.dart),
+  and [SMS evidence cold reopen/redacted backup](../test/repository/sms_extracted_evidence_test.dart).
+- Windows cmd output was redirected locally; PowerShell console decoding may render
+  Persian labels incorrectly, so inspect UTF-8 logs in the editor. Tests use synthetic
+  fixtures; no device/provider SMS was read, no sensitive production logging was added.
+  No dependency, schema/table/column, migration or native adapter change was introduced.
+
+### Focused code acceptance self-review (not independent sign-off)
+
+- Reviewed amount/unit edits reconstruct reviewed source amount from exact integer
+  conversion; transactional confirmation revalidates current durable evidence against
+  canonical IRR before writing. Inconsistent, unresolved, zero/negative and stale
+  inputs are tested, including rollback/retry. Original amount/unit remains immutable.
+- Original transfer evidence survives direction edits and blocks both application
+  and direct production repository income/expense admission; route tests assert no write.
+- Partial source date/time remains independently absent/present. No parser-generated
+  midnight or current time becomes extracted evidence. Receipt/unknown proposals are
+  visibly disclosed and require route acknowledgement; explicit corrections retain
+  reviewer provenance. These UI acknowledgements are route gates, not a new persisted
+  acknowledgement field or proof for an alternate future command caller.
+- Original extraction and complete edit/confirmation snapshots survive raw expiry,
+  file-backed reopen and isolated redacted snapshot restore; legacy absence remains
+  unknown and is not reconstructed by reparsing. List/details masking and retained
+  failed-save input have route evidence. Existing refresh/relationship callbacks and
+  contextual imported-entry navigation are included in the final full suite.
+- [PRD](product/PRD.md) and [agent safeguards](../AGENTS.md) now explicitly align
+  immutable evidence, exact amount/unit validation, absent-time semantics, visible
+  proposals and transfer no-write. No material integrity defect was found in this
+  bounded production path during this self-review; this is not an independent review.
+
+### Supported templates, compatibility and exposure decision
+
+Only the **labelled synthetic grammar** specified below is supported: newline/semicolon
+fields, one integer amount, optional separate balance, validated partial/complete
+Jalali/Gregorian date/time, bounded bank/account/reference/merchant evidence and the
+listed compact amount forms. Unsupported prose, duplicate amounts, malformed units,
+OTP/failure notices and unknown labels remain conservative false negatives. This is
+not a verified bank catalogue, authenticated sender, ownership check or lossless import.
+
+SQLite remains schema 18. Optional version-1 metadata fields and an appended reviewer
+provenance enum require no schema migration. Older readers may ignore optional fields,
+but older writers may drop new evidence or bypass unknown/transfer admission (and may
+not understand reviewer provenance). **Downgrade-write safety is unproven; do not approve
+older binaries to write these drafts.** Existing schema tests do not prove that safety.
+
+| Open gate | Owner / next action | Exposure decision |
+| --- | --- | --- |
+| Real-bank corpus and unsupported-message product coverage | Product/domain maintainer: approve a privacy-safe representative corpus and supported-template matrix; evaluate false negatives and sender/transfer ambiguity | Synthetic templates only, development-only |
+| Provider compatibility, permission revocation, process death, delayed/multipart rows and performance | Android integration maintainer + release QA: execute isolated reference-device scenarios and measure the stated budgets below | Native acceptance unexecuted; release blocker |
+| Identity and downgrade semantics | Product/domain + persistence maintainer: approve identical-body identity policy and test older-reader/writer compatibility, including reviewer provenance | No lossless-import or downgrade-write claim |
+| Full restore replacement/rebind and device-loss journey | Backup maintainer + release QA: run isolated native restore, rebind and command-exclusion checks | Logical snapshot tests are not native restore acceptance |
+| Keyboard/accessibility, real time-zone/provider behavior and independent acceptance | Release QA/product reviewer: independently execute narrow RTL Light/Dark review journeys and counterexamples on the reference device | Widget/self-review evidence only; release blocker |
+
+Implementation: bounded extraction/review vertical path implemented. Verification:
+full automated suite/analyzer passing. Readiness: **Partial / development-only**;
+all native and independent gates above remain unexecuted, with no release sign-off.
+
+## Conservative labelled parser acceptance contract (2026-10-11)
+
+Recorded before implementation. Parent outcome: Persian editable banking-SMS review
+with durable extraction evidence, not automatic financial ingestion. Entry is Inbox
+explicit bounded scan (permission is separate consent) → stage → review/edit → explicit
+confirm → atomic ledger write → Inbox/Finance/Today refresh. An active compatible
+financial account and explicit resolution of unknown direction/unit/date are required.
+Cancel must not write a ledger entry; failed edits/confirmation retain input for retry;
+confirmed corrections use Finance, not Inbox deletion. Unknown/transfer direction must
+block confirmation until explicitly resolved, never default to expense or income.
+
+Parser subtask only: deterministic offline labelled synthetic templates, integer
+amount/unit evidence, separate balance, bounded bank/account/reference/merchant fields,
+Persian/Arabic/Latin digits, validated Gregorian/Jalali dates and times. Multiple
+transaction amounts, unsupported free prose, OTP, failed and nonfinancial notifications
+are rejected. Missing time yields absent occurredAt, not midnight. No bank sender
+verification or actual-bank coverage is claimed. No cloud, logging or raw account
+previews are introduced. Sensitive extracted account hints are evidence, not UI copy.
+
+Parent owns domain/editable evidence, transactional admission, UI and persistence:
+extraction and explicit corrections must survive cold restart/raw expiry and personal
+backup with legacy unknown compatibility; receipt fallback must be visibly proposed.
+Parser changes must not rewrite old drafts/history. Evidence required: synthetic parser
+counterexamples; parent production cold-reopen/backup/rollback tests; route-level
+scan/edit/cancel/retry/confirm and downstream refresh; isolated provider/device and
+independent acceptance. This subtask provides only parser foundation evidence.
+
+Existing trace: explicit scan calls staging; parser result populates draft; repository
+atomic staging writes import/suggestion; UI review invokes edit/confirm; atomic
+confirmation writes ledger and status. Existing stage maps unknown direction to expense
+and confirm does not guard unknown direction. Owner: parent domain/application agent;
+next action: remove fallback and enforce fresh durable unknown admission before exposing
+this capability. New optional parser evidence needs explicit parent persistence wiring.
+Exposure: development-only partial checkpoint; no release approval until parent and
+existing native/independent gates pass. No schema, dependency, UI or InboxUseCases change
+is authorized in this parser subtask.
+
+## Editable Persian review UI acceptance contract (2026-10-11)
+
+Entry: persisted Inbox suggestion → edit sheet → save reviewed draft → explicit
+confirmation with compatible account → atomic ledger write → Inbox refresh and
+existing downstream refresh callback. Permission/scan are not prerequisites for
+review. Original extraction remains immutable; bank/account hint, amount/unit,
+merchant/reference, direction and Jalali transaction date/time are editable.
+Missing message date/time are disclosed independently; no missing time is invented.
+Receipt/import fallback requires an explicit reviewer acknowledgement before ledger
+confirmation. Deposit/withdrawal evidence is not presented as automatic accounting
+classification; final confirmation names income/expense. Unknown stays selectable,
+and original transfer evidence blocks writes with guidance to Finance transfer.
+Cancel writes nothing. Validation/write errors retain sheet values for retry.
+Lists omit raw account/reference/message text; details mask sensitive evidence and
+separate original extraction from review. Reuse shared form/theme/date/time APIs.
+No schema/dependency/native/parser expansion. Existing durable evidence/revision and
+backup safeguards apply. Required evidence: route edit/cancel/error/retry/confirm,
+bank/date/time corrections, ambiguous unit independent of display preference,
+transfer no-write, masking, narrow RTL Light/Dark large text. Parent owns full-suite
+validation; release QA owns native/provider/restore/accessibility and independent
+acceptance. Exposure remains the existing development-only Partial checkpoint.
+
+## Editable review UI verification checkpoint (2026-10-11)
+
+Implemented scope: the [Inbox route](../lib/features/inbox/presentation/inbox_page.dart)
+opens the bounded stateful [review editor](../lib/features/inbox/presentation/sms_review_editor.dart).
+Validation and asynchronous edit errors retain all inputs; successful edit alone does
+not create a ledger entry. Bank/account hint, amount/unit, description/reference,
+unknown/deposit/withdrawal direction and shared Jalali date/time controls are editable.
+Partial original date/time remains distinct from receipt proposals; changing the
+transaction timestamp requires both explicit date and time. Final confirmation requires
+explicit income/expense acknowledgement and, for receipt/unknown provenance, a separate
+time acknowledgement. Acknowledgement permits that proposed timestamp for this write;
+it does not relabel the immutable original as extracted. Explicit date/time corrections
+persist reviewer provenance. Original transfer evidence remains blocking after edits.
+Lists omit account/reference/raw message text; details show masked original/current
+identifiers and separate original/current evidence. Editable fields intentionally expose
+the reviewer-controlled identifiers only inside the edit sheet.
+
+Evidence: [editable review journeys](../test/widget/sms_editable_review_test.dart)
+cover failed save retaining bank/account fields, retry, original preservation, Settings
+toman versus SMS rial independence, absent source time, Jalali picker confirmation,
+explicit time selection, incomplete timestamp rejection, unknown direction admission,
+classification/receipt acknowledgement gates, cancellation and transfer no-write after
+edited direction. Transfer journeys exercise 320dp RTL at 1.8 text scale in Light/Dark;
+they exposed filter overflow, fixed with expanded wrapping dropdowns without shrinking
+text. [Production account journeys](../test/widget/inbox_account_selection_test.dart)
+exercise edit → explicit classification/account → ledger, single refresh/relationship
+callback, cold reopen preserving reviewed bank versus original, cancellation,
+account-read retry, atomic failure retry and archival admission. Existing
+[currency review](../test/widget/sms_currency_review_test.dart) and
+[queue concurrency/lifecycle journeys](../test/widget/inbox_review_repair_test.dart)
+remain passing. The escaped editor defect was validation after popping; route-level
+invalid-unit/save-failure assertions now require the same sheet and values to remain.
+
+Validation: scoped formatting clean; scoped Flutter analyzer **no issues**; eight focused
+parser/domain/repository/widget files **81 tests passed**. No dependency, migration,
+schema or native adapter change was introduced by this UI slice. Durable evidence and
+backup preservation are supplied by the foundation below, not by in-memory widget tests.
+No new PRD/AGENTS semantic rule is required: this implements their existing explicit
+review, immutable evidence, privacy and no-hidden-time safeguards.
+
+Readiness remains **Partial / development-only**, not independent release sign-off.
+Parent owns the next full-suite run and cross-feature acceptance. Release QA owns native
+SMS/provider/permission, real-bank corpus, device keyboard/accessibility and restore
+journeys plus independent acceptance. Those existing gates remain release blockers;
+this scoped UI evidence does not close them. The 320dp layout evidence is not an
+app-wide visual audit or native accessibility certification.
+
+## Durable extraction / reviewed state foundation (2026-10-11)
+
+Scope: domain/application/production Drift only; parent UI owns explicit date/unit/type
+review and all route feedback. This implements the existing acceptance contract above,
+not the complete user capability. Unknown direction stages as unknown, never expense.
+Transfer evidence blocks income/expense confirmation even after a reviewer selects a
+different type; a transfer-ledger path is deliberately outside this slice.
+
+Original evidence is established once at staging in optional
+[InboxSuggestion.extractedEvidence](../lib/features/inbox/domain/inbox.dart:237), using
+[SmsExtractionEvidence](../lib/features/inbox/domain/inbox.dart:260). Its original draft
+contains amount/unit, balance, bank/account hint, direction/quality/confidence,
+merchant/reference and receipt/date provenance. Separate sourceDate/sourceTime retain
+validated original partial calendar text. Evidence occurredAt is the original complete
+parsed timestamp or absent, never the reviewed draft's receipt/import fallback. The
+editable draft is distinct. Reviewer date source is appended after the three existing
+[TransactionDateSource](../lib/features/inbox/domain/inbox.dart:22) values; old indices stay
+stable. Parent must label receipt proposals and explicitly capture reviewer date origin;
+this foundation does not claim a route-level fallback acknowledgement gate.
+
+Production edits compare revision and stable identities transactionally, preserve the
+original extractedEvidence metadata regardless of supplied replacements, and append a
+complete reviewed snapshot. Confirmation validates fresh durable type, positive bounded
+integer amount, exact IRR reviewed amount/unit consistency, original transfer flag,
+revision, account and entry details before ledger/status/history commit. Failed edits
+and confirmation roll back metadata/history with rows and ledger; retry remains possible.
+Reviewed currency evidence may change with an explicit amount/unit correction; original
+currency evidence remains immutable in extractedEvidence. No Settings dependency,
+cloud, sensitive logs, dedup identity change or raw-text retention change was added.
+
+Compatibility: optional extractedEvidence/reviewed/history snapshot fields extend the
+existing version-1 per-item metadata. No table/column change, migration, schema-version
+bump or dependency is needed. Readers lacking these fields still read the unchanged
+rows and recognized v1 metadata. Missing old fields remain unknown, without reparsing
+raw SMS or manufacturing original evidence on the first edit. Existing unknown keys and
+history survive current writes. This is additive read compatibility, not semantic
+permission to confirm new unknown/transfer drafts with older binaries; downgrade write
+safety and complete parent UI acceptance are not claimed.
+
+Evidence: [production regression tests](../test/repository/sms_extracted_evidence_test.dart)
+cover date-only/time-only evidence, immutable original versus corrected review,
+unknown/transfer admission, invalid amount/unit, stale edit/confirmation, transactional
+failure/retry, raw expiry, file-backed cold reopen, legacy missing v1 fields and metadata,
+and isolated production redacted snapshot reopen with full original/reviewed history
+and ledger preservation. Existing parser/staging/replay/review/currency/scan regressions
+are run as well. Only relevant legacy repository fixture grammar was adjusted; malformed
+unlabelled currency tails remain rejection tests. The escaped defect was stage/confirm
+assuming non-incoming meant expense; explicit unknown/transfer repository admission now
+has regression coverage independent of parser direction fixtures.
+
+Validation for this slice: final focused parser/domain/production staging, confirmation,
+review, currency, replay and bounded-ingestion run **85 passed**; full Flutter analysis
+reported no issues. Scoped formatting and whitespace checks passed. Full application
+suite, new parent route journeys and native checks were not executed for this slice.
+
+Status: implemented foundation, automated evidence only. Owner: parent UI/application
+integration maintainer; next action: wire original-versus-reviewed presentation,
+explicit unknown/unit/date review, retained input/error/retry, and test downstream refresh.
+Owner: release QA; next action: independent review and isolated native provider/restore
+checks already listed here. Exposure remains development-only Partial, not release-ready.
+No UI/native edits, full-suite claim, device-loss restore proof or independent sign-off.
+
+## Conservative parser implementation / exact supported synthetic grammar
+
+- At most 4096 characters. Fields are separated by newline or semicolon (Latin or
+  Persian). Every field uses colon/full-width colon; surrounding whitespace is
+  ignored. Duplicate fields/aliases are rejected, including equal repeated amounts.
+- Labels: amount/مبلغ; balance/مانده/موجودی; type/نوع; bank/بانک;
+  account/card/حساب/کارت; reference/ref/پیگیری/شناسه;
+  merchant/پذیرنده/فروشگاه; date/تاریخ; time/ساعت. English is case-insensitive.
+  Unknown labels or unlabelled prose are unsupported, not heuristically interpreted.
+- Compact alternative: برداشت, واریز, خرید, پرداخت, withdrawal, deposit or purchase,
+  followed by مبلغ/amount, optional colon and one amount. Other fields still require
+  separate labelled segments. This is synthetic compatibility, not a bank template.
+- One positive integer transaction amount; optional prefix/suffix unit ریال, تومان,
+  rial(s), toman(s), IRR. Ungrouped digits or three-digit comma/Arabic comma/Arabic
+  thousands grouping; Persian, Arabic and Latin digits normalize exactly. Fractions,
+  malformed grouping and signed/overflow amounts are rejected. Canonical IRR uses
+  exact integer conversion. Missing/conflicting unit stays unknown; both potential
+  interpretations must fit signed 64-bit storage. Balance is separate, zero allowed,
+  and requires an unambiguous explicit unit; it never becomes transaction amount.
+- Direction values: واریز/deposit/credit incoming; برداشت/خرید/پرداخت/withdrawal/
+  purchase/debit outgoing; missing, unknown/نامعلوم, انتقال/کارت به کارت/transfer
+  unknown. Transfers additionally set the transfer evidence flag. Unsupported type
+  values and OTP/password/failure/notification markers are rejected conservatively.
+- Date: four-digit year and two-digit month/day, slash or hyphen (same separator).
+  1300–1499 is explicitly the synthetic Jalali range; 2000–2099 Gregorian. Impossible
+  days/leap dates are rejected. Time: HH:mm or HH:mm:ss, 00–23/00–59/00–59. Missing
+  date/time preserves absence; explicit 00:00 is valid. Complete timestamps are local
+  wall clock, not UTC or sender-zone evidence; no timezone is inferred. Parent must
+  retain/propose time semantics explicitly; timezone/DST/device behavior is not proven.
+- Account evidence: 4–32 digits/asterisks or IR plus 24 digits, no trailing text;
+  reference: 1–64 ASCII letters/digits/underscore/hyphen. Bank max 40 and merchant max
+  80 Persian/Arabic/Latin letters/spaces (ZWNJ allowed), no colon/digits/free-line tail.
+  No sender authentication, account ownership, actual-bank catalogue or unsupported
+  free-prose recovery is provided. Conservative false negatives are intentional.
+
+Changed scope: parser sections of the existing application file, synthetic unit test,
+existing inbox unit fixture strings, this verification record. InboxUseCases is
+unchanged. ParsedSms adds optional sourceDate/sourceTime (normalized validated original
+calendar text, no generated time) and isTransfer (default false). Existing balance now
+populates separately. Parent must carry these through durable editable evidence;
+parser fields alone do not persist. No schema/migration/dependency/UI/native change.
+
+Evidence: tests added first: baseline 7 passed / 30 failed, exposing first-amount,
+balance, date normalization and missing-time assumptions. Final focused parser plus
+Inbox unit suite: 47 passed; analyzer clean; format and whitespace checks passed.
+Old Inbox unit fixtures were deliberately changed from unsupported free prose to
+labelled synthetic input; merchant assertion no longer includes the remaining line.
+Other repository/widget/currency fixtures with unlabelled trailing dates/free prose
+need parent coordination before full-suite acceptance; they were not changed here.
+No full suite, production restart/backup, native provider or independent review was
+performed for this subtask. Status: parser foundation verified locally; vertical
+slice and release acceptance remain Partial with parent-owned admission/evidence gates.
+
 ## Independent Inbox review repair acceptance contract (2026-10-11)
 
 Entry: Inbox review queue after explicit import; reviewing persisted suggestions

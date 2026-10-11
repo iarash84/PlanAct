@@ -53,6 +53,8 @@ class DriftInboxRepository
         'revision': metadata['revision'],
         'action': action,
         'at': DateTime.now().toUtc().toIso8601String(),
+        if (action == 'edited' || action == 'confirmed')
+          'reviewed': metadata['reviewed'],
       },
     ];
     await database.writeMetadata(_key(id), jsonEncode(metadata));
@@ -213,6 +215,17 @@ class DriftInboxRepository
         return persisted.single;
       }
       final metadata = await _metadata(suggestion.id);
+      final fresh = (await listSuggestions()).firstWhere(
+        (s) => s.id == suggestionId,
+      );
+      fresh.draft.validateConfirmation(
+        extractedEvidence: fresh.extractedEvidence,
+      );
+      if (entry.type != AccountEntryType.income &&
+          entry.type != AccountEntryType.expense) {
+        throw const ValidationError('نوع تراکنش در این مسیر پشتیبانی نمی‌شود.');
+      }
+      metadata['reviewed'] = fresh.draft.toReviewJson();
       final currencyEvidence = metadata['currencyEvidence'];
       if (currencyEvidence != null &&
           SmsCurrencyEvidence.fromJson(currencyEvidence as Map<String, dynamic>)
@@ -316,6 +329,11 @@ class DriftInboxRepository
             stagedImportId: StableId.parse(row.stagedImportId),
             status: SuggestionStatus.values[row.status],
             revision: metadata['revision'] as int,
+            extractedEvidence: metadata['extractedEvidence'] == null
+                ? null
+                : SmsExtractionEvidence.fromJson(
+                    metadata['extractedEvidence'] as Map<String, dynamic>,
+                  ),
             draft: TransactionDraft(
               id: StableId.parse(row.draftId),
               stagedImportId: StableId.parse(row.stagedImportId),
@@ -400,6 +418,17 @@ class DriftInboxRepository
           'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
         );
       }
+      if (stored != null &&
+          (stored.draftId != suggestion.draft.id.value ||
+              stored.stagedImportId != suggestion.stagedImportId.value ||
+              suggestion.status != SuggestionStatus.edited)) {
+        throw const ValidationError('شناسه یا وضعیت پیشنهاد قابل تغییر نیست.');
+      }
+      // Only staging establishes original evidence. Legacy absence stays unknown.
+      if (stored == null) {
+        metadata['extractedEvidence'] = suggestion.extractedEvidence?.toJson();
+      }
+      metadata['reviewed'] = suggestion.draft.toReviewJson();
       if (metadata['currencyEvidence'] != null &&
           suggestion.draft.currencyEvidence == null) {
         throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');

@@ -901,6 +901,16 @@ origin through personal backup; missing legacy metadata means unknown, not infer
 values or rewritten dates. Receipt fallback dates must be visibly proposed before
 financial confirmation. Review pending/error/retry belongs to the item, not a global
 queue lock; refresh must retain browsing/form context and discard stale results.
+Original SMS extraction is immutable and separate from reviewed snapshots, including
+partial source date/time, amount/unit, balance and transfer evidence. Explicit edits
+append complete reviewed snapshots; confirmation validates fresh durable exact IRR
+amount/unit consistency transactionally. Missing date/time must not become extracted
+midnight or receipt evidence; receipt/unknown timestamps require visible explicit
+acknowledgement, and timestamp corrections retain reviewer provenance. Original
+transfer evidence blocks income/expense writes even after direction edits; guide the
+user to Finance transfer instead. Additive metadata and appended enum values are not
+proof of semantic downgrade safety; older binaries must not be approved to write these
+new drafts without compatibility acceptance. See [SMS verification](docs/SMS_VERIFICATION.md).
 
 ## Offline Iranian holiday safeguards
 
