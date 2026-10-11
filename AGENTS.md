@@ -152,6 +152,8 @@ Allowed entry concepts include:
 
 Never maintain a second independent mutable “remaining sessions” counter as a source of truth. A cached value is allowed only if it is rebuildable and verified against the ledger.
 
+Independent correction checkpoint: count termination and package credit are separate preview/confirmation commands. Signed Adjustment units correct granted credit, never consumption; other ledger concepts retain positive units and persisted enum indices stay stable. Fresh transactional writer admission, protected history, append-only audit and post-commit reminder reconciliation are required. The bounded experimental Details path is Partial, with older-reader compatibility and independent acceptance gates recorded in [correction verification](docs/COMMITMENT_CORRECTION_VERIFICATION.md); schema compatibility alone does not prove semantic downgrade safety.
+
 ### 6.5 Financial balance is ledger-based
 
 Financial accounts include bank accounts, cash wallets, digital wallets, and potentially credit accounts later.

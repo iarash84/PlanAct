@@ -1,3 +1,5 @@
+import 'package:planact/features/commitments/data/drift_commitment_correction_repository.dart';
+import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
 import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
@@ -1299,6 +1301,22 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           else
             TagLabels(labels: widget.commitment.tags),
           const SizedBox(height: PlanActSpacing.lg),
+          if (widget.planRepository
+              case final DriftCommitmentPlanRepository plans)
+            CommitmentCorrectionCard(
+              repository: DriftCommitmentCorrectionRepository(plans.database),
+              commitmentId: widget.commitment.id,
+              reminders:
+                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                  ? (widget.occurrenceExecutor
+                            as PersistedOccurrenceActionExecutor)
+                        .reminders
+                  : null,
+              onSaved: () async {
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
+            ),
           FutureBuilder<CommitmentPlan?>(
             future: widget.planRepository.findByCommitmentId(
               widget.commitment.id,

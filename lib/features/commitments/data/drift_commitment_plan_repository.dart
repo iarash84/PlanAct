@@ -187,7 +187,11 @@ class DriftCommitmentPlanRepository
       });
 
   @override
-  Future<int> extendRecurringSchedules(LocalDate today) => CommandGate.runFor(
+  Future<int> extendRecurringSchedules(
+    LocalDate today, {
+    StableId? cycleId,
+    StableId? scheduleId,
+  }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
       // Acquire SQLite's writer before reading: admission is not serialization.
@@ -198,6 +202,7 @@ class DriftCommitmentPlanRepository
       final cycles = await database.select(database.commitmentCycles).get();
       var inserted = 0;
       for (final cycle in cycles) {
+        if (cycleId != null && cycle.id != cycleId.value) continue;
         if (cycle.status != CommitmentCycleStatus.active.index) continue;
         final owner = await DriftCommitmentRepository(database)
             .findById(StableId.parse(cycle.commitmentId));
@@ -218,6 +223,7 @@ class DriftCommitmentPlanRepository
               : LocalDate.fromDateTime(value as DateTime);
         }).toSet();
         for (var i = 0; i < rows.length; i++) {
+          if (scheduleId != null && rows[i].id != scheduleId.value) continue;
           var schedule = _schedule(rows[i]);
           if (schedule.mode == ScheduleMode.oneOff) continue;
           var through = today.addDays(schedule.generationHorizonDays);

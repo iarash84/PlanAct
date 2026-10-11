@@ -369,6 +369,8 @@ Termination:
 - دادهٔ قدیمی بدون تقویم صریح معنای میلادی قبلی را حفظ می‌کند. اصلاح تاریخ‌های قبلاً ذخیره‌شده یا تبدیل قانون قدیمی به جلالی خودکار نیست و نیازمند مسیر تأیید صریح جداگانه است؛ تاریخچه، رخداد دستی و نتیجهٔ ثبت‌شده بازنویسی نمی‌شوند.
 - وضعیت این اصلاح **Partial برای پذیرش انتشار** است؛ شواهد نرم‌افزاری، محدودیت‌ها و بررسی‌های بومی و مستقل باقی‌مانده در [گزارش تکرار ماهانه/سالانه](../MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md) ثبت شده‌اند.
 
+Independent correction checkpoint (2026-10-11): Details has a bounded experimental path separating fixed-count schedule correction from package-credit adjustment. Count correction preserves the recurrence anchor and starts its new version tomorrow; credit correction appends signed Adjustment entries without rewriting consumption or the original package declaration. Both require preview and explicit confirmation, preserve history and reject incompatible decreases. Acceptance is **Partial**, not release-ready: older-reader compatibility, independent writer-contention evidence, full downstream journeys and native checks remain open. See [correction verification](../COMMITMENT_CORRECTION_VERIFICATION.md) for evidence, owners and the development-only exposure decision.
+
 ---
 
 # 9. Schedule Editing
