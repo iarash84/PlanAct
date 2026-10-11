@@ -195,6 +195,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('تأیید و ثبت'));
       await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('حساب آزمون').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
       final imported = (await finance.listEntries()).singleWhere(
         (e) => e.id != transaction.id,
       );

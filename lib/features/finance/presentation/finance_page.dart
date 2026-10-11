@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -19,6 +20,43 @@ import 'package:planact/features/finance/application/financial_expectation_use_c
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/domain/finance_reports.dart';
+
+/// Keep the calling draft mounted while using the existing Finance account form.
+Future<void> openFinancialAccountCreation(
+  BuildContext context,
+  FinanceRepository repository,
+) async {
+  await Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => _AccountCreationRoute(repository: repository),
+    ),
+  );
+}
+
+class _AccountCreationRoute extends StatefulWidget {
+  const _AccountCreationRoute({required this.repository});
+  final FinanceRepository repository;
+  @override
+  State<_AccountCreationRoute> createState() => _AccountCreationRouteState();
+}
+
+class _AccountCreationRouteState extends State<_AccountCreationRoute> {
+  final _key = GlobalKey<FinancePageState>();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _key.currentState?.openAccountForm();
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('حساب‌های مالی')),
+    body: FinancePage(key: _key, repository: widget.repository),
+  );
+}
 
 class FinancePage extends StatefulWidget {
   const FinancePage({
@@ -47,6 +85,9 @@ class FinancePageState extends State<FinancePage> {
     required bool income,
     Set<String> initialTags = const {},
   }) => _recordTransaction(income: income, initialTags: initialTags);
+
+  Future<void> openAccountForm() => _addAccount();
+  Future<void> refreshData() => _refresh();
 
   static const _logger = AppLogger();
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
@@ -196,6 +237,7 @@ class FinancePageState extends State<FinancePage> {
     final opening = TextEditingController();
     var type = FinancialAccountType.cash;
     IranianBank? bank;
+    TransitionRoute<dynamic>? accountRoute;
     try {
       final result =
           await showModalBottomSheet<
@@ -204,99 +246,108 @@ class FinancePageState extends State<FinancePage> {
             context: context,
             isScrollControlled: true,
             useSafeArea: true,
-            builder: (context) => StatefulBuilder(
-              builder: (context, setDialogState) => PlanActFormSheet(
-                title: 'افزودن حساب',
-                primaryLabel: 'افزودن',
-                onPrimary: () {
-                  if (name.text.trim().isNotEmpty) {
-                    Navigator.pop(context, (
-                      name: name.text.trim(),
-                      type: type,
-                      bank: bank,
-                    ));
-                  }
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: name,
-                      autofocus: true,
-                      onChanged: (value) {
-                        final detected = IranianBank.detect(value);
-                        if (detected != null && bank != detected) {
-                          setDialogState(() {
-                            bank = detected;
-                            type = FinancialAccountType.bank;
-                          });
-                        }
-                      },
-                      decoration: const InputDecoration(labelText: 'نام حساب'),
-                    ),
-                    DropdownButtonFormField<FinancialAccountType>(
-                      initialValue: type,
-                      decoration: const InputDecoration(labelText: 'نوع حساب'),
-                      items: const [
-                        DropdownMenuItem(
-                          value: FinancialAccountType.cash,
-                          child: Text('نقدی'),
-                        ),
-                        DropdownMenuItem(
-                          value: FinancialAccountType.bank,
-                          child: Text('بانکی'),
-                        ),
-                        DropdownMenuItem(
-                          value: FinancialAccountType.digitalWallet,
-                          child: Text('کیف پول'),
-                        ),
-                        DropdownMenuItem(
-                          value: FinancialAccountType.credit,
-                          child: Text('اعتباری'),
-                        ),
-                      ],
-                      onChanged: (value) => setDialogState(() {
-                        type = value ?? FinancialAccountType.cash;
-                        bank = type == FinancialAccountType.bank
-                            ? IranianBank.detect(name.text)
-                            : null;
-                      }),
-                    ),
-                    if (type == FinancialAccountType.bank)
-                      DropdownButtonFormField<IranianBank?>(
-                        initialValue: bank,
+            builder: (context) {
+              accountRoute =
+                  ModalRoute.of(context) as TransitionRoute<dynamic>?;
+              return StatefulBuilder(
+                builder: (context, setDialogState) => PlanActFormSheet(
+                  title: 'افزودن حساب',
+                  primaryLabel: 'افزودن',
+                  onPrimary: () {
+                    if (name.text.trim().isNotEmpty) {
+                      Navigator.pop(context, (
+                        name: name.text.trim(),
+                        type: type,
+                        bank: bank,
+                      ));
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: name,
+                        autofocus: true,
+                        onChanged: (value) {
+                          final detected = IranianBank.detect(value);
+                          if (detected != null && bank != detected) {
+                            setDialogState(() {
+                              bank = detected;
+                              type = FinancialAccountType.bank;
+                            });
+                          }
+                        },
                         decoration: const InputDecoration(
-                          labelText: 'بانک (اختیاری)',
+                          labelText: 'نام حساب',
                         ),
-                        items: [
-                          const DropdownMenuItem<IranianBank?>(
-                            value: null,
-                            child: Text('بدون انتخاب'),
+                      ),
+                      DropdownButtonFormField<FinancialAccountType>(
+                        initialValue: type,
+                        decoration: const InputDecoration(
+                          labelText: 'نوع حساب',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: FinancialAccountType.cash,
+                            child: Text('نقدی'),
                           ),
-                          ...IranianBank.values.map(
-                            (item) => DropdownMenuItem<IranianBank?>(
-                              value: item,
-                              child: Text(item.label),
-                            ),
+                          DropdownMenuItem(
+                            value: FinancialAccountType.bank,
+                            child: Text('بانکی'),
+                          ),
+                          DropdownMenuItem(
+                            value: FinancialAccountType.digitalWallet,
+                            child: Text('کیف پول'),
+                          ),
+                          DropdownMenuItem(
+                            value: FinancialAccountType.credit,
+                            child: Text('اعتباری'),
                           ),
                         ],
-                        onChanged: (value) =>
-                            setDialogState(() => bank = value),
+                        onChanged: (value) => setDialogState(() {
+                          type = value ?? FinancialAccountType.cash;
+                          bank = type == FinancialAccountType.bank
+                              ? IranianBank.detect(name.text)
+                              : null;
+                        }),
                       ),
-                    TextField(
-                      controller: opening,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: const [MoneyInputFormatter()],
-                      decoration: const InputDecoration(
-                        labelText: 'موجودی اولیه (اختیاری)',
-                        suffixText: 'ریال',
+                      if (type == FinancialAccountType.bank)
+                        DropdownButtonFormField<IranianBank?>(
+                          initialValue: bank,
+                          decoration: const InputDecoration(
+                            labelText: 'بانک (اختیاری)',
+                          ),
+                          items: [
+                            const DropdownMenuItem<IranianBank?>(
+                              value: null,
+                              child: Text('بدون انتخاب'),
+                            ),
+                            ...IranianBank.values.map(
+                              (item) => DropdownMenuItem<IranianBank?>(
+                                value: item,
+                                child: Text(item.label),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) =>
+                              setDialogState(() => bank = value),
+                        ),
+                      TextField(
+                        controller: opening,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: const [MoneyInputFormatter()],
+                        decoration: const InputDecoration(
+                          labelText: 'موجودی اولیه (اختیاری)',
+                          suffixText: 'ریال',
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           );
+      await accountRoute?.completed;
       final value = int.tryParse(opening.text.replaceAll(',', '').trim());
       if (result == null || result.name.isEmpty) return;
       if (opening.text.trim().isNotEmpty && value == null) {
@@ -337,14 +388,9 @@ class FinancePageState extends State<FinancePage> {
     Set<String> initialTags = const {},
   }) async {
     var draftTags = {...initialTags};
-    if (_accounts.isEmpty) {
-      _showMessage('ابتدا یک حساب اضافه کنید.');
-      return;
-    }
     final amount = TextEditingController();
     final note = TextEditingController();
-    final formAccounts = List<FinancialAccount>.of(_accounts);
-    var account = formAccounts.first;
+    FinancialAccount? account;
     var occurredAt = DateTime.now();
     String? formError;
     var saving = false;
@@ -367,6 +413,13 @@ class FinancePageState extends State<FinancePage> {
                 isLoading: saving,
                 onPrimary: () async {
                   if (saving) return;
+                  final selectedAccount = account;
+                  if (selectedAccount == null) {
+                    setDialogState(
+                      () => formError = 'حساب مالی را انتخاب کنید.',
+                    );
+                    return;
+                  }
                   final value = int.tryParse(
                     MoneyInputFormatter.normalize(amount.text),
                   );
@@ -380,13 +433,13 @@ class FinancePageState extends State<FinancePage> {
                   });
                   try {
                     await _finance.record(
-                      account: account,
+                      account: selectedAccount,
                       type: income
                           ? AccountEntryType.income
                           : AccountEntryType.expense,
                       amount: Money(
                         minorUnits: value,
-                        currency: account.currency,
+                        currency: selectedAccount.currency,
                       ),
                       occurredAt: occurredAt,
                       note: note.text.trim().isEmpty ? null : note.text.trim(),
@@ -413,22 +466,15 @@ class FinancePageState extends State<FinancePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    DropdownButtonFormField<FinancialAccount>(
-                      initialValue: account,
-                      decoration: const InputDecoration(labelText: 'حساب'),
-                      items: formAccounts
-                          .map(
-                            (item) => DropdownMenuItem(
-                              value: item,
-                              child: Text(item.name),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setDialogState(() => account = value);
-                        }
-                      },
+                    FinancialAccountPicker(
+                      repository: widget.repository,
+                      enabled: !saving,
+                      onChanged: (value) =>
+                          setDialogState(() => account = value),
+                      onCreateAccount: () => openFinancialAccountCreation(
+                        context,
+                        widget.repository,
+                      ),
                     ),
                     TextField(
                       controller: amount,
@@ -436,7 +482,7 @@ class FinancePageState extends State<FinancePage> {
                       inputFormatters: const [MoneyInputFormatter()],
                       decoration: InputDecoration(
                         labelText:
-                            'مبلغ به ${CurrencyCodes.label(account.currency)}',
+                            'مبلغ به ${CurrencyCodes.label(account?.currency ?? CurrencyCodes.irr)}',
                       ),
                     ),
                     TextField(

@@ -34,6 +34,6 @@ No schema migration or dependency was added. Existing raw-text expiry and backup
 - The two-second broadcast rescan delay is best effort. A slower provider insert requires another refresh or foreground transition.
 - Native multipart delivery, process-death recovery, permission denial/revocation/settings return, and Android-version matrix require isolated synthetic-device evidence.
 - Source row IDs are provider-local. Global text fingerprints currently conservatively suppress equal-content messages; distinct legitimate transactions with identical bodies need an explicitly approved identity policy and migration/compatibility tests.
-- Persisted parser metadata (direction, confidence, bank/account hint) and explicit selection of an account when several are compatible are not complete.
-- Full Jalali SMS date parsing, ambiguous transfer classification, manual unsupported-message recovery, atomic stale-edit conflict handling, and critical widget journey tests remain open.
+- Persisted parser metadata (direction, confidence, bank/account hint) remains incomplete. Explicit durable financial-account selection, account creation/return and confirmation regressions are recorded in [financial account selection verification](FINANCIAL_ACCOUNT_SELECTION_VERIFICATION.md); this does not close the native ingestion gates.
+- Full Jalali SMS date parsing, ambiguous transfer classification, manual unsupported-message recovery and atomic stale-edit conflict handling remain open. Confirmation-to-ledger widget journeys now have local automated coverage; the broader ingestion/device journeys remain open.
 - Do not describe this checkpoint as complete SMS automation or release-ready Priority 3.

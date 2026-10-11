@@ -132,32 +132,45 @@ class DriftFinanceRepository
   );
 
   @override
-  Future<void> saveEntry(AccountEntry entry) =>
-      CommandGate.runFor(this, () async {
-        final existing = await (database.select(
-          database.accountEntries,
-        )..where((table) => table.id.equals(entry.id.value))).getSingleOrNull();
-        if (existing != null) {
-          final same =
-              existing.accountId == entry.accountId.value &&
-              existing.type == entry.type.index &&
-              existing.minorUnits == entry.amount.minorUnits &&
-              existing.currency == entry.amount.currency &&
-              existing.occurredAt.toUtc() == entry.occurredAt.toUtc() &&
-              existing.referenceId == entry.referenceId &&
-              existing.note == entry.note &&
-              existing.category == entry.category &&
-              existing.source == entry.source.index &&
-              existing.transferGroupId == entry.transferGroupId?.value;
-          if (!same) {
-            throw StateError('Financial ledger entries are immutable');
-          }
-          return;
+  Future<void> saveEntry(AccountEntry entry) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final existing = await (database.select(
+        database.accountEntries,
+      )..where((table) => table.id.equals(entry.id.value))).getSingleOrNull();
+      if (existing != null) {
+        final same =
+            existing.accountId == entry.accountId.value &&
+            existing.type == entry.type.index &&
+            existing.minorUnits == entry.amount.minorUnits &&
+            existing.currency == entry.amount.currency &&
+            existing.occurredAt.toUtc() == entry.occurredAt.toUtc() &&
+            existing.referenceId == entry.referenceId &&
+            existing.note == entry.note &&
+            existing.category == entry.category &&
+            existing.source == entry.source.index &&
+            existing.transferGroupId == entry.transferGroupId?.value;
+        if (!same) {
+          throw StateError('Financial ledger entries are immutable');
         }
-        await database
-            .into(database.accountEntries)
-            .insert(_entryCompanion(entry));
-      });
+        return;
+      }
+      final account =
+          await (database.select(database.financialAccounts)
+                ..where((table) => table.id.equals(entry.accountId.value)))
+              .getSingleOrNull();
+      if (account == null ||
+          account.currency != entry.amount.currency ||
+          (account.status != FinancialAccountStatus.active.index &&
+              entry.type != AccountEntryType.reversal &&
+              entry.type != AccountEntryType.refund)) {
+        throw StateError('Account is unavailable for this entry');
+      }
+      await database
+          .into(database.accountEntries)
+          .insert(_entryCompanion(entry));
+    }),
+  );
 
   db.FinancialAccountsCompanion _accountCompanion(FinancialAccount account) =>
       db.FinancialAccountsCompanion(

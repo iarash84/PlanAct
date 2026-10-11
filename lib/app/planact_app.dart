@@ -497,6 +497,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           appBar: AppBar(title: const Text('صندوق ورودی')),
           body: InboxPage(
             inbox: _inboxUseCases,
+            onDataChanged: () async {
+              await _refresh();
+              await _financePageKey.currentState?.refreshData();
+            },
             finance: _financeRepository,
             onDetermineRelationship: _openRelationship,
             smsSource: AndroidSmsSource(),

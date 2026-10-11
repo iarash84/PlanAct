@@ -17,6 +17,8 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/presentation/financial_account_picker.dart';
+import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
@@ -29,8 +31,10 @@ class InboxPage extends StatefulWidget {
     required this.finance,
     this.smsSource,
     this.onDetermineRelationship,
+    this.onDataChanged,
   });
 
+  final Future<void> Function()? onDataChanged;
   final InboxUseCases inbox;
   final FinanceRepository finance;
   final AndroidSmsSource? smsSource;
@@ -47,7 +51,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   static const _logger = AppLogger();
   static const _projection = InboxReviewProjection();
   List<InboxReviewItem> _items = const [];
-  List<FinancialAccount> _accounts = const [];
   bool _loading = true;
   bool _working = false;
   bool? _smsAccess;
@@ -111,7 +114,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _items = items;
-        _accounts = accounts;
         _error = null;
         _loading = false;
       });
@@ -271,37 +273,44 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   }
 
   Future<void> _confirm(InboxReviewItem item) async {
-    final compatible = _accounts
-        .where(
-          (account) =>
-              account.status == FinancialAccountStatus.active &&
-              account.currency == item.suggestion.draft.amount.currency,
-        )
-        .toList();
-    final account =
-        item.account ?? (compatible.length == 1 ? compatible.single : null);
-    if (account == null) {
-      await _showMessage(
-        'انتخاب حساب لازم است',
-        compatible.isEmpty
-            ? 'حساب فعال سازگار با واحد پول پیدا نشد.'
-            : 'چند حساب سازگار وجود دارد؛ ابتدا از ویرایش حساب را انتخاب کنید.',
-      );
-      return;
-    }
+    if (_working) return;
+    setState(() => _working = true);
     AccountEntry? imported;
-    await _runAction(() async {
-      imported = await widget.inbox.confirm(
-        suggestion: item.suggestion,
-        account: account,
-        finance: widget.finance,
+    var refreshFailed = false;
+    try {
+      imported = await showModalBottomSheet<AccountEntry>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (_) => _ConfirmationSheet(
+          item: item,
+          inbox: widget.inbox,
+          finance: widget.finance,
+        ),
       );
-    });
+      if (imported != null) {
+        try {
+          await _reload();
+          await widget.onDataChanged?.call();
+        } catch (_) {
+          // The durable confirmation succeeded; refresh failure is not a save failure.
+          refreshFailed = true;
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
     if (mounted && imported != null) {
-      final id = imported!.id;
+      final id = imported.id;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('تراکنش ثبت شد.'),
+          content: Text(
+            refreshFailed
+                ? 'تراکنش ثبت شد؛ تازه‌سازی نمایش انجام نشد. دوباره تازه‌سازی کنید.'
+                : 'تراکنش ثبت شد.',
+          ),
           action: widget.onDetermineRelationship == null
               ? null
               : SnackBarAction(
@@ -517,6 +526,85 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+class _ConfirmationSheet extends StatefulWidget {
+  const _ConfirmationSheet({
+    required this.item,
+    required this.inbox,
+    required this.finance,
+  });
+  final InboxReviewItem item;
+  final InboxUseCases inbox;
+  final FinanceRepository finance;
+  @override
+  State<_ConfirmationSheet> createState() => _ConfirmationSheetState();
+}
+
+class _ConfirmationSheetState extends State<_ConfirmationSheet> {
+  FinancialAccount? _account;
+  bool _saving = false;
+  String? _error;
+
+  Future<void> _save() async {
+    if (_saving) return;
+    final account = _account;
+    if (account == null) {
+      setState(() => _error = 'حساب مالی را انتخاب کنید.');
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final entry = await widget.inbox.confirm(
+        suggestion: widget.item.suggestion,
+        account: account,
+        finance: widget.finance,
+      );
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.of(context).pop(entry);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = 'ثبت انجام نشد؛ پیشنهاد و انتخاب شما حفظ شده‌اند. اعتبار حساب را بررسی کنید و دوباره تلاش کنید.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_saving,
+    child: PlanActFormSheet(
+      title: 'تأیید پیشنهاد تراکنش',
+      primaryLabel: 'تأیید نهایی',
+      isLoading: _saving,
+      error: _error,
+      onPrimary: _save,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(PersianMoneyText.money(widget.item.suggestion.draft.amount)),
+          Text(
+            'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}؛ انتخاب نهایی با شماست.',
+          ),
+          FinancialAccountPicker(
+            repository: widget.finance,
+            currency: widget.item.suggestion.draft.amount.currency,
+            enabled: !_saving,
+            onChanged: (account) => _account = account,
+            onCreateAccount: () =>
+                openFinancialAccountCreation(context, widget.finance),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SmsStatusCard extends StatelessWidget {

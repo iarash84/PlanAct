@@ -49,7 +49,7 @@ void main() {
         reversal: reversal,
         corrected: invalidCorrection,
       ),
-      throwsA(isA<Exception>()),
+      throwsStateError,
     );
     expect((await repository.listEntries()).map((entry) => entry.id), [
       original.id,
