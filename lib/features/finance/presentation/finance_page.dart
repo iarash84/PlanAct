@@ -711,10 +711,12 @@ class FinancePageState extends State<FinancePage> {
         .whereType<String>()
         .toSet()
         .toList();
-    return Wrap(
-      spacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DropdownButton<AccountEntryType?>(
+          isExpanded: true,
+          itemHeight: null,
           value: _typeFilter,
           hint: const Text('نوع'),
           items: const [
@@ -731,6 +733,8 @@ class FinancePageState extends State<FinancePage> {
           onChanged: (value) => setState(() => _typeFilter = value),
         ),
         DropdownButton<String?>(
+          isExpanded: true,
+          itemHeight: null,
           value: _categoryFilter,
           hint: const Text('دسته‌بندی'),
           items: [
@@ -807,9 +811,11 @@ class FinancePageState extends State<FinancePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'حساب‌ها',
-                        style: Theme.of(context).textTheme.titleLarge,
+                      Expanded(
+                        child: Text(
+                          'حساب‌ها',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                       ),
                       Wrap(
                         spacing: 4,
@@ -880,66 +886,55 @@ class FinancePageState extends State<FinancePage> {
                     ),
                   for (final entry in _filteredEntries)
                     Card(
-                      child: ListTile(
-                        leading: TransactionDirectionIcon(entry: entry),
-                        title: Text(
-                          '${transactionLabel(entry)} · ${_money(entry.amount)}',
-                        ),
-                        subtitle: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.all(PlanActSpacing.lg),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                TransactionDirectionIcon(entry: entry),
+                                _entryOperations(entry),
+                              ],
+                            ),
                             Text(
-                              [
-                                PersianDateFormatter.date(
-                                  JalaliDate.fromDateTime(
-                                    entry.occurredAt.toLocal(),
+                              '${transactionLabel(entry)} · ${_money(entry.amount)}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: PlanActSpacing.sm),
+                            DefaultTextStyle.merge(
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    [
+                                      PersianDateFormatter.date(
+                                        JalaliDate.fromDateTime(
+                                          entry.occurredAt.toLocal(),
+                                        ),
+                                      ),
+                                      PersianNumbers.format(
+                                        '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                      ),
+                                      if (entry.category != null)
+                                        entry.category!,
+                                      entry.note ?? 'بدون شرح',
+                                    ].join(' · '),
                                   ),
-                                ),
-                                PersianNumbers.format(
-                                  '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                                ),
-                                if (entry.category != null) entry.category!,
-                                entry.note ?? 'بدون شرح',
-                              ].join(' · '),
-                            ),
-                            TagLabels(
-                              labels: _tags
-                                  .where(
-                                    (tag) =>
-                                        _entryTags[entry.id.value]?.contains(
-                                          tag.id,
-                                        ) ??
-                                        false,
-                                  )
-                                  .map((tag) => tag.label),
-                            ),
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          tooltip: 'عملیات تراکنش',
-                          onSelected: (value) {
-                            if (value == 'void') _voidEntry(entry);
-                            if (value == 'tags') _editEntryTags(entry);
-                            if (value == 'relationship') {
-                              widget.onDetermineRelationship?.call(entry.id);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            if (widget.onDetermineRelationship != null &&
-                                (entry.type == AccountEntryType.income ||
-                                    entry.type == AccountEntryType.expense))
-                              const PopupMenuItem(
-                                value: 'relationship',
-                                child: Text('تعیین ارتباط'),
+                                  TagLabels(
+                                    labels: _tags
+                                        .where(
+                                          (tag) =>
+                                              _entryTags[entry.id.value]
+                                                  ?.contains(tag.id) ??
+                                              false,
+                                        )
+                                        .map((tag) => tag.label),
+                                  ),
+                                ],
                               ),
-                            if (widget.tagRepository != null)
-                              const PopupMenuItem(
-                                value: 'tags',
-                                child: Text('برچسب‌های تراکنش'),
-                              ),
-                            PopupMenuItem(
-                              value: 'void',
-                              child: Text('حذف امن تراکنش'),
                             ),
                           ],
                         ),
@@ -950,6 +945,26 @@ class FinancePageState extends State<FinancePage> {
             ),
     );
   }
+
+  Widget _entryOperations(AccountEntry entry) => PopupMenuButton<String>(
+    tooltip: 'عملیات تراکنش',
+    onSelected: (value) {
+      if (value == 'void') _voidEntry(entry);
+      if (value == 'tags') _editEntryTags(entry);
+      if (value == 'relationship') {
+        widget.onDetermineRelationship?.call(entry.id);
+      }
+    },
+    itemBuilder: (context) => [
+      if (widget.onDetermineRelationship != null &&
+          (entry.type == AccountEntryType.income ||
+              entry.type == AccountEntryType.expense))
+        const PopupMenuItem(value: 'relationship', child: Text('تعیین ارتباط')),
+      if (widget.tagRepository != null)
+        const PopupMenuItem(value: 'tags', child: Text('برچسب‌های تراکنش')),
+      PopupMenuItem(value: 'void', child: Text('حذف امن تراکنش')),
+    ],
+  );
 }
 
 class _BankAccountAvatar extends StatelessWidget {

@@ -1137,38 +1137,68 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               .toList(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'افزودن سریع',
-        onPressed: _showQuickAdd,
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          _pageController.animateToPage(
-            index,
-            duration: PlanActMotion.duration(context),
-            curve: PlanActMotion.curve,
-          );
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: 'امروز',
+      floatingActionButton: _selectedIndex == 2
+          ? null
+          : FloatingActionButton(
+              tooltip: 'افزودن سریع',
+              onPressed: _showQuickAdd,
+              child: const Icon(Icons.add),
+            ),
+      // Finance's last operations target must never sit behind Quick Add.
+      // Let Scaffold reserve the measured action + navigation height instead
+      // of guessing FAB or system-bar dimensions in the transaction list.
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_selectedIndex == 2)
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.all(PlanActSpacing.lg),
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  heightFactor: 1,
+                  child: FloatingActionButton(
+                    tooltip: 'افزودن سریع',
+                    onPressed: _showQuickAdd,
+                    child: const Icon(Icons.add),
+                  ),
+                ),
+              ),
+            ),
+          NavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+              _pageController.animateToPage(
+                index,
+                duration: PlanActMotion.duration(context),
+                curve: PlanActMotion.curve,
+              );
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.today_outlined),
+                selectedIcon: Icon(Icons.today),
+                label: 'امروز',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.calendar_month_outlined),
+                selectedIcon: Icon(Icons.calendar_month),
+                label: 'تقویم',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: 'مالی',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.more_horiz),
+                label: 'بیشتر',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'تقویم',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'مالی',
-          ),
-          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'بیشتر'),
         ],
       ),
     );
