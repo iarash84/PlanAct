@@ -136,7 +136,7 @@ RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/en
 
 ## Accessibility and responsive behavior
 
-- Maintain a minimum 48×48dp interactive target, except the Calendar page's seven-column month grid on narrow screens: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This explicitly approved fit-to-screen exception does not apply to other controls or the modal date picker.
+- Maintain a minimum 48×48dp interactive target, except the seven-column Calendar Month and shared modal date-picker grids when seven standard targets cannot fit: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This user-approved dense-calendar exception does not apply to Week or other controls. Visual icon size is not target size; do not inflate each day with an independent information button.
 - Target WCAG 2.1 AA contrast as a baseline: 4.5:1 for normal text and 3:1 for large text and essential non-text controls; verify foregrounds against their actual Light and Dark surfaces.
 - Support system text scaling without clipping, fixed-height text regions, or reducing font size to conceal overflow.
 - Give icon-only actions meaningful Persian semantic labels; ensure focus and keyboard behavior where applicable.
@@ -167,6 +167,10 @@ Shared body line heights are 1.6 (large/medium), 1.5 (small), and 1.4 for small 
 PlanActMotion.duration respects platform disableAnimations; root navigation and capture transitions consume it. Startup has no decorative entrance animation, glow or custom shadow. Logos remain in launcher/startup/About, not repeated in root AppBars. Shared divider, progress, popup menu, segmented button and bottom-sheet treatments are theme-owned.
 
 See docs/UI_MIGRATION_VERIFICATION.md for surface coverage and limitations. Automated contrast and widget checks are evidence for tested pairs/flows only, not native-device, screen-reader or profile-performance certification.
+
+## Shared Jalali date picker (2026-10-11)
+
+The shared modal picker fits all seven Saturday–Friday RTL columns inside the dialog without horizontal scrolling. Full weekday titles are used when measured text fits; otherwise distinct Persian compact labels retain full-name semantics. The approved dense-calendar target-width exception applies only when necessary; day height stays at least 48dp and grows with measured scaled text. Small visual status icons are not separate interactive controls. Day taps stage a selection; explicit «تأیید تاریخ» returns it, while cancellation discards it. Typed weekly/official/special reasons appear below the selected date, with expandable source/version/scope, preserving overlaps without enlarging every grid cell. Holidays never disable selection. Incomplete coverage uses the attention role; holiday cues use the shared brightness-aware holiday role, not Material error. Retain system text scaling and vertical scrolling only when height/content requires it; a normal phone must expose the complete month grid without scrolling. Creation start/end dates, Details editing and Finance share this composition; Calendar and package import remain intentionally unchanged. This supersedes the initial oversized, horizontally scrollable picker specification. See [picker verification](DATE_PICKER_VERIFICATION.md) for evidence and remaining native/independent checks.
 
 ## Calendar return to today
 

@@ -115,7 +115,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(
-        tester.getSize(find.byKey(const ValueKey('capture-date-1'))).width,
+        tester.getSize(find.byKey(const ValueKey('capture-date-1'))).height,
         greaterThanOrEqualTo(48),
       );
       await tester.pumpWidget(

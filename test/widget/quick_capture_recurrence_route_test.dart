@@ -167,6 +167,7 @@ void main() {
                 tester,
                 find.byKey(ValueKey('capture-date-${endJalali.day}')),
               );
+              await _tap(tester, find.text('تأیید تاریخ'));
               end = expected[1];
               expected.removeLast();
             }
@@ -339,8 +340,10 @@ Future<void> _choose<T>(
   await _tap(tester, find.text(label).last);
 }
 
-Future<void> _pickDay19(WidgetTester tester) =>
-    _tap(tester, find.byKey(const ValueKey('capture-date-19')));
+Future<void> _pickDay19(WidgetTester tester) async {
+  await _tap(tester, find.byKey(const ValueKey('capture-date-19')));
+  await _tap(tester, find.text('تأیید تاریخ'));
+}
 
 Future<void> _drainDatabase(WidgetTester tester) async {
   for (var i = 0; i < 15; i++) {

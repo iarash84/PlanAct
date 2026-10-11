@@ -2,13 +2,21 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
+import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
+import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/features/calendar/domain/holiday_provider.dart';
 
 class PlanActJalaliDatePicker extends StatefulWidget {
-  const PlanActJalaliDatePicker({super.key, required this.initialDate});
+  const PlanActJalaliDatePicker({
+    super.key,
+    required this.initialDate,
+    this.holidayProvider,
+  });
   final DateTime initialDate;
+  final IranianHolidayProvider? holidayProvider;
   @override
   State<PlanActJalaliDatePicker> createState() =>
       PlanActJalaliDatePickerState();
@@ -25,95 +33,307 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
     _month = JalaliDate(_selected.year, _selected.month, 1);
   }
 
+  static String _kindLabel(CalendarHolidayKind kind) => switch (kind) {
+    CalendarHolidayKind.weekend => 'تعطیلی هفتگی',
+    CalendarHolidayKind.officialFixed ||
+    CalendarHolidayKind.officialVariable => 'تعطیل رسمی',
+    CalendarHolidayKind.special => 'تعطیلی خاص',
+  };
+
+  static IconData _kindIcon(CalendarHolidayKind kind) => switch (kind) {
+    CalendarHolidayKind.weekend => Icons.weekend_outlined,
+    CalendarHolidayKind.officialFixed ||
+    CalendarHolidayKind.officialVariable => Icons.event_busy_outlined,
+    CalendarHolidayKind.special => Icons.location_off_outlined,
+  };
+
+  String _dateLabel(JalaliDate date) =>
+      '${PersianDateFormatter.date(date)} ${PersianNumbers.format(date.year)}';
+
   @override
   Widget build(BuildContext context) {
+    final provider = widget.holidayProvider ?? HolidayProviderScope.of(context);
     final offset = _month.weekDay - 1;
     final count = offset + _month.monthLength;
-    final scheme = Theme.of(context).colorScheme;
-    final cellSize = math.max(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final status = PlanActStatusColors.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
+    final holidays = provider.holidaysFor(_selected);
+    // Only the dense seven-column grid has the approved touch-width exception.
+    // Number/marker height grows with text scale; no forced 80dp columns or
+    // independent information target under each day.
+    final painter = TextPainter(
+      text: TextSpan(
+        text: PersianNumbers.format(31),
+        style: theme.textTheme.bodyMedium,
+      ),
+      textDirection: TextDirection.rtl,
+      textScaler: scaler,
+    )..layout();
+    final cellHeight = math.max(
       PlanActSpacing.touchTarget,
-      MediaQuery.textScalerOf(context).scale(24) + PlanActSpacing.lg,
+      painter.height + 16 + PlanActSpacing.xs,
     );
-    return AlertDialog(
-      scrollable: true,
-      title: Column(
-        children: [
-          Text(PersianDateFormatter.month(_month), textAlign: TextAlign.center),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    painter.dispose();
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: PlanActSpacing.md,
+          vertical: PlanActSpacing.lg,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: PlanActSpacing.md,
+          vertical: PlanActSpacing.sm,
+        ),
+        scrollable: true,
+        title: Row(
+          children: [
+            IconButton(
+              tooltip: 'ماه قبل',
+              onPressed: () => setState(() => _month = _month.addMonths(-1)),
+              icon: const Icon(Icons.chevron_left),
+            ),
+            Expanded(
+              child: Text(
+                PersianDateFormatter.month(_month),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            IconButton(
+              tooltip: 'ماه بعد',
+              onPressed: () => setState(() => _month = _month.addMonths(1)),
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              IconButton(
-                tooltip: 'ماه قبل',
-                onPressed: () => setState(() => _month = _month.addMonths(-1)),
-                icon: const Icon(Icons.chevron_left),
+              Builder(
+                builder: (context) {
+                  // AlertDialog measures intrinsic dimensions; LayoutBuilder
+                  // cannot participate in that pass. Account for the explicit
+                  // dialog insets and content padding before measuring labels.
+                  final width =
+                      math.min(
+                        420.0,
+                        MediaQuery.sizeOf(context).width -
+                            4 * PlanActSpacing.md,
+                      ) /
+                      7;
+                  var fullNamesFit = true;
+                  for (final name in PersianDateFormatter.weekdayNames) {
+                    final heading = TextPainter(
+                      text: TextSpan(
+                        text: name,
+                        style: theme.textTheme.labelMedium,
+                      ),
+                      textDirection: TextDirection.rtl,
+                      textScaler: scaler,
+                    )..layout();
+                    if (heading.width + PlanActSpacing.xs > width) {
+                      fullNamesFit = false;
+                    }
+                    heading.dispose();
+                  }
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          for (var index = 0; index < 7; index++)
+                            Expanded(
+                              child: Semantics(
+                                header: true,
+                                label: PersianDateFormatter.weekdayNames[index],
+                                child: ExcludeSemantics(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: PlanActSpacing.sm,
+                                    ),
+                                    child: Text(
+                                      fullNamesFit
+                                          ? PersianDateFormatter
+                                                .weekdayNames[index]
+                                          : PersianDateFormatter
+                                                .compactWeekdayNames[index],
+                                      textAlign: TextAlign.center,
+                                      style: theme.textTheme.labelMedium,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      SizedBox(
+                        key: const ValueKey('date-picker-grid'),
+                        height: ((count + 6) ~/ 7) * cellHeight,
+                        child: GridView.builder(
+                          padding: EdgeInsets.zero,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: count,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                mainAxisExtent: cellHeight,
+                              ),
+                          itemBuilder: (_, index) {
+                            if (index < offset) return const SizedBox();
+                            final day = index - offset + 1;
+                            final date = JalaliDate(
+                              _month.year,
+                              _month.month,
+                              day,
+                            );
+                            final selected = date == _selected;
+                            final reasons = provider.holidaysFor(date);
+                            final kinds = reasons
+                                .map((h) => _kindIcon(h.kind))
+                                .toSet();
+                            return Semantics(
+                              label: [
+                                _dateLabel(date),
+                                ...reasons.map(
+                                  (h) => '${_kindLabel(h.kind)}: ${h.title}',
+                                ),
+                              ].join('، '),
+                              selected: selected,
+                              button: true,
+                              child: InkWell(
+                                key: ValueKey('capture-date-$day'),
+                                onTap: () => setState(() => _selected = date),
+                                child: ExcludeSemantics(
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    decoration: selected
+                                        ? BoxDecoration(
+                                            color: scheme.primaryContainer,
+                                            shape: BoxShape.circle,
+                                          )
+                                        : null,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          PersianNumbers.format(day),
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: selected
+                                                    ? scheme.onPrimaryContainer
+                                                    : reasons.isNotEmpty
+                                                    ? status.holiday
+                                                    : scheme.onSurface,
+                                              ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            if (selected && kinds.isEmpty)
+                                              Icon(
+                                                Icons.check,
+                                                size: 12,
+                                                color:
+                                                    scheme.onPrimaryContainer,
+                                              ),
+                                            for (final icon in kinds)
+                                              Icon(
+                                                icon,
+                                                size: 12,
+                                                color: selected
+                                                    ? scheme.onPrimaryContainer
+                                                    : status.holiday,
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-              IconButton(
-                tooltip: 'ماه بعد',
-                onPressed: () => setState(() => _month = _month.addMonths(1)),
-                icon: const Icon(Icons.chevron_right),
+              const SizedBox(height: PlanActSpacing.sm),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _dateLabel(_selected),
+                  style: theme.textTheme.titleSmall,
+                ),
               ),
+              for (final holiday in holidays)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      _kindIcon(holiday.kind),
+                      size: 16,
+                      color: status.holiday,
+                    ),
+                    const SizedBox(width: PlanActSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        '${_kindLabel(holiday.kind)}: ${holiday.title}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              if (holidays.isNotEmpty)
+                ExpansionTile(
+                  key: const ValueKey('date-reasons'),
+                  tilePadding: EdgeInsets.zero,
+                  title: const Text('منبع و جزئیات تعطیلات'),
+                  children: [
+                    for (final holiday in holidays)
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          '${holiday.title}\nمنبع: ${holiday.source}\nنسخه: ${holiday.version}\nمحدوده: ${holiday.scope}',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                  ],
+                ),
+              if (!provider.hasCompleteOfficialCoverage(_month.year))
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    'پوشش تعطیلات رسمی این سال کامل نیست؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: status.attention,
+                    ),
+                  ),
+                ),
             ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _selected.toDateTime()),
+            child: const Text('تأیید تاریخ'),
           ),
         ],
       ),
-      content: SizedBox(
-        width: 7 * cellSize,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: 7 * cellSize,
-            height: ((count + 6) ~/ 7) * cellSize,
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: count,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisExtent: cellSize,
-              ),
-              itemBuilder: (_, index) {
-                if (index < offset) return const SizedBox();
-                final day = index - offset + 1;
-                final date = JalaliDate(_month.year, _month.month, day);
-                final selected = date == _selected;
-                return Semantics(
-                  label: PersianDateFormatter.date(date),
-                  selected: selected,
-                  button: true,
-                  child: InkWell(
-                    key: ValueKey('capture-date-$day'),
-                    onTap: () => Navigator.pop(context, date.toDateTime()),
-                    child: Container(
-                      alignment: Alignment.center,
-                      margin: const EdgeInsets.all(PlanActSpacing.xs),
-                      decoration: selected
-                          ? BoxDecoration(
-                              color: scheme.primaryContainer,
-                              shape: BoxShape.circle,
-                            )
-                          : null,
-                      child: Text(
-                        PersianNumbers.format(day),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: selected
-                              ? scheme.onPrimaryContainer
-                              : scheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('انصراف'),
-        ),
-      ],
     );
   }
 }

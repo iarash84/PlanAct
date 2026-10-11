@@ -1,0 +1,91 @@
+00:00 +0: loading d:/repos/planact/test/widget/jalali_date_picker_test.dart
+00:00 +0: d:/repos/planact/test/widget/jalali_date_picker_test.dart: full weekday titles RTL and explicit holiday date selection
+00:01 +1: d:/repos/planact/test/widget/edit_schedule_dialog_test.dart: all-day edit preserves absent time and explicit only-this scope
+00:01 +2: d:/repos/planact/test/widget/jalali_date_picker_test.dart: all overlapping typed reasons and provenance; inspection/cancel do not select
+00:01 +3: d:/repos/planact/test/widget/jalali_date_picker_test.dart: complete six-row month visible 320.0 dark=false
+00:02 +4: d:/repos/planact/test/widget/jalali_date_picker_test.dart: complete six-row month visible 360.0 dark=false
+00:02 +5: d:/repos/planact/test/widget/jalali_date_picker_test.dart: complete six-row month visible 360.0 dark=false
+00:02 +6: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+00:02 +7: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+00:03 +8: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+00:03 +9: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+00:03 +10: d:/repos/planact/test/widget/jalali_date_picker_test.dart: complete six-row month visible 430.0 dark=true
+00:03 +11: d:/repos/planact/test/widget/design_system_test.dart: light date picker and form wrap without scaled overflow
+00:03 +12: d:/repos/planact/test/widget/jalali_date_picker_test.dart: narrow large text false: coverage warning, full headings and standard targets
+00:03 +13: d:/repos/planact/test/widget/design_system_test.dart: light reduced motion resolves to final state
+00:03 +14: d:/repos/planact/test/widget/jalali_date_picker_test.dart: narrow large text true: coverage warning, full headings and standard targets
+00:03 +15: d:/repos/planact/test/widget/jalali_date_picker_test.dart: narrow large text true: coverage warning, full headings and standard targets
+00:04 +16: d:/repos/planact/test/widget/design_system_test.dart: dark narrow RTL calendar preserves targets and scaled text
+00:04 +17: d:/repos/planact/test/widget/design_system_test.dart: dark date picker and form wrap without scaled overflow
+00:04 +18: d:/repos/planact/test/widget/design_system_test.dart: dark reduced motion resolves to final state
+00:07 +19: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+00:09 +20: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+00:10 +21: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+00:11 +22: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+00:13 +23: d:/repos/planact/test/widget/tagged_creation_test.dart: capture carries draft tags through review and retry (false)
+00:14 +24: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:15 +25: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:15 +26: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:16 +27: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:17 +28: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:17 +29: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:17 +30: d:/repos/planact/test/widget/tagged_creation_test.dart: capture carries draft tags through review and retry (true)
+00:18 +31: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:18 +32: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:19 +33: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:19 +34: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:19 +35: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:20 +36: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+00:20 +37: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali endDate Dark narrow enlarged text persists and refreshes
+00:24 +38: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+00:24 +39: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+00:24 +40: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+00:24 +41: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+00:26 +42: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+00:26 +43: d:/repos/planact/test/widget/calendar_reminder_details_test.dart: shared picker month controls match Calendar RTL convention and year rollover
+00:26 +44: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:27 +45: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:27 +46: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:27 +47: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+00:30 +48: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+00:31 +49: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali count Light narrow enlarged text persists and refreshes
+00:32 +50: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali count Light narrow enlarged text persists and refreshes
+00:33 +51: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 2.0 dark false
+00:33 +52: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+00:34 +53: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+00:35 +54: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+00:36 +55: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 1.0 dark true
+00:36 +56: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+00:37 +57: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 2.0 dark false
+00:37 +58: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 2.0 dark true
+00:38 +59: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+00:39 +60: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+00:39 +61: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark true
+00:39 +62: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark true
+00:40 +63: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 2.0 dark false
+00:41 +64: d:/repos/planact/test/widget/finance_transaction_form_test.dart: manual draft survives account creation and still requires selection
+00:41 +65: d:/repos/planact/test/widget/finance_transaction_form_test.dart: manual draft survives account creation and still requires selection
+
+Warning: A call to tap() with finder "Found 1 widget with text "ثبت": [
+  Text("ثبت", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(141.0, 560.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#4def8 relayoutBoundary=up25
+The hit test result at that offset is: HitTestResult(RenderPointerListener#207e6@Offset(141.0, 560.0), RenderSemanticsAnnotations#cfe32@Offset(141.0, 560.0), RenderCustomPaint#76095@Offset(141.0, 560.0), RenderSemanticsAnnotations#26990@Offset(141.0, 560.0), RenderSemanticsAnnotations#256c7@Offset(141.0, 560.0), RenderSemanticsAnnotations#4c610@Offset(141.0, 560.0), RenderTapRegionSurface#7d621@Offset(141.0, 560.0), RenderSemanticsAnnotations#c670d@Offset(141.0, 560.0), RenderSemanticsAnnotations#c1a66@Offset(141.0, 560.0), HitTestEntry<HitTestTarget>#97211(_ReusableRenderView#db1a0), HitTestEntry<HitTestTarget>#356cd(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///d:/repos/planact/test/widget/finance_transaction_form_test.dart:68:20)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:42 +66: d:/repos/planact/test/widget/finance_transaction_form_test.dart: failed write retains transaction draft and retry writes once
+00:43 +67: d:/repos/planact/test/widget/finance_transaction_form_test.dart: refresh failure after write cannot trigger duplicate save
+00:43 +68: All tests passed!

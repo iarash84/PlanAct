@@ -7,6 +7,7 @@ import 'package:planact/features/calendar/presentation/holiday_package_settings_
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
@@ -185,31 +186,35 @@ class _PlanActAppState extends State<PlanActApp> {
       theme: PlanActTheme.light(),
       darkTheme: PlanActTheme.dark(),
       themeMode: _themeMode,
-      builder: (context, child) => MoneyUnitScope(
-        controller: _moneyUnits,
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: AppLockGate(
-            enabled: _appLockEnabled,
-            controller: _appLockController,
-            child: !_moneyUnits.ready
-                ? Scaffold(
-                    body: Center(
-                      child: _moneyUnitError == null
-                          ? const CircularProgressIndicator()
-                          : Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(_moneyUnitError!),
-                                TextButton(
-                                  onPressed: _loadMoneyUnit,
-                                  child: const Text('تلاش دوباره'),
-                                ),
-                              ],
-                            ),
-                    ),
-                  )
-                : child ?? const SizedBox.shrink(),
+      builder: (context, child) => HolidayProviderScope(
+        readProvider: () =>
+            widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
+        child: MoneyUnitScope(
+          controller: _moneyUnits,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: AppLockGate(
+              enabled: _appLockEnabled,
+              controller: _appLockController,
+              child: !_moneyUnits.ready
+                  ? Scaffold(
+                      body: Center(
+                        child: _moneyUnitError == null
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(_moneyUnitError!),
+                                  TextButton(
+                                    onPressed: _loadMoneyUnit,
+                                    child: const Text('تلاش دوباره'),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    )
+                  : child ?? const SizedBox.shrink(),
+            ),
           ),
         ),
       ),

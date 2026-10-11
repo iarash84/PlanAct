@@ -785,7 +785,7 @@ Always verify:
 
 Do not make interactive elements artificially small for visual compactness.
 
-For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar Month-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
+For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The user-approved 2026-10-11 dense-calendar exception applies to Calendar Month and the shared modal date picker when seven 48dp columns cannot fit: keep all seven RTL columns visible without horizontal scrolling, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Use distinct compact weekday labels with full-name semantics when needed. Picker day taps stage selection; explicit confirmation returns the date, with overlapping holiday reasons below the grid and expandable provenance. Other controls and Week retain standard targets. Visual icon size is not hit-target size; do not inflate each day with independent information controls.
 
 ---
 
