@@ -2,6 +2,93 @@
 
 Status: **Partial implementation, not release complete**.
 
+## Real-format additive parser acceptance contract (2026-10-12)
+
+Recorded before code changes. Scope: the 18 user-supplied, privacy-redacted
+same-shaped messages (Sina 2, unbranded account 2, unbranded dotted 4,
+Refah 2, Melli 4, Shahr 3, Gardeshgari 1), not a general bank catalogue.
+Entry remains explicit consented bounded Inbox scan → LocalSmsParser → stageSms
+→ atomic Drift staging → existing review refresh → explicit financial confirmation.
+Permission alone never scans; parser recognition never writes the financial ledger.
+
+Preserve GenericBankSmsParser grammar unchanged; add a separate bounded parser.
+Accept Arabic/Persian digits and yeh/kaf, prefix/suffix signs and dotted/dashed
+account evidence. Require one transaction amount/direction, separate balance,
+validated date/time and recognized whole-message structure. Reject OTP/failure,
+duplicate/contradictory fields, malformed units/dates and integer overflow.
+Unbranded structures retain null bank, never infer bank from account identifiers.
+Missing amount unit requires explicit selection, regardless of Settings/bank.
+Unitless balance remains absent Money evidence unless the transaction explicitly
+establishes the same message unit; do not infer units from sender or preference.
+Short/absent years preserve sourceDate/sourceTime with absent extracted occurredAt;
+never invent a century/year. Full Jalali dates allow single-digit month/day.
+Transfer evidence remains true even with incoming sign; existing original-evidence
+confirmation guard must prevent income/expense writes after direction edits.
+
+Existing receipt proposal acknowledgement, cancellation/no-write, edit/retry,
+rejection/recovery and Finance correction semantics remain unchanged. New parsing
+only affects new staging; replay must retain stored drafts, evidence and history.
+No schema, migration, dependency, consent or native adapter expansion. Necessary
+presentation prerequisite discovered by route tests: guard partial-year evidence
+in original-date display and editor initialization; no new screen or design variant.
+Required evidence: all 18 fixtures plus independent expected amounts/directions/dates,
+old labelled regressions and adversarial rejection; production staging, cold reopen,
+redacted snapshot preservation and transfer admission; existing route review gates.
+Native provider/timezone/device restore and independent acceptance remain open,
+owned by Android integration/release QA and product reviewer. Exposure remains
+Partial / development-only, not release-ready; broader corpus review remains open.
+
+## Bounded real-format implementation and evidence (2026-10-12)
+
+This checkpoint supersedes earlier synthetic-only coverage statements for these
+18 shapes only; prior full-suite counts remain historical, not rerun evidence.
+
+- Separate [real-format parser](../lib/features/inbox/application/real_bank_sms_parser.dart)
+  is dispatched after the unchanged generic labelled grammar. Recognition uses
+  seven anchored whole-message layout families, not loose number extraction.
+- [18 redacted fixtures](../test/fixtures/real_bank_sms.dart) retain amount/date/sign
+  structure while replacing every account identifier and personal name. Independent
+  amount/direction/bank expectations and explicit Gregorian date expectations are
+  tested by [38 parser tests](../test/unit/real_bank_sms_parser_test.dart), including
+  Arabic normalization, unitless/explicit balances and adversarial rejection.
+- Missing transaction units stay requiresSelection. An explicit transaction unit
+  establishes the same-message unit for a unitless balance; an explicit balance
+  unit alone does not resolve the transaction. With neither unit, balance Money
+  is absent. Settings, bank and account identity never supply units.
+- Two-digit, month/day and MMDD dates retain sourceDate/sourceTime with null
+  extracted occurredAt. Full Jalali dates are validated, including leap-day rules.
+  Receipt proposal and explicit acknowledgement remain existing review behavior.
+- [Production durability test](../test/repository/real_bank_sms_test.dart) stages
+  all 18, verifies replay and file-backed cold reopen, preserves original evidence
+  through an isolated redacted SQLite snapshot/reopen, and proves both application
+  and atomic repository transfer admission reject income after reviewer edits.
+  No ledger rows are created by recognition, replay or blocked confirmation.
+- [Review routes](../test/widget/sms_editable_review_test.dart) open original evidence
+  and editing for all 18 shapes; real transfer remains blocked after explicit unit
+  selection and direction edit in Light/Dark, RTL, 320px and 1.8 text scaling.
+  The first route run exposed full-year assumptions in both original display and
+  editor initialization. These are now guarded: partial dates display Persian
+  evidence with year-unknown disclosure and never initialize a fabricated date.
+  Missing check that allowed the defect: previous route fixtures had no compact
+  or short-year source dates. The new corpus journeys protect both entry points.
+- Final scoped format: seven Dart files, no further changes. Full analyzer:
+  **no issues** (5.5s). Focused 17-file parser/source/application/repository/backup/
+  widget regression suite: **162 passed, 0 failed** (24s). This includes existing
+  bounded ingestion, review retry/recovery, currency selection, account selection,
+  extracted-evidence, confirmation and full-state backup regressions. Full app suite
+  was not rerun for this checkpoint. No native/provider SMS was read.
+
+Implementation: bounded slice implemented. Verification: automated evidence above,
+self-review only; independent acceptance is unexecuted. Release: still **Partial /
+development-only**. Android integration/release QA owns native provider variants,
+receipt timezone/device checks and fresh-install backup evidence; next action is an
+isolated consented device run with these shapes and adversarial provider variants.
+Product reviewer owns broader corpus/source review and independent acceptance;
+next action is review of observable unit/date/transfer counterexamples. Existing
+older-writer compatibility and backup/native gates remain blockers, not waived by
+parser tests. Existing drafts are not reparsed or migrated; AGENTS safeguards are
+unchanged. No new dependencies, schema changes or migrations were required.
+
 ## Final bounded extraction/review integration validation (2026-10-11)
 
 This section supersedes subtask-only pending parent actions and full-suite limitations

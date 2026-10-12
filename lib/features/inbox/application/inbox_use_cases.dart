@@ -12,6 +12,8 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
+import 'package:planact/features/inbox/application/real_bank_sms_parser.dart';
+
 abstract interface class InboxRepository {
   Future<List<StagedImport>> listImports();
   Future<List<InboxSuggestion>> listSuggestions();
@@ -148,7 +150,9 @@ abstract interface class SmsFormatParser {
 }
 
 class LocalSmsParser implements SmsFormatParser {
-  const LocalSmsParser({this.parsers = const [GenericBankSmsParser()]});
+  const LocalSmsParser({
+    this.parsers = const [GenericBankSmsParser(), RealBankSmsParser()],
+  });
 
   final List<SmsFormatParser> parsers;
 

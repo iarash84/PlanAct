@@ -8,6 +8,8 @@ import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/presentation/inbox_page.dart';
 
+import '../fixtures/real_bank_sms.dart';
+
 class _FailingEdit extends InboxUseCases {
   _FailingEdit(super.repository);
   bool fail = true;
@@ -203,48 +205,78 @@ void main() {
     },
   );
 
-  for (final dark in [false, true]) {
-    testWidgets(
-      'transfer evidence remains blocking on narrow RTL large-text ($dark)',
-      (tester) async {
-        final repository = InMemoryInboxRepository();
-        final inbox = InboxUseCases(repository);
-        final finance = InMemoryFinanceRepository();
-        final original = await inbox.stageSms(
-          rawText: 'نوع: انتقال\nمبلغ: 2500 ریال\nحساب: 123456789012\nپیگیری: 987654321098',
-          sourceKey: 'transfer',
-          currency: 'IRR',
-          importedAt: DateTime(2026, 10, 11, 16, 45),
-        );
-        await _mount(tester, inbox, finance, dark: dark, narrow: true);
-        await _tap(tester, find.text('جزئیات پیشنهاد'));
-        expect(find.textContaining('123456789012'), findsNothing);
-        expect(find.textContaining('987654321098'), findsNothing);
-        await _tap(tester, find.text('ویرایش'));
-        await _tap(
-          tester,
-          find.byType(DropdownButtonFormField<TransactionDirection>),
-        );
-        await _tap(tester, find.text('واریز').last);
-        await _tap(tester, find.text('ذخیره و بررسی'));
-        final edited = (await repository.listSuggestions()).single;
-        expect(edited.draft.type, 'income');
-        expect(
-          edited.extractedEvidence!.toJson(),
-          original.extractedEvidence!.toJson(),
-        );
-        await _tap(tester, find.text('تأیید و ثبت'));
-        await _tap(tester, find.text('تأیید نهایی'));
-        expect(
-          find.textContaining(
-            'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود.',
-          ),
-          findsWidgets,
-        );
-        expect(await finance.listEntries(), isEmpty);
-        await _tap(tester, find.text('انصراف'));
-        expect(tester.takeException(), isNull);
-      },
-    );
+  for (var index = 0; index < realBankSms.length; index++) {
+    testWidgets('real-format original date evidence renders safely ($index)', (
+      tester,
+    ) async {
+      final inbox = InboxUseCases(InMemoryInboxRepository());
+      final original = await inbox.stageSms(
+        rawText: realBankSms[index],
+        sourceKey: 'date-evidence-$index',
+        currency: 'IRR',
+        importedAt: DateTime(2026, 10, 11, 16, 45),
+      );
+      await _mount(tester, inbox, InMemoryFinanceRepository());
+      await _tap(tester, find.text('جزئیات پیشنهاد'));
+      if (original.extractedEvidence!.occurredAt == null) {
+        expect(find.textContaining('(سال نامشخص)'), findsOneWidget);
+      } else {
+        expect(find.textContaining('(سال نامشخص)'), findsNothing);
+      }
+      expect(tester.takeException(), isNull);
+      await _tap(tester, find.text('ویرایش'));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final actualFormat in [false, true]) {
+    for (final dark in [false, true]) {
+      testWidgets(
+        'transfer evidence remains blocking on narrow RTL large-text ($dark, actual=$actualFormat)',
+        (tester) async {
+          final repository = InMemoryInboxRepository();
+          final inbox = InboxUseCases(repository);
+          final finance = InMemoryFinanceRepository();
+          final original = await inbox.stageSms(
+            rawText: actualFormat ? realBankSms[9] : 'نوع: انتقال\nمبلغ: 2500 ریال\nحساب: 123456789012\nپیگیری: 987654321098',
+            sourceKey: 'transfer',
+            currency: 'IRR',
+            importedAt: DateTime(2026, 10, 11, 16, 45),
+          );
+          await _mount(tester, inbox, finance, dark: dark, narrow: true);
+          await _tap(tester, find.text('جزئیات پیشنهاد'));
+          expect(find.textContaining('123456789012'), findsNothing);
+          expect(find.textContaining('987654321098'), findsNothing);
+          await _tap(tester, find.text('ویرایش'));
+          await _tap(
+            tester,
+            find.byType(DropdownButtonFormField<TransactionDirection>),
+          );
+          await _tap(tester, find.text('واریز').last);
+          if (actualFormat) {
+            await _tap(tester, find.text('واحد مبلغ'));
+            await _tap(tester, find.text('ریال').last);
+          }
+          await _tap(tester, find.text('ذخیره و بررسی'));
+          final edited = (await repository.listSuggestions()).single;
+          expect(edited.draft.type, 'income');
+          expect(
+            edited.extractedEvidence!.toJson(),
+            original.extractedEvidence!.toJson(),
+          );
+          await _tap(tester, find.text('تأیید و ثبت'));
+          await _tap(tester, find.text('تأیید نهایی'));
+          expect(
+            find.textContaining(
+              'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود.',
+            ),
+            findsWidgets,
+          );
+          expect(await finance.listEntries(), isEmpty);
+          await _tap(tester, find.text('انصراف'));
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
   }
 }

@@ -39,6 +39,9 @@ class SmsOriginalEvidence extends StatelessWidget {
     String dateLabel() {
       final source = evidence?.sourceDate;
       if (source == null) return 'نامشخص';
+      if (!RegExp(r'^\d{4}[-/]\d{1,2}[-/]\d{1,2}$').hasMatch(source)) {
+        return '${PersianNumbers.format(source)} (سال نامشخص)';
+      }
       final parts = source.split(RegExp('[-/]')).map(int.parse).toList();
       final date = parts.first < 1500
           ? JalaliDate(parts[0], parts[1], parts[2])
@@ -126,7 +129,8 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
       _seconds = value.second;
     } else {
       final source = original?.sourceDate;
-      if (source != null) {
+      if (source != null &&
+          RegExp(r'^\d{4}[-/]\d{1,2}[-/]\d{1,2}$').hasMatch(source)) {
         final p = source.split(RegExp('[-/]')).map(int.parse).toList();
         _date = p.first < 1500
             ? JalaliDate(p[0], p[1], p[2]).toDateTime()
