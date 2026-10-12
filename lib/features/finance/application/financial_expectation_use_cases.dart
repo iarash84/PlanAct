@@ -38,14 +38,9 @@ class InMemoryFinancialExpectationRepository
 }
 
 class FinancialExpectationUseCases {
-  FinancialExpectationUseCases(
-    this.repository, {
-    @Deprecated('Use a repository-backed reconciliation source')
-    List<TransactionMatch>? matches,
-  }) : _legacyMatches = matches;
+  FinancialExpectationUseCases(this.repository);
 
   final FinancialExpectationRepository repository;
-  final List<TransactionMatch>? _legacyMatches;
 
   Future<FinancialExpectation> create({
     required StableId occurrenceId,
@@ -131,20 +126,21 @@ class FinancialExpectationUseCases {
         final active = (await repository.listExpectations()).where(
           (item) => item.status == FinancialExpectationStatus.active,
         );
-        final matches = _legacyMatches ?? await repository.listMatches();
+        final totals = <(StableId, String), int>{};
+        for (final match in await repository.listMatches()) {
+          if (match.status != MatchStatus.active) continue;
+          for (final allocation in match.allocations) {
+            final key = (allocation.occurrenceId, allocation.amount.currency);
+            totals.update(
+              key,
+              (total) => total + allocation.amount.minorUnits,
+              ifAbsent: () => allocation.amount.minorUnits,
+            );
+          }
+        }
         return active
             .map((item) {
-              var total = 0;
-              for (final match in matches) {
-                if (match.status != MatchStatus.active) continue;
-                for (final allocation in match.allocations) {
-                  if (allocation.occurrenceId == item.occurrenceId &&
-                      item.currency != null &&
-                      allocation.amount.currency == item.currency) {
-                    total += allocation.amount.minorUnits;
-                  }
-                }
-              }
+              final total = totals[(item.occurrenceId, item.currency)] ?? 0;
               return FinancialExpectationSettlement(
                 expectation: item,
                 allocatedAmount: item.currency == null

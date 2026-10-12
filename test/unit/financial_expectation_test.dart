@@ -68,10 +68,91 @@ void main() {
       amount: 1000,
       currency: 'تومان',
     );
-    final useCases = FinancialExpectationUseCases(repository, matches: [match]);
+    repository.matches = [match];
+    final useCases = FinancialExpectationUseCases(repository);
     expect((await useCases.settled()).single.expectation.id, expectation.id);
     expect((await useCases.outstanding()), isEmpty);
+
+    repository.matches = [];
+    expect(await useCases.settled(), isEmpty);
+    expect(
+      (await useCases.outstanding()).single.allocatedAmount,
+      const Money(minorUnits: 0, currency: 'تومان'),
+    );
   });
+
+  test(
+    'allocation totals isolate currencies, occurrences and match status',
+    () async {
+      final repository = InMemoryFinancialExpectationRepository();
+      final useCases = FinancialExpectationUseCases(repository);
+      final otherOccurrence = StableId.generate();
+      final rial = await useCases.create(
+        occurrenceId: occurrence,
+        direction: FinancialExpectationDirection.incoming,
+        amount: 1000,
+        currency: 'IRR',
+      );
+      final dollar = await useCases.create(
+        occurrenceId: occurrence,
+        direction: FinancialExpectationDirection.incoming,
+        amount: 1000,
+        currency: 'USD',
+      );
+      final unknown = await useCases.create(
+        occurrenceId: otherOccurrence,
+        direction: FinancialExpectationDirection.outgoing,
+        amount: 1000,
+      );
+
+      TransactionMatch match(
+        StableId target,
+        int amount,
+        String currency, {
+        MatchStatus status = MatchStatus.active,
+      }) {
+        final id = StableId.generate();
+        return TransactionMatch(
+          id: id,
+          transactionId: StableId.generate(),
+          transactionAmount: Money(minorUnits: amount, currency: currency),
+          createdAt: DateTime.utc(2026),
+          status: status,
+          allocations: [
+            MatchAllocation(
+              id: StableId.generate(),
+              matchId: id,
+              occurrenceId: target,
+              amount: Money(minorUnits: amount, currency: currency),
+            ),
+          ],
+        );
+      }
+
+      repository.matches = [
+        match(occurrence, 400, 'IRR'),
+        match(occurrence, 600, 'IRR'),
+        match(occurrence, 250, 'USD'),
+        match(otherOccurrence, 900, 'IRR'),
+        match(occurrence, 700, 'USD', status: MatchStatus.reversed),
+        match(occurrence, 800, 'USD', status: MatchStatus.corrected),
+      ];
+      expect((await useCases.settled()).single.expectation.id, rial.id);
+      final outstanding = await useCases.outstanding();
+      expect(outstanding.map((item) => item.expectation.id), [
+        dollar.id,
+        unknown.id,
+      ]);
+      expect(
+        outstanding.first.allocatedAmount,
+        const Money(minorUnits: 250, currency: 'USD'),
+      );
+      expect(outstanding.last.allocatedAmount, isNull);
+      await useCases.archive(rial);
+      expect(await useCases.settled(), isEmpty);
+      expect(await repository.listExpectations(), hasLength(3));
+    },
+  );
 
   test(
     'archive preserves the record but removes it from active queries',
