@@ -39,7 +39,8 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
     await tester.drag(find.byType(Scrollable).last, const Offset(0, -180));
     await tester.pumpAndSettle();
   }
-  await tester.tap(finder);
+  expect(finder.hitTestable(), findsOneWidget);
+  await tester.tap(finder.hitTestable());
   await tester.pumpAndSettle();
 }
 
@@ -133,7 +134,13 @@ void main() {
         find.text('طبقه‌بندی درآمد یا هزینه را صریحاً تأیید کنید.'),
         findsOneWidget,
       );
-      await _tap(tester, find.byType(Checkbox).first);
+      final classification = find.widgetWithText(
+        CheckboxListTile,
+        'ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.',
+      );
+      expect(classification, findsOneWidget);
+      await _tap(tester, find.text('ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.'));
+      expect(tester.widget<CheckboxListTile>(classification).value, isTrue);
       await _tap(tester, find.text('تأیید نهایی'));
       expect(
         find.textContaining('زمان پیشنهادی را صریحاً تأیید کنید'),

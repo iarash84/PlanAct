@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -39,6 +40,52 @@ void main() {
         fixtures.now,
       );
       await repository.confirm(preview, fixtures.now);
+      final ledger = DriftEntitlementLedgerRepository(database);
+      final beforeEntries = await ledger.listByPlan(fixture.entitlement.id);
+      final adjustment = beforeEntries.singleWhere(
+        (entry) => entry.type == EntitlementEntryType.adjustment,
+      );
+      expect(adjustment.planId, fixture.entitlement.id);
+      expect(adjustment.units, -2);
+      expect(adjustment.occurredAt, fixtures.now.toUtc());
+      expect(adjustment.note, 'package correction');
+      expect(adjustment.referenceId, isNotNull);
+      final beforeLedger = {
+        for (final entry in beforeEntries)
+          entry.id.value: {
+            'id': entry.id.value,
+            'planId': entry.planId.value,
+            'type': entry.type.index,
+            'units': entry.units,
+            'occurredAt': entry.occurredAt.toIso8601String(),
+            'referenceId': entry.referenceId?.value,
+            'note': entry.note,
+          },
+      };
+      expect(beforeLedger, hasLength(3));
+      final beforeAudit = {
+        for (final row in await database.select(database.schemaMetadata).get())
+          if (row.key.startsWith('commitment_correction_v1:'))
+            row.key: row.value,
+      };
+      expect(beforeAudit, hasLength(1));
+      expect(
+        beforeAudit.keys.single,
+        'commitment_correction_v1:${adjustment.referenceId!.value}',
+      );
+      expect(jsonDecode(beforeAudit.values.single), {
+        'commitmentId': fixture.commitment.id.value,
+        'cycleId': fixture.entitlement.cycleId.value,
+        'at': fixtures.now.toUtc().toIso8601String(),
+        'reason': 'package correction',
+        'scope': 'independent-credit-adjustment',
+        'beforeCount': 4,
+        'afterCount': 4,
+        'beforeRemaining': 3,
+        'afterRemaining': 1,
+        'scheduleId': null,
+        'cancelledIds': <String>[],
+      });
       await database.close();
       final sql = sqlite3.open(live.path);
       final schema = SqliteBackupStorage.schema(sql);
@@ -67,18 +114,47 @@ void main() {
       mutate.execute(
         "UPDATE schema_metadata SET value='different' WHERE key LIKE 'commitment_correction_v1:%'",
       );
+      mutate.execute(
+        'UPDATE entitlement_ledger_entries SET units=99, note=? WHERE id=?',
+        ['different', adjustment.id.value],
+      );
       mutate.close();
       await service.restore(BackupPackage.decode(package.encode()));
-      final reopened = AppDatabase.forTesting(NativeDatabase(live));
-      addTearDown(reopened.close);
-      final entries = await DriftEntitlementLedgerRepository(reopened)
-          .listByPlan(fixture.entitlement.id);
-      expect(const EntitlementLedger().remaining(entries), 1);
-      expect(entries.last.units, -2);
-      expect(entries.last.note, 'package correction');
-      final audit = (await reopened.select(reopened.schemaMetadata).get())
-          .singleWhere((r) => r.key.startsWith('commitment_correction_v1:'));
-      expect(audit.value, contains('package correction'));
+      // Verify both the restored file and a second independent cold reopen.
+      for (var reopen = 0; reopen < 2; reopen++) {
+        final reopened = AppDatabase.forTesting(NativeDatabase(live));
+        try {
+          final entries = await DriftEntitlementLedgerRepository(reopened)
+              .listByPlan(fixture.entitlement.id);
+          expect(const EntitlementLedger().remaining(entries), 1);
+          expect(const EntitlementLedger().fold(entries).consumed, 1);
+          expect({
+            for (final entry in entries)
+              entry.id.value: {
+                'id': entry.id.value,
+                'planId': entry.planId.value,
+                'type': entry.type.index,
+                'units': entry.units,
+                'occurredAt': entry.occurredAt.toIso8601String(),
+                'referenceId': entry.referenceId?.value,
+                'note': entry.note,
+              },
+          }, beforeLedger);
+          final restoredAdjustment = entries.singleWhere(
+            (entry) => entry.id == adjustment.id,
+          );
+          expect(restoredAdjustment.type, EntitlementEntryType.adjustment);
+          expect(restoredAdjustment.units, -2);
+          expect({
+            for (final row
+                in await reopened.select(reopened.schemaMetadata).get())
+              if (row.key.startsWith('commitment_correction_v1:'))
+                row.key: row.value,
+          }, beforeAudit);
+        } finally {
+          await reopened.close();
+        }
+      }
       storage.validateFile(live);
     },
   );

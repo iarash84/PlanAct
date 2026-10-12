@@ -7,6 +7,7 @@ import 'package:planact/features/calendar/presentation/holiday_package_settings_
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
@@ -184,6 +185,13 @@ class _PlanActAppState extends State<PlanActApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'پلن‌اکت',
+      locale: const Locale('fa'),
+      supportedLocales: const [Locale('fa')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       theme: PlanActTheme.light(),
       darkTheme: PlanActTheme.dark(),

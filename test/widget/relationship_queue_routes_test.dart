@@ -74,7 +74,7 @@ void main() {
             .isIndependent,
         true,
       );
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
       await tester.tap(find.text('مالی'));
@@ -107,7 +107,7 @@ void main() {
             .isIndependent,
         false,
       );
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text('به تعهدی مربوط نیست'), findsOneWidget);
       expect(await finance.listEntries(), hasLength(1));
