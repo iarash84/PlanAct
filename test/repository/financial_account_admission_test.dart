@@ -26,15 +26,7 @@ void main() {
       amount: const Money(minorUnits: 100, currency: 'IRR'),
       occurredAt: DateTime.utc(2026, 9, 20),
     );
-    await repository.saveAccount(
-      FinancialAccount(
-        id: active.id,
-        name: active.name,
-        currency: active.currency,
-        type: active.type,
-        status: FinancialAccountStatus.archived,
-      ),
-    );
+    await useCases.archive(active);
     await expectLater(
       useCases.record(
         account: active,

@@ -34,8 +34,10 @@ The values below record the current token baseline after inspection of the logo 
 
 | Role | Current token/value | Use |
 | --- | --- | --- |
-| Brand primary | `PlanActColors.primary` — `#176B87` | Main product actions, focus, and selected emphasis where semantically appropriate |
-| Deeper brand tone | `PlanActColors.primaryDark` — `#0D5268` | Existing deeper brand token; do not invent feature-specific variants |
+| Brand primary | [`PlanActColors.primary`](../lib/app/theme/planact_colors.dart:6) — #087443 | Logo-related green for main product actions and focus; not success semantics |
+| Deeper brand tone | [`PlanActColors.primaryDark`](../lib/app/theme/planact_colors.dart:7) — #004D2B | Reserved deeper green token; do not invent feature-specific variants |
+| Brand secondary | [`PlanActColors.navy`](../lib/app/theme/planact_colors.dart:8) — #16465B | Navy hierarchy, independent of information status |
+| Brand tertiary | [`PlanActColors.teal`](../lib/app/theme/planact_colors.dart:9) — #006B65 | Teal accent, independent of success status |
 | Light scaffold | `PlanActColors.lightBackground` — `#F7FAFB` | Quiet light-mode page background |
 | Dark scaffold | `PlanActColors.darkBackground` — `#101A1E` | Quiet dark-mode page background |
 | Light surface | `PlanActColors.lightSurface` — `#FFFFFF` | Base light-mode surface |
@@ -43,7 +45,20 @@ The values below record the current token baseline after inspection of the logo 
 
 `ColorScheme` supplies Material roles such as `onPrimary`, containers, outlines, and additional surface levels. Use those semantic roles instead of selecting a nearby raw color. Preserve a restrained relationship to the logo's deep navy and blue-green/teal/green family; do not use the artwork's bright colors or gradients as a license for a loud interface.
 
-Material secondary and tertiary are generated brand roles, not information or success aliases. Material error retains its own foreground/container pairing and is reserved for actual failures/destructive operations. Light primary remains #176B87 with white foreground; Dark primary is #8BD0E7 with #003544 foreground.
+Brand roles are explicitly paired in both brightnesses by [`PlanActColors.scheme()`](../lib/app/theme/planact_colors.dart:11); remaining Material neutral/error roles derive from the navy seed. Secondary and tertiary are not information or success aliases. Material error retains its own foreground/container pairing and is reserved for actual failures/destructive operations.
+
+| Material brand role | Light foreground / role | Dark foreground / role |
+| --- | --- | --- |
+| Primary | #FFFFFF / #087443 | #00391E / #75D9A2 |
+| Primary container | #00391E / #D9F3E5 | #B4F2CE / #173B2C |
+| Secondary | #FFFFFF / #16465B | #062B3A / #AACDDD |
+| Secondary container | #062B3A / #DCEEF5 | #DCEEF5 / #254452 |
+| Tertiary | #FFFFFF / #006B65 | #003B36 / #72D4C8 |
+| Tertiary container | #003B36 / #CDF4ED | #B2EEE3 / #164943 |
+
+Light uses restrained dark green actions against pale surfaces; Dark uses lighter green actions with deep green foregrounds, not inverted Light colors. Navy and teal have their own brightness-specific containers. Neutral scaffold/base surfaces remain unchanged, matching native splash backgrounds. This alignment comes from decoded launcher pixel families, not Finance bank colors or a claim of completed human visual review.
+
+Selected chips/checkmarks, segmented buttons and navigation indicators share the primary container. Segments retain checkmarks and labels, navigation retains labelled destinations, and chips retain their selection semantics; color alone is insufficient. Filled buttons explicitly use primary/on-primary. Disabled filled buttons use highest surface/on-surface-variant, while outlined/text buttons retain readable on-surface-variant text and non-activation semantics. Tests require 4.5:1 for brand foreground/container and disabled filled text, and 3:1 for primary focus against highest surface. Framework pressed/hover/focus overlays remain Material 3; no local state palette is added. Typography, RTL, standard target sizes, identity/status palettes and motion remain unchanged. Coverage and remaining visual/native review gates are in [brand verification](ACCOUNT_BRAND_VERIFICATION.md).
 
 ## Semantic palette
 

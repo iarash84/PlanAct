@@ -12,24 +12,7 @@ abstract final class PlanActTheme {
   static ThemeData dark() => _build(Brightness.dark);
 
   static ThemeData _build(Brightness brightness) {
-    final scheme =
-        ColorScheme.fromSeed(
-          seedColor: PlanActColors.primary,
-          brightness: brightness,
-        ).copyWith(
-          primary: brightness == Brightness.light
-              ? PlanActColors.primary
-              : const Color(0xff8bd0e7),
-          onPrimary: brightness == Brightness.light
-              ? Colors.white
-              : const Color(0xff003544),
-          surface: brightness == Brightness.light
-              ? PlanActColors.lightBackground
-              : PlanActColors.darkBackground,
-          surfaceContainer: brightness == Brightness.light
-              ? PlanActColors.lightSurface
-              : PlanActColors.darkSurface,
-        );
+    final scheme = PlanActColors.scheme(brightness);
     final outline = scheme.outlineVariant;
     return ThemeData(
       useMaterial3: true,
@@ -85,12 +68,19 @@ abstract final class PlanActTheme {
         ),
       ),
       chipTheme: ChipThemeData(
+        selectedColor: scheme.primaryContainer,
+        checkmarkColor: scheme.onPrimaryContainer,
+        labelStyle: TextStyle(color: scheme.onSurface),
         shape: const RoundedRectangleBorder(borderRadius: PlanActRadius.chip),
         side: BorderSide(color: outline),
         padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.sm),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          disabledBackgroundColor: scheme.surfaceContainerHighest,
+          disabledForegroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(0, PlanActSpacing.touchTarget),
           shape: const RoundedRectangleBorder(
             borderRadius: PlanActRadius.input,
@@ -99,6 +89,8 @@ abstract final class PlanActTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.primary,
+          disabledForegroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(0, PlanActSpacing.touchTarget),
           shape: const RoundedRectangleBorder(
             borderRadius: PlanActRadius.input,
@@ -107,6 +99,8 @@ abstract final class PlanActTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          foregroundColor: scheme.primary,
+          disabledForegroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(0, PlanActSpacing.touchTarget),
         ),
       ),
@@ -129,6 +123,9 @@ abstract final class PlanActTheme {
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
+          selectedBackgroundColor: scheme.primaryContainer,
+          selectedForegroundColor: scheme.onPrimaryContainer,
+          disabledForegroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(0, PlanActSpacing.touchTarget),
         ),
       ),

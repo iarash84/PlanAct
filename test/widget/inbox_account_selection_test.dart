@@ -277,19 +277,17 @@ void main() {
         expect(find.text(selected.name), findsOneWidget);
         expect(await finance.listEntries(), isEmpty);
         await database.customStatement('DROP TRIGGER fail_confirmation');
-        await finance.saveAccount(
-          FinancialAccount(
-            id: selected.id,
-            name: selected.name,
-            currency: selected.currency,
-            type: selected.type,
-            status: FinancialAccountStatus.archived,
-          ),
+        await finance.setAccountStatus(
+          selected.id,
+          FinancialAccountStatus.archived,
         );
         await tester.tap(find.text('تأیید نهایی'));
         await tester.pumpAndSettle();
         expect(await finance.listEntries(), isEmpty);
-        await finance.saveAccount(selected);
+        await finance.setAccountStatus(
+          selected.id,
+          FinancialAccountStatus.active,
+        );
         await tester.tap(find.text('تأیید نهایی'));
         await tester.pumpAndSettle();
         expect(await finance.listEntries(), hasLength(1));

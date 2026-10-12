@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/features/finance/domain/account_identifiers.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
@@ -12,6 +16,7 @@ class DriftFinanceRepository
     implements
         CommandGateProvider,
         FinanceRepository,
+        AtomicAccountEditing,
         AtomicFinanceCorrection,
         TaggedFinanceCreation {
   DriftFinanceRepository(this.database);
@@ -42,18 +47,7 @@ class DriftFinanceRepository
   Future<List<FinancialAccount>> listAccounts() =>
       CommandGate.runFor(this, () async {
         final rows = await database.select(database.financialAccounts).get();
-        return rows
-            .map(
-              (row) => FinancialAccount(
-                id: StableId.parse(row.id),
-                name: row.name,
-                currency: row.currency,
-                type: FinancialAccountType.values[row.type],
-                bank: IranianBank.fromCode(row.bankCode),
-                status: FinancialAccountStatus.values[row.status],
-              ),
-            )
-            .toList(growable: false);
+        return Future.wait(rows.map(_readAccount));
       });
 
   @override
@@ -82,10 +76,105 @@ class DriftFinanceRepository
     },
   );
 
+  Future<FinancialAccount> _readAccount(db.FinancialAccount row) async {
+    final raw = await database.readMetadata('account_identifiers_v1:${row.id}');
+    var identifiers = AccountIdentifiers.empty;
+    if (raw != null) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['version'] != 1) {
+        throw const ValidationError('Unsupported account metadata');
+      }
+      identifiers = AccountIdentifiers(
+        cardNumber: data['cardNumber'] as String?,
+        iban: data['iban'] as String?,
+        accountNumber: data['accountNumber'] as String?,
+      );
+    }
+    return FinancialAccount(
+      id: StableId.parse(row.id),
+      name: row.name,
+      currency: row.currency,
+      type: FinancialAccountType.values[row.type],
+      bank: IranianBank.fromCode(row.bankCode),
+      status: FinancialAccountStatus.values[row.status],
+      identifiers: identifiers,
+    );
+  }
+
+  Future<void> _writeIdentifiers(FinancialAccount account) =>
+      database.writeMetadata(
+        'account_identifiers_v1:${account.id.value}',
+        jsonEncode({
+          'version': 1,
+          'cardNumber': account.identifiers.cardNumber,
+          'iban': account.identifiers.iban,
+          'accountNumber': account.identifiers.accountNumber,
+        }),
+      );
+
   @override
-  Future<void> saveAccount(FinancialAccount account) => database
-      .into(database.financialAccounts)
-      .insertOnConflictUpdate(_accountCompanion(account));
+  Future<void> editAccount({
+    required FinancialAccount original,
+    required FinancialAccount replacement,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final row = await (database.select(
+        database.financialAccounts,
+      )..where((t) => t.id.equals(original.id.value))).getSingleOrNull();
+      if (row == null || original.id != replacement.id) {
+        throw const ValidationError('Account missing');
+      }
+      final fresh = await _readAccount(row);
+      if (!fresh.sameEditableFields(original)) {
+        throw const ValidationError('Account edit conflict');
+      }
+      await (database.update(
+        database.financialAccounts,
+      )..where((t) => t.id.equals(row.id))).write(
+        db.FinancialAccountsCompanion(
+          name: Value(replacement.name),
+          type: Value(replacement.type.index),
+          bankCode: Value(replacement.bank?.code),
+        ),
+      );
+      await _writeIdentifiers(replacement);
+    }),
+  );
+
+  @override
+  Future<void> setAccountStatus(StableId id, FinancialAccountStatus status) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final count =
+              await (database.update(
+                database.financialAccounts,
+              )..where((t) => t.id.equals(id.value))).write(
+                db.FinancialAccountsCompanion(status: Value(status.index)),
+              );
+          if (count != 1) throw const ValidationError('Account missing');
+        }),
+      );
+
+  @override
+  Future<void> saveAccount(FinancialAccount account) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final row = await (database.select(
+        database.financialAccounts,
+      )..where((t) => t.id.equals(account.id.value))).getSingleOrNull();
+      if (row != null) {
+        throw const ValidationError(
+          'Existing accounts require fresh edit admission',
+        );
+      }
+      await database
+          .into(database.financialAccounts)
+          .insert(_accountCompanion(account));
+      await _writeIdentifiers(account);
+    }),
+  );
 
   @override
   Future<void> createAccount(
@@ -97,6 +186,7 @@ class DriftFinanceRepository
       await database
           .into(database.financialAccounts)
           .insert(_accountCompanion(account));
+      await _writeIdentifiers(account);
       if (openingBalance != null) {
         await database
             .into(database.accountEntries)
