@@ -16,9 +16,11 @@ class TransactionRelationshipPage extends StatefulWidget {
     super.key,
     required this.transactionId,
     required this.flow,
+    this.onOpenQueue,
   });
   final StableId transactionId;
   final ContextualReconciliation flow;
+  final Future<void> Function()? onOpenQueue;
   @override
   State<TransactionRelationshipPage> createState() =>
       _TransactionRelationshipPageState();
@@ -223,6 +225,20 @@ class _TransactionRelationshipPageState
             : ListView(
                 padding: const EdgeInsets.all(PlanActSpacing.lg),
                 children: [
+                  if (widget.onOpenQueue != null)
+                    OutlinedButton.icon(
+                      onPressed: _saving
+                          ? null
+                          : () async {
+                              await widget.onOpenQueue!();
+                              if (mounted) {
+                                _dirty = true;
+                                await _load();
+                              }
+                            },
+                      icon: const Icon(Icons.playlist_add_check),
+                      label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+                    ),
                   if (data != null) ...[
                     Text(
                       data.transaction.note ?? 'تراکنش بدون شرح',

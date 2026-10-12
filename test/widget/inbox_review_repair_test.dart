@@ -183,6 +183,10 @@ void main() {
       );
       await tester.tap(find.text('انصراف'));
       await tester.pumpAndSettle();
+      // The bounded-selection header is taller; bring the retained filter back
+      // into the lazy viewport before asserting its presentation.
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1600));
+      await tester.pumpAndSettle();
       expect(find.text('نمونه'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },

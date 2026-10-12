@@ -24,6 +24,7 @@ import 'package:planact/features/inbox/application/sms_ingestion.dart';
 import 'package:planact/features/inbox/presentation/sms_scan_card.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/inbox/application/bulk_inbox_reject.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 
 class InboxPage extends StatefulWidget {
@@ -65,6 +66,22 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   bool? _smsAccess;
   String? _smsError;
   String? _error;
+  int _page = 0;
+  final Map<StableId, InboxSuggestion> _selected = {};
+  BulkInboxReject? _bulk;
+  InboxRejectProgress? _bulkProgress;
+  int _bulkTotal = 0;
+  bool _bulkConfirming = false;
+
+  List<InboxReviewItem> get _pageItems => _items
+      .skip(_page * BulkInboxReject.pageSize)
+      .take(BulkInboxReject.pageSize)
+      .toList(growable: false);
+
+  void _clearSelection() {
+    _selected.clear();
+    _page = 0;
+  }
 
   @override
   void initState() {
@@ -98,6 +115,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _smsSubscription?.cancel();
+    _bulk?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -131,6 +149,16 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       }
       setState(() {
         _items = items;
+        if (_page * BulkInboxReject.pageSize >= items.length) _page = 0;
+        final fresh = {
+          for (final item in _pageItems) item.suggestion.id: item.suggestion,
+        };
+        _selected.removeWhere(
+          (id, snapshot) =>
+              fresh[id]?.revision != snapshot.revision ||
+              fresh[id]?.status != snapshot.status ||
+              !BulkInboxReject.eligible(fresh[id]!),
+        );
         _banks = suggestions.map((s) => s.draft.bank ?? '').toSet().toList()
           ..sort();
         _error = null;
@@ -423,6 +451,189 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _bulkReject({bool retry = false}) async {
+    if (_bulk != null || _bulkConfirming) return;
+    final snapshots =
+        (retry
+                ? _bulkProgress?.failures.values ?? <InboxSuggestion>[]
+                : _selected.values)
+            .where((s) => !_pending.contains(s.id))
+            .toList(growable: false);
+    if (snapshots.isEmpty) return;
+    setState(() => _bulkConfirming = true);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('رد کردن پیشنهادهای انتخاب‌شده؟'),
+        content: Text(
+          '${PersianNumbers.format(snapshots.length)} پیشنهاد از همین صفحهٔ بارگذاری‌شده رد می‌شود؛ '
+          'این انتخاب شامل همهٔ نتایج فیلتر نیست. تراکنش یا موجودی تغییر نمی‌کند. '
+          'برای بازگردانی، از فیلتر «ردشده» هر پیشنهاد را بازگشایی کنید.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('انصراف'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('رد کردن انتخاب‌ها'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    setState(() => _bulkConfirming = false);
+    if (confirmed != true) return;
+    final runner = BulkInboxReject(widget.inbox);
+    final progress = InboxRejectProgress();
+    setState(() {
+      _bulk = runner;
+      _bulkProgress = progress;
+      _bulkTotal = snapshots.length;
+      _selected.clear();
+    });
+    await runner.run(
+      snapshots,
+      onStarted: (suggestion) {
+        if (!mounted) return;
+        setState(() {
+          _pending.add(suggestion.id);
+          _epoch++;
+        });
+      },
+      onFinished: (suggestion, success) {
+        progress.attempted++;
+        if (success) {
+          progress.succeeded++;
+        } else {
+          progress.failures[suggestion.id] = suggestion;
+        }
+        if (!mounted) return;
+        setState(() {
+          _pending.remove(suggestion.id);
+          _epoch++;
+          if (success) {
+            _items = _items
+                .where((i) => i.suggestion.id != suggestion.id)
+                .toList();
+          }
+        });
+      },
+    );
+    if (!mounted) return;
+    setState(() => _bulk = null);
+    await _reload();
+  }
+
+  Widget _bulkControls() {
+    final page = _pageItems;
+    final eligible = page.where(
+      (i) =>
+          BulkInboxReject.eligible(i.suggestion) &&
+          !_pending.contains(i.suggestion.id),
+    );
+    final progress = _bulkProgress;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'انتخاب فقط در همین صفحهٔ بارگذاری‌شده · حداکثر ${PersianNumbers.format(BulkInboxReject.pageSize)} پیشنهاد',
+        ),
+        Text(
+          'انتخاب‌شده: ${PersianNumbers.format(_selected.length)} · همهٔ نتایج فیلتر انتخاب نمی‌شوند.',
+        ),
+        Wrap(
+          spacing: PlanActSpacing.sm,
+          children: [
+            TextButton(
+              onPressed: _bulk != null || _bulkConfirming || eligible.isEmpty
+                  ? null
+                  : () => setState(() {
+                      for (final item in eligible) {
+                        _selected[item.suggestion.id] = item.suggestion;
+                      }
+                    }),
+              child: const Text('انتخاب موارد همین صفحه'),
+            ),
+            TextButton(
+              onPressed: _selected.isEmpty
+                  ? null
+                  : () => setState(_selected.clear),
+              child: const Text('پاک کردن انتخاب'),
+            ),
+            OutlinedButton(
+              onPressed: _bulk != null || _bulkConfirming || _selected.isEmpty
+                  ? null
+                  : _bulkReject,
+              child: const Text('رد کردن گروهی'),
+            ),
+          ],
+        ),
+        if (_items.length > BulkInboxReject.pageSize || _page > 0)
+          Wrap(
+            spacing: PlanActSpacing.sm,
+            children: [
+              Text('صفحهٔ ${PersianNumbers.format(_page + 1)}'),
+              TextButton(
+                onPressed: _page == 0
+                    ? null
+                    : () => setState(() {
+                        _page--;
+                        _selected.clear();
+                      }),
+                child: const Text('صفحهٔ قبل'),
+              ),
+              TextButton(
+                onPressed:
+                    (_page + 1) * BulkInboxReject.pageSize >= _items.length
+                    ? null
+                    : () => setState(() {
+                        _page++;
+                        _selected.clear();
+                      }),
+                child: const Text('صفحهٔ بعد'),
+              ),
+            ],
+          ),
+        if (progress != null) ...[
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              'بررسی‌شده: ${PersianNumbers.format(progress.attempted)} از ${PersianNumbers.format(_bulkTotal)} · '
+              'ردشده: ${PersianNumbers.format(progress.succeeded)} · ناموفق: ${PersianNumbers.format(progress.failures.length)}',
+            ),
+          ),
+          if (_bulk != null)
+            TextButton(
+              onPressed: () => setState(() => _bulk!.cancel()),
+              child: Text(
+                _bulk!.cancelled
+                    ? 'در انتظار پایان مورد جاری'
+                    : 'توقف پس از مورد جاری',
+              ),
+            )
+          else ...[
+            const Text(
+              'عملیات پایان یافت؛ موارد انجام‌نشده تغییر نکردند. بازگردانی از فیلتر «ردشده» انجام می‌شود.',
+            ),
+            if (progress.failures.isNotEmpty) ...[
+              const Text(
+                'برخی موارد ذخیره نشدند یا تغییر جدیدتری دارند. تلاش دوباره تصمیم جدیدتر را بازنویسی نمی‌کند؛ برای انتخاب دوباره بازخوانی کنید.',
+              ),
+              TextButton(
+                onPressed: _bulkConfirming
+                    ? null
+                    : () => _bulkReject(retry: true),
+                child: const Text('تلاش دوباره برای موارد ناموفق'),
+              ),
+            ],
+          ],
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -484,6 +695,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           onChanged: (value) {
             setState(() {
               _status = value;
+              _clearSelection();
               _epoch++;
             });
             _reload();
@@ -505,6 +717,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           onChanged: (value) {
             setState(() {
               _bank = value;
+              _clearSelection();
               _epoch++;
             });
             _reload();
@@ -514,6 +727,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           onPressed: () {
             setState(() {
               _oldestFirst = !_oldestFirst;
+              _clearSelection();
               _epoch++;
             });
             _reload();
@@ -526,6 +740,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           ),
         ),
         if (_error != null) Text(_error!),
+        _bulkControls(),
         if (_items.isEmpty)
           const SizedBox(
             height: 300,
@@ -553,18 +768,34 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         key: const PageStorageKey('inbox-review'),
         padding: const EdgeInsets.all(PlanActSpacing.md),
         physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: _items.length + 1,
+        itemCount: _pageItems.length + 1,
         findChildIndexCallback: (key) {
           if (key is! ValueKey<StableId>) return null;
-          final index = _items.indexWhere((i) => i.suggestion.id == key.value);
+          final index = _pageItems.indexWhere(
+            (i) => i.suggestion.id == key.value,
+          );
           return index < 0 ? null : index + 1;
         },
         itemBuilder: (context, index) {
           if (index == 0) return header;
-          final item = _items[index - 1];
+          final item = _pageItems[index - 1];
           return _ReviewCard(
             key: ValueKey(item.suggestion.id),
             item: item,
+            selected: _selected.containsKey(item.suggestion.id),
+            onSelection:
+                !BulkInboxReject.eligible(item.suggestion) ||
+                    _pending.contains(item.suggestion.id) ||
+                    _bulk != null ||
+                    _bulkConfirming
+                ? null
+                : (value) => setState(() {
+                    if (value == true) {
+                      _selected[item.suggestion.id] = item.suggestion;
+                    } else {
+                      _selected.remove(item.suggestion.id);
+                    }
+                  }),
             busy: _pending.contains(item.suggestion.id),
             onConfirm: () => _confirm(item),
             onEdit: () => _edit(item),
@@ -809,8 +1040,12 @@ class _ReviewCard extends StatefulWidget {
     required this.onConfirm,
     required this.onEdit,
     required this.onReject,
+    required this.selected,
+    this.onSelection,
   });
 
+  final bool selected;
+  final ValueChanged<bool?>? onSelection;
   final InboxReviewItem item;
   final bool busy;
   final VoidCallback onConfirm;
@@ -846,6 +1081,13 @@ class _ReviewCardState extends State<_ReviewCard> {
               draft.merchant ?? _direction(draft.direction),
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            if (BulkInboxReject.eligible(widget.item.suggestion))
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('انتخاب برای رد گروهی'),
+                value: widget.selected,
+                onChanged: widget.onSelection,
+              ),
             Text(amount, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 6),
             Text('${widget.item.sourceLabel} · ${_direction(draft.direction)}'),

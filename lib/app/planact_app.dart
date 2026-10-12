@@ -67,6 +67,8 @@ import 'package:planact/features/reconciliation/domain/relationship_review.dart'
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
+import 'package:planact/features/reconciliation/presentation/relationship_queue_page.dart';
+import 'package:planact/features/reconciliation/application/bulk_relationship_review.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({
@@ -522,11 +524,34 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         : InMemoryReconciliationRepository(),
   );
 
+  Future<void> _openRelationshipQueue() async {
+    final repository = _reconciliation.repository;
+    if (repository is! RelationshipReviewRepository) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RelationshipQueuePage(
+          queue: RelationshipQueue(
+            _financeRepository,
+            repository as RelationshipReviewRepository,
+          ),
+          onOpen: _openRelationship,
+          onDataChanged: () async {
+            await _refresh();
+            await _financePageKey.currentState?.refreshData();
+          },
+        ),
+      ),
+    );
+    await _refresh();
+    await _financePageKey.currentState?.refreshData();
+  }
+
   Future<void> _openRelationship(StableId transactionId) async {
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => TransactionRelationshipPage(
           transactionId: transactionId,
+          onOpenQueue: _openRelationshipQueue,
           flow: ContextualReconciliation(
             finance: _financeRepository,
             commitments: _repository,
@@ -1009,6 +1034,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       TodayPage(
+        onOpenRelationshipQueue:
+            _reconciliation.repository is RelationshipReviewRepository
+            ? _openRelationshipQueue
+            : null,
         commitments: _commitments,
         scheduledDates: _scheduledDates,
         dashboard: _todayDashboard,

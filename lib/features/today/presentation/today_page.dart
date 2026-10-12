@@ -25,6 +25,7 @@ class TodayPage extends StatelessWidget {
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
     required this.onReview,
+    this.onOpenRelationshipQueue,
   });
 
   final List<Commitment> commitments;
@@ -38,6 +39,7 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
   final ValueChanged<TodayActionItem> onReview;
+  final VoidCallback? onOpenRelationshipQueue;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,12 @@ class TodayPage extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: PlanActSpacing.lg),
+        if (onOpenRelationshipQueue != null)
+          OutlinedButton.icon(
+            onPressed: onOpenRelationshipQueue,
+            icon: const Icon(Icons.playlist_add_check),
+            label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+          ),
         if (error != null)
           Column(
             children: [

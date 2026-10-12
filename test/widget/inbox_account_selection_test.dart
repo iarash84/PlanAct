@@ -114,11 +114,13 @@ void main() {
           await tester.pumpAndSettle();
           await tester.ensureVisible(find.text('تأیید و ثبت'));
           await tester.pumpAndSettle();
+          await tester.ensureVisible(find.text('تأیید و ثبت'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید و ثبت'));
           await tester.pumpAndSettle();
           for (
             var i = 0;
-            i < 8 && tester.getCenter(find.byType(Checkbox)).dy > 430;
+            i < 8 && tester.getCenter(find.byType(Checkbox).last).dy > 430;
             i++
           ) {
             await tester.drag(
@@ -127,8 +129,8 @@ void main() {
             );
             await tester.pumpAndSettle();
           }
-          await tester.ensureVisible(find.byType(Checkbox));
-          await tester.tap(find.byType(Checkbox));
+          await tester.ensureVisible(find.byType(Checkbox).last);
+          await tester.tap(find.byType(Checkbox).last);
           await tester.pumpAndSettle();
           await tester.tap(find.text('تأیید نهایی'));
           await tester.pumpAndSettle();
@@ -200,6 +202,8 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('تأیید و ثبت'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('تأیید و ثبت'));
         await tester.pumpAndSettle();
         expect(find.textContaining('برای ثبت، حساب بسازید'), findsOneWidget);
@@ -250,6 +254,8 @@ void main() {
         );
         await tester.pumpAndSettle();
         finance.fail = true;
+        await tester.ensureVisible(find.text('تأیید و ثبت'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('تأیید و ثبت'));
         await tester.pumpAndSettle();
         expect(find.textContaining('خواندن حساب‌ها انجام نشد'), findsOneWidget);
@@ -258,8 +264,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('تلاش دوباره'));
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byType(Checkbox));
-        await tester.tap(find.byType(Checkbox));
+        await tester.ensureVisible(find.byType(Checkbox).last);
+        await tester.tap(find.byType(Checkbox).last);
         await tester.pumpAndSettle();
         await selectAccount(tester, selected.name);
         await database.customStatement(
