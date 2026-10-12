@@ -29,11 +29,14 @@ class CalendarPage extends StatefulWidget {
     this.reminderRules = const [],
     this.initialDate,
     this.weekLoader,
+    this.monthLoader,
     this.holidayProvider = const IranianHolidayProvider(),
   });
 
   final List<Commitment> commitments;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
+  final Future<Map<String, List<Occurrence>>> Function(LocalDate, LocalDate)?
+  monthLoader;
   final JalaliDate? initialDate;
   final IranianHolidayProvider holidayProvider;
   final Map<String, List<DateTime>> scheduledDates;
@@ -52,6 +55,107 @@ class _CalendarPageState extends State<CalendarPage> {
   late JalaliDate _selectedDay;
   bool _week = false;
   int _weekPositionRevision = 0;
+  int _monthRevision = 0;
+  bool _monthLoading = false;
+  bool _monthError = false;
+  Map<JalaliDate, List<Commitment>> _monthItems = {};
+  Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
+  final _dayHeadingKey = GlobalKey();
+  final _monthScroll = ScrollController();
+  double _swipeDistance = 0;
+
+  @override
+  void dispose() {
+    _monthRevision++;
+    _monthScroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant CalendarPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadMonth();
+  }
+
+  void _groupMonth(Map<String, List<Occurrence>> occurrences) {
+    final items = <JalaliDate, Map<String, Commitment>>{};
+    final grouped = <JalaliDate, Map<String, List<Occurrence>>>{};
+    for (final item in widget.commitments) {
+      final id = item.id.value;
+      void include(JalaliDate date) {
+        if (date.year == _month.year && date.month == _month.month) {
+          (items[date] ??= {})[id] = item;
+        }
+      }
+
+      for (final occurrence in occurrences[id] ?? const <Occurrence>[]) {
+        final date = JalaliDate.fromDateTime(
+          _displayDate(occurrence.currentScheduledAt),
+        );
+        if (date.year != _month.year || date.month != _month.month) continue;
+        include(date);
+        ((grouped[date] ??= {})[id] ??= []).add(occurrence);
+      }
+      // Legacy fixtures may have dates without recorded occurrence details.
+      if (widget.monthLoader == null) {
+        for (final date in widget.scheduledDates[id] ?? const <DateTime>[]) {
+          include(JalaliDate.fromDateTime(_displayDate(date)));
+        }
+      }
+    }
+    _monthItems = {
+      for (final entry in items.entries) entry.key: entry.value.values.toList(),
+    };
+    _monthOccurrences = grouped;
+  }
+
+  Future<void> _loadMonth() async {
+    final revision = ++_monthRevision;
+    final loader = widget.monthLoader;
+    _monthItems = {};
+    _monthOccurrences = {};
+    _monthError = false;
+    _monthLoading = loader != null;
+    if (loader == null) {
+      _groupMonth(widget.occurrences);
+      return;
+    }
+    final start = LocalDate.fromDateTime(_month.toDateTime());
+    final end = LocalDate.fromDateTime(
+      JalaliDate(_month.year, _month.month, _month.monthLength).toDateTime(),
+    );
+    try {
+      final result = await loader(start, end.addDays(1));
+      if (!mounted || revision != _monthRevision) return;
+      setState(() {
+        _groupMonth(result);
+        _monthLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || revision != _monthRevision) return;
+      setState(() {
+        _monthLoading = false;
+        _monthError = true;
+      });
+    }
+  }
+
+  void _moveMonth(int delta) {
+    setState(() {
+      _month = _month.addMonths(delta);
+      _selectedDay = JalaliDate(
+        _month.year,
+        _month.month,
+        math.min(_selectedDay.day, _month.monthLength),
+      );
+      _loadMonth();
+    });
+  }
+
+  void _showDayList() {
+    final heading = _dayHeadingKey.currentContext;
+    if (heading != null) Scrollable.ensureVisible(heading);
+  }
 
   @override
   void initState() {
@@ -59,6 +163,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final today = widget.initialDate ?? JalaliDate.now();
     _month = JalaliDate(today.year, today.month, 1);
     _selectedDay = today;
+    _loadMonth();
   }
 
   @override
@@ -85,6 +190,7 @@ class _CalendarPageState extends State<CalendarPage> {
         onSelectionChanged: (value) => setState(() {
           _week = value.single;
           _month = JalaliDate(_selectedDay.year, _selectedDay.month, 1);
+          if (!_week) _loadMonth();
         }),
       ),
     );
@@ -97,6 +203,7 @@ class _CalendarPageState extends State<CalendarPage> {
           _weekPositionRevision++;
           _selectedDay = current;
           _month = JalaliDate(current.year, current.month, 1);
+          if (!_week) _loadMonth();
         }),
         icon: const Icon(Icons.today_outlined),
         label: const Text('بازگشت به امروز'),
@@ -155,6 +262,7 @@ class _CalendarPageState extends State<CalendarPage> {
       );
     }
     return ListView(
+      controller: _monthScroll,
       padding: const EdgeInsets.fromLTRB(
         PlanActSpacing.md,
         PlanActSpacing.sm,
@@ -166,12 +274,8 @@ class _CalendarPageState extends State<CalendarPage> {
         todayButton,
         _CalendarHeader(
           month: _month,
-          onPrevious: () => setState(() {
-            _month = _month.addMonths(-1);
-          }),
-          onNext: () => setState(() {
-            _month = _month.addMonths(1);
-          }),
+          onPrevious: () => _moveMonth(-1),
+          onNext: () => _moveMonth(1),
         ),
         if (!_holidayProvider.hasCompleteOfficialCoverage(_month.year))
           const Padding(
@@ -180,7 +284,34 @@ class _CalendarPageState extends State<CalendarPage> {
               'دادهٔ تعطیلات رسمی این سال کامل نیست؛ تعطیلات قمری نمایش داده نمی‌شوند. نبودن نشان تعطیلی به معنی روز کاری قطعی نیست.',
             ),
           ),
+        if (_monthLoading)
+          const Column(
+            children: [
+              LinearProgressIndicator(),
+              Text('در حال بارگذاری رخدادهای ماه…'),
+            ],
+          )
+        else if (_monthError)
+          Column(
+            children: [
+              const Text('بارگذاری رخدادهای ماه انجام نشد.'),
+              TextButton(
+                onPressed: () => setState(() {
+                  _loadMonth();
+                }),
+                child: const Text('تلاش دوباره'),
+              ),
+            ],
+          ),
+        if (!_monthLoading && !_monthError && _monthItems.isEmpty)
+          const Text('برای این ماه تعهدی ثبت نشده است.'),
         const SizedBox(height: PlanActSpacing.md),
+        TextButton.icon(
+          key: const ValueKey('calendar-show-day-list'),
+          onPressed: _showDayList,
+          icon: const Icon(Icons.list_alt),
+          label: const Text('نمایش فهرست روز انتخاب‌شده'),
+        ),
         LayoutBuilder(
           builder: (context, constraints) {
             final scaler = MediaQuery.textScalerOf(context);
@@ -222,15 +353,23 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ).reduce(math.max);
             final countHeight = textHeight(
-              PersianNumbers.format(widget.commitments.length),
+              '+${PersianNumbers.format(widget.commitments.length)}',
               theme.textTheme.labelSmall,
             );
+            final markerPainter = TextPainter(
+              text: TextSpan(text: 'تعهد', style: theme.textTheme.labelSmall),
+              textDirection: Directionality.of(context),
+              textScaler: scaler,
+            )..layout(maxWidth: cellWidth - 8);
+            final markerHeight = markerPainter.preferredLineHeight * 2 + 4;
+            markerPainter.dispose();
             final cellHeight = math.max(
               96.0,
               numberHeight +
                   textHeight('تعطیل', theme.textTheme.labelSmall) +
                   countHeight +
-                  PlanActSpacing.sm,
+                  2 * markerHeight +
+                  PlanActSpacing.lg,
             );
             return Column(
               children: [
@@ -255,45 +394,63 @@ class _CalendarPageState extends State<CalendarPage> {
                   }),
                 ),
                 const SizedBox(height: PlanActSpacing.xs),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: cellCount,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    crossAxisSpacing: 3,
-                    mainAxisSpacing: 3,
-                    mainAxisExtent: cellHeight,
-                  ),
-                  itemBuilder: (context, index) {
-                    final day = index - leading + 1;
-                    if (day < 1 || day > _month.monthLength) {
-                      return const SizedBox.shrink();
+                GestureDetector(
+                  key: const ValueKey('calendar-month-grid'),
+                  onHorizontalDragStart: (_) => _swipeDistance = 0,
+                  onHorizontalDragUpdate: (details) =>
+                      _swipeDistance += details.delta.dx,
+                  onHorizontalDragCancel: () => _swipeDistance = 0,
+                  onHorizontalDragEnd: (_) {
+                    if (_swipeDistance.abs() >= 48) {
+                      _moveMonth(_swipeDistance > 0 ? 1 : -1);
                     }
-                    final date = JalaliDate(_month.year, _month.month, day);
-                    final items = _commitmentsFor(date);
-                    return _CalendarDay(
-                      date: date,
-                      selected: _selectedDay == date,
-                      isToday: today == date,
-                      holidays: holidays
-                          .where((holiday) => holiday.date == date)
-                          .toList(),
-                      commitments: items,
-                      onTap: () => setState(() => _selectedDay = date),
-                    );
+                    _swipeDistance = 0;
                   },
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: cellCount,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      crossAxisSpacing: 3,
+                      mainAxisSpacing: 3,
+                      mainAxisExtent: cellHeight,
+                    ),
+                    itemBuilder: (context, index) {
+                      final day = index - leading + 1;
+                      if (day < 1 || day > _month.monthLength) {
+                        return const SizedBox.shrink();
+                      }
+                      final date = JalaliDate(_month.year, _month.month, day);
+                      final items = _commitmentsFor(date);
+                      return _CalendarDay(
+                        date: date,
+                        selected: _selectedDay == date,
+                        isToday: today == date,
+                        holidays: holidays
+                            .where((holiday) => holiday.date == date)
+                            .toList(),
+                        commitments: items,
+                        markerHeight: markerHeight,
+                        onTap: () => setState(() => _selectedDay = date),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: PlanActSpacing.lg),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    key: _dayHeadingKey,
+                    PersianDateFormatter.relative(_selectedDay),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             );
           },
-        ),
-        const SizedBox(height: PlanActSpacing.lg),
-        Text(
-          PersianDateFormatter.relative(_selectedDay),
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
         ),
         const SizedBox(height: PlanActSpacing.sm),
         for (final holiday in _holidayProvider.holidaysFor(_selectedDay))
@@ -306,7 +463,9 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ),
           ),
-        if (selectedItems.isEmpty)
+        if (_monthLoading || _monthError)
+          const Text('فهرست رخدادها هنوز در دسترس نیست.')
+        else if (selectedItems.isEmpty)
           const Text('برای این روز تعهدی ثبت نشده است.')
         else
           ...selectedItems.map(
@@ -330,22 +489,10 @@ class _CalendarPageState extends State<CalendarPage> {
   };
 
   List<Occurrence> _occurrencesFor(Commitment item) =>
-      (widget.occurrences[item.id.value] ?? const <Occurrence>[])
-          .where(
-            (occurrence) =>
-                JalaliDate.fromDateTime(
-                  _displayDate(occurrence.currentScheduledAt),
-                ) ==
-                _selectedDay,
-          )
-          .toList();
+      _monthOccurrences[_selectedDay]?[item.id.value] ?? const [];
 
-  List<Commitment> _commitmentsFor(JalaliDate date) => widget.commitments.where(
-    (item) {
-      final dates = widget.scheduledDates[item.id.value] ?? const <DateTime>[];
-      return dates.any((value) => JalaliDate.fromDateTime(value) == date);
-    },
-  ).toList();
+  List<Commitment> _commitmentsFor(JalaliDate date) =>
+      _monthItems[date] ?? const [];
 }
 
 String _holidayLabel(CalendarHoliday holiday) => switch (holiday.kind) {
@@ -403,6 +550,7 @@ class _CalendarDay extends StatelessWidget {
     required this.isToday,
     required this.holidays,
     required this.commitments,
+    required this.markerHeight,
     required this.onTap,
   });
 
@@ -411,6 +559,7 @@ class _CalendarDay extends StatelessWidget {
   final bool isToday;
   final List<CalendarHoliday> holidays;
   final List<Commitment> commitments;
+  final double markerHeight;
   final VoidCallback onTap;
 
   @override
@@ -430,7 +579,9 @@ class _CalendarDay extends StatelessWidget {
       key: ValueKey('calendar-day-${date.day}'),
       button: true,
       selected: selected,
-      label: '$dateLabel$selectionLabel$todayLabel$holidayLabel، $countLabel',
+      label:
+          '$dateLabel$selectionLabel$todayLabel$holidayLabel، $countLabel، '
+          '${commitments.map((item) => item.title).join('، ')}، نمایش فهرست روز',
       onTap: onTap,
       child: ExcludeSemantics(
         child: Material(
@@ -474,31 +625,41 @@ class _CalendarDay extends StatelessWidget {
                         color: PlanActStatusColors.of(context).holiday,
                       ),
                     ),
-                  if (commitments.isNotEmpty)
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 2,
-                      children: [
-                        for (final item in commitments.take(3))
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: CommitmentIdentityPalette.background(
-                                CommitmentIdentityPalette.resolve(
-                                  item.color,
-                                  item.id,
-                                ),
-                                theme.brightness,
-                              ),
-                            ),
+                  for (final item in commitments.take(2))
+                    Container(
+                      key: ValueKey('month-title-${date.day}-${item.id.value}'),
+                      height: markerHeight,
+                      margin: const EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        borderRadius: PlanActRadius.chip,
+                        color: CommitmentIdentityPalette.background(
+                          CommitmentIdentityPalette.resolve(
+                            item.color,
+                            item.id,
                           ),
-                      ],
+                          theme.brightness,
+                        ),
+                      ),
+                      child: Text(
+                        item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: CommitmentIdentityPalette.foreground(
+                            CommitmentIdentityPalette.resolve(
+                              item.color,
+                              item.id,
+                            ),
+                            theme.brightness,
+                          ),
+                        ),
+                      ),
                     ),
-                  if (commitments.isNotEmpty)
+                  if (commitments.length > 2)
                     Text(
-                      PersianNumbers.format(commitments.length),
+                      '+${PersianNumbers.format(commitments.length - 2)}',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: selected

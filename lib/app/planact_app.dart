@@ -1074,6 +1074,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         weekLoader: _planRepository is DriftCommitmentPlanRepository
             ? _planRepository.loadWeek
             : null,
+        monthLoader: _planRepository is DriftCommitmentPlanRepository
+            ? _planRepository.loadMonth
+            : null,
         reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentDetails,

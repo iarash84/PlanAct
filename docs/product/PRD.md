@@ -430,10 +430,15 @@ Requirements:
 - نمایش جلالی؛
 - نمایش هم‌زمان هر هفت ستون روزهای هفته در عرض صفحهٔ تقویم گوشی، بدون نیاز به پیمایش افقی؛ در فضای محدود عنوان کوتاه فارسی با نام کامل دسترس‌پذیری استفاده شود. بزرگ‌نمایی متن حفظ شود و ارتفاع خانه‌ها با محتوای آن‌ها سازگار شود. این الزام مختص نمای ماه تقویم است، نه نمای هفته یا پنجرهٔ انتخاب تاریخ؛ استثنای محدود عرض هدف لمس در گوشی باریک مطابق سند طراحی و AGENTS ثبت شده است.
 - مرور ماه‌ها؛
+- در نمای ماه، هر روز حداکثر دو نشان خوانای عنوان با رنگ هویت مشترک روشن/تیره و تعداد تعهدهای باقی‌مانده داشته باشد، نه فقط نقطهٔ رنگی. عنوان کوتاه می‌تواند در مرور فشرده دوخطی و کوتاه‌شده باشد؛ عنوان کامل در معنای دسترس‌پذیری روز و کارت‌های فهرست روز حفظ شود. اقدام صریح «نمایش فهرست روز انتخاب‌شده» عنوان فهرست را به محدودهٔ دید بیاورد؛ لمس معمول روز فقط انتخاب را تغییر دهد.
+- کشیدن افقی فقط روی شبکهٔ ماه و پس از آستانهٔ مشخص عمل کند: به راست ماه بعد و به چپ ماه قبل، شامل عبور سال جلالی. پیمایش عمودی و لمس عادی ماه را عوض نکنند. دکمه‌های قبل/بعد و بازگشت به امروز حفظ شوند؛ روز انتخاب‌شده پس از مرور داخل ماه نمایش‌داده‌شده بماند و بازگشت به امروز دادهٔ ماه را دوباره بخواند.
+- نمای تولید ماه فقط رخدادهای ثبت‌شدهٔ محدودهٔ همان ماه را از منبع پایدار بخواند و یک‌بار برای تاریخ نمایش گروه‌بندی کند؛ نتیجهٔ درخواست قدیمی جای ماه جدید را نگیرد. بارگذاری و خطا با تلاش دوباره از ماه/روز خالی متمایز باشند. کارت‌های کامل، همهٔ وضعیت‌های تاریخی و رخدادهای تعهد بایگانی‌شده حفظ شوند؛ خواندن تقویم هیچ برنامه، یادآور یا سابقه‌ای ایجاد یا تغییر ندهد.
 - نمایش رخدادهای هر روز؛
 - دسترسی از occurrence به commitment؛
 - تمایز مناسب بین statusها؛
 - عدم از دست رفتن occurrenceهای گذشته پس از تغییر schedule.
+
+Month checkpoint (2026-10-12): the bounded presentation, production repository/app wiring and cold-reopen checks are implemented, with no new durable state, migration or dependency. This is not independent release acceptance. Screenshot/device visual review, native screen-reader checks and reference-device profiling remain unexecuted release gates, owned by the maintainer/release reviewer as recorded in [Month verification](../MONTH_CALENDAR_VERIFICATION.md). Week redesign, existing Today eager reads and broader Calendar/Details limitations remain outside scope. Calendar regressions pass; unresolved non-Calendar full-suite failures are recorded separately, so no clean full-suite or release-readiness claim is made.
 
 ---
 

@@ -433,15 +433,36 @@ class DriftCommitmentPlanRepository
   }
 
   @override
-  Future<Map<String, List<Occurrence>>> loadWeek(
+  Future<Map<String, List<Occurrence>>> loadWeek(LocalDate start) =>
+      _loadRange(start, start.addDays(7));
+
+  /// Reads a half-open range of 1–31 local dates without materializing schedules.
+  Future<Map<String, List<Occurrence>>> loadMonth(
     LocalDate start,
+    LocalDate endExclusive,
+  ) => _loadRange(start, endExclusive);
+
+  Future<Map<String, List<Occurrence>>> _loadRange(
+    LocalDate start,
+    LocalDate endExclusive,
   ) => CommandGate.runFor(this, () async {
+    // Count calendar dates in UTC, not elapsed local hours across DST changes.
+    final days = endExclusive
+        .toUtcDateForCalculation()
+        .difference(start.toUtcDateForCalculation())
+        .inDays;
+    if (days < 1 || days > 31) {
+      throw ArgumentError('Calendar range must contain 1–31 local dates.');
+    }
     final localStart = DateTime(start.year, start.month, start.day);
-    final finish = start.addDays(7);
-    final localEnd = DateTime(finish.year, finish.month, finish.day);
+    final localEnd = DateTime(
+      endExclusive.year,
+      endExclusive.month,
+      endExclusive.day,
+    );
     final predicates = <String>[];
     final variables = <Variable>[];
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < days; i++) {
       final date = _date(start.addDays(i));
       predicates.add(
         '(o.current_scheduled_value = ? OR o.current_scheduled_value LIKE ?)',
