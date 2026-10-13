@@ -1,5 +1,34 @@
 # Calendar Month bounded improvement
 
+## Compact week geometry — acceptance contract (2026-10-13, before implementation)
+
+Root Calendar → Month retains its existing read-only selection and loading path.
+Size each week from its actual day content, rather than reserving two titles,
+holiday text and overflow counts for every day of the month. Empty weeks use
+48dp minimum day targets; populated weeks grow for scaled numbers, holiday
+labels, up to two existing title markers and the actual remaining count.
+Keep seven RTL columns, full day semantics, Today/selection distinctions,
+swipes and selected-day cards. Ordinary cells use the shared surface role.
+No domain, persistence, backup, dependency, Week or date-picker changes.
+Evidence: geometry regression for empty/dense weeks, narrow 1x/2x Light/Dark
+widget checks and Calendar regressions. Device visual review and independent
+acceptance remain owned by the maintainer/release reviewer before release.
+
+Implementation: content-sized week rows and shared surface backgrounds are in
+place. Automated verification: 37 Calendar/related widget tests passed; Flutter
+analyze has no issues; three changed Dart files pass format verification and
+diff whitespace checks pass. Tests cover empty Month grids below 400dp at
+320/360/390dp with normal text in Light/Dark, compact empty weeks beside a dense
+week, and existing 2x text, holidays, navigation, reminder/details and mode-toggle
+journeys. Large text may wrap day/holiday labels and require vertical scrolling;
+no maximum height is imposed on accessibility scaling. The initial run caught a
+4dp Today overflow: the content formula now includes the 2dp border on both
+edges. Existing reminder tests protect that counterexample; the earlier global
+spare space had concealed this geometry requirement. No new domain decisions,
+migration or dependencies. Physical-device screenshots, native accessibility,
+profiling and independent acceptance were not performed; release status remains
+Partial with the existing owner/action/exposure gates above.
+
 ## Acceptance contract — recorded before presentation changes
 
 Entry is root Calendar → Month. Existing persisted commitments/occurrences are prerequisites; no permission or account is required. Day cells show readable short title markers, not identity dots alone; dense days show a remaining count and an explicit day-list action. Seven RTL columns fit narrow screens at large text without horizontal scrolling, with non-overlapping day targets at least 48dp high. Full Persian date, holiday reasons and day-list semantics remain available. Full titles and actual recorded statuses remain in the selected-day list, with identity independent of status and historical/archived records retained.

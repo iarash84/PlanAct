@@ -384,10 +384,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ),
             ).reduce(math.max);
-            final countHeight = textHeight(
-              '+${PersianNumbers.format(widget.commitments.length)}',
-              theme.textTheme.labelSmall,
-            );
             final markerPainter = TextPainter(
               text: TextSpan(text: 'تعهد', style: theme.textTheme.labelSmall),
               textDirection: Directionality.of(context),
@@ -395,14 +391,39 @@ class _CalendarPageState extends State<CalendarPage> {
             )..layout(maxWidth: cellWidth - 8);
             final markerHeight = markerPainter.preferredLineHeight * 2 + 4;
             markerPainter.dispose();
-            final cellHeight = math.max(
-              96.0,
-              numberHeight +
-                  textHeight('تعطیل', theme.textTheme.labelSmall) +
-                  countHeight +
-                  2 * markerHeight +
-                  PlanActSpacing.lg,
+            final holidayHeight = textHeight(
+              'تعطیل',
+              theme.textTheme.labelSmall,
             );
+            double weekHeight(int week) {
+              var height = 48.0;
+              for (var column = 0; column < 7; column++) {
+                final day = week * 7 + column - leading + 1;
+                if (day < 1 || day > _month.monthLength) continue;
+                final date = JalaliDate(_month.year, _month.month, day);
+                final items = _commitmentsFor(date);
+                final hasHoliday = holidays.any(
+                  (holiday) => holiday.date == date,
+                );
+                final overflowHeight = items.length > 2
+                    ? textHeight(
+                        '+${PersianNumbers.format(items.length - 2)}',
+                        theme.textTheme.labelSmall,
+                      )
+                    : 0.0;
+                height = math.max(
+                  height,
+                  numberHeight +
+                      (hasHoliday ? holidayHeight : 0) +
+                      math.min(items.length, 2) * (markerHeight + 2) +
+                      overflowHeight +
+                      PlanActSpacing.sm +
+                      (date == today ? 4 : 0),
+                );
+              }
+              return height;
+            }
+
             return Column(
               children: [
                 Row(
@@ -438,35 +459,52 @@ class _CalendarPageState extends State<CalendarPage> {
                     }
                     _swipeDistance = 0;
                   },
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: cellCount,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 7,
-                      crossAxisSpacing: 3,
-                      mainAxisSpacing: 3,
-                      mainAxisExtent: cellHeight,
-                    ),
-                    itemBuilder: (context, index) {
-                      final day = index - leading + 1;
-                      if (day < 1 || day > _month.monthLength) {
-                        return const SizedBox.shrink();
-                      }
-                      final date = JalaliDate(_month.year, _month.month, day);
-                      final items = _commitmentsFor(date);
-                      return _CalendarDay(
-                        date: date,
-                        selected: _selectedDay == date,
-                        isToday: today == date,
-                        holidays: holidays
-                            .where((holiday) => holiday.date == date)
-                            .toList(),
-                        commitments: items,
-                        markerHeight: markerHeight,
-                        onTap: () => setState(() => _selectedDay = date),
+                  child: Column(
+                    children: List.generate(cellCount ~/ 7, (week) {
+                      final height = weekHeight(week);
+                      return Padding(
+                        padding: EdgeInsets.only(top: week == 0 ? 0 : 3),
+                        child: SizedBox(
+                          height: height,
+                          child: GridView.builder(
+                            padding: EdgeInsets.zero,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: 7,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 7,
+                                  crossAxisSpacing: 3,
+                                  mainAxisExtent: height,
+                                ),
+                            itemBuilder: (context, column) {
+                              final index = week * 7 + column;
+                              final day = index - leading + 1;
+                              if (day < 1 || day > _month.monthLength) {
+                                return const SizedBox.shrink();
+                              }
+                              final date = JalaliDate(
+                                _month.year,
+                                _month.month,
+                                day,
+                              );
+                              final items = _commitmentsFor(date);
+                              return _CalendarDay(
+                                date: date,
+                                selected: _selectedDay == date,
+                                isToday: today == date,
+                                holidays: holidays
+                                    .where((holiday) => holiday.date == date)
+                                    .toList(),
+                                commitments: items,
+                                markerHeight: markerHeight,
+                                onTap: () =>
+                                    setState(() => _selectedDay = date),
+                              );
+                            },
+                          ),
+                        ),
                       );
-                    },
+                    }),
                   ),
                 ),
                 const SizedBox(height: PlanActSpacing.lg),
@@ -627,9 +665,7 @@ class _CalendarDay extends StatelessWidget {
       onTap: onTap,
       child: ExcludeSemantics(
         child: Material(
-          color: selected
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerHighest.withValues(alpha: .38),
+          color: selected ? scheme.primaryContainer : scheme.surface,
           borderRadius: PlanActRadius.chip,
           child: InkWell(
             onTap: onTap,
