@@ -11,7 +11,8 @@ cd "$repo_root"
 flutter pub get --enforce-lockfile
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
-flutter test
+# Keep assertion details and stack traces visible in GitHub Actions logs.
+flutter test --reporter expanded
 
 if [[ "${PLANACT_SKIP_ANDROID_BUILD:-false}" != "true" ]]; then
   flutter build appbundle --release \
