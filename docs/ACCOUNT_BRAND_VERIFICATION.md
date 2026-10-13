@@ -41,6 +41,16 @@ Statuses below describe source-level shared-theme adoption, not human screenshot
 | Loading/empty/error/saving/disabled views | Migrated | Theme progress/actions change centrally; readable disabled text and non-activation tested. Error/status palettes and existing retry behavior retained. |
 | Typography, motion, identity/status colors and external bank/provider identity | Intentionally Unchanged | Independent meanings and established Persian/RTL geometry must not become brand aliases. |
 
+### Golden portability correction contract — 2026-10-13
+
+Scope: test-only correction for the Light/Dark gallery, not a production theme or font change. Preserve the existing Windows baselines and use separate Linux baselines from the actual Flutter 3.47.5 CI failure artifact. Select by the real host OS (not Flutter's simulated target platform); retain exact pixel comparison and all contrast, interaction, RTL and modal assertions. Do not skip CI checks or introduce percentage tolerance. No persistence, migration, backup or dependency impact.
+
+Evidence required: validate the artifact's master images against the committed baselines before importing its Linux test images; pass normal Windows gallery tests and analyzer/format checks; rerun Linux CI. Imported CI outputs are regression candidates, not independent visual approval. Maintainer/release reviewer owns the next Linux run and visual inspection; unresolved Linux execution or visual acceptance must not be described as verified release readiness.
+
+Correction evidence: both artifact master PNGs matched the existing committed PNGs by SHA-256 before importing the two Linux test PNGs into `test/widget/goldens/linux/`. Windows references remain untouched. The fixture now selects Linux references on an actual Linux host and existing references otherwise; unsupported/unverified hosts are not certified by this change. Normal Windows run: all four brand tests passed; Dart formatting unchanged; full Flutter analyzer reported no issues; diff whitespace check passed. No full-suite, Linux rerun, Android build or independent visual acceptance is claimed. Linux baselines are imported observed outputs, not newly executed verification. The next Linux CI run remains required, and independent visual review remains an acceptance gap owned by the maintainer/release reviewer.
+
+Regeneration: run the brand test in golden-update mode separately on each supported real host with pinned Flutter 3.47.5; Windows updates the original paths, Linux updates the Linux subdirectory. Review image changes before committing; never copy one host's output over the other's references.
+
 ### Automated evidence and reproducibility
 
 - [Brand tests](../test/widget/brand_theme_test.dart): four checks passed in golden generation. Both brightnesses test all six brand pairs at ≥4.5:1, primary text on scaffold, focus on highest surface at ≥3:1, disabled filled text at ≥4.5:1, selection role resolution, unchanged status extension, disabled non-activation, 48dp filled target, RTL and modal theme inheritance.
