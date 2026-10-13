@@ -4,7 +4,7 @@
 
 Use one long-lived release keystore for every public build. Keep a secure offline backup; losing or replacing this key prevents existing installations from accepting updates. Never commit the keystore or `android/key.properties`.
 
-GitHub Actions requires these repository or environment secrets:
+GitHub Actions requires these repository-level secrets (Settings → Secrets and variables → Actions). Environment-only secrets are not available to this workflow:
 
 - `ANDROID_KEYSTORE_BASE64`: base64-encoded keystore file.
 - `ANDROID_KEYSTORE_PASSWORD`: keystore password.
@@ -32,9 +32,9 @@ Update `pubspec.yaml` to the intended `X.Y.Z+N` version, commit that change, and
 
 The current release target is `0.1.15+8`, including long-term hybrid commitment previews and explicit preparation. Enter `0.1.15` in the workflow; the resulting tag is `v0.1.15`. See [candidate acceptance and remaining blockers](releases/0.1.15.md).
 
-Before dispatch, create the `android-release` GitHub environment with at least one independent required reviewer and **Prevent self-review** enabled. The workflow reads its protection configuration and fails closed if absent, inaccessible or incomplete. Ensure the repository plan supports required reviewers; do not remove the check to work around an unsupported plan. Do not enable administrator bypass of approval.
+Solo-maintainer policy (approved 2026-10-13): no GitHub Environment, required second reviewer or deployment approval is needed. Manual dispatch authorizes automatic publication after technical validation. The maintainer remains responsible for product/native verification; successful automation is not independent product acceptance.
 
-The build job checks out the immutable dispatch commit, validates and signs the APKs, then uploads `PlanAct-vX.Y.Z-candidate-RUN_ID` for 30 days. Download that artifact and perform required acceptance on those exact APKs. Record the commit, run ID, versionCode and checksums from `BUILD-IDENTITY.txt` and `SHA256SUMS.txt`. Only after independent review and all mandatory product/native gates are satisfied, approve the waiting `android-release` deployment. The publication job downloads the same artifact, verifies its identity and APK checksums, and creates the release/tag targeting the exact commit without rebuilding. Rejection or cancellation prevents publication. A changed commit requires a new run and new acceptance.
+The build job checks out the immutable dispatch commit, validates and signs the APKs, then uploads `PlanAct-vX.Y.Z-candidate-RUN_ID` for 30 days. The publication job automatically downloads the same artifact, verifies its identity and APK checksums, and creates the release/tag targeting the exact commit without rebuilding. Retain the commit, run ID, versionCode and checksums from `BUILD-IDENTITY.txt` and `SHA256SUMS.txt` for device verification. Failed validation prevents publication; cancellation after release creation does not undo the release. A changed commit requires a new run. Remaining product/native evidence is tracked separately in the release record.
 
 The workflow checks the requested version against `pubspec.yaml` and uses it as Android `versionName`. Local builds default to the pubspec build suffix (`8` for this release), while published APKs override it with the release workflow's GitHub Actions run number as `versionCode`. Re-running a workflow run retains its number; a new run of the same workflow receives a higher number. Keep this numbering scheme and workflow identity stable, and verify that a release run number exceeds the versionCode of any previously distributed APK; the local suffix is not proof of that ordering. All universal and ABI-split release APKs use the same versionCode.
 

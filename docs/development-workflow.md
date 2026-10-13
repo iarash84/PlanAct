@@ -116,9 +116,9 @@ GitHub Actions برای Pull Requestهای مقصد `master` و pushهای `mast
 
 انتشار دو gate مستقل دارد: **سلامت فنی** (CI/build و checks زیر) و **آمادگی محصول** (قرارداد پذیرش، شواهد متناسب و بررسی مستقل). سبز بودن اولی دومی را ثابت نمی‌کند. دامنهٔ انتشار شامل همهٔ مسیرهای همچنان در دسترس کاربر و موانع به‌ارث‌رسیده است، نه فقط قابلیت تغییرکرده در آخرین PR. پنهان‌کردن یک ورودی رابط، gate مشترک امنیت، persistence یا پلتفرم را معاف نمی‌کند.
 
-maintainer باید پذیرش را به یک commit SHA ثابت و شناسهٔ build/artifact متصل کند؛ checkout، شواهد، فایل‌های پذیرفته‌شده و tag باید همان revision را نشان دهند. برای بررسی لازم روی فایل نهایی، مسیر مورد نیاز **ساخت کاندیدِ غیرمنتشرشده → پذیرش مستقل → انتشار همان فایل‌ها بدون rebuild** است؛ نام نسخه یا تست فایل debug به‌تنهایی هویت فایل انتشار را ثابت نمی‌کند.
+maintainer باید شواهد را به یک commit SHA ثابت و شناسهٔ build/artifact متصل کند؛ checkout، فایل‌ها و tag باید همان revision را نشان دهند. طبق تصمیم صریح توسعه‌دهندهٔ تنها در ۲۰۲۶-۱۰-۱۳، مسیر automation **ساخت کاندید → بررسی فنی → انتشار همان فایل‌ها بدون rebuild** است و تأیید شخص دوم لازم نیست. این تصمیم بررسی مستقل یا شواهد دستگاه را انجام‌شده نمی‌کند؛ نام نسخه یا تست فایل debug به‌تنهایی هویت فایل انتشار را ثابت نمی‌کند.
 
-[workflow انتشار](../.github/workflows/release.yml) کاندید را از commit ثابت اجرای دستی می‌سازد و APKها، checksumها و هویت commit/run را پیش از انتشار به artifact می‌فرستد. job انتشار پشت environment محافظت‌شدهٔ `android-release` منتظر پذیرش می‌ماند و پس از تأیید، همان فایل‌ها را بدون rebuild با tag متصل به همان commit منتشر می‌کند. environment باید از قبل required reviewer مستقل و Prevent self-review داشته باشد؛ workflow نبود یا عدم دسترسی به این پیکربندی را خطا می‌داند. maintainer باید bypass مدیران را غیرفعال و شواهد را پیش از تأیید ثبت کند. اجرای واقعی این مسیر و بررسی دستگاه همچنان gate مستقل است؛ صرف پیاده‌سازی automation مجوز انتشار نیست.
+[workflow انتشار](../.github/workflows/release.yml) کاندید را از commit ثابت اجرای دستی می‌سازد و APKها، checksumها و هویت commit/run را پیش از انتشار به artifact می‌فرستد. پس از موفقیت بررسی‌های فنی، job انتشار خودکار همان فایل‌ها را بدون rebuild با tag متصل به همان commit منتشر می‌کند. Environment و required reviewer پیش‌نیاز نیستند؛ اجرای دستی مجوز این انتشار خودکار است. مسئولیت شواهد محصول و دستگاه با maintainer می‌ماند و موفقیت automation به معنی پذیرش مستقل نیست.
 
 معیار الزامی ناموفق/اجرا‌نشده یا مانع امنیت، حفظ داده و پلتفرم، اجازهٔ ادعای ready یا انتشار دامنهٔ متأثر را نمی‌دهد. قابلیت ناقص خارج از scope باید با تصمیم صریح دربارهٔ exposure و محدودیت قابل فهم کاربر مدیریت شود؛ برچسب آزمایشی جای تضمین ضروری را نمی‌گیرد. قواعد و workflow فعلی این پذیرش محصول را خودکار enforce نمی‌کنند؛ مسئولیت ثبت و کنترل آن با maintainer است. gateها و وضعیت‌های partial در اسناد verification و PRD همچنان پابرجا هستند.
 
@@ -126,10 +126,10 @@ maintainer باید پذیرش را به یک commit SHA ثابت و شناسه�
 
 1. مطمئن شوید نسخه در `pubspec.yaml` به شکل `X.Y.Z+build` تغییر کرده و تغییر آن در `master` ادغام شده است.
 2. در GitHub به **Actions → Release Android → Run workflow** بروید.
-3. workflow را از `master` اجرا کنید و مقدار version را بدون `v` وارد کنید؛ مانند `0.1.15`. environment محافظت‌شدهٔ `android-release` باید از قبل تنظیم شده باشد.
+3. workflow را از `master` اجرا کنید و مقدار version را بدون `v` وارد کنید؛ مانند `0.1.15`. این اجرا پس از موفقیت checks خودکار منتشر می‌شود و تأیید شخص دیگری لازم نیست.
 4. workflow نسخه را با `pubspec.yaml` تطبیق می‌دهد، validation مشترک را اجرا می‌کند، keystore production را فقط در همان job می‌سازد، APKهای امضاشده را تولید و با package/version/ABI/certificate بررسی می‌کند.
-5. artifact کاندید همان run را دانلود کنید؛ شواهد بررسی مستقل و دستگاه را به commit/run/versionCode/checksum آن متصل کنید. تا رفع تمام gateهای الزامی، deployment منتظر را تأیید نکنید.
-6. پس از تأیید مستقل environment، همان APKها بدون rebuild و پس از بررسی مجدد هویت و checksum منتشر می‌شوند؛ tag نسخه به commit ثابت اشاره می‌کند. رد یا لغو تأیید مانع انتشار است.
+5. همان APKها خودکار بدون rebuild و پس از بررسی مجدد هویت و checksum منتشر می‌شوند؛ tag نسخه به commit ثابت اشاره می‌کند. شکست بررسی‌ها مانع انتشار است؛ لغو پس از ایجاد release آن را حذف نمی‌کند.
+6. artifact همان run و شواهد دستگاه را با commit/run/versionCode/checksum نگه دارید؛ بررسی‌های انجام‌نشده را صریح ثبت کنید و انتشار فنی را پذیرش مستقل محصول ننامید.
 
 Tag را دستی نسازید و push نکنید. کلید خصوصی، `android/key.properties` و keystore نباید وارد repository شوند.
 
@@ -148,10 +148,10 @@ Secrets موردنیاز release:
 
 - برای `master` branch protection یا ruleset فعال کنید.
 - ادغام را پس از موفقیت check مربوط به CI مجاز کنید.
-- Require pull request، حداقل یک review و conversation resolution را فعال کنید.
+- Require pull request و conversation resolution را فعال کنید؛ برای توسعه‌دهندهٔ تنها، review اجباری شخص دوم لازم نیست.
 - direct push به `master` را محدود کنید و squash merge را مجاز/ترجیحی قرار دهید.
 - workflow release را فقط برای maintainerهای قابل اعتماد قابل اجرا نگه دارید.
-- secrets release را در GitHub Actions Secrets یا Environment محافظت‌شده ذخیره کنید.
+- secrets release را در سطح repository در Settings → Secrets and variables → Actions ذخیره کنید؛ این workflow به secrets مخصوص Environment دسترسی ندارد.
 
 ## همگام‌سازی و بازگشت
 
