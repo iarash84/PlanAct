@@ -13,6 +13,9 @@ import 'package:planact/features/classification/application/tag_repository.dart'
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reports/data/drift_reports_reader.dart';
+import 'package:planact/features/reports/application/repository_reports_reader.dart';
+import 'package:planact/features/reports/presentation/reports_page.dart';
 import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
 import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
@@ -848,33 +851,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     Navigator.pop(sheetContext);
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => CommitmentDetailsPage(
-                          commitment: commitment,
-                          repository: _repository,
-                          tagRepository: _tagRepository,
-                          planRepository: _planRepository,
-                          expectationRepository: _expectationRepository,
-                          occurrenceExecutor: PersistedOccurrenceActionExecutor(
-                            plans: _planRepository,
-                            actuals: _repository is DriftCommitmentRepository
-                                ? DriftActualRepository(_repository.database)
-                                : null,
-                            reminders: _createCommitmentPlan.reminderService,
-                            replacements:
-                                _repository is DriftCommitmentRepository
-                                ? DriftReplacementRepository(
-                                    _repository.database,
-                                  )
-                                : null,
-                            policyRepository:
-                                _repository is DriftCommitmentRepository
-                                ? DriftSessionPolicyRepository(
-                                    _repository.database,
-                                  )
-                                : null,
-                          ),
-                          onSaved: _tagsChanged,
-                        ),
+                        builder: (_) => _detailsPage(commitment),
                       ),
                     );
                   },
@@ -1006,6 +983,54 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     return dates.firstOrNull;
   }
 
+  Future<void> _openReports() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => ReportsPage(
+        reader: _repository is DriftCommitmentRepository
+            ? DriftReportsReader(_repository.database)
+            : RepositoryReportsReader(
+                commitments: _repository,
+                plans: _planRepository,
+                finance: _financeRepository,
+                expectations: _expectationRepository,
+                tags: _tagRepository,
+              ),
+        onOpenCommitment: _openReportCommitment,
+        onOpenTransaction: _openRelationship,
+      ),
+    ),
+  );
+
+  CommitmentDetailsPage _detailsPage(Commitment commitment) =>
+      CommitmentDetailsPage(
+        commitment: commitment,
+        repository: _repository,
+        tagRepository: _tagRepository,
+        planRepository: _planRepository,
+        expectationRepository: _expectationRepository,
+        occurrenceExecutor: PersistedOccurrenceActionExecutor(
+          plans: _planRepository,
+          actuals: _repository is DriftCommitmentRepository
+              ? DriftActualRepository(_repository.database)
+              : null,
+          reminders: _createCommitmentPlan.reminderService,
+          replacements: _repository is DriftCommitmentRepository
+              ? DriftReplacementRepository(_repository.database)
+              : null,
+          policyRepository: _repository is DriftCommitmentRepository
+              ? DriftSessionPolicyRepository(_repository.database)
+              : null,
+        ),
+        onSaved: _tagsChanged,
+      );
+
+  Future<void> _openReportCommitment(Commitment commitment) async {
+    await Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
+    if (mounted) await _refresh();
+  }
+
   String _formatDate(DateTime value) {
     final local = value.toLocal();
     final date = JalaliDate.fromDateTime(local);
@@ -1109,6 +1134,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       _MorePage(
         onInbox: _openInbox,
+        onReports: _openReports,
         holidayPackages: widget.holidayPackages,
         onHolidaysChanged: () => setState(() {}),
         backupActions: widget.backupActions,
@@ -1660,6 +1686,7 @@ String _priorityLabel(CommitmentPriority priority) => switch (priority) {
 class _MorePage extends StatelessWidget {
   const _MorePage({
     required this.onInbox,
+    required this.onReports,
     required this.settings,
     this.holidayPackages,
     this.onHolidaysChanged,
@@ -1668,6 +1695,7 @@ class _MorePage extends StatelessWidget {
   });
 
   final VoidCallback onInbox;
+  final VoidCallback onReports;
   final Widget settings;
   final HolidayPackageService? holidayPackages;
   final VoidCallback? onHolidaysChanged;
@@ -1678,6 +1706,17 @@ class _MorePage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.analytics_outlined),
+          title: const Text('گزارش‌ها'),
+          subtitle: const Text(
+            'عملکرد، پرداخت‌ها و اعتبار با فیلتر تاریخ و هشتگ',
+          ),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onReports,
+        ),
+      ),
       Card(
         child: ListTile(
           leading: const Icon(Icons.inbox_outlined),

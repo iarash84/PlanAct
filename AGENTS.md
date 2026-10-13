@@ -253,6 +253,16 @@ Transaction relationship review is separate from real matches, categories and ta
 
 ## 11. Persistence and migration rules
 
+Reporting checkpoint (2026-10-13): personal reports are read-only projections of
+coherent durable snapshots. Use occurrence dates for performance/settlement,
+transaction dates for cash, and ledger entries through the selected end day for
+credit/account balances. Keep future previews separate from recorded effects.
+Missing Grant history must be disclosed, never synthesized from configured package
+units. Tag/subject allocation views must not count a whole shared payment as each
+subject's cash. Account balance remains a full-ledger projection even when detail
+rows are tag-filtered; disclose that exception in the report. See
+[report verification](docs/REPORTS_VERIFICATION.md) for bounded scope and evidence.
+
 - Use foreign keys, indexes, transactional writes, and explicit migrations from the beginning.
 - Use stable IDs independent from local row auto-increment. UUIDv7 or ULID are acceptable implementation choices; record the final choice in an ADR.
 - Every schema change requires a forward migration and tests using older-version fixtures.

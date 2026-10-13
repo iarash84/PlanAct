@@ -517,7 +517,7 @@ class FinancePageState extends State<FinancePage> {
         ? CurrencyCodes.irr
         : _accounts.first.currency;
     final summary = cashFlowSummary(
-      _entries.where((entry) => entry.amount.currency == currency),
+      _filteredEntries.where((entry) => entry.amount.currency == currency),
       currency,
     );
     return Card(

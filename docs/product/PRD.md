@@ -1097,3 +1097,40 @@ Priority 3 remains partial, not release-ready.
 Settings offers rial/toman, defaulting visibly to rial. The preference is durable and affects canonical IRR displays throughout root, pushed and modal routes. Manual monetary forms snapshot and label the selected unit; changing Settings cannot reinterpret an open form. New Iranian financial expectations and account transactions retain integer IRR storage. Exact conversion preserves signed values and one tenth-toman remainder; invalid precision and overflow are rejected, never rounded. Legacy/non-IRR stored values are not migrated by this setting. SMS amount-adjacent evidence remains independent: missing/conflicting new evidence needs explicit user unit selection before confirmation. Cancellation does not write, failed settings persistence does not change the effective unit, and personal backup preserves preference/evidence.
 
 Implementation and verification are separate: shared local paths are implemented; automated conversion, durable reopen/snapshot, route/modal and pinned-form checks are recorded in [currency verification](../CURRENCY_UNIFICATION_VERIFICATION.md). Native keyboard/provider/restore, narrow-screen large-text review and independent acceptance remain required before release readiness.
+
+## Personal reports (2026-10-13)
+
+«بیشتر ← گزارش‌ها» گزارش‌های آفلاین مرور دوره، برنامه در برابر عملکرد، پیگیری،
+دخل‌وخرج، برنامه/تسویهٔ مالی، بسته‌ها، موضوع/هشتگ، آینده، جابه‌جایی/لغو و گردش
+حساب را از داده‌های موجود ارائه می‌کند. پیش‌فرض آشکار، ماه شمسی جاری است.
+بازهٔ دلخواه شامل تمام روز پایان و حداکثر ۳۶۶ روز است. انتخاب چند هشتگ بر اساس
+شناسهٔ پایدار، یکی/همه، حذف هشتگ و بدون هشتگ، و فیلترهای متناسب تعهد، دوره،
+نوع، وضعیت، حساب، دسته، جهت، ارز، منبع، تسویه و جست‌وجو باید بر خلاصه و جزئیات
+یکسان اعمال شوند. فیلترهای گزارش موقت‌اند و دادهٔ شخصی جدیدی ایجاد نمی‌کنند.
+
+عملکرد بر اساس تاریخ نوبت و نتیجهٔ فعلی است، نه زمان ایجاد تعهد یا زمان واقعی
+انجام. نتیجهٔ نامشخص با عدم حضور متفاوت است؛ تاریخچهٔ بایگانی‌شده باقی می‌ماند.
+تسویه، سررسید نوبت را با همهٔ تطبیق‌های معتبر فعلی مقایسه می‌کند و انتظارهای
+با ارز نامشخص جدا نمایش داده می‌شوند. دخل‌وخرج بر تاریخ تراکنش است؛ انتقال،
+موجودی اولیه و تعدیل درآمد/هزینه نیستند و ثبت جبرانی در تاریخ خودش اثر جهت
+اصلی را خنثی می‌کند. برای انتساب گزارش، طبقه‌بندی تراکنش اصلی در ثبت جبرانی
+استفاده می‌شود؛ عضویت هشتگ هیچ رکوردی خودکار تغییر نمی‌کند.
+
+هشتگ تراکنش و تعهد مستقل‌اند. کاربر در نمای مالی/موضوعی می‌تواند مبنای مستقیم
+یا فقط سهم تطبیق‌یافته با تعهد هشتگ‌دار را انتخاب کند؛ نمایش سهم، کل گردش نقدی
+نیست. ارزها جدا و هر تراکنش در جمع کل فقط یک بار شمرده می‌شود. موجودی حساب
+همیشه از کل دفتر تا تاریخ انتخاب‌شده محاسبه می‌شود؛ فیلتر هشتگ/متن فقط ریز
+گردش را محدود می‌کند و این استثنا در همان گزارش توضیح داده می‌شود.
+
+اعتبار بسته تا پایان بازه از دفتر اعتبار است، مستقل از حضور و شمار نوبت‌ها.
+اگر اعطای اعتبار در دفتر موجود نباشد، اعتبار تنظیم‌شده نمایش داده می‌شود اما
+باقی‌ماندهٔ قابل اتکا اعلام نمی‌شود؛ هیچ اعطا یا ترمیم تاریخی خودکار مجاز نیست.
+این کمبود داده، گزارش اعتبار آن بسته را Partial نگه می‌دارد. پیش‌نمایش آینده
+از مسیر خواندنی موجود با قطعه‌های حداکثر ۳۱ روز محاسبه و جدا نمایش داده می‌شود؛
+هیچ نوبت یا انتظار مالی ساخته نمی‌شود. جمع مالی آینده فقط انتظارهای ثبت‌شده
+است، نه پیش‌بینی کامل هزینه. گزارش تغییرات مقایسهٔ اولیه/فعلی است، نه تعداد
+همهٔ رویدادهای میانی جابه‌جایی. خروجی فایل، بودجه و پیش‌بینی موجودی در این دامنه نیست.
+
+شواهد و کمبودهای پذیرش در [گزارش راستی‌آزمایی](../REPORTS_VERIFICATION.md)
+ثبت می‌شوند؛ بررسی دستگاه، کارایی با حجم واقعی و پذیرش مستقل پیش‌نیاز ادعای
+آمادگی انتشارند. gateهای قبلی محصول تغییری نمی‌کنند.
