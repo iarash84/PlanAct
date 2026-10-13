@@ -30,9 +30,9 @@ No schema, migration, dependency, backup-format, logging or domain scheduling ch
 
 Implementation: **bounded responsive picker implemented**. Verification: **scoped automated checks passed; native/independent acceptance pending**, not release-ready.
 
-- Final [responsive regression run](../date-picker-responsive-results.txt): **68 tests passed**, covering ten picker checks, edit, design-system scaled layout, Quick Capture, tagged creation, root creation, nine recurrence creation/cancellation journeys with durable reopen/refresh, Calendar navigation/reminder details, responsive Month, holidays and Finance forms.
+- Final [responsive regression run](verification/evidence/date-picker-responsive-results.txt): **68 tests passed**, covering ten picker checks, edit, design-system scaled layout, Quick Capture, tagged creation, root creation, nine recurrence creation/cancellation journeys with durable reopen/refresh, Calendar navigation/reminder details, responsive Month, holidays and Finance forms.
 - Six new normal-text cases cover a complete six-row month at 320/360/430 × 800dp in Light/Dark: grid in viewport, every day hit-testable without scrolling, >=48dp height and staged selection. Two 320×640dp cases retain 2× text scale, incomplete coverage, adaptive labels, no horizontal scroll and no rendering exceptions. Overlap/provenance and full date semantics remain covered.
-- [Static analysis](../date-picker-responsive-analyze.txt): no issues. Changed Dart files formatted; diff whitespace check passed.
+- [Static analysis](verification/evidence/date-picker-responsive-analyze.txt): no issues. Changed Dart files formatted; diff whitespace check passed.
 - Prior 35 widget and 16 holiday checks proved the earlier holiday integration, not this responsive correction; their counts are not added to current evidence. No full application-suite or native acceptance claim.
 
 Regression escape: earlier tests checked no render overflow and minimum target size, but did not check whether the grid actually fit the viewport. New checks cover grid bounds, no horizontal scrolling, complete six-row month hit visibility and confirmation/cancellation. Initial responsive runs exposed intrinsic-layout incompatibility and wrapped day numbers at large text; both corrected before final validation.

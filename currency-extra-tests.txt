@@ -1,4 +1,0 @@
-00:00 +0: loading d:/repos/planact/test/unit/commitment_money_clear_test.dart
-00:00 +0: d:/repos/planact/test/unit/commitment_money_clear_test.dart: invalid or cleared monetary text cannot reuse a previous valid amount
-00:00 +1: d:/repos/planact/test/widget/money_unit_settings_failure_test.dart: failed settings write keeps effective unit and offers retry feedback
-00:01 +2: All tests passed!

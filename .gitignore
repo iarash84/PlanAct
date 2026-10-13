@@ -58,6 +58,13 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 
-# Local diagnostic artifacts
+# Local diagnostic artifacts (write new reports under /build/verification/)
 /build-error.txt
+/*-results.txt
+/*-analyze.txt
+/*-tests.txt
+/*-focused.txt
+/release-validation-local.txt
+/flutter_*.png
+/$null
 /android/build/reports/
