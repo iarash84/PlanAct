@@ -1,0 +1,15 @@
+00:00 +0: loading d:/repos/planact/test/widget/jalali_date_picker_test.dart
+00:00 +0: d:/repos/planact/test/widget/jalali_date_picker_test.dart: full weekday titles RTL and explicit holiday date selection
+00:01 +1: d:/repos/planact/test/widget/edit_schedule_dialog_test.dart: all-day edit preserves absent time and explicit only-this scope
+00:02 +2: d:/repos/planact/test/widget/jalali_date_picker_test.dart: all overlapping typed reasons and provenance; inspection/cancel do not select
+00:02 +3: d:/repos/planact/test/widget/jalali_date_picker_test.dart: narrow large text false: coverage warning, full headings and standard targets
+00:02 +4: d:/repos/planact/test/widget/jalali_date_picker_test.dart: narrow large text true: coverage warning, full headings and standard targets
+00:03 +5: d:/repos/planact/test/widget/design_system_test.dart: light brand and status foregrounds meet normal text contrast
+00:03 +6: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+00:04 +7: d:/repos/planact/test/widget/design_system_test.dart: light date picker and form wrap without scaled overflow
+00:05 +8: d:/repos/planact/test/widget/design_system_test.dart: light reduced motion resolves to final state
+00:05 +9: d:/repos/planact/test/widget/design_system_test.dart: dark brand and status foregrounds meet normal text contrast
+00:05 +10: d:/repos/planact/test/widget/design_system_test.dart: dark narrow RTL calendar preserves targets and scaled text
+00:05 +11: d:/repos/planact/test/widget/design_system_test.dart: dark date picker and form wrap without scaled overflow
+00:05 +12: d:/repos/planact/test/widget/design_system_test.dart: dark reduced motion resolves to final state
+00:05 +13: All tests passed!

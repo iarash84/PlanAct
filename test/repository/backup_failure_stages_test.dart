@@ -126,12 +126,17 @@ void main() {
         try {
           // A prior snapshot must never be used if the current snapshot fails.
           await storage.safety.writeAsBytes(await candidate.readAsBytes());
+          final recoveryKey = Uint8List(32);
           final package = await service.create(
+            recoveryKey: recoveryKey,
             payload: await candidate.readAsBytes(),
             appVersion: 'test',
             createdAt: DateTime.utc(2026),
           );
-          await expectLater(service.restore(package), throwsException);
+          await expectLater(
+            service.restore(package, recoveryKey: recoveryKey),
+            throwsException,
+          );
           expect(storage.failed, true);
           final reopened = AppDatabase(NativeDatabase(live));
           expect(await reopened.readMetadata('state'), 'original');

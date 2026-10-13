@@ -1,0 +1,45 @@
+Running Gradle task 'assembleDebug'...                          
+
+d:\repos\planact\android>if "Windows_NT" == "Windows_NT" setlocal
+
+d:\repos\planact\android>set DEFAULT_JVM_OPTS= 
+
+d:\repos\planact\android>set DIRNAME=d:\repos\planact\android\ 
+
+d:\repos\planact\android>if "d:\repos\planact\android\" == "" set DIRNAME=. 
+
+d:\repos\planact\android>set APP_BASE_NAME=gradlew 
+
+d:\repos\planact\android>set APP_HOME=d:\repos\planact\android\ 
+
+d:\repos\planact\android>if defined JAVA_HOME goto findJavaFromJavaHome 
+
+d:\repos\planact\android>set JAVA_HOME=C:\Users\Admin\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.20.101-hotspot\ 
+
+d:\repos\planact\android>set JAVA_EXE=C:\Users\Admin\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.20.101-hotspot\/bin/java.exe 
+
+d:\repos\planact\android>if exist "C:\Users\Admin\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.20.101-hotspot\/bin/java.exe" goto init 
+
+d:\repos\planact\android>if not "Windows_NT" == "Windows_NT" goto win9xME_args 
+
+d:\repos\planact\android>if "@eval[2+2]" == "4" goto 4NT_args 
+
+d:\repos\planact\android>set CMD_LINE_ARGS= 
+
+d:\repos\planact\android>set _SKIP=2 
+
+d:\repos\planact\android>if "x-q" == "x" goto execute 
+
+d:\repos\planact\android>set CMD_LINE_ARGS=-q -Ptarget-platform=android-arm,android-arm64,android-x64 -Ptarget=lib\main.dart -Pbase-application-name=android.app.Application -Pdart-defines=RkxVVFRFUl9CVUlMRF9OQU1FPTAuMS4xNA==,RkxVVFRFUl9CVUlMRF9OVU1CRVI9Nw==,RkxVVFRFUl9WRVJTSU9OPTMuNDcuNQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049NmExOWNjYTU2NA==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049YWY3ZTc5NmUxNg==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMy40 -Pdart-obfuscation=false -Ptrack-widget-creation=true -Ptree-shake-icons=false -Pflutter.androidSdkRoot=C:\Android -Pflutter.installedNdkVersions=28.2.13676358 -Pflutter.sdkManagerPath=C:\Android\cmdline-tools\latest\bin\sdkmanager.bat assembleDebug 
+
+d:\repos\planact\android>goto execute 
+
+d:\repos\planact\android>set CLASSPATH=d:\repos\planact\android\\gradle\wrapper\gradle-wrapper.jar 
+
+d:\repos\planact\android>"C:\Users\Admin\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.20.101-hotspot\/bin/java.exe"    "-Dorg.gradle.appname=gradlew" -classpath "d:\repos\planact\android\\gradle\wrapper\gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain -q -Ptarget-platform=android-arm,android-arm64,android-x64 -Ptarget=lib\main.dart -Pbase-application-name=android.app.Application -Pdart-defines=RkxVVFRFUl9CVUlMRF9OQU1FPTAuMS4xNA==,RkxVVFRFUl9CVUlMRF9OVU1CRVI9Nw==,RkxVVFRFUl9WRVJTSU9OPTMuNDcuNQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049NmExOWNjYTU2NA==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049YWY3ZTc5NmUxNg==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMy40 -Pdart-obfuscation=false -Ptrack-widget-creation=true -Ptree-shake-icons=false -Pflutter.androidSdkRoot=C:\Android -Pflutter.installedNdkVersions=28.2.13676358 -Pflutter.sdkManagerPath=C:\Android\cmdline-tools\latest\bin\sdkmanager.bat assembleDebug 
+
+d:\repos\planact\android>if "0" == "0" goto mainEnd 
+
+d:\repos\planact\android>if "Windows_NT" == "Windows_NT" endlocal
+Running Gradle task 'assembleDebug'...                            100.6s
+√ Built build\app\outputs\flutter-apk\app-debug.apk

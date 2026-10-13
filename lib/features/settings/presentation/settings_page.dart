@@ -1,5 +1,6 @@
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/features/settings/presentation/money_unit_settings_card.dart';
 import 'package:planact/features/reminders/presentation/reminder_permissions_card.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
@@ -52,6 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
+      const MoneyUnitSettingsCard(),
       Text('عمومی', style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 12),
       Card(

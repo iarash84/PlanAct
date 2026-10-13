@@ -2,7 +2,7 @@
 
 **Document type:** Product Requirements Document  
 **Product:** PlanAct  
-**Current application version:** `0.1.7+2`
+**Current application version:** `0.1.15+8` (release candidate; acceptance pending)
 **Status:** Living Document / Active Development
 
 ## Document Governance
@@ -324,6 +324,8 @@ Implementation checkpoint (2026-10-06): **Implemented for the bounded local tagg
 
 ### Acceptance Criteria
 
+معیارهای هر مسیر باید از نتیجهٔ قابل مشاهدهٔ کاربر شروع شوند، نه ساختار فعلی کد. پیش از تغییر معنادار، ورود واقعی، پیش‌نیازها، موفقیت، خطا/لغو/تلاش دوباره، اصلاح یا Undo در صورت کاربرد، دوام داده و مصرف‌کنندگان مرتبط در قرارداد پذیرش کوتاه مشخص شوند؛ روش اجرا در [گردش توسعه](../development-workflow.md) و الزامات عامل در [AGENTS](../../AGENTS.md) تعریف شده‌اند.
+
 - عنوان خالی قابل ثبت نباشد.
 - تعهد بعد از restart برنامه باقی بماند.
 - تاریخ برای کاربر به شکل جلالی نمایش داده شود.
@@ -358,6 +360,16 @@ Termination:
 - **Termination/Materialization:** بدون پایان با generation horizon، تا تاریخ مشخص، تعداد مشخص، یا package/manual semantics.
 
 ویرایش recurrence باید با versioning/history rules در `AGENTS.md` سازگار باشد و گذشته را silently بازنویسی نکند.
+
+### قرارداد تقویم تکرار ماهانه و سالانه — تصمیم تأییدشدهٔ ۲۰۲۶-۱۰-۱۰
+
+- تقویم مرجع قانون تکرار مستقل از تقویم نمایش است و همراه روز و ماه اصلی، زمان و نوع پایان ذخیره می‌شود. انتخاب جلالی باید روز ماه را در تکرار ماهانه و روز و ماه را در تکرار سالانه حفظ کند؛ ۱۹ مهر ۱۴۰۵ به ۱۹ مهر ۱۴۰۶ و ۱۴۰۷ می‌رسد. انتخاب میلادی از قانون میلادی پیروی می‌کند، حتی اگر نمایش تاریخ جلالی باشد.
+- سیاست تأییدشدهٔ کاربر برای روز ناموجود، آخرین روز **همان ماه** است. روز اصلی قانون تغییر نمی‌کند: ۳۰ اسفند در سال غیرکبیسه ۲۹ اسفند اجرا می‌شود و در سال کبیسه دوباره ۳۰ اسفند. تاریخ سالانه از سال و ماه مقصد محاسبه می‌شود، نه افزودن ۳۶۵ یا ۳۶۶ روز.
+- بدون پایان، تا تاریخ پایان شامل همان روز، و تعداد مشخص مستقل‌اند. افق محدود فقط زمان تولید را محدود می‌کند، نه تعداد نهایی؛ تکمیل افق فرمان کاربردی راه‌اندازی/بازگشت برنامه است، نه اثر جانبی خواندن امروز یا تقویم.
+- دادهٔ قدیمی بدون تقویم صریح معنای میلادی قبلی را حفظ می‌کند. اصلاح تاریخ‌های قبلاً ذخیره‌شده یا تبدیل قانون قدیمی به جلالی خودکار نیست و نیازمند مسیر تأیید صریح جداگانه است؛ تاریخچه، رخداد دستی و نتیجهٔ ثبت‌شده بازنویسی نمی‌شوند.
+- وضعیت این اصلاح **Partial برای پذیرش انتشار** است؛ شواهد نرم‌افزاری، محدودیت‌ها و بررسی‌های بومی و مستقل باقی‌مانده در [گزارش تکرار ماهانه/سالانه](../MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md) ثبت شده‌اند.
+
+Independent correction checkpoint (2026-10-11): Details has a bounded experimental path separating fixed-count schedule correction from package-credit adjustment. Count correction preserves the recurrence anchor and starts its new version tomorrow; credit correction appends signed Adjustment entries without rewriting consumption or the original package declaration. Both require preview and explicit confirmation, preserve history and reject incompatible decreases. Acceptance is **Partial**, not release-ready: older-reader compatibility, independent writer-contention evidence, full downstream journeys and native checks remain open. See [correction verification](../COMMITMENT_CORRECTION_VERIFICATION.md) for evidence, owners and the development-only exposure decision.
 
 ---
 
@@ -418,12 +430,19 @@ Requirements:
 - نمایش جلالی؛
 - نمایش هم‌زمان هر هفت ستون روزهای هفته در عرض صفحهٔ تقویم گوشی، بدون نیاز به پیمایش افقی؛ در فضای محدود عنوان کوتاه فارسی با نام کامل دسترس‌پذیری استفاده شود. بزرگ‌نمایی متن حفظ شود و ارتفاع خانه‌ها با محتوای آن‌ها سازگار شود. این الزام مختص نمای ماه تقویم است، نه نمای هفته یا پنجرهٔ انتخاب تاریخ؛ استثنای محدود عرض هدف لمس در گوشی باریک مطابق سند طراحی و AGENTS ثبت شده است.
 - مرور ماه‌ها؛
+- در نمای ماه، هر روز حداکثر دو نشان خوانای عنوان با رنگ هویت مشترک روشن/تیره و تعداد تعهدهای باقی‌مانده داشته باشد، نه فقط نقطهٔ رنگی. عنوان کوتاه می‌تواند در مرور فشرده دوخطی و کوتاه‌شده باشد؛ عنوان کامل در معنای دسترس‌پذیری روز و کارت‌های فهرست روز حفظ شود. اقدام صریح «نمایش فهرست روز انتخاب‌شده» عنوان فهرست را به محدودهٔ دید بیاورد؛ لمس معمول روز فقط انتخاب را تغییر دهد.
+- کشیدن افقی فقط روی شبکهٔ ماه و پس از آستانهٔ مشخص عمل کند: به راست ماه بعد و به چپ ماه قبل، شامل عبور سال جلالی. پیمایش عمودی و لمس عادی ماه را عوض نکنند. دکمه‌های قبل/بعد و بازگشت به امروز حفظ شوند؛ روز انتخاب‌شده پس از مرور داخل ماه نمایش‌داده‌شده بماند و بازگشت به امروز دادهٔ ماه را دوباره بخواند.
+- نمای ماه دادهٔ پایدار محدودهٔ همان ماه را بخواند و یک‌بار برای تاریخ نمایش گروه‌بندی کند؛ طبق تصمیم تأییدشدهٔ ۲۰۲۶-۱۰-۱۲، محدودیت قبلی «فقط رخدادهای ثبت‌شده» با نمایش ترکیبی سابقهٔ ثبت‌شده و پیش‌نمایش محاسبه‌شدهٔ آینده جایگزین شده است. نتیجهٔ درخواست قدیمی جای ماه جدید را نگیرد. بارگذاری و خطا با تلاش دوباره از ماه/روز خالی متمایز باشند. کارت‌های کامل، همهٔ وضعیت‌های تاریخی و رخدادهای تعهد بایگانی‌شده حفظ شوند؛ خواندن تقویم هیچ برنامه، یادآور یا سابقه‌ای ایجاد یا تغییر ندهد.
 - نمایش رخدادهای هر روز؛
 - دسترسی از occurrence به commitment؛
 - تمایز مناسب بین statusها؛
 - عدم از دست رفتن occurrenceهای گذشته پس از تغییر schedule.
 
+Month checkpoint (2026-10-12): the bounded presentation, production repository/app wiring and cold-reopen checks are implemented, with no new durable state, migration or dependency. This is not independent release acceptance. Screenshot/device visual review, native screen-reader checks and reference-device profiling remain unexecuted release gates, owned by the maintainer/release reviewer as recorded in [Month verification](../MONTH_CALENDAR_VERIFICATION.md). Week redesign, existing Today eager reads and broader Calendar/Details limitations remain outside scope. Calendar regressions pass; unresolved non-Calendar full-suite failures are recorded separately, so no clean full-suite or release-readiness claim is made.
+
 ---
+
+Long-term hybrid checkpoint (user-approved 2026-10-12): Details and Calendar Month/Week combine recorded history with clearly labelled, bounded, read-only future range previews from durable schedule rules. Count and inclusive end-date termination already persist and are independent of operational generation horizons (including legacy 90 days); there is no three-row repository/display limit. Count measures logical recurrence slots, not stored or completed rows. Preview has no occurrence ID, reminder delivery, financial entry, entitlement consumption or hidden materialization. An explicit prepare action transactionally revalidates active owner/cycle, schedule versions, exact templates and original/current occupancy before inserting a real occurrence and reminder/financial intent; normal occurrence actions become available only afterward. Stale/past/occupied/ambiguous requests fail without writes and allow reload/retry; platform delivery failure after commit is reported separately. Existing history, recurrence calendars/anchors, count phase and backup semantics remain unchanged. No past backfill or silent legacy repair is authorized; recovery of missed past slots requires a separate approved decision. No new physical schema, migration or dependency. Implementation and acceptance remain **Partial / release-blocked**, with evidence, post-implementation contract timing and owner/action gates in [recurrence verification](../MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md) and [hybrid ADR](../adr/0019-long-term-hybrid-commitments.md).
 
 # 12. Reminder System
 
@@ -488,6 +507,16 @@ PlanAct باید به‌طور خاص workflowهای session-based را پشتی
 
 کاربر باید بتواند چند حساب مالی ایجاد کند.
 
+### اطلاعات اختیاری حساب
+
+نام و نوعِ قابل انتخاب برای ساخت حساب کافی است؛ نوع اولیهٔ قابل مشاهده «نقدی» است و کاربر می‌تواند آن را تغییر دهد. بانک، شماره کارت، شبای ایرانی و شماره حساب اختیاری و مستقل‌اند؛ نبودشان مانع ساخت حساب نیست. نام یا اعداد واردشده نباید بانک، نوع حساب یا شناسه‌های دیگر را تعیین کنند. ارقام فارسی/عربی به شکل مشترک نرمال می‌شوند؛ شناسه‌ها رشته‌اند و صفرهای ابتدایی حفظ می‌شوند. شماره کارتِ واردشده باید ۱۶ رقم با checksum معتبر، شبا IR به‌علاوهٔ ۲۴ رقم با mod-97 معتبر، و شماره حساب ۱ تا ۳۰ رقم باشد؛ این اعتبارسنجی مالکیت یا وجود حساب را اثبات نمی‌کند.
+
+ساخت حساب و موجودی اولیهٔ اختیاری یک ثبت اتمی است. خطای فیلد یا ذخیره فرم را برای اصلاح/تلاش مجدد حفظ می‌کند؛ انصراف چیزی ثبت نمی‌کند. ویرایش صریح نام، نوع، بانک یا شناسه‌ها باید وضعیت تازهٔ ذخیره‌شده را بررسی کند و تعارض ویرایش را بدون بازنویسی رد کند. این ویرایش هیچ ثبت مالی، موجودی، ارتباط یا تاریخچهٔ مالی را تغییر نمی‌دهد و وضعیت/ارز تازهٔ حساب را حفظ می‌کند؛ پاک‌کردن اطلاعات اختیاری مجاز است.
+
+کارت حساب نمای اطلاعاتی است، نه تقلید کارت پرداخت: نام/نوع و موجودی دقیقِ مشتق از دفتر حساب خوانا می‌ماند. شناسه‌ها در نمایش و فرم به‌طور پیش‌فرض پوشیده‌اند؛ نمایش/پنهان‌سازی صریح و بازپوشانی پس از خروج از foreground لازم است. کپی فقط پس از هشدار و تأیید جداگانه، با پیام فارسی موفقیت/خطا انجام می‌شود. PIN، CVV و رمز در این قابلیت جایی ندارند. پوشاندن به معنی رمزگذاری پایگاه داده یا کنترل clipboard نیست؛ ذخیرهٔ محلی و پشتیبان شامل شناسه‌های حساس است.
+
+وضعیت ACCOUNT در ۲۰۲۶-۱۰-۱۲: مسیر ساخت/ویرایش/نمایش و بررسی خودکار پیاده شده؛ پذیرش انتشار همچنان Partial است تا بررسی مستقل و شواهد دستگاه برای clipboard، صفحه‌خوان، IME و حریم خصوصی background انجام شود. نسخهٔ schema تغییر نکرده؛ اطلاعات نسخه‌دار در metadata پایدار با پیش‌فرض خالی برای دادهٔ قدیمی نگهداری می‌شود. سازگاری ساختار پشتیبان به معنی مجازبودن نویسندگی نسخه‌های قدیمی نیست. شواهد، مسئول و تصمیم exposure در [ACCOUNT verification](../ACCOUNT_BRAND_VERIFICATION.md) ثبت می‌شود.
+
 Minimum account types:
 
 - Bank
@@ -539,7 +568,7 @@ Implementation checkpoint (2026-10-06): Priority 10 contextual navigation is wir
 - بازگردانی پس از ثبت و «بازگشایی بررسی ارتباط» در مسیر تعیین ارتباط قابل دسترس است. این مسیر از عملیات تراکنش در مالی، حتی برای موارد مستقل، باز می‌شود؛ پس از بازگشایی می‌توان ارتباط واقعی ثبت کرد.
 - فرم قدیمی نباید تصمیم یا تخصیص جدیدتر را بازنویسی کند. تغییر مبلغ یا سابقهٔ تخصیص، تأیید مستقل قبلی را برای باقی‌ماندهٔ جدید نامعتبر می‌کند، بدون حذف سابقه. جمع تخصیص‌های فعال نباید از مبلغ تراکنش تجاوز کند؛ سیاست اضافه‌پرداخت نیازمند تصمیم جداگانه است.
 
-Implementation checkpoint (2026-10-07): Durable independent-remainder review, append-only reopening/Undo, partial-remainder Today classification and guarded transactional allocation admission are implemented for the bounded local relationship flow. Schema 17 includes review history in personal backups, with strict historical-schema validation retained. See [relationship review verification](../RELATIONSHIP_REVIEW_VERIFICATION.md) and [ADR 0015](../adr/0015-transaction-relationship-review.md). Native-device and installation-bound backup recovery limitations remain unchanged.
+Implementation checkpoint (2026-10-07): Durable independent-remainder review, append-only reopening/Undo, partial-remainder Today classification and guarded transactional allocation admission are implemented for the bounded local relationship flow. Schema 17 includes review history in personal backups, with strict historical-schema validation retained. See [relationship review verification](../RELATIONSHIP_REVIEW_VERIFICATION.md) and [ADR 0015](../adr/0015-transaction-relationship-review.md). Native-device release gates remain open; the later Priority 1 checkpoint supersedes the installation-bound limitation for new exports.
 
 ---
 
@@ -559,6 +588,12 @@ Sourceهای احتمالی:
 - integrationهای آینده.
 
 برای هر staged item باید provenance قابل نگهداری باشد.
+
+شواهد اصلی استخراج پیامک، شامل مبلغ و واحد، مانده، جهت و نشانهٔ انتقال، و تاریخ یا ساعت ناقص، باید بدون تغییر و جدا از مقادیر ویرایش‌شده نگهداری شوند. هر ویرایش صریح یک تصویر کامل از مقادیر بررسی‌شده به تاریخچه اضافه می‌کند؛ تأیید مالی باید سازگاری دقیق مبلغ و واحد ریالی را بر اساس دادهٔ پایدار تازه و در همان تراکنش نوشتن بررسی کند.
+
+نبود تاریخ یا ساعت به معنی نیمه‌شب یا زمان استخراج‌شده نیست. زمان دریافت یا زمان با منشأ نامشخص فقط با نمایش پیشنهاد و تأیید صریح کاربر برای ثبت پذیرفته می‌شود؛ انتخاب تاریخ و ساعت جدید منشأ «انتخاب کاربر» دارد و شواهد اصلی را تغییر نمی‌دهد. جهت واریز یا برداشت به‌تنهایی طبقه‌بندی درآمد یا هزینه نیست؛ تأیید نهایی باید طبقه‌بندی مالی را صریحاً بیان کند. شواهد اصلی انتقال، حتی پس از ویرایش جهت، ثبت درآمد یا هزینه را مسدود می‌کند و کاربر را به ثبت انتقال بین دو حساب در بخش مالی راهنمایی می‌کند.
+
+Implementation checkpoint (2026-10-12): the existing conservative labelled parser remains unchanged; an additive whole-message parser recognizes the 18 user-supplied real SMS shapes through redacted same-shaped fixtures (Sina, Refah, Melli, Shahr, Gardeshgari and unbranded messages). Missing transaction units require explicit selection; short/missing years remain unresolved source evidence, never an invented century. Original transfer evidence still blocks income/expense after direction edits. Automated parser, production cold-reopen/redacted backup and Persian review-route evidence cover this bounded corpus, not a general bank catalogue or release acceptance. Optional versioned metadata requires no schema migration, but additive read compatibility does not authorize older binaries to write new unknown/transfer/reviewer-provenance drafts. Priority 3 remains Partial / development-only; native/provider, broader corpus review, downgrade-write and independent acceptance gates remain recorded in [SMS verification](../SMS_VERIFICATION.md).
 
 ---
 
@@ -715,6 +750,23 @@ In-memory repositoryها می‌توانند برای testing استفاده ش�
 
 برای featureهایی که state پایدار دارند، این زنجیره همچنین باید **restart persistence، migration impact، backup/restore impact** و در صورت نیاز **platform integration** را پوشش دهد. وجود schema، domain object یا UI به‌تنهایی فقط foundation/partial implementation محسوب می‌شود.
 
+### Capability readiness and exposure
+
+وضعیت قابلیت باید با دامنهٔ مشخص و شواهد آن بیان شود:
+
+| وضعیت | معنی |
+| --- | --- |
+| **Foundation** | زیرساخت یا اجزای فنی آماده‌اند؛ هنوز نتیجهٔ قابل استفاده برای کاربر ارائه نشده است. |
+| **Bounded complete capability** | یک مسیر کوچک و مشخص از ورود واقعی کاربر تا نتیجه، مدیریت خطا و آثار پایدار کامل پیاده شده است؛ آمادگی انتشار هنوز به شواهد و پذیرش نیاز دارد. |
+| **Partial** | بخشی از مسیر یا تضمین لازم ناقص است؛ وجود رابط یا تست اجزای مستقل، این وضعیت را تغییر نمی‌دهد. |
+| **Ready for release within stated scope** | معیارهای پذیرش دامنهٔ اعلام‌شده با شواهد متناسب و بررسی مستقل تأیید شده‌اند و مانع الزامی باز وجود ندارد. |
+
+وضعیت **پیاده‌سازی** و **راستی‌آزمایی** مستقل گزارش شوند: implemented به معنی verified نیست؛ **Verified** یعنی معیار مشخص با شاهد متناسب برای دامنه، revision/build و محیط اعلام‌شده تأیید شده است، نه اینکه کل قابلیت یا انتشار مجاز است. بررسی اجرا‌نشده، ناموفق یا فاقد شاهد کافی باید مشخص بماند. یادداشت‌های تاریخی baseline و checkpointها صرفاً گزارش زمان خود هستند، نه تأیید آمادگی build فعلی.
+
+دامنهٔ پذیرش انتشار شامل همهٔ قابلیت‌های همچنان در دسترس و gateهای مشترک و موانع قبلی است، نه صرفاً scope آخرین تغییر. خارج‌کردن یک قابلیت از دامنه به تصمیم exposure نیاز دارد و تضمین‌های مشترک امنیت، حفظ داده و پلتفرم را حذف نمی‌کند. پذیرش PR یا یک معیار Verified جای مجوز مسئول انتشار برای build نهایی را نمی‌گیرد.
+
+قابلیت ناقص نباید در تجربهٔ عادی یا ادعای انتشار، کامل جلوه کند. تصمیم دربارهٔ پنهان/غیرفعال‌بودن یا ارائهٔ آزمایشی محدود باید صریح ثبت شود؛ در ارائهٔ آزمایشی، محدودیت مؤثر بر تصمیم کاربر پیش از اقدام با متن فارسی قابل فهم توضیح داده شود. برچسب آزمایشی مجوز عبور از تضمین‌های امنیت، حفظ داده و تاریخچه نیست. مستندکردن کمبود بدون تصمیم دربارهٔ exposure/release کافی نیست؛ کمبود مهم باید مالک، اقدام بعدی و تصمیم انتشار داشته باشد. این سیاست به معنی تأیید یا اصلاح خودکار exposure قابلیت‌های فعلی نیست؛ آن‌ها همچنان نیازمند بررسی‌اند.
+
 ---
 
 # 23. MVP Definition
@@ -824,6 +876,8 @@ Pull Requestها باید حداقل این checks را پاس کنند:
 
 Release نباید در صورت شکست این موارد ساخته شود.
 
+CI سلامت فنی را بررسی می‌کند، نه کامل‌بودن تجربهٔ کاربر. پذیرش محصول باید مسیر ورود واقعی و مصرف‌کنندگان مرتبط را جداگانه بررسی کند؛ تست محاسبات، شاهد دوام پایگاه داده، تست مسیر رابط و شاهد بومی دستگاه جایگزین یکدیگر نیستند. انتظارات تقویم/تکرار، واحد مبلغ، پایان/افق تولید، اصلاح/حذف و ثبت دامنه/تحویل پلتفرم باید از رفتار مصوب استخراج شوند، نه از فرض پیاده‌سازی. ادعای کارایی یا چیدمان به دادهٔ واقع‌بینانه، بودجهٔ قابل اندازه‌گیری روی دستگاه مرجع و شرایط عرض کم/متن بزرگ در صورت کاربرد نیاز دارد.
+
 ---
 
 # 28. Data Integrity Rules
@@ -873,6 +927,9 @@ Implementation checkpoint (2026-10-05): Priority 4 remains **partial for native 
 - financial balance integrity تست شود.
 - backup/restore تست شود.
 - Android release build موفق باشد.
+- معیارهای پذیرش مسیرهای در معرض کاربر برای دامنهٔ همین release با شواهد متناسب بررسی مستقل شده باشند؛ موفقیت build یا تعداد تست جای این پذیرش را نگیرد.
+- بررسی الزامی ناموفق یا اجرا‌نشده و مانع امنیت/حفظ داده/پلتفرم باز وجود نداشته باشد؛ قابلیت ناقص خارج از دامنه مطابق سیاست exposure بالا مدیریت شود، نه اینکه معیار اجباری آن حذف شود.
+- تصمیم پذیرش، هویت build/commit، شواهد و محدودیت‌ها مطابق [گردش توسعه](../development-workflow.md) ثبت شوند؛ کمبود مهم مالک و اقدام بعدی داشته باشد.
 
 ---
 
@@ -924,7 +981,7 @@ Implementation checkpoint (2026-10-05): reminders remain **partial**, not releas
 - staged imports
 - SMS adapter
 
-> Implementation checkpoint (2026-10-05): Priority 3 remains partial. Inbox provider rescans, receipt-time handling, ingestion feedback, and resolved-suggestion protection are implemented and validated by 256 passing tests and an isolated Android build. Background ingestion, pagination, native permission/replay evidence, and complete parser/account-selection journeys remain open. See [SMS verification](../SMS_VERIFICATION.md).
+> Implementation checkpoint (2026-10-11): Priority 3 remains partial. Permission does not authorize history: Inbox requires explicit 7-day, 30-day or new-only consent. Source-bounded 100-row timestamp/ID pages, durable explicit resume, progress/cancel/retry and resolved-history protection are wired. Refresh/lifecycle/events never independently start ingestion; there is no permanent service. Existing metadata storage preserves consent/checkpoints through restart and backup. Native provider compatibility, permission/process-kill and reference-device performance evidence, identical-body identity policy and independent acceptance remain release gates. See [SMS verification](../SMS_VERIFICATION.md).
 - duplicate detection
 - user confirmation
 
@@ -956,7 +1013,11 @@ Implementation checkpoint (2026-10-05): reminders remain **partial**, not releas
 - edge caseهای اصلی تست شده باشند؛
 - restart باعث از دست رفتن داده نشود؛
 - history و integrity حفظ شوند؛
-- documentation در صورت نیاز به‌روز شده باشد.
+- documentation در صورت نیاز به‌روز شده باشد؛
+- مسیر واقعی کاربر و تازه‌شدن صفحات مرتبط، نه فقط اجزای جداگانه، معیارهای قرارداد پذیرش را برآورده کنند؛
+- دامنهٔ پیاده‌شده، شواهد تأییدشده، بررسی‌های اجرا‌نشده و موانع انتشار جداگانه گزارش شوند.
+
+Done بودن یک task زیرساختی، Done بودن قابلیت کاربر نیست. یک قابلیت کامل اما محدود می‌تواند فقط در همان دامنه پذیرفته شود؛ حذف مدیریت خطا، دوام داده یا تأیید لازم برای کوچک‌کردن scope پذیرفته نیست. وضعیت انتشار از تعریف‌های readiness در بخش 22 و فرایند پذیرش مستقل پیروی می‌کند؛ این قواعد هیچ checkpoint ناقص یا gate بومی موجود را تأیید یا معاف نمی‌کنند.
 
 ---
 
@@ -996,7 +1057,9 @@ A committed commitment creation or occurrence change must be reported separately
 
 ## Backup implementation status — Priority 1
 
-The production encrypted export/import path is implemented, but the backup release gate remains partial. Current key recovery is restricted to the original installation: device loss, uninstall, or another device is not supported. Export/import confirmations disclose this restriction. Strict fresh-schema validation may reject migrated current-version databases. Exhaustive entity round-trip, concurrent command/lifecycle safety, and isolated native Android picker/Keystore/crash evidence remain required. This status does not reduce the backup/restore acceptance criteria. See docs/adr/0013-production-backup-restore.md.
+Updated checkpoint (2026-10-10): New production exports use format 2 and a fresh independent CSPRNG 256-bit recovery key for each export. Persian UI displays the key and requires acknowledgement of separate safe storage and unrecoverable key loss before saving. Offline recovery on a fresh installation uses only the file and its recovery key, without the old installation's secure storage. The app does not persist/export the key alongside the file. Legacy format 1 remains installation-key-only, with explicit warning and no silent rewrite. AES-256-GCM, isolated strict schema validation (including approved historical migration signatures), validated safety snapshots, atomic replacement, command drainage, repository rebind and reminder rebuilding remain required. Automated evidence covers independent directories, full logical state, historical migrations, wrong-key/tamper rejection, write failures and controlled UI/lifecycle paths. Native picker/storage, isolated fresh-install offline recovery, interruption and notification/device evidence and independent acceptance review remain release blockers; Priority 1 is partial, not device-loss-ready. See docs/adr/0018-independent-recovery-key-backups.md and docs/BACKUP_VERIFICATION.md; ADR 0013 retains the storage/recovery safeguards.
+
+Recovery-key dialog follow-up (2026-10-10): «کپی کلید» copies the displayed key only after an explicit tap, with Persian clipboard-sensitivity and success/failure feedback. No automatic clipboard write is performed. Copying does not acknowledge separate safe storage or enable saving; the per-export checkbox remains required. The unrecoverable-loss warning is emphasized in bold shared typography. Backup formats, durable state and existing release gates are unchanged.
 
 ## Settings and More navigation
 
@@ -1005,3 +1068,30 @@ Display mode, app lock and reminder permissions remain in Settings. Display-mode
 ## Independent offline holiday updates
 
 Settings permits explicit file import of signed annual holiday reference packages without an app update or internet requirement. Bundled data remains the baseline. The user reviews year, revision, source and publisher fingerprint, explicitly approves the first publisher through an independent channel, and confirms replacement. Later packages must use the same publisher and a newer revision for a previously installed year. Invalid packages or write failures retain earlier data. Imports affect only official holiday display, never schedules, reminders, entitlement or financial history. Packages persist separately from personal backups; users must retain their original files. Structural twelve-month validation and signature checks do not independently establish official source accuracy. Annual source review is still required; no future-year data is predicted. Native file-picker verification, trust recovery and key rotation remain separate gates/scope. See [ADR 0014](../adr/0014-independent-holiday-packages.md).
+
+
+## Inbox review repair checkpoint (2026-10-11)
+
+Inbox supports explicit rejection of unconfirmed suggestions and explicit recovery
+to the same review draft, including after restart. Rejection is not deletion and
+recovery is not a financial reversal. Confirmed suggestions remain historical;
+users are directed to the existing Finance correction/reversal path. Review
+decisions append history with monotonic revisions; rescan cannot reset them.
+Bank and review-status filters, stable receipt/import ordering and per-item pending
+feedback preserve browsing and open forms during refresh. Extracted transaction
+dates, provider receipt evidence and unknown legacy date origins are distinct;
+fallback dates are visibly proposed before final financial confirmation. Versioned
+metadata is preserved in personal backups without restoring raw SMS. No table
+schema change or dependency is required. Automated evidence and unresolved native,
+performance and independent acceptance gates are recorded in SMS_VERIFICATION.md.
+Priority 3 remains partial, not release-ready.
+
+## Shared date-selection checkpoint (2026-10-11)
+
+انتخابگر مشترک تاریخ در ثبت تعهد، تاریخ پایان تکرار، ویرایش نوبت و فرم مالی همهٔ هفت ستون شنبه تا جمعه را راست‌به‌چپ و بدون پیمایش افقی در عرض پنجره جا می‌دهد. عنوان کامل روزها در صورت جا شدن و مخفف‌های متمایز با معنای دسترس‌پذیر کامل در عرض کم استفاده می‌شوند. استثنای محدود شبکهٔ فشرده، عرض کمتر از ۴۸ را فقط در صورت نیاز مجاز می‌کند؛ ارتفاع لمس حداقل ۴۸ و متناسب با بزرگ‌نمایی متن، بدون هم‌پوشانی ناحیه‌ها باقی می‌ماند. کنترل‌های دیگر و نمای هفته هدف استاندارد دارند. لمس روز انتخاب موقت است؛ «تأیید تاریخ» آن را برمی‌گرداند و انصراف آن را کنار می‌گذارد. همهٔ دلایل تعطیلی روز انتخاب‌شده زیر شبکه با متن و نماد متمایز و جزئیات بازشدنی منبع/نسخه/محدوده نمایش داده می‌شوند؛ هر روز دکمهٔ اطلاعات جداگانه ندارد. همان دادهٔ نسخه‌دار آفلاین و بسته‌های تأییدشدهٔ تقویم استفاده می‌شوند؛ بیرون پوشش کامل، نبود علامت روز کاری قطعی را اثبات نمی‌کند. تعطیلی انتخاب را منع یا برنامه را خودکار لغو/جابه‌جا نمی‌کند و انتخاب تاریخ ساعت جدید نمی‌سازد. در تلفن معمول کل شبکهٔ ماه بدون پیمایش دیده می‌شود؛ پیمایش عمودی فقط در محدودیت ارتفاع یا محتوای بیشتر مجاز است. این تصمیم تأییدشده جایگزین طراحی اولیهٔ بزرگ و قابل پیمایش افقی است. شواهد و بررسی بومی/مستقل باقی‌مانده در [گزارش انتخابگر تاریخ](../DATE_PICKER_VERIFICATION.md) ثبت می‌شوند؛ آمادگی انتشار ادعا نمی‌شود.
+
+## Iranian currency presentation checkpoint (2026-10-11)
+
+Settings offers rial/toman, defaulting visibly to rial. The preference is durable and affects canonical IRR displays throughout root, pushed and modal routes. Manual monetary forms snapshot and label the selected unit; changing Settings cannot reinterpret an open form. New Iranian financial expectations and account transactions retain integer IRR storage. Exact conversion preserves signed values and one tenth-toman remainder; invalid precision and overflow are rejected, never rounded. Legacy/non-IRR stored values are not migrated by this setting. SMS amount-adjacent evidence remains independent: missing/conflicting new evidence needs explicit user unit selection before confirmation. Cancellation does not write, failed settings persistence does not change the effective unit, and personal backup preserves preference/evidence.
+
+Implementation and verification are separate: shared local paths are implemented; automated conversion, durable reopen/snapshot, route/modal and pinned-form checks are recorded in [currency verification](../CURRENCY_UNIFICATION_VERIFICATION.md). Native keyboard/provider/restore, narrow-screen large-text review and independent acceptance remain required before release readiness.

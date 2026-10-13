@@ -57,11 +57,15 @@ class BackupService {
     required DateTime createdAt,
     List<String> attachmentManifest = const [],
     bool includeSensitiveRawText = false,
+    Uint8List? recoveryKey,
   }) async {
     if (payload.isEmpty || payload.length > validator.maxPayloadBytes) {
       throw const ValidationError('Backup payload is empty or too large');
     }
-    final key = await keyStorage.loadKey(backupKeyId);
+    final version = recoveryKey == null
+        ? backupFormatVersion
+        : recoveryBackupFormatVersion;
+    final key = recoveryKey ?? await keyStorage.loadKey(backupKeyId);
     final nonce = nonceGenerator.generate();
     if (nonce.length != 12) {
       throw const ValidationError('Backup nonce must be 12 bytes');
@@ -71,10 +75,11 @@ class BackupService {
       key: key,
       nonce: nonce,
       associatedData: Uint8List.fromList(
-        '$backupFormatVersion:${validator.currentSchemaVersion}'.codeUnits,
+        '$version:${validator.currentSchemaVersion}'.codeUnits,
       ),
     );
     final package = BackupPackage(
+      formatVersion: version,
       schemaVersion: validator.currentSchemaVersion,
       appVersion: appVersion,
       createdAt: createdAt,
@@ -82,11 +87,11 @@ class BackupService {
       attachmentManifest: attachmentManifest,
       encryptionMetadata: {
         'algorithm': backupAlgorithm,
-        'formatVersion': '$backupFormatVersion',
+        'formatVersion': '$version',
         'nonce': _encode(nonce),
         'tag': _encode(encrypted.tag),
-        'kdf': backupKdf,
-        'keyId': backupKeyId,
+        'kdf': recoveryKey == null ? backupKdf : recoveryBackupKdf,
+        'keyId': recoveryKey == null ? backupKeyId : recoveryBackupKeyId,
         'rawTextPolicy': includeSensitiveRawText
             ? 'consented-encrypted'
             : 'redacted',
@@ -96,9 +101,20 @@ class BackupService {
     return package;
   }
 
-  Future<void> restore(BackupPackage package) async {
+  Future<void> restore(BackupPackage package, {Uint8List? recoveryKey}) async {
     validator.validate(package);
-    final key = await keyStorage.loadKey(package.encryptionMetadata['keyId']!);
+    final Uint8List key;
+    if (package.formatVersion == recoveryBackupFormatVersion) {
+      if (recoveryKey == null || recoveryKey.length != 32) {
+        throw const ValidationError('Recovery key required');
+      }
+      key = recoveryKey;
+    } else {
+      if (recoveryKey != null) {
+        throw const ValidationError('Legacy backup requires installation key');
+      }
+      key = await keyStorage.loadKey(backupKeyId);
+    }
     final metadata = package.encryptionMetadata;
     final plaintext = await encryptor.decrypt(
       ciphertext: package.payload,

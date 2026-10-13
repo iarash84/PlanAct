@@ -1,7 +1,7 @@
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
@@ -21,43 +21,45 @@ class QuickAddSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('افزودن سریع', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 12),
-          _ActionTile(
-            key: const ValueKey('quick-add-expense'),
-            icon: Icons.remove_circle_outline,
-            title: 'هزینه',
-            subtitle: 'ثبت سریع برداشت از یک حساب',
-            onTap: () => Navigator.pop(context, QuickAddAction.expense),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-income'),
-            icon: Icons.add_circle_outline,
-            title: 'درآمد',
-            subtitle: 'ثبت سریع واریز به یک حساب',
-            onTap: () => Navigator.pop(context, QuickAddAction.income),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-transfer'),
-            icon: Icons.swap_horiz,
-            title: 'انتقال',
-            subtitle: 'جابجایی بین حساب‌های خودتان',
-            onTap: () => Navigator.pop(context, QuickAddAction.transfer),
-          ),
-          _ActionTile(
-            key: const ValueKey('quick-add-commitment'),
-            icon: Icons.add_task,
-            title: 'تعهد',
-            subtitle: 'باز کردن مراحل ثبت تعهد',
-            onTap: () => Navigator.pop(context, QuickAddAction.commitment),
-          ),
-        ],
+    child: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('افزودن سریع', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            _ActionTile(
+              key: const ValueKey('quick-add-expense'),
+              icon: Icons.remove_circle_outline,
+              title: 'هزینه',
+              subtitle: 'ثبت سریع برداشت از یک حساب',
+              onTap: () => Navigator.pop(context, QuickAddAction.expense),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-income'),
+              icon: Icons.add_circle_outline,
+              title: 'درآمد',
+              subtitle: 'ثبت سریع واریز به یک حساب',
+              onTap: () => Navigator.pop(context, QuickAddAction.income),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-transfer'),
+              icon: Icons.swap_horiz,
+              title: 'انتقال',
+              subtitle: 'جابجایی بین حساب‌های خودتان',
+              onTap: () => Navigator.pop(context, QuickAddAction.transfer),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-commitment'),
+              icon: Icons.add_task,
+              title: 'تعهد',
+              subtitle: 'باز کردن مراحل ثبت تعهد',
+              onTap: () => Navigator.pop(context, QuickAddAction.commitment),
+            ),
+          ],
+        ),
       ),
     ),
   );
@@ -105,6 +107,15 @@ class QuickFinancialEntrySheet extends StatefulWidget {
 }
 
 class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  }
+
+  PinnedMoneyInput? _pinned;
+  PinnedMoneyInput get _moneyInput =>
+      _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _amount = TextEditingController();
   final _note = TextEditingController();
   late FinancialAccount _account = widget.accounts.first;
@@ -120,7 +131,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
   }
 
   Future<void> _submit() async {
-    final amount = int.tryParse(MoneyInputFormatter.normalize(_amount.text));
+    final amount = _moneyInput.parse(_amount.text, currency: _account.currency);
     if (amount == null || amount <= 0) {
       setState(() => _error = 'مبلغ معتبر وارد کنید.');
       return;
@@ -167,9 +178,11 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
             key: const ValueKey('quick-financial-amount'),
             controller: _amount,
             autofocus: true,
-            keyboardType: TextInputType.number,
-            inputFormatters: const [MoneyInputFormatter()],
-            decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+
+            decoration: InputDecoration(
+              labelText: 'مبلغ به ${_moneyInput.label(_account.currency)}',
+            ),
           ),
           DropdownButtonFormField<FinancialAccount>(
             key: const ValueKey('quick-financial-account'),
@@ -250,6 +263,15 @@ class QuickTransferSheet extends StatefulWidget {
 }
 
 class _QuickTransferSheetState extends State<QuickTransferSheet> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  }
+
+  PinnedMoneyInput? _pinned;
+  PinnedMoneyInput get _moneyInput =>
+      _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _amount = TextEditingController();
   late FinancialAccount _from = widget.accounts.first;
   late FinancialAccount _to = widget.accounts.length > 1
@@ -265,7 +287,7 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
   }
 
   void _submit() {
-    final amount = int.tryParse(MoneyInputFormatter.normalize(_amount.text));
+    final amount = _moneyInput.parse(_amount.text, currency: _from.currency);
     if (amount == null || amount <= 0) {
       setState(() => _error = 'مبلغ معتبر وارد کنید.');
       return;
@@ -293,9 +315,11 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
         TextField(
           controller: _amount,
           autofocus: true,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(labelText: 'مبلغ به تومان'),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+
+          decoration: InputDecoration(
+            labelText: 'مبلغ به ${_moneyInput.label(_from.currency)}',
+          ),
         ),
         DropdownButtonFormField<FinancialAccount>(
           initialValue: _from,

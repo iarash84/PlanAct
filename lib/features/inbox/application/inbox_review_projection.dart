@@ -41,16 +41,22 @@ class InboxReviewProjection {
     required Iterable<StagedImport> imports,
     required Iterable<FinancialAccount> accounts,
     required Iterable<AccountEntry> entries,
+    SuggestionStatus? status,
+    String? bank,
+    bool oldestFirst = false,
   }) {
     final importsById = {for (final item in imports) item.id: item};
     final accountsById = {for (final item in accounts) item.id: item};
     final pending = suggestions.where(
       (item) =>
-          item.status == SuggestionStatus.pending ||
-          item.status == SuggestionStatus.edited,
+          (status == null
+              ? item.status == SuggestionStatus.pending ||
+                    item.status == SuggestionStatus.edited
+              : item.status == status) &&
+          (bank == null || (item.draft.bank ?? '') == bank),
     );
 
-    return [
+    final result = [
       for (final suggestion in pending)
         if (importsById[suggestion.stagedImportId] case final import?)
           _item(
@@ -60,6 +66,16 @@ class InboxReviewProjection {
             entries: entries,
           ),
     ];
+    result.sort((a, b) {
+      final date = a.import.provenance.importedAt.compareTo(
+        b.import.provenance.importedAt,
+      );
+      final comparison = date == 0
+          ? a.suggestion.id.value.compareTo(b.suggestion.id.value)
+          : date;
+      return oldestFirst ? comparison : -comparison;
+    });
+    return result;
   }
 
   InboxReviewItem _item({

@@ -34,8 +34,10 @@ The values below record the current token baseline after inspection of the logo 
 
 | Role | Current token/value | Use |
 | --- | --- | --- |
-| Brand primary | `PlanActColors.primary` — `#176B87` | Main product actions, focus, and selected emphasis where semantically appropriate |
-| Deeper brand tone | `PlanActColors.primaryDark` — `#0D5268` | Existing deeper brand token; do not invent feature-specific variants |
+| Brand primary | [`PlanActColors.primary`](../lib/app/theme/planact_colors.dart:6) — #087443 | Logo-related green for main product actions and focus; not success semantics |
+| Deeper brand tone | [`PlanActColors.primaryDark`](../lib/app/theme/planact_colors.dart:7) — #004D2B | Reserved deeper green token; do not invent feature-specific variants |
+| Brand secondary | [`PlanActColors.navy`](../lib/app/theme/planact_colors.dart:8) — #16465B | Navy hierarchy, independent of information status |
+| Brand tertiary | [`PlanActColors.teal`](../lib/app/theme/planact_colors.dart:9) — #006B65 | Teal accent, independent of success status |
 | Light scaffold | `PlanActColors.lightBackground` — `#F7FAFB` | Quiet light-mode page background |
 | Dark scaffold | `PlanActColors.darkBackground` — `#101A1E` | Quiet dark-mode page background |
 | Light surface | `PlanActColors.lightSurface` — `#FFFFFF` | Base light-mode surface |
@@ -43,7 +45,20 @@ The values below record the current token baseline after inspection of the logo 
 
 `ColorScheme` supplies Material roles such as `onPrimary`, containers, outlines, and additional surface levels. Use those semantic roles instead of selecting a nearby raw color. Preserve a restrained relationship to the logo's deep navy and blue-green/teal/green family; do not use the artwork's bright colors or gradients as a license for a loud interface.
 
-Material secondary and tertiary are generated brand roles, not information or success aliases. Material error retains its own foreground/container pairing and is reserved for actual failures/destructive operations. Light primary remains #176B87 with white foreground; Dark primary is #8BD0E7 with #003544 foreground.
+Brand roles are explicitly paired in both brightnesses by [`PlanActColors.scheme()`](../lib/app/theme/planact_colors.dart:11); remaining Material neutral/error roles derive from the navy seed. Secondary and tertiary are not information or success aliases. Material error retains its own foreground/container pairing and is reserved for actual failures/destructive operations.
+
+| Material brand role | Light foreground / role | Dark foreground / role |
+| --- | --- | --- |
+| Primary | #FFFFFF / #087443 | #00391E / #75D9A2 |
+| Primary container | #00391E / #D9F3E5 | #B4F2CE / #173B2C |
+| Secondary | #FFFFFF / #16465B | #062B3A / #AACDDD |
+| Secondary container | #062B3A / #DCEEF5 | #DCEEF5 / #254452 |
+| Tertiary | #FFFFFF / #006B65 | #003B36 / #72D4C8 |
+| Tertiary container | #003B36 / #CDF4ED | #B2EEE3 / #164943 |
+
+Light uses restrained dark green actions against pale surfaces; Dark uses lighter green actions with deep green foregrounds, not inverted Light colors. Navy and teal have their own brightness-specific containers. Neutral scaffold/base surfaces remain unchanged, matching native splash backgrounds. This alignment comes from decoded launcher pixel families, not Finance bank colors or a claim of completed human visual review.
+
+Selected chips/checkmarks, segmented buttons and navigation indicators share the primary container. Segments retain checkmarks and labels, navigation retains labelled destinations, and chips retain their selection semantics; color alone is insufficient. Filled buttons explicitly use primary/on-primary. Disabled filled buttons use highest surface/on-surface-variant, while outlined/text buttons retain readable on-surface-variant text and non-activation semantics. Tests require 4.5:1 for brand foreground/container and disabled filled text, and 3:1 for primary focus against highest surface. Framework pressed/hover/focus overlays remain Material 3; no local state palette is added. Typography, RTL, standard target sizes, identity/status palettes and motion remain unchanged. Coverage and remaining visual/native review gates are in [brand verification](ACCOUNT_BRAND_VERIFICATION.md).
 
 ## Semantic palette
 
@@ -136,7 +151,7 @@ RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/en
 
 ## Accessibility and responsive behavior
 
-- Maintain a minimum 48×48dp interactive target, except the Calendar page's seven-column month grid on narrow screens: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This explicitly approved fit-to-screen exception does not apply to other controls or the modal date picker.
+- Maintain a minimum 48×48dp interactive target, except the seven-column Calendar Month and shared modal date-picker grids when seven standard targets cannot fit: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This user-approved dense-calendar exception does not apply to Week or other controls. Visual icon size is not target size; do not inflate each day with an independent information button.
 - Target WCAG 2.1 AA contrast as a baseline: 4.5:1 for normal text and 3:1 for large text and essential non-text controls; verify foregrounds against their actual Light and Dark surfaces.
 - Support system text scaling without clipping, fixed-height text regions, or reducing font size to conceal overflow.
 - Give icon-only actions meaningful Persian semantic labels; ensure focus and keyboard behavior where applicable.
@@ -167,6 +182,18 @@ Shared body line heights are 1.6 (large/medium), 1.5 (small), and 1.4 for small 
 PlanActMotion.duration respects platform disableAnimations; root navigation and capture transitions consume it. Startup has no decorative entrance animation, glow or custom shadow. Logos remain in launcher/startup/About, not repeated in root AppBars. Shared divider, progress, popup menu, segmented button and bottom-sheet treatments are theme-owned.
 
 See docs/UI_MIGRATION_VERIFICATION.md for surface coverage and limitations. Automated contrast and widget checks are evidence for tested pairs/flows only, not native-device, screen-reader or profile-performance certification.
+
+## Shared Jalali date picker (2026-10-11)
+
+The shared modal picker fits all seven Saturday–Friday RTL columns inside the dialog without horizontal scrolling. Full weekday titles are used when measured text fits; otherwise distinct Persian compact labels retain full-name semantics. The approved dense-calendar target-width exception applies only when necessary; day height stays at least 48dp and grows with measured scaled text. Small visual status icons are not separate interactive controls. Day taps stage a selection; explicit «تأیید تاریخ» returns it, while cancellation discards it. Typed weekly/official/special reasons appear below the selected date, with expandable source/version/scope, preserving overlaps without enlarging every grid cell. Holidays never disable selection. Incomplete coverage uses the attention role; holiday cues use the shared brightness-aware holiday role, not Material error. Retain system text scaling and vertical scrolling only when height/content requires it; a normal phone must expose the complete month grid without scrolling. Creation start/end dates, Details editing and Finance share this composition; Calendar and package import remain intentionally unchanged. This supersedes the initial oversized, horizontally scrollable picker specification. See [picker verification](DATE_PICKER_VERIFICATION.md) for evidence and remaining native/independent checks.
+
+## Calendar Month title markers and day access (2026-10-12)
+
+Month uses at most two readable title markers per day, with the shared CommitmentIdentityPalette foreground/background pair for the current brightness, shared label typography and chip shape. This replaces dots-only identity cues; identity remains independent of status. The bounded overview intentionally permits two-line ellipsis at narrow widths, never reduced font size or disabled scaling. Full titles are retained in day semantics and the selected-day cards. Marker height reserves two scaled lines, and cell height includes both markers, date, holiday cue and remaining-count text. Dense days show the number beyond the two visible titles. All seven RTL columns retain the existing fit-to-screen width exception, non-overlapping targets and at least 48dp height.
+
+A visible themed “نمایش فهرست روز انتخاب‌شده” action above the grid scrolls the selected-day heading into view; day taps select without forcing a scroll. Existing full cards, actual status/history, tags, times and reminders remain unchanged. Only the grid accepts horizontal drags: at least 48dp recognized horizontal travel, rightward next and leftward previous. Vertical scrolling and ordinary taps remain distinct. Buttons and today remain; navigation clamps the selected day into the displayed Jalali month. Loading and failure/retry are visible above the grid and are not presented as empty data. Production uses the supplied bounded recorded-occurrence Month loader with stale-result rejection; fixture dates remain a fallback only.
+
+Coverage: Month grid/navigation/loading/day access migrated. Week, picker, shared tokens/cards and all other surfaces intentionally unchanged. Automated 320dp/2x Light/Dark and desktop volume checks are not screenshot, native screen-reader, reference-device performance or independent release acceptance. The separate gates and owner remain in [Month verification](MONTH_CALENDAR_VERIFICATION.md).
 
 ## Calendar return to today
 

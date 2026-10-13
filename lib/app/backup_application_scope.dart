@@ -222,7 +222,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
           : null;
       return success;
     } catch (_) {
-      _message = 'عملیات انجام نشد. فایل، فضای ذخیره‌سازی و کلید همین نصب را بررسی کنید و دوباره تلاش کنید.';
+      _message = 'عملیات انجام نشد. فایل، فضای ذخیره‌سازی و کلید بازیابی (یا کلید نصب اصلی برای فایل قدیمی) را بررسی کنید و دوباره تلاش کنید.';
       if (await File('${_live.path}.restore-marker').exists()) {
         await _close();
       }

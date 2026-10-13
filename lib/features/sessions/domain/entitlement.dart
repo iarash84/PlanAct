@@ -67,8 +67,8 @@ class EntitlementLedgerEntry {
     this.referenceId,
     this.note,
   }) {
-    if (units <= 0) {
-      throw const ValidationError('Ledger units must be positive');
+    if (units == 0 || (units < 0 && type != EntitlementEntryType.adjustment)) {
+      throw const ValidationError('Only adjustments may carry negative units');
     }
   }
 
@@ -123,7 +123,9 @@ class EntitlementLedger {
     var granted = 0;
     var consumed = 0;
     for (final entry in entries) {
-      if (entry.signedUnits >= 0) {
+      if (entry.type == EntitlementEntryType.adjustment) {
+        granted += entry.units;
+      } else if (entry.signedUnits >= 0) {
         granted += entry.signedUnits;
       } else {
         consumed += -entry.signedUnits;

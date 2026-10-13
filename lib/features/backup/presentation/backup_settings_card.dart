@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
+import 'package:planact/features/backup/application/recovery_backup_actions.dart';
+import 'package:planact/features/backup/presentation/recovery_key_dialogs.dart';
 
 class BackupSettingsCard extends StatefulWidget {
   const BackupSettingsCard({super.key, required this.actions, this.message});
@@ -24,8 +26,8 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
         ),
         content: Text(
           importing
-              ? 'تمام اطلاعات فعلی با اطلاعات فایل جایگزین می‌شود. پیش از جایگزینی، نسخه ایمنی ساخته می‌شود. فقط فایل همین نصب و کلید موجود روی همین دستگاه قابل بازیابی است.'
-              : 'این فایل حاوی اطلاعات شخصی و مالی رمزنگاری‌شده است؛ آن را در محل امن نگه دارید. متن خام پیامک‌ها صادر نمی‌شود. کلید در همین نصب نگه‌داری می‌شود؛ پس از حذف برنامه یا روی دستگاه دیگر این فایل قابل بازیابی نیست.',
+              ? 'تمام اطلاعات فعلی با اطلاعات فایل جایگزین می‌شود. پیش از جایگزینی، نسخه ایمنی ساخته می‌شود. فایل جدید به کلید بازیابی خودش نیاز دارد؛ فایل قدیمی فقط با کلید نصب اصلی قابل بازیابی است.'
+              : 'این فایل حاوی اطلاعات شخصی و مالی رمزنگاری‌شده است؛ آن را در محل امن نگه دارید. متن خام پیامک‌ها صادر نمی‌شود. در مرحله بعد کلید مستقل این نسخه نمایش داده می‌شود؛ آن را جدا و امن نگه دارید.',
         ),
         actions: [
           TextButton(
@@ -45,9 +47,25 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
       _error = null;
     });
     try {
-      final success = importing
-          ? await widget.actions.importBackup()
-          : await widget.actions.exportBackup();
+      final actions = widget.actions;
+      final bool success;
+      if (actions is RecoveryBackupActions) {
+        success = importing
+            ? await actions.importRecoveryBackup(
+                requestKey: () async =>
+                    mounted ? requestRecoveryKey(context) : null,
+                confirmLegacy: () async =>
+                    mounted ? confirmLegacyBackup(context) : false,
+              )
+            : await actions.exportRecoveryBackup(
+                (key) async =>
+                    mounted ? confirmRecoveryKey(context, key) : false,
+              );
+      } else {
+        success = importing
+            ? await actions.importBackup()
+            : await actions.exportBackup();
+      }
       if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -63,7 +81,7 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
       if (mounted) {
         setState(() {
           _retryImport = importing;
-          _error = 'عملیات انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید. بازیابی به کلید همین نصب نیاز دارد.';
+          _error = 'عملیات انجام نشد. فایل، کلید بازیابی و فضای ذخیره‌سازی را بررسی کنید و دوباره تلاش کنید. فایل قدیمی به کلید نصب اصلی نیاز دارد.';
         });
       }
     } finally {

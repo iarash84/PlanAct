@@ -1,0 +1,20 @@
+00:00 +0: loading d:/repos/planact/test/unit/iranian_holidays_test.dart
+00:00 +0: d:/repos/planact/test/unit/iranian_holidays_test.dart: all verified years include ten fixed holiday dates
+00:00 +1: d:/repos/planact/test/unit/iranian_holidays_test.dart: published Eid dates differ from generic lunar predictions
+00:00 +2: d:/repos/planact/test/unit/iranian_holidays_test.dart: Friday is separate and overlapping official reasons are retained
+00:00 +3: d:/repos/planact/test/unit/iranian_holidays_test.dart: Safar end follows published month length, including 29-day month
+00:00 +4: d:/repos/planact/test/unit/iranian_holidays_test.dart: leap boundaries, invalid dates and incomplete years are explicit
+00:00 +5: d:/repos/planact/test/unit/iranian_holidays_test.dart: all 365 days of 1405 match the published monthly holiday markers
+00:00 +6: d:/repos/planact/test/unit/iranian_holidays_test.dart: 1405 retains both Eid cycles, overlaps and exact 29-day Safar end
+00:00 +7: d:/repos/planact/test/unit/iranian_holidays_test.dart: versioned special closures coexist without altering official dates
+00:00 +8: loading d:/repos/planact/test/repository/holiday_package_test.dart
+00:00 +8: d:/repos/planact/test/repository/holiday_package_test.dart: first trust requires approval; durable reload retains overlapping reasons
+00:00 +9: d:/repos/planact/test/repository/holiday_package_test.dart: rejects tampering, incomplete coverage and invalid markers
+00:01 +10: d:/repos/planact/test/repository/holiday_package_test.dart: revision upgrade succeeds; wrong publisher and rollback preserve bytes
+00:01 +11: d:/repos/planact/test/repository/holiday_package_test.dart: transaction write failure preserves old year and service state
+00:01 +12: d:/repos/planact/test/repository/holiday_package_test.dart: second store cannot replace a trusted publisher or downgrade
+00:01 +13: d:/repos/planact/test/repository/holiday_package_test.dart: picker cancellation has no effect; corrupt storage is never overwritten
+00:01 +14: loading d:/repos/planact/test/widget/holiday_package_settings_test.dart
+00:01 +14: d:/repos/planact/test/widget/holiday_package_settings_test.dart: explicit approval, cancellation and failure in light RTL
+00:04 +15: d:/repos/planact/test/widget/holiday_package_settings_test.dart: explicit approval, cancellation and failure in dark RTL
+00:06 +16: All tests passed!

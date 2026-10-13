@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -18,12 +19,14 @@ class CalendarCommitmentCard extends StatelessWidget {
     required this.occurrences,
     required this.reminderRules,
     this.onTap,
+    this.previews = const [],
   });
 
   final Commitment commitment;
   final List<Occurrence> occurrences;
   final List<ReminderRule> reminderRules;
   final VoidCallback? onTap;
+  final List<PlannedOccurrenceSlot> previews;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +66,13 @@ class CalendarCommitmentCard extends StatelessWidget {
                 const SizedBox(height: PlanActSpacing.sm),
                 TagLabels(labels: commitment.tags),
               ],
-              if (occurrences.isEmpty) ...[
+              for (final slot in previews)
+                PlannedSlotTile(
+                  slot: slot,
+                  commitment: commitment,
+                  onTap: onTap,
+                ),
+              if (occurrences.isEmpty && previews.isEmpty) ...[
                 const SizedBox(height: PlanActSpacing.md),
                 const Text('جزئیات رخداد در دسترس نیست.'),
               ],

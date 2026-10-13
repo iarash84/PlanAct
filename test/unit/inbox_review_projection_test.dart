@@ -30,7 +30,8 @@ void main() {
       );
       final useCases = InboxUseCases(inboxRepository);
       await useCases.stageSms(
-        rawText: 'برداشت مبلغ 1000 2026-09-20',
+        rawText:
+            'amount: 1000 rial; type: debit; date: 2026-09-20; time: 00:00',
         sourceKey: 'sms-1',
         currency: 'IRR',
       );
@@ -61,7 +62,7 @@ void main() {
     final finance = InMemoryFinanceRepository();
     final useCases = InboxUseCases(inboxRepository);
     final suggestion = await useCases.stageSms(
-      rawText: 'amount 1000 2026-09-20',
+      rawText: 'amount: 1000 rial; type: debit; date: 2026-09-20; time: 00:00',
       sourceKey: 'sms-1',
       currency: 'IRR',
     );

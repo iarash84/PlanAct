@@ -1,6 +1,10 @@
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 
 import 'dart:async';
+
+import 'package:planact/features/scheduling/application/planned_occurrences.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -49,6 +53,7 @@ class WeekTimelineView extends StatefulWidget {
     required this.occurrences,
     required this.holidays,
     this.loader,
+    this.plannedLoader,
     this.onTap,
     this.onAdd,
   });
@@ -57,6 +62,8 @@ class WeekTimelineView extends StatefulWidget {
   final Map<String, List<Occurrence>> occurrences;
   final IranianHolidayProvider holidays;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? loader;
+  final Future<PlannedOccurrenceRange> Function(LocalDate, LocalDate)?
+  plannedLoader;
   final ValueChanged<Commitment>? onTap;
   final VoidCallback? onAdd;
   @override
@@ -72,7 +79,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
   final _headerScroll = ScrollController();
   final _bodyScroll = ScrollController();
   bool _syncing = false;
-  Future<Map<String, List<Occurrence>>>? _future;
+  Future<PlannedOccurrenceRange>? _future;
   void _sync(ScrollController source, ScrollController target) {
     if (_syncing || !source.hasClients || !target.hasClients) return;
     _syncing = true;
@@ -96,12 +103,17 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
   bool _resetScroll = false;
 
   void _load() {
+    final start = WeekTimeline.localDate(WeekTimeline.startOfWeek(widget.date));
+    final planned = widget.plannedLoader;
     final loader = widget.loader;
-    _future = loader == null
+    _future = planned != null
+        ? Future.sync(() => planned(start, start.addDays(7)))
+        : loader == null
         ? null
         : Future.sync(
-            () => loader(
-              WeekTimeline.localDate(WeekTimeline.startOfWeek(widget.date)),
+            () async => PlannedOccurrenceRange(
+              recorded: await loader(start),
+              preview: const {},
             ),
           );
   }
@@ -112,7 +124,8 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     if (oldWidget.date != widget.date ||
         oldWidget.occurrences != widget.occurrences ||
         oldWidget.commitments != widget.commitments ||
-        oldWidget.loader != widget.loader) {
+        oldWidget.loader != widget.loader ||
+        oldWidget.plannedLoader != widget.plannedLoader) {
       _load();
       if (oldWidget.date != widget.date) {
         _resetScroll = true;
@@ -133,7 +146,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
   @override
   Widget build(BuildContext context) {
     if (_future == null) return _content(widget.occurrences);
-    return FutureBuilder<Map<String, List<Occurrence>>>(
+    return FutureBuilder<PlannedOccurrenceRange>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -155,12 +168,18 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
             ),
           );
         }
-        return _content(snapshot.data ?? const {});
+        return _content(
+          snapshot.data?.recorded ?? const {},
+          snapshot.data?.preview ?? const {},
+        );
       },
     );
   }
 
-  Widget _content(Map<String, List<Occurrence>> data) {
+  Widget _content(
+    Map<String, List<Occurrence>> data, [
+    Map<String, List<PlannedOccurrenceSlot>> previews = const {},
+  ]) {
     if (_resetScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _resetScroll && _vertical.hasClients) {
@@ -174,14 +193,30 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       });
     }
     final days = WeekTimeline.dates(widget.date);
-    final entries = <String, (Commitment, Occurrence)>{};
+    final entries = <String, (Commitment, _WeekSlot)>{};
     for (final commitment in widget.commitments) {
       for (final occurrence in data[commitment.id.value] ?? <Occurrence>[]) {
         final day = JalaliDate.fromDateTime(
           WeekTimeline.displayDate(occurrence.currentScheduledAt),
         );
         if (days.contains(day)) {
-          entries[occurrence.id.value] = (commitment, occurrence);
+          entries[occurrence.id.value] = (
+            commitment,
+            _WeekSlot.recorded(occurrence),
+          );
+        }
+      }
+    }
+    for (final commitment in widget.commitments) {
+      for (final slot
+          in previews[commitment.id.value] ?? <PlannedOccurrenceSlot>[]) {
+        if (days.contains(
+          JalaliDate.fromDateTime(slot.date.toUtcDateForCalculation()),
+        )) {
+          entries['preview:${slot.occurrenceKey}'] = (
+            commitment,
+            _WeekSlot.preview(slot),
+          );
         }
       }
     }
@@ -476,7 +511,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
 
   Widget _agenda(
     List<JalaliDate> days,
-    List<(Commitment, Occurrence)> entries,
+    List<(Commitment, _WeekSlot)> entries,
     double width,
     double viewportHeight,
   ) {
@@ -586,8 +621,13 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                           ),
                         ),
                       if (!widget.holidays.hasCompleteOfficialCoverage(
-                        days[index].year,
-                      ))
+                            days[index].year,
+                          ) ||
+                          (index == initialDay &&
+                              days.any(
+                                (day) => !widget.holidays
+                                    .hasCompleteOfficialCoverage(day.year),
+                              )))
                         const Text(
                           'دادهٔ تعطیلات کامل نیست؛ نبود نشان تعطیلی به معنی روز کاری قطعی نیست.',
                         ),
@@ -606,7 +646,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
 
   List<Widget> _agendaEntries(
     JalaliDate day,
-    List<(Commitment, Occurrence)> entries,
+    List<(Commitment, _WeekSlot)> entries,
   ) {
     final items =
         entries
@@ -625,13 +665,20 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
             if (bStart is LocalDate && aStart is! LocalDate) return 1;
             final order = WeekTimeline.displayDate(aStart)
                 .compareTo(WeekTimeline.displayDate(bStart));
-            return order != 0 ? order : a.$2.id.value.compareTo(b.$2.id.value);
+            return order != 0 ? order : a.$2.key.compareTo(b.$2.key);
           });
     if (items.isEmpty) return [const Text('رخدادی ثبت نشده است.')];
     return [for (final entry in items) _agendaRow(entry.$1, entry.$2)];
   }
 
-  Widget _agendaRow(Commitment commitment, Occurrence occurrence) {
+  Widget _agendaRow(Commitment commitment, _WeekSlot occurrence) {
+    if (occurrence.preview != null) {
+      return PlannedSlotTile(
+        slot: occurrence.preview!,
+        commitment: commitment,
+        onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+      );
+    }
     final theme = Theme.of(context);
     final start = occurrence.currentScheduledAt;
     final dateTime = WeekTimeline.displayDate(start);
@@ -641,7 +688,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
             '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
           );
     return Material(
-      key: ValueKey('week-card-${occurrence.id.value}'),
+      key: ValueKey('week-card-${occurrence.key}'),
       color: theme.colorScheme.surface,
       child: InkWell(
         onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
@@ -690,7 +737,14 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     );
   }
 
-  Widget _card(Commitment commitment, Occurrence occurrence, double? minute) {
+  Widget _card(Commitment commitment, _WeekSlot occurrence, double? minute) {
+    if (occurrence.preview != null) {
+      return PlannedSlotTile(
+        slot: occurrence.preview!,
+        commitment: commitment,
+        onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+      );
+    }
     final theme = Theme.of(context);
     final color = CommitmentIdentityPalette.resolve(
       commitment.color,
@@ -708,7 +762,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     return Padding(
       padding: const EdgeInsets.all(2),
       child: Material(
-        key: ValueKey('week-card-${occurrence.id.value}'),
+        key: ValueKey('week-card-${occurrence.key}'),
         color: CommitmentIdentityPalette.background(color, theme.brightness),
         borderRadius: PlanActRadius.chip,
         child: InkWell(
@@ -838,4 +892,15 @@ class _CurrentTimeIndicatorState extends State<_CurrentTimeIndicator> {
       ],
     );
   }
+}
+
+class _WeekSlot {
+  _WeekSlot.recorded(this.recorded) : preview = null;
+  _WeekSlot.preview(this.preview) : recorded = null;
+  final Occurrence? recorded;
+  final PlannedOccurrenceSlot? preview;
+  String get key => recorded?.id.value ?? 'preview:${preview!.occurrenceKey}';
+  Object get currentScheduledAt =>
+      recorded?.currentScheduledAt ?? preview!.scheduledAt;
+  OccurrenceStatus get status => recorded!.status;
 }

@@ -162,7 +162,7 @@ void main() {
     (tester) async {
       final inbox = InboxUseCases(DriftInboxRepository(database));
       await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۲۵۰۰ 2026-09-20',
+        rawText: 'مبلغ: ۲۵۰۰ ریال; نوع: برداشت; تاریخ: 2026-09-20; ساعت: 00:00',
         sourceKey: 'sms:context',
         currency: 'IRR',
         importedAt: DateTime.utc(2026, 9, 20),
@@ -195,6 +195,31 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('تأیید و ثبت'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byType(DropdownButtonFormField<FinancialAccount>),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('حساب آزمون').last);
+      await tester.pumpAndSettle();
+      final classificationLabel = find.text(
+        'ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.',
+      );
+      final classification = find.widgetWithText(
+        CheckboxListTile,
+        'ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.',
+      );
+      expect(classification, findsOneWidget);
+      await tester.ensureVisible(classificationLabel);
+      await tester.pumpAndSettle();
+      await tester.tap(classificationLabel.hitTestable());
+      await tester.pumpAndSettle();
+      expect(tester.widget<CheckboxListTile>(classification).value, isTrue);
+      await tester.ensureVisible(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
       final imported = (await finance.listEntries()).singleWhere(
         (e) => e.id != transaction.id,
       );
@@ -208,7 +233,7 @@ void main() {
             .transactionId,
         imported.id,
       );
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.byType(InboxPage), findsOneWidget);
       expect(await finance.listEntries(), hasLength(2));
@@ -278,7 +303,7 @@ void main() {
         find.text('هنوز رخدادی برای انتخاب ثبت نشده است.'),
         findsOneWidget,
       );
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect((await emptyFlow.load(transaction.id)).review!.revision, 0);
       await tester.tap(find.text('ورود'));
@@ -309,7 +334,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
       await tester.enterText(
-        find.widgetWithText(TextField, 'مبلغ ارتباط'),
+        find.byWidgetPredicate(
+          (w) =>
+              w is TextField &&
+              (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+        ),
         '400',
       );
       FocusManager.instance.primaryFocus?.unfocus();
@@ -323,7 +352,14 @@ void main() {
       expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
       expect(
         tester
-            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .widget<TextField>(
+              find.byWidgetPredicate(
+                (w) =>
+                    w is TextField &&
+                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                        false),
+              ),
+            )
             .controller!
             .text,
         '400',
@@ -346,7 +382,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+            .widget<TextField>(
+              find.byWidgetPredicate(
+                (w) =>
+                    w is TextField &&
+                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                        false),
+              ),
+            )
             .controller!
             .text,
         '400',
@@ -421,7 +464,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
-        await tester.pageBack();
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
         expect(returned, isTrue);
         await tester.tap(find.text('ورود'));
@@ -443,11 +486,19 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.ensureVisible(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
         );
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '600',
         );
         FocusManager.instance.primaryFocus?.unfocus();
@@ -487,7 +538,7 @@ void main() {
         );
         expect(find.text('پرداخت واردشده'), findsOneWidget);
         expect(find.text('کلاس موسیقی'), findsOneWidget);
-        await tester.pageBack();
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
         expect(find.text('تعیین ارتباط'), findsWidgets);
         expect((await flow.load(transaction.id)).review!.revision, 0);
@@ -499,7 +550,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
-        await tester.pageBack();
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
         expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
         expect((await flow.load(transaction.id)).review!.isIndependent, isTrue);
@@ -545,7 +596,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '400',
         );
         FocusManager.instance.primaryFocus?.unfocus();
@@ -555,7 +610,14 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           tester
-              .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+              .widget<TextField>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is TextField &&
+                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                          false),
+                ),
+              )
               .controller!
               .text,
           '400',
@@ -574,7 +636,14 @@ void main() {
         expect(find.byType(TransactionRelationshipPage), findsOneWidget);
         expect(
           tester
-              .widget<TextField>(find.widgetWithText(TextField, 'مبلغ ارتباط'))
+              .widget<TextField>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is TextField &&
+                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                          false),
+                ),
+              )
               .controller!
               .text,
           '400',
@@ -585,7 +654,11 @@ void main() {
         await tester.tap(find.text('بازخوانی'));
         await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'مبلغ ارتباط'),
+          find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+          ),
           '300',
         );
         FocusManager.instance.primaryFocus?.unfocus();

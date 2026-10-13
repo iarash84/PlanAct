@@ -1,9 +1,14 @@
+import 'package:planact/features/commitments/data/drift_commitment_correction_repository.dart';
+import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
+import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
@@ -18,6 +23,7 @@ import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/app/app_settings.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -48,6 +54,8 @@ import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
+import 'package:planact/features/scheduling/application/planned_occurrences.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
@@ -62,6 +70,8 @@ import 'package:planact/features/reconciliation/domain/relationship_review.dart'
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
+import 'package:planact/features/reconciliation/presentation/relationship_queue_page.dart';
+import 'package:planact/features/reconciliation/application/bulk_relationship_review.dart';
 
 class PlanActApp extends StatefulWidget {
   const PlanActApp({
@@ -88,6 +98,8 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppSettings? _settings;
+  late MoneyUnitController _moneyUnits;
+  String? _moneyUnitError;
   bool _appLockEnabled = false;
   bool _appLockSettingLoaded = false;
   String? _appLockSettingError;
@@ -106,6 +118,28 @@ class _PlanActAppState extends State<PlanActApp> {
       });
       _loadAppLockSetting();
     }
+    _moneyUnits = MoneyUnitController(_settings);
+    _loadMoneyUnit();
+  }
+
+  Future<void> _loadMoneyUnit() async {
+    try {
+      await _moneyUnits.load();
+      if (mounted) setState(() => _moneyUnitError = null);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () =>
+              _moneyUnitError = 'خواندن واحد پول انجام نشد؛ دوباره تلاش کنید.',
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _moneyUnits.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAppLockSetting() async {
@@ -153,16 +187,47 @@ class _PlanActAppState extends State<PlanActApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'پلن‌اکت',
+      locale: const Locale('fa'),
+      supportedLocales: const [Locale('fa')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       theme: PlanActTheme.light(),
       darkTheme: PlanActTheme.dark(),
       themeMode: _themeMode,
-      builder: (context, child) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AppLockGate(
-          enabled: _appLockEnabled,
-          controller: _appLockController,
-          child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => HolidayProviderScope(
+        readProvider: () =>
+            widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
+        child: MoneyUnitScope(
+          controller: _moneyUnits,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: AppLockGate(
+              enabled: _appLockEnabled,
+              controller: _appLockController,
+              child: !_moneyUnits.ready
+                  ? Scaffold(
+                      body: Center(
+                        child: _moneyUnitError == null
+                            ? const CircularProgressIndicator()
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(_moneyUnitError!),
+                                  TextButton(
+                                    onPressed: _loadMoneyUnit,
+                                    child: const Text('تلاش دوباره'),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    )
+                  : child ?? const SizedBox.shrink(),
+            ),
+          ),
         ),
       ),
       home: !_appLockSettingLoaded && _settings != null
@@ -240,7 +305,7 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
@@ -316,15 +381,54 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    WidgetsBinding.instance.addObserver(this);
+    _maintainSchedules();
   }
 
-  Future<void> _tagsChanged() async {
-    await _refresh();
-    if (_todayError != null) throw StateError('Tag refresh failed');
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _maintainSchedules();
   }
 
-  Future<void> _refresh() async {
+  Future<void> _maintainSchedules() async {
+    try {
+      final plans = _planRepository;
+      if (plans is RecurringScheduleMaintenance) {
+        await ExtendRecurringSchedules(plans as RecurringScheduleMaintenance)
+            .call(DateTime.now());
+      }
+      await _refresh();
+      if (_repository case final DriftCommitmentRepository repository) {
+        try {
+          await ReminderService(
+            repository: DriftReminderRepository(repository.database),
+            platform: AndroidReminderPlatformAdapter(),
+          ).reconcile(now: DateTime.now().toUtc());
+        } catch (_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'زمان‌بندی ثبت شده است؛ هماهنگی یادآوری دوباره تلاش می‌شود.',
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } catch (_) {
+      await _refresh();
+      if (mounted) {
+        setState(
+          () => _todayError = 'ادامهٔ زمان‌بندی یا هماهنگی یادآوری انجام نشد. با بازگشت به برنامه دوباره تلاش می‌شود.',
+        );
+      }
+    }
+  }
+
+  Future<void> _tagsChanged() => _refresh(throwOnFailure: true);
+
+  Future<void> _refresh({bool throwOnFailure = false}) async {
     try {
       final persisted = await _repository.list();
       final allTags = await _tagRepository.list();
@@ -418,6 +522,7 @@ class _HomeShellState extends State<HomeShell> {
           () => _todayError = 'بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.',
         );
       }
+      if (throwOnFailure) rethrow;
     }
   }
 
@@ -427,11 +532,34 @@ class _HomeShellState extends State<HomeShell> {
         : InMemoryReconciliationRepository(),
   );
 
+  Future<void> _openRelationshipQueue() async {
+    final repository = _reconciliation.repository;
+    if (repository is! RelationshipReviewRepository) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => RelationshipQueuePage(
+          queue: RelationshipQueue(
+            _financeRepository,
+            repository as RelationshipReviewRepository,
+          ),
+          onOpen: _openRelationship,
+          onDataChanged: () async {
+            await _refresh();
+            await _financePageKey.currentState?.refreshData();
+          },
+        ),
+      ),
+    );
+    await _refresh();
+    await _financePageKey.currentState?.refreshData();
+  }
+
   Future<void> _openRelationship(StableId transactionId) async {
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => TransactionRelationshipPage(
           transactionId: transactionId,
+          onOpenQueue: _openRelationshipQueue,
           flow: ContextualReconciliation(
             finance: _financeRepository,
             commitments: _repository,
@@ -454,6 +582,10 @@ class _HomeShellState extends State<HomeShell> {
           appBar: AppBar(title: const Text('صندوق ورودی')),
           body: InboxPage(
             inbox: _inboxUseCases,
+            onDataChanged: () async {
+              await _refresh();
+              await _financePageKey.currentState?.refreshData();
+            },
             finance: _financeRepository,
             onDetermineRelationship: _openRelationship,
             smsSource: AndroidSmsSource(),
@@ -488,9 +620,14 @@ class _HomeShellState extends State<HomeShell> {
       tags: draft.tags,
       attachmentIds: draft.attachmentIds,
       frequency: draft.frequency,
+      recurrenceCalendar: draft.recurrenceCalendar,
       weekdays: draft.weekdays,
-      occurrenceCount: draft.occurrenceCount,
-      endDate: draft.endDate,
+      occurrenceCount: draft.termination == RecurrenceTermination.count
+          ? draft.occurrenceCount
+          : null,
+      endDate: draft.termination == RecurrenceTermination.endDate
+          ? draft.endDate
+          : null,
       reminderOffsets: draft.reminderOffsets,
       entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
           ? draft.entitlementUnits
@@ -896,6 +1033,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
   }
@@ -904,6 +1042,10 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       TodayPage(
+        onOpenRelationshipQueue:
+            _reconciliation.repository is RelationshipReviewRepository
+            ? _openRelationshipQueue
+            : null,
         commitments: _commitments,
         scheduledDates: _scheduledDates,
         dashboard: _todayDashboard,
@@ -937,8 +1079,19 @@ class _HomeShellState extends State<HomeShell> {
             widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
         occurrences: _calendarOccurrences,
+        plannedLoader: _planRepository is PlannedOccurrencesRepository
+            ? (start, end) => (_planRepository as PlannedOccurrencesRepository)
+                  .loadPlannedRange(
+                    start,
+                    end,
+                    LocalDate.fromDateTime(DateTime.now()),
+                  )
+            : null,
         weekLoader: _planRepository is DriftCommitmentPlanRepository
             ? _planRepository.loadWeek
+            : null,
+        monthLoader: _planRepository is DriftCommitmentPlanRepository
+            ? _planRepository.loadMonth
             : null,
         reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
@@ -1037,38 +1190,68 @@ class _HomeShellState extends State<HomeShell> {
               .toList(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'افزودن سریع',
-        onPressed: _showQuickAdd,
-        child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          _pageController.animateToPage(
-            index,
-            duration: PlanActMotion.duration(context),
-            curve: PlanActMotion.curve,
-          );
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: 'امروز',
+      floatingActionButton: _selectedIndex == 2
+          ? null
+          : FloatingActionButton(
+              tooltip: 'افزودن سریع',
+              onPressed: _showQuickAdd,
+              child: const Icon(Icons.add),
+            ),
+      // Finance's last operations target must never sit behind Quick Add.
+      // Let Scaffold reserve the measured action + navigation height instead
+      // of guessing FAB or system-bar dimensions in the transaction list.
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_selectedIndex == 2)
+            SafeArea(
+              top: false,
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.all(PlanActSpacing.lg),
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  heightFactor: 1,
+                  child: FloatingActionButton(
+                    tooltip: 'افزودن سریع',
+                    onPressed: _showQuickAdd,
+                    child: const Icon(Icons.add),
+                  ),
+                ),
+              ),
+            ),
+          NavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+              _pageController.animateToPage(
+                index,
+                duration: PlanActMotion.duration(context),
+                curve: PlanActMotion.curve,
+              );
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.today_outlined),
+                selectedIcon: Icon(Icons.today),
+                label: 'امروز',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.calendar_month_outlined),
+                selectedIcon: Icon(Icons.calendar_month),
+                label: 'تقویم',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: 'مالی',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.more_horiz),
+                label: 'بیشتر',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'تقویم',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'مالی',
-          ),
-          NavigationDestination(icon: Icon(Icons.more_horiz), label: 'بیشتر'),
         ],
       ),
     );
@@ -1246,12 +1429,35 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           else
             TagLabels(labels: widget.commitment.tags),
           const SizedBox(height: PlanActSpacing.lg),
-          FutureBuilder<CommitmentPlan?>(
-            future: widget.planRepository.findByCommitmentId(
-              widget.commitment.id,
+          if (widget.planRepository
+              case final DriftCommitmentPlanRepository plans)
+            CommitmentCorrectionCard(
+              repository: DriftCommitmentCorrectionRepository(plans.database),
+              commitmentId: widget.commitment.id,
+              reminders:
+                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                  ? (widget.occurrenceExecutor
+                            as PersistedOccurrenceActionExecutor)
+                        .reminders
+                  : null,
+              onSaved: () async {
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
             ),
-            builder: (context, snapshot) {
-              final occurrences = snapshot.data?.occurrences ?? const [];
+          PlannedDetailsRange(
+            commitment: widget.commitment,
+            repository: widget.planRepository,
+            onSaved: widget.onSaved,
+            synchronizeReminders:
+                widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                ? () async =>
+                      (widget.occurrenceExecutor
+                              as PersistedOccurrenceActionExecutor)
+                          .reminders
+                          ?.reconcile(now: DateTime.now())
+                : null,
+            builder: (plan, occurrences) {
               if (occurrences.isEmpty) return const SizedBox.shrink();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1277,7 +1483,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                     builder: (_) => EditScheduleDialog(
                                       occurrence: selected,
                                       recurring:
-                                          snapshot.data!.schedule.mode !=
+                                          plan.schedule.mode !=
                                           ScheduleMode.oneOff,
                                     ),
                                   );

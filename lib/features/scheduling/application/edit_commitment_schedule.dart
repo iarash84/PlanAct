@@ -146,6 +146,9 @@ class EditCommitmentSchedule {
                 .map((day) => (day - 1 + delta) % 7 + 1)
                 .toSet(),
             dayOfMonth: rule.dayOfMonth,
+            calendar: rule.calendar,
+            monthOfYear: rule.monthOfYear,
+            legacyCalendarSemantics: rule.legacyCalendarSemantics,
             monthEndPolicy: rule.monthEndPolicy,
           );
           final schedule = ScheduleDefinition(
@@ -153,10 +156,13 @@ class EditCommitmentSchedule {
             cycleId: plan.cycle.id,
             mode: plan.schedule.mode,
             timeSemantics: plan.schedule.timeSemantics,
-            startDate: earliest,
+            startDate: delta == 0 ? plan.schedule.startDate : earliest,
             effectiveFrom: boundary,
             version: plan.schedule.version + 1,
             generationHorizonDays: plan.schedule.generationHorizonDays,
+            generationReminderOffsets: plan.schedule.generationReminderOffsets,
+            generationFinancialExpectation:
+                plan.schedule.generationFinancialExpectation,
             localTime: scheduledAt is DateTime
                 ? LocalTime(scheduledAt.hour, scheduledAt.minute)
                 : null,

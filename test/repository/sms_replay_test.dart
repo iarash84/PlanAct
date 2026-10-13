@@ -75,7 +75,7 @@ void main() {
     );
     await finance.saveAccount(account);
     final suggestion = await inbox.stageSms(
-      rawText: 'برداشت مبلغ ۴۰۰۰',
+      rawText: 'برداشت مبلغ ۴۰۰۰ ریال',
       sourceKey: 'android-sms:44',
       currency: 'IRR',
     );

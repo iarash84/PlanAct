@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:planact/core/errors/app_error.dart';
 
-const backupFormatVersion = 1;
+const backupFormatVersion = 1; // Legacy fixtures and installation-key packages.
+const recoveryBackupFormatVersion = 2;
+const recoveryBackupKdf = 'independent-recovery-key';
+const recoveryBackupKeyId = 'user-recovery-key';
 const backupAlgorithm = 'AES-256-GCM';
 const backupKdf = 'external-key-storage';
 const backupKeyId = 'backup-key-v1';
@@ -114,7 +117,8 @@ class BackupValidator {
   final int maxPayloadBytes;
 
   void validate(BackupPackage package) {
-    if (package.formatVersion != backupFormatVersion) {
+    if (package.formatVersion != backupFormatVersion &&
+        package.formatVersion != recoveryBackupFormatVersion) {
       throw ValidationError(
         'Unsupported backup format version: ${package.formatVersion}',
       );
@@ -146,9 +150,11 @@ class BackupValidator {
         'Backup encryption metadata is missing or invalid',
       );
     }
+    final recovery = package.formatVersion == recoveryBackupFormatVersion;
     if (metadata['algorithm'] != backupAlgorithm ||
-        metadata['kdf'] != backupKdf ||
-        metadata['keyId'] != backupKeyId) {
+        metadata['formatVersion'] != '${package.formatVersion}' ||
+        metadata['kdf'] != (recovery ? recoveryBackupKdf : backupKdf) ||
+        metadata['keyId'] != (recovery ? recoveryBackupKeyId : backupKeyId)) {
       throw const ValidationError('Backup encryption metadata is unsupported');
     }
     if (metadata['rawTextPolicy'] != 'redacted' &&

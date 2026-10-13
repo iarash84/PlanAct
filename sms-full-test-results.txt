@@ -1,0 +1,775 @@
+00:00 +0: loading d:/repos/planact/test/commitment_details_test.dart
+00:00 +0: d:/repos/planact/test/integration/reminder_integration_test.dart: reconcile after restart rebuilds notifications from persisted state
+00:00 +1: d:/repos/planact/test/integration/reminder_integration_test.dart: reschedule cancels the old platform operation before scheduling the new time
+00:00 +2: d:/repos/planact/test/integration/reminder_integration_test.dart: offline operation remains domain-persistable without a platform adapter call
+00:00 +3: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:01 +4: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:01 +5: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:02 +6: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:02 +7: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:02 +8: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:02 +9: d:/repos/planact/test/commitment_details_test.dart: اقدام‌های والد فقط در شیت و با وضعیت معتبر نمایش داده می‌شوند
+00:02 +10: d:/repos/planact/test/repository/app_database_test.dart: persists a commitment without a schedule and preserves archive state
+00:02 +11: d:/repos/planact/test/commitment_details_test.dart: جزئیات route مستقل است و metadata را ذخیره می‌کند
+00:02 +12: d:/repos/planact/test/commitment_details_test.dart: جزئیات route مستقل است و metadata را ذخیره می‌کند
+00:02 +13: d:/repos/planact/test/commitment_details_test.dart: جزئیات route مستقل است و metadata را ذخیره می‌کند
+00:03 +14: d:/repos/planact/test/commitment_details_test.dart: جزئیات route مستقل است و metadata را ذخیره می‌کند
+00:04 +15: d:/repos/planact/test/commitment_details_test.dart: خروج از ویرایش تغییرات ذخیره‌نشده را محافظت می‌کند
+00:05 +16: d:/repos/planact/test/repository/backup_failure_stages_test.dart: safety failure preserves original file-backed state after restart
+00:05 +17: d:/repos/planact/test/repository/backup_failure_stages_test.dart: temporary failure preserves original file-backed state after restart
+00:05 +18: d:/repos/planact/test/repository/backup_failure_stages_test.dart: flush failure preserves original file-backed state after restart
+00:06 +19: d:/repos/planact/test/repository/backup_full_state_test.dart: every persisted table survives encrypted restore and cold restart
+00:06 +20: d:/repos/planact/test/repository/backup_full_state_test.dart: every persisted table survives encrypted restore and cold restart
+00:06 +21: d:/repos/planact/test/repository/backup_full_state_test.dart: every persisted table survives encrypted restore and cold restart
+00:06 +22: d:/repos/planact/test/repository/backup_failure_stages_test.dart: commit failure preserves original file-backed state after restart
+00:07 +23: d:/repos/planact/test/repository/backup_full_state_test.dart: every persisted table survives encrypted rollback and cold restart
+00:07 +24: d:/repos/planact/test/repository/calendar_range_test.dart: file-backed week range preserves starts/status/history after restart
+00:08 +25: d:/repos/planact/test/repository/classification_repository_test.dart: reuses Persian tags and persists attach/removal across restart
+00:08 +26: d:/repos/planact/test/repository/classification_repository_test.dart: upgrades v14 commitment tags without losing records
+00:08 +27: d:/repos/planact/test/repository/classification_repository_test.dart: repairs the schema-15 tag migration before the v16 bank_code upgrade
+00:09 +28: d:/repos/planact/test/repository/commitment_color_test.dart: identity survives every immutable operation; null can be explicit
+00:09 +29: d:/repos/planact/test/repository/commitment_color_test.dart: stable fallback and readable Light/Dark identity pairs
+00:09 +30: d:/repos/planact/test/repository/commitment_color_test.dart: file-backed create/edit/status/tag/clear survive cold restart
+00:09 +31: d:/repos/planact/test/repository/commitment_reminder_flow_test.dart: creation persists rules and instances and schedules platform; restart reads back
+00:09 +32: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:09 +33: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:09 +34: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:09 +35: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:10 +36: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:10 +37: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.dark RTL
+00:10 +38: d:/repos/planact/test/repository/commitment_color_test.dart: picker selects, clears and disables in Brightness.light RTL
+00:11 +39: d:/repos/planact/test/repository/finance_correction_atomic_test.dart: failed second correction insert rolls back reversal
+00:11 +40: d:/repos/planact/test/repository/financial_account_admission_test.dart: fresh durable account admission rejects stale archived selection and preserves history
+00:12 +41: d:/repos/planact/test/repository/holiday_package_test.dart: first trust requires approval; durable reload retains overlapping reasons
+00:12 +42: d:/repos/planact/test/repository/holiday_package_test.dart: rejects tampering, incomplete coverage and invalid markers
+00:12 +43: d:/repos/planact/test/repository/holiday_package_test.dart: revision upgrade succeeds; wrong publisher and rollback preserve bytes
+00:12 +44: d:/repos/planact/test/repository/holiday_package_test.dart: transaction write failure preserves old year and service state
+00:12 +45: d:/repos/planact/test/repository/holiday_package_test.dart: second store cannot replace a trusted publisher or downgrade
+00:12 +46: d:/repos/planact/test/repository/holiday_package_test.dart: picker cancellation has no effect; corrupt storage is never overwritten
+00:12 +47: d:/repos/planact/test/repository/inbox_confirmation_test.dart: concurrent confirmations and restart retry create one ledger entry
+00:13 +48: d:/repos/planact/test/repository/inbox_confirmation_test.dart: concurrent staging preserves one import and suggestion after restart
+00:13 +49: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +50: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +51: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +52: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +53: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +54: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:13 +55: d:/repos/planact/test/repository/independent_recovery_backup_test.dart: independent directories restore offline with file and key only; failures preserve target
+00:14 +56: d:/repos/planact/test/repository/occurrence_actual_history_test.dart: result and explicit reopening survive restart without erasing history
+00:14 +57: d:/repos/planact/test/repository/occurrence_actual_history_test.dart: result and explicit reopening survive restart without erasing history
+00:14 +58: d:/repos/planact/test/repository/occurrence_actual_history_test.dart: failure updating status rolls back the inserted actual
+00:15 +59: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: delete / monthly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:15 +60: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+00:16 +60: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: delete / yearly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:16 +61: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+00:16 +61: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: delete / legacy monthly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:16 +62: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart:115:27)
+<asynchronous suspension>
+00:16 +62: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: wal / monthly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:16 +63: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+00:16 +63: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: wal / yearly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:16 +64: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+00:16 +64: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: wal / legacy monthly: actual writer overlap, retry and cold reopen
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+00:16 +64: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:17 +64: d:/repos/planact/test/repository/recurrence_concurrency_test.dart: wal / legacy monthly: actual writer overlap, retry and cold reopen
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_concurrency_test.dart:176:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:17 +65: d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart: independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/recurrence_encrypted_backup_test.dart:312:22)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:18 +66: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: daily: full future interval exclusive old/inclusive new survives reopen
+00:18 +67: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: monthly: full future interval exclusive old/inclusive new survives reopen
+00:18 +68: d:/repos/planact/test/repository/relationship_review_test.dart: partial remainder decision and explicit reopen survive cold restart without financial mutation
+00:18 +69: d:/repos/planact/test/repository/relationship_review_test.dart: partial remainder decision and explicit reopen survive cold restart without financial mutation
+00:19 +70: d:/repos/planact/test/repository/relationship_review_test.dart: partial remainder decision and explicit reopen survive cold restart without financial mutation
+00:19 +71: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD v16 migration: null-day monthly keeps every day in eligible Gregorian month, inferred reminders and cold reopen
+00:19 +71: d:/repos/planact/test/repository/relationship_review_test.dart: backup snapshot retains effective review and append-only logical history
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/relationship_review_test.dart:142:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:19 +72: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD v16 migration: null-day monthly keeps every day in eligible Gregorian month, inferred reminders and cold reopen
+00:19 +73: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD v16 migration: null-day monthly keeps every day in eligible Gregorian month, inferred reminders and cold reopen
+00:19 +74: d:/repos/planact/test/repository/relationship_review_test.dart: review and match races have one winner, including direct save admission
+00:19 +75: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD v16 migration: monthly day31 clamps February then restores March anchor, inferred reminders and cold reopen
+00:19 +76: d:/repos/planact/test/repository/relationship_review_test.dart: two independent decisions from one snapshot cannot both append
+00:19 +77: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD v16 migration: yearly uses Gregorian start month/day rather than conflicting day key, inferred reminders and cold reopen
+00:19 +78: d:/repos/planact/test/repository/relationship_review_test.dart: cumulative save admission is atomic across repository instances and use cases
+00:20 +79: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects mixed durably without changing rules
+00:20 +80: d:/repos/planact/test/repository/relationship_review_test.dart: separate SQLite connections cannot over-allocate concurrently
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/relationship_review_test.dart:244:34)
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:20 +81: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects missing durably without changing rules
+00:20 +82: d:/repos/planact/test/repository/relationship_review_test.dart: separate SQLite connections serialize review versus guarded match
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/relationship_review_test.dart:276:34)
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:25)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:20 +83: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects disabled durably without changing rules
+00:20 +84: d:/repos/planact/test/repository/relationship_review_test.dart: unmatch invalidates independent decision without deleting its history
+00:20 +85: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects absolute durably without changing rules
+00:20 +86: d:/repos/planact/test/repository/relationship_review_test.dart: bad correction rolls back original status and allocations
+00:20 +87: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects duplicate durably without changing rules
+00:20 +88: d:/repos/planact/test/repository/relationship_review_test.dart: reversed and changed transaction snapshots reject decision and match
+00:20 +89: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects after-start durably without changing rules
+00:20 +90: d:/repos/planact/test/repository/relationship_review_test.dart: database enforces append-only, FK, bounds and unique transaction revisions
+00:20 +91: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects sub-minute durably without changing rules
+00:21 +92: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects custom-body durably without changing rules
+00:21 +93: d:/repos/planact/test/repository/recurrence_version_legacy_test.dart: literal OLD reminder inference rejects custom-title durably without changing rules
+00:21 +94: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:22 +95: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:22 +96: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:24 +97: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:24 +98: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:24 +99: d:/repos/planact/test/repository/relationship_schema_fixture_test.dart: trusted v18 fixtures equal actual migration output
+00:24 +100: d:/repos/planact/test/repository/reminder_interruption_recovery_test.dart: reopen repairs stale intent idempotently
+00:24 +101: d:/repos/planact/test/repository/reminder_interruption_recovery_test.dart: platform failure reports committed creation with all intents recoverable
+00:25 +102: d:/repos/planact/test/repository/reminder_repository_test.dart: round-trips reminder rules and instances
+00:25 +103: d:/repos/planact/test/repository/rolling_recurrence_test.dart: cold reopen, rolling concurrency, history, reminders and snapshot
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database. 
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:planact/core/database/app_database.g.dart:12215:36)
+#4      new AppDatabase.forTesting (package:planact/core/database/app_database.dart)
+#5      main.<anonymous closure> (file:///d:/repos/planact/test/repository/rolling_recurrence_test.dart:116:36)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:26 +104: d:/repos/planact/test/repository/rolling_recurrence_test.dart: legacy JSON remains Gregorian and generation failure rolls back
+00:26 +105: d:/repos/planact/test/repository/rolling_templates_test.dart: explicit empty reminders never infer from occurrence rules
+00:26 +106: d:/repos/planact/test/repository/rolling_templates_test.dart: manual inconsistent outlier is excluded without changing its history
+00:26 +107: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial account and currency copied but never a balance entry
+00:26 +108: d:/repos/planact/test/repository/rolling_templates_test.dart: explicit financial template rolls without changing historical expectations
+00:26 +109: d:/repos/planact/test/repository/rolling_templates_test.dart: consistent legacy templates persist and survive cold reopen
+00:26 +110: d:/repos/planact/test/repository/rolling_templates_test.dart: consistent legacy templates persist and survive cold reopen
+00:26 +111: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects missing evidence
+00:26 +112: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects disabled evidence
+00:26 +113: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects absolute evidence
+00:27 +114: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects different evidence
+00:27 +115: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects seconds evidence
+00:27 +116: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy reminder inference rejects manual evidence
+00:27 +117: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial inference rejects amount evidence
+00:27 +118: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial inference rejects direction evidence
+00:27 +119: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial inference rejects currency evidence
+00:27 +120: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial inference rejects archived evidence
+00:27 +121: d:/repos/planact/test/repository/rolling_templates_test.dart: legacy financial inference rejects missing evidence
+00:27 +122: d:/repos/planact/test/repository/rolling_templates_test.dart: inference and dependent financial write roll back together
+00:27 +123: d:/repos/planact/test/repository/schedule_edit_persistence_test.dart: following edit preserves resolved and manual rows across restart
+00:28 +124: d:/repos/planact/test/repository/session_repositories_test.dart: round-trips entitlement plan and append-only ledger
+00:28 +125: d:/repos/planact/test/repository/session_repositories_test.dart: round-trips entitlement plan and append-only ledger
+00:28 +126: d:/repos/planact/test/repository/session_repositories_test.dart: round-trips entitlement plan and append-only ledger
+00:28 +127: d:/repos/planact/test/repository/session_repositories_test.dart: round-trips session policy and replacement history
+00:29 +128: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: source channel carries explicit bounds and stable cursor; malformed page fails
+00:29 +129: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:29 +130: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:29 +131: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:31 +132: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:31 +133: d:/repos/planact/test/repository/sqlite_backup_restore_test.dart: wrong key leaves live bytes untouched
+00:31 +134: d:/repos/planact/test/repository/sqlite_backup_restore_test.dart: wrong key leaves live bytes untouched
+00:31 +135: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:31 +136: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:31 +137: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:32 +138: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:32 +139: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:32 +140: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:32 +141: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:33 +142: d:/repos/planact/test/repository/sqlite_backup_restore_test.dart: damaged safety preserves marker and current file
+00:33 +143: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fresh v18 still validates
+00:34 +144: d:/repos/planact/test/repository/sqlite_backup_snapshot_test.dart: production snapshot preserves entities and redacts SMS without live mutation or free-page leakage
+00:34 +145: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: a14dade real migration exports and validates after restart
+00:35 +146: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: 58bc343 real migration exports and validates after restart
+00:35 +147: d:/repos/planact/test/repository/tagged_creation_test.dart: created commitment and expense share normalized tags after restart
+00:35 +148: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: b9dd2f0 real migration exports and validates after restart
+00:35 +149: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: b9dd2f0 real migration exports and validates after restart
+00:36 +150: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: b9dd2f0 real migration exports and validates after restart
+00:36 +151: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: b9dd2f0 real migration exports and validates after restart
+00:36 +152: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: 184f8e7 real migration exports and validates after restart
+00:36 +153: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: 2edbc33 real migration exports and validates after restart
+00:37 +154: d:/repos/planact/test/repository/tag_lifecycle_test.dart: file restart preserves typed links/history and prevents legacy resurrection or stale saves
+00:37 +155: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fb69495 real migration exports and validates after restart
+00:37 +156: d:/repos/planact/test/repository/tag_lifecycle_test.dart: projection failure rolls back attach detach rename and global remove
+00:38 +157: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v10 real migration exports and validates after restart
+00:38 +158: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v11 real migration exports and validates after restart
+00:39 +159: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v12 real migration exports and validates after restart
+00:39 +160: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v12 real migration exports and validates after restart
+00:39 +161: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v13 real migration exports and validates after restart
+00:40 +162: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v14 real migration exports and validates after restart
+00:40 +163: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v14 real migration exports and validates after restart
+00:40 +164: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v14 real migration exports and validates after restart
+00:40 +165: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v14 real migration exports and validates after restart
+00:40 +166: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v14 real migration exports and validates after restart
+00:40 +167: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: chain-v15 real migration exports and validates after restart
+00:41 +168: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fresh-v16 real migration exports and validates after restart
+00:41 +169: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fresh-v16 real migration exports and validates after restart
+00:41 +170: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fresh-v16 real migration exports and validates after restart
+00:41 +171: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: fresh-v17 real migration exports and validates after restart
+00:42 +172: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing table without mutating payload/live
+00:42 +173: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing table without mutating payload/live
+00:42 +174: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review history guard without mutating payload/live
+00:43 +175: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review revision index without mutating payload/live
+00:43 +176: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review revision index without mutating payload/live
+00:43 +177: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review revision index without mutating payload/live
+00:43 +178: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review revision index without mutating payload/live
+00:43 +179: d:/repos/planact/test/unit/app_lock_setting_change_test.dart: background invalidates setting authentication before persistence
+00:43 +180: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review FK without mutating payload/live
+00:43 +181: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing review FK without mutating payload/live
+00:43 +182: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing index without mutating payload/live
+00:44 +183: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed unique index without mutating payload/live
+00:44 +184: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed unique index without mutating payload/live
+00:44 +185: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed unique index without mutating payload/live
+00:44 +186: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed unique index without mutating payload/live
+00:44 +187: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed index columns without mutating payload/live
+00:45 +188: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated removed check without mutating payload/live
+00:45 +189: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated weakened check without mutating payload/live
+00:45 +190: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated weakened check without mutating payload/live
+00:45 +191: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated missing FK without mutating payload/live
+00:46 +192: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed FK target without mutating payload/live
+00:46 +193: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed FK target without mutating payload/live
+00:46 +194: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed FK target without mutating payload/live
+00:46 +195: d:/repos/planact/test/unit/attention_engine_test.dart: classifies overdue commitments and upcoming commitments
+00:46 +196: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed default without mutating payload/live
+00:46 +197: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed default without mutating payload/live
+00:46 +198: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed default without mutating payload/live
+00:46 +199: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated changed default without mutating payload/live
+00:46 +200: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra trigger without mutating payload/live
+00:47 +201: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +202: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +203: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +204: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +205: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +206: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +207: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated extra table without mutating payload/live
+00:47 +208: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated wrong metadata without mutating payload/live
+00:48 +209: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated wrong version without mutating payload/live
+00:48 +210: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated wrong version without mutating payload/live
+00:48 +211: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated wrong version without mutating payload/live
+00:48 +212: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated FK orphan without mutating payload/live
+00:48 +213: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: rejects migrated legacy undeclared FK orphan without mutating payload/live
+00:49 +214: d:/repos/planact/test/unit/backup_test.dart: authenticated encryption round trip
+00:49 +215: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: existing incomplete v15 tag-style fixture is not a backup schema
+00:49 +216: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: existing incomplete v15 tag-style fixture is not a backup schema
+00:49 +217: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: existing incomplete v15 tag-style fixture is not a backup schema
+00:49 +218: d:/repos/planact/test/repository/sqlite_backup_schema_compatibility_test.dart: existing incomplete v15 tag-style fixture is not a backup schema
+00:50 +219: d:/repos/planact/test/unit/calendar_policies_test.dart: pause excludes future occurrences but preserves history
+00:50 +220: d:/repos/planact/test/unit/calendar_policies_test.dart: detects local-date and fixed-instant conflicts
+00:50 +221: d:/repos/planact/test/unit/classification_reports_test.dart: filters deterministic reports by normalized tags and totals
+00:50 +222: d:/repos/planact/test/unit/command_gate_test.dart: retirement drains platform work and rejects stale commands
+00:50 +223: d:/repos/planact/test/unit/command_gate_test.dart: admitted commands may finish nested writes after retirement
+00:50 +224: d:/repos/planact/test/unit/command_gate_test.dart: unawaited nested work retains barrier until its effects finish
+00:50 +225: d:/repos/planact/test/unit/command_gate_test.dart: failed commands release admission and cannot revive a retired gate
+00:51 +226: d:/repos/planact/test/unit/commitment_cycle_test.dart: keeps planned and actual end dates separate
+00:51 +227: d:/repos/planact/test/unit/commitment_cycle_test.dart: evaluates by-units and whichever-first semantics
+00:51 +228: d:/repos/planact/test/unit/commitment_cycle_test.dart: rejects incomplete completion configuration
+00:51 +229: d:/repos/planact/test/unit/commitment_draft_test.dart: minimal draft validates only required title and schedule
+00:51 +230: d:/repos/planact/test/unit/commitment_draft_test.dart: weekly recurring draft rejects no weekdays
+00:51 +231: d:/repos/planact/test/unit/commitment_draft_test.dart: review summary preserves typed financial meaning
+00:51 +232: d:/repos/planact/test/unit/commitment_draft_test.dart: draft preserves multiple reminder offsets independently
+00:51 +233: d:/repos/planact/test/unit/commitment_plan_use_case_test.dart: creates a recurring plan with bounded occurrences and reminders
+00:52 +234: d:/repos/planact/test/unit/commitment_plan_use_case_test.dart: creates a one-off plan without a recurrence rule
+00:52 +235: d:/repos/planact/test/unit/commitment_progress_test.dart: درصد فقط از target ثابت و occurrence تکمیل‌شده محاسبه می‌شود
+00:52 +236: d:/repos/planact/test/unit/commitment_progress_test.dart: target نامعلوم درصد ندارد و زمان سپری‌شده completion نیست
+00:52 +237: d:/repos/planact/test/unit/commitment_test.dart: creates an active commitment with a normalized title
+00:52 +238: d:/repos/planact/test/unit/commitment_test.dart: stores commitment kind, priority, notes, tags, and attachments
+00:52 +239: d:/repos/planact/test/unit/commitment_test.dart: supports explicit completion and cancellation without erasing identity
+00:52 +240: d:/repos/planact/test/unit/commitment_test.dart: allows active to paused to active transitions
+00:52 +241: d:/repos/planact/test/unit/commitment_test.dart: rejects invalid state transitions
+00:52 +242: d:/repos/planact/test/unit/commitment_test.dart: rejects blank titles
+00:53 +243: d:/repos/planact/test/unit/commitment_use_cases_test.dart: creates and changes a commitment through use cases
+00:53 +244: d:/repos/planact/test/unit/commitment_use_cases_test.dart: restores an archived commitment through the restore use case
+00:53 +245: d:/repos/planact/test/unit/commitment_use_cases_test.dart: reports a missing commitment without mutating storage
+00:53 +246: d:/repos/planact/test/unit/core_primitives_test.dart: UUIDv7 stable IDs are parseable, unique, and time ordered
+00:53 +247: d:/repos/planact/test/unit/core_primitives_test.dart: money uses integer minor units and rejects currency mixing
+00:53 +248: d:/repos/planact/test/unit/core_primitives_test.dart: fixed clock provides deterministic UTC time
+00:54 +249: d:/repos/planact/test/unit/currency_codes_test.dart: normalizes currency codes without inventing a unit conversion
+00:54 +250: d:/repos/planact/test/unit/entitlement_test.dart: folds the ledger as the only source of remaining units
+00:54 +251: d:/repos/planact/test/unit/entitlement_test.dart: rejects invalid plan and ledger units
+00:55 +252: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:55 +253: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:55 +254: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:55 +255: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +256: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +257: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +258: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +259: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +260: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +261: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +262: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:56 +263: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:57 +264: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:57 +265: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:57 +266: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:57 +267: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: real card dispatch requires privacy and key acknowledgement before production save
+00:57 +268: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: each retry gets fresh key; acknowledgement precedes snapshot/save; no sidecar
+00:58 +269: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: concurrent admission, picker cancellation and write failure never change live state
+00:58 +270: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: format2 import asks only recovery key; cancelled and wrong key preserve data
+00:58 +271: d:/repos/planact/test/unit/file_recovery_backup_actions_test.dart: legacy import requires acknowledgement, uses old key and never rewrites file
+00:58 +272: d:/repos/planact/test/unit/inbox_review_projection_test.dart: projects source, deterministic reason, account and duplicate warning
+00:58 +273: d:/repos/planact/test/unit/inbox_review_projection_test.dart: confirmation failure does not resolve pending review
+00:59 +274: d:/repos/planact/test/unit/inbox_test.dart: stages a local SMS as a Persian explainable suggestion
+00:59 +275: d:/repos/planact/test/unit/inbox_test.dart: parses incoming Persian SMS as income without fabricating direction
+00:59 +276: d:/repos/planact/test/unit/inbox_test.dart: supports duplicate source keys after a rescan
+00:59 +277: d:/repos/planact/test/unit/inbox_test.dart: rejects duplicate raw source without creating a second suggestion
+00:59 +278: d:/repos/planact/test/unit/inbox_test.dart: confirm mutates the finance ledger only after explicit confirmation
+00:59 +279: d:/repos/planact/test/unit/inbox_test.dart: reject preserves staging history and does not write ledger
+00:59 +280: d:/repos/planact/test/unit/inbox_test.dart: edits a pending draft without touching the finance ledger
+00:59 +281: d:/repos/planact/test/unit/inbox_test.dart: reject then rollback preserves the staged import as historical data
+00:59 +282: d:/repos/planact/test/unit/inbox_test.dart: does not confirm an already confirmed suggestion twice
+00:59 +283: d:/repos/planact/test/unit/inbox_test.dart: expires raw text while preserving fingerprint and decision metadata
+00:59 +284: d:/repos/planact/test/unit/iranian_holidays_test.dart: all verified years include ten fixed holiday dates
+01:00 +285: d:/repos/planact/test/unit/iranian_holidays_test.dart: published Eid dates differ from generic lunar predictions
+01:00 +286: d:/repos/planact/test/unit/iranian_holidays_test.dart: Friday is separate and overlapping official reasons are retained
+01:00 +287: d:/repos/planact/test/unit/iranian_holidays_test.dart: Safar end follows published month length, including 29-day month
+01:00 +288: d:/repos/planact/test/unit/iranian_holidays_test.dart: leap boundaries, invalid dates and incomplete years are explicit
+01:00 +289: d:/repos/planact/test/unit/iranian_holidays_test.dart: all 365 days of 1405 match the published monthly holiday markers
+01:00 +290: d:/repos/planact/test/unit/jalali_date_test.dart: converts Gregorian dates to the correct Jalali date
+01:00 +291: d:/repos/planact/test/unit/jalali_date_test.dart: converts Gregorian dates to the correct Jalali date
+01:00 +292: d:/repos/planact/test/unit/jalali_date_test.dart: converts Gregorian dates to the correct Jalali date
+01:00 +293: d:/repos/planact/test/unit/jalali_date_test.dart: uses Jalali month lengths and Persian week day numbering
+01:00 +294: loading d:/repos/planact/test/unit/money_input_formatter_test.dart
+01:00 +294: d:/repos/planact/test/unit/money_input_formatter_test.dart: groups monetary values by thousands and normalizes locale digits
+01:00 +295: d:/repos/planact/test/unit/money_input_formatter_test.dart: keeps the cursor aligned after inserting a digit
+01:01 +296: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: legacy Gregorian interpretation still reproduces Persian day19 drift
+01:01 +297: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: Persian monthly day19 is stable and rolling horizon is not termination
+01:01 +298: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: yearly19Mehr remains 1406 and1407 independently of display
+01:01 +299: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: Esfand30 clamps same month without losing leap anchor
+01:01 +300: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: count and end inclusive remain global across rolling windows
+01:01 +301: d:/repos/planact/test/unit/monthly_yearly_baseline_test.dart: monthly interval phase survives rolling window
+01:02 +302: d:/repos/planact/test/unit/occurrence_actions_test.dart: scheduled occurrence exposes completion, cancellation, and reschedule
+01:02 +303: d:/repos/planact/test/unit/occurrence_actions_test.dart: provider cancellation consequence follows session policy
+01:02 +304: d:/repos/planact/test/unit/occurrence_actions_test.dart: completed occurrence exposes explicit historical reopening only
+01:02 +305: d:/repos/planact/test/unit/occurrence_actions_test.dart: cancelled occurrence exposes restore and makeup only
+01:02 +306: d:/repos/planact/test/unit/occurrence_status_label_test.dart: all persisted occurrence statuses retain their Persian labels
+01:04 +307: d:/repos/planact/test/unit/occurrence_test.dart: generates bounded and idempotent weekly occurrences
+01:04 +308: d:/repos/planact/test/unit/occurrence_test.dart: uses the occurrence date as the logical key instead of the sequence index
+01:04 +309: d:/repos/planact/test/unit/occurrence_test.dart: does not replace a manually rescheduled existing occurrence
+01:04 +310: d:/repos/planact/test/unit/occurrence_test.dart: preserves non-completed historical outcomes without deleting the occurrence
+01:04 +311: d:/repos/planact/test/unit/occurrence_test.dart: does not rewrite a completed occurrence
+01:04 +312: d:/repos/planact/test/unit/occurrence_test.dart: clamps a monthly day to the last day when policy allows it
+01:04 +313: d:/repos/planact/test/unit/persian_money_text_test.dart: formats IRR using Persian grouped digits without converting units
+01:04 +314: d:/repos/planact/test/unit/persian_money_text_test.dart: retains legacy currency rather than silently treating it as IRR
+01:05 +315: d:/repos/planact/test/unit/predictive_test.dart: deterministic forecast is bounded, sorted, and totals by currency
+01:05 +316: d:/repos/planact/test/unit/predictive_test.dart: risk engine is explainable and deterministic
+01:05 +317: d:/repos/planact/test/unit/predictive_test.dart: anomaly engine flags deviation without mutating transactions
+01:05 +318: d:/repos/planact/test/unit/predictive_test.dart: AI disabled or unavailable falls back to deterministic result
+01:05 +319: d:/repos/planact/test/unit/predictive_test.dart: accepted local AI insight is optional and evaluated
+01:06 +320: d:/repos/planact/test/unit/reconciliation_test.dart: supports partial many-to-many allocation and remaining amount
+01:06 +321: d:/repos/planact/test/unit/reconciliation_test.dart: supports full matching and models overpayment as credit
+01:06 +322: d:/repos/planact/test/unit/reconciliation_test.dart: corrects a match without deleting original history
+01:06 +323: d:/repos/planact/test/unit/reconciliation_test.dart: reports planned versus actual as partial and settled
+01:06 +324: d:/repos/planact/test/unit/reconciliation_test.dart: scores an exact same-account transaction with Persian reasons
+01:06 +325: d:/repos/planact/test/unit/reconciliation_test.dart: rejects wrong direction and marks a smaller payment partial
+01:06 +326: d:/repos/planact/test/unit/recurrence_window_test.dart: daily far-future window seeks and count terminates by original slots
+01:06 +327: d:/repos/planact/test/unit/recurrence_window_test.dart: weekly interval count uses start-relative weeks with multiple weekdays
+01:06 +328: d:/repos/planact/test/unit/recurrence_window_test.dart: monthly clamp retains day31 after short month and long prefix
+01:06 +329: d:/repos/planact/test/unit/recurrence_window_test.dart: skip counts actual matching slots not invalid month candidates
+01:06 +330: d:/repos/planact/test/unit/recurrence_window_test.dart: yearly anchor month independent of start month is not skipped on seek
+01:06 +331: d:/repos/planact/test/unit/recurrence_window_test.dart: Jalali yearly Esfand clamp returns original leap anchor
+01:06 +332: d:/repos/planact/test/unit/recurrence_window_test.dart: legacy null-day monthly retains all days and historical count
+01:06 +333: d:/repos/planact/test/unit/recurrence_window_test.dart: legacy yearly leap-day skips not clamps and counts only real dates
+01:07 +334: d:/repos/planact/test/unit/relationship_review_test.dart: independent covers only unmatched remainder and reopening appends
+01:07 +335: d:/repos/planact/test/unit/relationship_review_test.dart: equal allocation totals with different identities invalidate tokens
+01:07 +336: d:/repos/planact/test/unit/relationship_review_test.dart: resolved history cannot reactivate or resurrect independent decision
+01:07 +337: d:/repos/planact/test/unit/relationship_review_test.dart: review and guarded match races admit exactly one operation
+01:07 +338: d:/repos/planact/test/unit/relationship_review_test.dart: match retains an immutable allocation copy
+01:08 +339: d:/repos/planact/test/unit/reminder_permission_test.dart: already enabled avoids prompts and settings
+01:08 +340: d:/repos/planact/test/unit/reminder_permission_test.dart: runtime grant avoids opening settings
+01:08 +341: d:/repos/planact/test/unit/reminder_permission_test.dart: disabled notifications open settings and verify grant on return
+01:08 +342: d:/repos/planact/test/unit/reminder_permission_test.dart: return without grant never reports success
+01:08 +343: d:/repos/planact/test/unit/reminder_service_test.dart: scheduling reuses the same platform notification ID on retry
+01:08 +344: d:/repos/planact/test/unit/reminder_service_test.dart: cancel is idempotent and removes the active platform notification
+01:08 +345: d:/repos/planact/test/unit/reminder_service_test.dart: reconcile cancels stale instances and rebuilds active future ones
+01:08 +346: d:/repos/planact/test/unit/reminder_service_test.dart: reconcile persists cancellation for disabled reminders
+01:08 +347: d:/repos/planact/test/unit/reminder_service_test.dart: reconcile keeps future snoozed reminders active
+01:08 +348: d:/repos/planact/test/unit/reminder_service_test.dart: cancel retries Android after a persisted cancellation failure
+01:08 +349: d:/repos/planact/test/unit/reminder_service_test.dart: changed delivery cancels the previous durable and platform intent
+01:08 +350: d:/repos/planact/test/unit/reminder_service_test.dart: disable then enable reuses durable identity
+01:08 +351: d:/repos/planact/test/unit/reminder_service_test.dart: delivered history is not rescheduled by a repeated command
+01:08 +352: d:/repos/planact/test/unit/reminder_service_test.dart: cancelling a snoozed reminder clears the snooze timestamp
+01:09 +353: d:/repos/planact/test/unit/reminder_test.dart: creates an occurrence-relative reminder at the configured offset
+01:09 +354: d:/repos/planact/test/unit/reminder_test.dart: supports absolute reminders without changing the rule on snooze
+01:09 +355: d:/repos/planact/test/unit/reminder_test.dart: keeps cancellation and delivery as historical states
+01:09 +356: d:/repos/planact/test/unit/reminder_test.dart: rejects invalid absolute and snooze configurations
+01:09 +357: d:/repos/planact/test/unit/replacement_test.dart: preserves a makeup cancellation chain without deleting history
+01:09 +358: d:/repos/planact/test/unit/replacement_test.dart: keeps planned end and actual end separate
+01:10 +359: d:/repos/planact/test/unit/schedule_definition_test.dart: keeps an all-day local date without manufacturing an instant
+01:10 +360: d:/repos/planact/test/unit/schedule_definition_test.dart: requires timezone context for floating local time
+01:10 +361: d:/repos/planact/test/unit/schedule_definition_test.dart: stores fixed instants in UTC
+01:10 +362: d:/repos/planact/test/unit/schedule_definition_test.dart: creates an explicit next schedule version
+01:10 +363: d:/repos/planact/test/unit/secure_backup_keys_test.dart: import never provisions a missing key
+01:10 +364: d:/repos/planact/test/unit/secure_backup_keys_test.dart: export provisions a stable 256-bit key across adapter recreation
+01:10 +365: d:/repos/planact/test/unit/secure_backup_keys_test.dart: invalid stored key is rejected rather than silently replaced
+01:10 +366: d:/repos/planact/test/unit/series_editing_test.dart: only-this creates a historical reschedule override
+01:10 +367: d:/repos/planact/test/unit/series_editing_test.dart: this-and-following creates a new schedule version
+01:10 +368: d:/repos/planact/test/unit/series_editing_test.dart: entire active cycle preserves the relative spacing of future occurrences
+01:11 +369: d:/repos/planact/test/unit/session_policy_test.dart: provider cancellation does not consume and requires makeup
+01:11 +370: d:/repos/planact/test/unit/session_policy_test.dart: late user cancellation consumes but does not require makeup
+01:11 +371: d:/repos/planact/test/unit/session_policy_test.dart: free absence quota is consumed only after quota is exhausted
+01:11 +372: d:/repos/planact/test/unit/session_policy_test.dart: no-show consumes and holiday preserves entitlement
+01:11 +373: d:/repos/planact/test/unit/tag_repository_test.dart: tag normalization preserves display spelling and rejects empty labels
+01:11 +374: d:/repos/planact/test/unit/tag_repository_test.dart: InMemory contract rename preserves identity/time, rejects normalized duplicates atomically
+01:11 +375: d:/repos/planact/test/unit/tag_repository_test.dart: InMemory contract autocomplete treats percent underscore and backslash literally
+01:11 +376: d:/repos/planact/test/unit/tag_repository_test.dart: InMemory contract retired CommandGate rejects reads and mutations
+01:11 +377: d:/repos/planact/test/unit/tag_repository_test.dart: Drift contract rename preserves identity/time, rejects normalized duplicates atomically
+01:11 +378: d:/repos/planact/test/unit/tag_repository_test.dart: Drift contract autocomplete treats percent underscore and backslash literally
+01:12 +379: d:/repos/planact/test/unit/tag_repository_test.dart: Drift contract retired CommandGate rejects reads and mutations
+01:12 +380: d:/repos/planact/test/unit/tag_repository_test.dart: memory memberships are typed, idempotent, and globally removed
+01:12 +381: d:/repos/planact/test/unit/today_action_center_test.dart: projects unresolved today and overdue occurrences deterministically
+01:12 +382: d:/repos/planact/test/unit/today_action_center_test.dart: keeps financial and Inbox review items identifiable
+01:12 +383: d:/repos/planact/test/unit/today_action_center_test.dart: returns an empty projection when there are no actionable sources
+01:12 +384: d:/repos/planact/test/unit/transfer_fee_policy_test.dart: fixed policy returns configured fee and zero for unconfigured methods
+01:12 +385: d:/repos/planact/test/unit/transfer_fee_policy_test.dart: transfer fee is a source-account expense and does not inflate destination
+01:13 +386: d:/repos/planact/test/unit/week_timeline_test.dart: Saturday weeks cross Jalali month/year and leap boundaries
+01:13 +387: d:/repos/planact/test/unit/week_timeline_test.dart: point has no end; explicit duration splits midnight half-open
+01:13 +388: d:/repos/planact/test/unit/week_timeline_test.dart: three overlap lanes; touching intervals and different days do not overlap
+01:13 +389: d:/repos/planact/test/unit/week_timeline_test.dart: indicator and initial scrolling are view-only and bounded
+01:13 +390: d:/repos/planact/test/widget/app_lock_gate_test.dart: cold start hides private content until authentication
+01:14 +391: d:/repos/planact/test/widget/app_lock_gate_test.dart: cold start hides private content until authentication
+01:14 +392: d:/repos/planact/test/widget/app_lock_lifecycle_test.dart: root lock hides pushed routes and retains form input
+01:14 +393: d:/repos/planact/test/widget/app_lock_lifecycle_test.dart: root lock hides pushed routes and retains form input
+01:15 +394: d:/repos/planact/test/widget/app_lock_lifecycle_test.dart: root lock hides modal form and retains its draft
+01:15 +395: d:/repos/planact/test/widget/app_lock_lifecycle_test.dart: native prompt inactive/resume does not repeat authentication
+01:15 +396: d:/repos/planact/test/widget/app_lock_lifecycle_test.dart: authentication exception offers retry without exposing content
+01:15 +397: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: open Settings updates both directions after commit (false)
+01:16 +398: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: open Settings updates both directions after commit (false)
+01:18 +399: d:/repos/planact/test/widget/backup_application_scope_test.dart: production startup retains durable data and retries failed preparation
+01:19 +400: d:/repos/planact/test/widget/backup_application_scope_test.dart: production startup retains durable data and retries failed preparation
+01:19 +401: d:/repos/planact/test/widget/backup_application_scope_test.dart: production startup retains durable data and retries failed preparation
+01:19 +402: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: same Settings retains false on storage and retries
+01:20 +403: d:/repos/planact/test/widget/backup_application_scope_test.dart: backup host drains full commands, disposes UI and rebinds a fresh file-backed generation
+01:20 +404: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: same Settings retains false on background and retries
+01:20 +405: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: same Settings retains true on cancel and retries
+01:21 +406: d:/repos/planact/test/widget/backup_settings_card_test.dart: export requires privacy confirmation and cancellation does nothing
+01:21 +407: d:/repos/planact/test/widget/backup_settings_card_test.dart: export requires privacy confirmation and cancellation does nothing
+01:22 +408: d:/repos/planact/test/widget/backup_settings_card_test.dart: export requires privacy confirmation and cancellation does nothing
+01:22 +409: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: cold reconstruction reloads committed setting and gates content
+01:22 +410: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: cold reconstruction reloads committed setting and gates content
+01:22 +411: d:/repos/planact/test/widget/app_lock_settings_route_test.dart: cold reconstruction reloads committed setting and gates content
+01:23 +412: d:/repos/planact/test/widget/calendar_commitment_card_test.dart: Brightness.dark card preserves identity, separate occurrences and navigation at 320dp / 2x
+01:24 +413: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+01:25 +414: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+01:25 +415: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+01:25 +416: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.dark
+01:25 +417: d:/repos/planact/test/widget/calendar_commitment_card_test.dart: Brightness.light Month and Week use red holiday role without losing selection or reasons
+01:25 +418: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.light
+01:25 +419: d:/repos/planact/test/widget/calendar_holidays_test.dart: holiday reasons and coverage warning in Brightness.light
+01:27 +420: d:/repos/planact/test/widget/calendar_reminder_details_test.dart: Calendar distinguishes all-day data from midnight time
+01:28 +421: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+01:29 +422: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+01:29 +423: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+01:29 +424: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+01:30 +425: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark false
+01:32 +426: d:/repos/planact/test/widget/calendar_return_today_test.dart: visible Today action restores month and week without mode changes dark=false
+01:34 +427: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 1.0 dark true
+01:35 +428: d:/repos/planact/test/widget/calendar_return_today_test.dart: visible Today action restores month and week without mode changes dark=true
+01:35 +429: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 2.0 dark false
+01:37 +430: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 320.0 RTL scale 2.0 dark true
+01:39 +431: d:/repos/planact/test/widget/commitment_tags_test.dart: detached persisted tag is not resurrected by detail metadata save
+01:42 +432: d:/repos/planact/test/widget/commitment_tags_test.dart: detached persisted tag is not resurrected by detail metadata save
+01:42 +433: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 1.0 dark true
+01:44 +434: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: relationship and transaction context survive file database restart
+01:44 +435: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 2.0 dark false
+01:44 +436: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 360.0 RTL scale 2.0 dark false
+01:45 +437: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: SMS confirmation routes the imported entry, not another transaction
+01:46 +438: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: SMS confirmation routes the imported entry, not another transaction
+01:46 +439: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark false
+01:46 +440: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark false
+01:47 +441: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark false
+01:47 +442: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: stale independent/reopen decisions retain draft until explicit reload
+01:47 +443: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 1.0 dark true
+01:48 +444: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: partial independent remainder undo, reopen and relink with dirty back (light)
+01:48 +445: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 2.0 dark false
+01:49 +446: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: Today opens exact transaction and back retains origin (light)
+01:49 +447: d:/repos/planact/test/widget/calendar_responsive_test.dart: calendar fits 390.0 RTL scale 2.0 dark true
+01:49 +448: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (light)
+01:50 +449: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: partial independent remainder undo, reopen and relink with dirty back (dark)
+01:50 +450: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: partial independent remainder undo, reopen and relink with dirty back (dark)
+01:51 +451: d:/repos/planact/test/widget/design_system_test.dart: light narrow RTL calendar preserves targets and scaled text
+01:51 +452: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: Today opens exact transaction and back retains origin (dark)
+01:52 +453: d:/repos/planact/test/widget/design_system_test.dart: light date picker and form wrap without scaled overflow
+01:52 +454: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (dark)
+01:52 +455: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (dark)
+01:52 +456: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (dark)
+01:52 +457: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (dark)
+01:52 +458: d:/repos/planact/test/widget/contextual_reconciliation_test.dart: selection and amount survive refresh; confirmation returns to source (dark)
+01:52 +459: d:/repos/planact/test/widget/design_system_test.dart: dark reduced motion resolves to final state
+01:52 +460: loading d:/repos/planact/test/widget/edit_schedule_dialog_test.dart
+01:53 +460: d:/repos/planact/test/widget/edit_schedule_dialog_test.dart: all-day edit preserves absent time and explicit only-this scope
+01:54 +461: d:/repos/planact/test/widget/finance_loading_test.dart: initial finance failure shows retry, not an empty ledger
+01:54 +462: d:/repos/planact/test/widget/finance_loading_test.dart: failed refresh keeps prior finance data and warns it is stale
+01:55 +463: d:/repos/planact/test/widget/finance_tags_test.dart: finance assign, rename, filter and detach preserve ledger (false)
+01:58 +464: d:/repos/planact/test/widget/finance_transaction_form_test.dart: manual draft survives account creation and still requires selection
+
+Warning: A call to tap() with finder "Found 1 widget with text "ثبت": [
+  Text("ثبت", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(141.0, 560.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#5082b relayoutBoundary=up25
+The hit test result at that offset is: HitTestResult(RenderPointerListener#5fe34@Offset(141.0, 560.0), RenderSemanticsAnnotations#095c2@Offset(141.0, 560.0), RenderCustomPaint#4f0be@Offset(141.0, 560.0), RenderSemanticsAnnotations#dcf40@Offset(141.0, 560.0), RenderSemanticsAnnotations#f380e@Offset(141.0, 560.0), RenderSemanticsAnnotations#efe5f@Offset(141.0, 560.0), RenderTapRegionSurface#929e4@Offset(141.0, 560.0), RenderSemanticsAnnotations#6ecc3@Offset(141.0, 560.0), RenderSemanticsAnnotations#b7283@Offset(141.0, 560.0), HitTestEntry<HitTestTarget>#a75c1(_ReusableRenderView#8608f), HitTestEntry<HitTestTarget>#49959(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///d:/repos/planact/test/widget/finance_transaction_form_test.dart:68:20)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+01:58 +465: d:/repos/planact/test/widget/finance_tags_test.dart: finance assign, rename, filter and detach preserve ledger (true)
+01:58 +466: d:/repos/planact/test/widget/finance_tags_test.dart: finance assign, rename, filter and detach preserve ledger (true)
+01:59 +467: d:/repos/planact/test/widget/finance_transaction_form_test.dart: refresh failure after write cannot trigger duplicate save
+01:59 +468: d:/repos/planact/test/widget/holiday_package_calendar_test.dart: live calendar refresh and disk restart use installed official reasons
+02:01 +469: d:/repos/planact/test/widget/holiday_package_settings_test.dart: explicit approval, cancellation and failure in light RTL
+02:03 +470: d:/repos/planact/test/widget/inbox_account_selection_test.dart: SMS route explicitly selects account, confirms once and cold reopens (false)
+02:03 +471: d:/repos/planact/test/widget/holiday_package_settings_test.dart: explicit approval, cancellation and failure in dark RTL
+02:04 +472: d:/repos/planact/test/widget/holiday_package_settings_test.dart: explicit approval, cancellation and failure in dark RTL
+02:05 +473: d:/repos/planact/test/widget/inbox_account_selection_test.dart: empty/archived accounts, create and return, cancel creates no transaction
+02:05 +474: d:/repos/planact/test/widget/inbox_account_selection_test.dart: read retry and failed atomic save retain account; stale archival rejected
+02:06 +475: d:/repos/planact/test/widget/quick_add_sheet_test.dart: shows only supported quick add actions
+02:06 +476: d:/repos/planact/test/widget/quick_add_sheet_test.dart: quick expense validates and preserves input on failure
+02:07 +477: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+02:07 +478: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+02:09 +479: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+02:10 +480: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+02:11 +481: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian count Light narrow enlarged text persists and refreshes
+02:12 +482: d:/repos/planact/test/widget/recovery_key_dialogs_test.dart: key acknowledgement and cancellation light RTL large text
+02:13 +483: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:13 +484: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:13 +485: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:13 +486: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:14 +487: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:15 +488: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:15 +489: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:16 +490: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali count Light narrow enlarged text persists and refreshes
+02:18 +491: d:/repos/planact/test/widget/rolling_recurrence_route_test.dart: root startup and resume extend durable Persian schedule and refresh consumers
+02:19 +492: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture monthly jalali endDate Dark narrow enlarged text persists and refreshes
+02:21 +493: d:/repos/planact/test/widget/tagged_creation_test.dart: capture carries draft tags through review and retry (false)
+02:22 +494: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+02:22 +495: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+02:23 +496: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+02:23 +497: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian count Light narrow enlarged text persists and refreshes
+02:24 +498: d:/repos/planact/test/widget/tagged_creation_test.dart: quick entry retains tags on failure and retries once (false/true)
+02:24 +499: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:24 +500: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:25 +501: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:25 +502: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:25 +503: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:26 +504: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:26 +505: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:27 +506: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly gregorian endDate Dark narrow enlarged text persists and refreshes
+02:27 +507: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali count Light narrow enlarged text persists and refreshes
+02:29 +508: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali count Light narrow enlarged text persists and refreshes
+02:29 +509: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali count Light narrow enlarged text persists and refreshes
+02:29 +510: d:/repos/planact/test/widget/tag_controls_test.dart: rename preserves membership and updates the editor after management
+02:29 +511: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+02:30 +512: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+02:30 +513: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+02:30 +514: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root capture yearly jalali endDate Dark narrow enlarged text persists and refreshes
+02:32 +515: d:/repos/planact/test/widget/today_identity_and_calendar_toggle_test.dart: Brightness.dark / 1.0 Calendar toggle retains exact bounds across modes
+02:32 +516: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+02:32 +517: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+02:33 +518: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+02:33 +519: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+02:33 +520: d:/repos/planact/test/widget/quick_capture_recurrence_route_test.dart: root cancelling configured monthly draft leaves no durable plan
+02:33 +521: d:/repos/planact/test/widget/today_identity_and_calendar_toggle_test.dart: Brightness.light Today identity covers attention/today/upcoming without coloring independent reviews
+02:33 +522: loading d:/repos/planact/test/widget/today_settings_finance_refresh_test.dart
+02:34 +522: d:/repos/planact/test/widget/today_settings_finance_refresh_test.dart: pushed settings immediately selects each display mode
+02:36 +523: d:/repos/planact/test/widget/today_settings_finance_refresh_test.dart: pushed settings immediately selects each display mode
+02:36 +524: d:/repos/planact/test/widget/week_timeline_test.dart: week narrow RTL agenda status/identity/tap dark false scale 2.0
+02:36 +525: d:/repos/planact/test/widget/today_settings_finance_refresh_test.dart: pulling short empty Today rereads newly persisted transactions
+02:37 +526: d:/repos/planact/test/widget/week_timeline_test.dart: week narrow RTL agenda status/identity/tap dark true scale 1.0
+02:37 +527: d:/repos/planact/test/widget/today_settings_finance_refresh_test.dart: ledger direction icons cover transfers and signed corrections, dark=false
+02:37 +528: d:/repos/planact/test/widget/week_timeline_test.dart: week narrow RTL agenda status/identity/tap dark true scale 2.0
+02:37 +529: d:/repos/planact/test/widget/week_timeline_test.dart: week narrow RTL agenda status/identity/tap dark true scale 2.0
+02:37 +530: d:/repos/planact/test/widget/week_timeline_test.dart: tablet all-day and three point lanes remain separate
+02:37 +531: d:/repos/planact/test/widget/week_timeline_test.dart: async navigation ignores stale completion
+02:38 +532: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+02:38 +533: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+02:38 +534: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+02:38 +535: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+02:38 +536: d:/repos/planact/test/widget_test.dart: پوستهٔ فارسی و ثبت تعهد کار می‌کند
+02:40 +537: d:/repos/planact/test/widget_test.dart: ناوبری تقویم فارسی را نمایش می‌دهد
+02:41 +538: d:/repos/planact/test/widget_test.dart: calendar shows compact count and selected-day details
+02:41 +539: All tests passed!

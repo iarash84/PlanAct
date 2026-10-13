@@ -112,10 +112,4 @@ class IranianHolidayProvider {
     }
     return List.unmodifiable(result);
   }
-
-  /// Compatibility single-reason lookup; use holidaysFor to retain overlaps.
-  CalendarHoliday? holidayFor(JalaliDate date) {
-    final holidays = holidaysFor(date);
-    return holidays.isEmpty ? null : holidays.first;
-  }
 }

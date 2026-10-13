@@ -1,0 +1,13 @@
+00:00 +0: loading d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart
+00:00 +0: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: source channel carries explicit bounds and stable cursor; malformed page fails
+00:00 +1: d:/repos/planact/test/repository/sms_replay_test.dart: provider replay after restart preserves expired and rejected history
+00:00 +2: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:00 +3: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:01 +4: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: 10,000 equal-time rows cancel, cold reopen, retry and preserve rejection
+00:02 +5: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: new-only excludes history and stale checkpoint writes are rejected
+00:02 +6: d:/repos/planact/test/repository/sms_bounded_ingestion_test.dart: permission alone, refresh and range-dialog cancellation never read provider
+00:03 +7: d:/repos/planact/test/widget/inbox_account_selection_test.dart: SMS route explicitly selects account, confirms once and cold reopens (false)
+00:04 +8: d:/repos/planact/test/widget/inbox_account_selection_test.dart: SMS route explicitly selects account, confirms once and cold reopens (true)
+00:05 +9: d:/repos/planact/test/widget/inbox_account_selection_test.dart: empty/archived accounts, create and return, cancel creates no transaction
+00:06 +10: d:/repos/planact/test/widget/inbox_account_selection_test.dart: read retry and failed atomic save retain account; stale archival rejected
+00:06 +11: All tests passed!

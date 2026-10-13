@@ -22,6 +22,15 @@ abstract interface class FinanceRepository {
 }
 
 /// Creation and optional classification must commit together or not at all.
+/// Fresh transactional admission; never a snapshot upsert.
+abstract interface class AtomicAccountEditing {
+  Future<void> editAccount({
+    required FinancialAccount original,
+    required FinancialAccount replacement,
+  });
+  Future<void> setAccountStatus(StableId id, FinancialAccountStatus status);
+}
+
 abstract interface class TaggedFinanceCreation {
   Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags);
 }
@@ -33,7 +42,40 @@ abstract interface class AtomicFinanceCorrection {
   });
 }
 
-class InMemoryFinanceRepository implements FinanceRepository {
+class InMemoryFinanceRepository
+    implements FinanceRepository, AtomicAccountEditing {
+  @override
+  Future<void> editAccount({
+    required FinancialAccount original,
+    required FinancialAccount replacement,
+  }) async {
+    final fresh = _accounts[original.id];
+    if (fresh == null || !fresh.sameEditableFields(original)) {
+      throw const ValidationError('Account edit conflict');
+    }
+    _accounts[original.id] = FinancialAccount(
+      id: fresh.id,
+      name: replacement.name,
+      currency: fresh.currency,
+      type: replacement.type,
+      bank: replacement.bank,
+      identifiers: replacement.identifiers,
+      status: fresh.status,
+    );
+  }
+
+  @override
+  Future<void> setAccountStatus(
+    StableId id,
+    FinancialAccountStatus status,
+  ) async {
+    final fresh = _accounts[id];
+    if (fresh == null) throw const ValidationError('Account missing');
+    _accounts[id] = status == FinancialAccountStatus.active
+        ? fresh.restore()
+        : fresh.archive();
+  }
+
   final Map<StableId, FinancialAccount> _accounts = {};
   final Map<StableId, AccountEntry> _entries = {};
 
@@ -197,12 +239,26 @@ class FinanceUseCases {
 
   Future<void> archive(FinancialAccount account) =>
       CommandGate.runFor(repository, () async {
-        await repository.saveAccount(account.archive());
+        if (repository case final AtomicAccountEditing editor) {
+          await editor.setAccountStatus(
+            account.id,
+            FinancialAccountStatus.archived,
+          );
+        } else {
+          await repository.saveAccount(account.archive());
+        }
       });
 
   Future<void> restore(FinancialAccount account) =>
       CommandGate.runFor(repository, () async {
-        await repository.saveAccount(account.restore());
+        if (repository case final AtomicAccountEditing editor) {
+          await editor.setAccountStatus(
+            account.id,
+            FinancialAccountStatus.active,
+          );
+        } else {
+          await repository.saveAccount(account.restore());
+        }
       });
 
   Future<void> updateAccount({
@@ -210,11 +266,28 @@ class FinanceUseCases {
     required String name,
     FinancialAccountType? type,
   }) => CommandGate.runFor(repository, () async {
-    await repository.saveAccount(account.update(name: name, type: type));
+    await editAccount(
+      original: account,
+      replacement: account.update(name: name, type: type),
+    );
   });
 
   /// Corrects an immutable ledger entry by recording an opposite-signed
   /// reversal followed by the corrected entry. The original remains auditable.
+  Future<void> editAccount({
+    required FinancialAccount original,
+    required FinancialAccount replacement,
+  }) => CommandGate.runFor(repository, () async {
+    if (original.id != replacement.id) {
+      throw const ValidationError('Account identity cannot change');
+    }
+    if (repository case final AtomicAccountEditing editor) {
+      await editor.editAccount(original: original, replacement: replacement);
+    } else {
+      throw const ValidationError('Atomic account editing is not supported');
+    }
+  });
+
   Future<AccountEntry> correctEntry({
     required AccountEntry original,
     required FinancialAccount account,

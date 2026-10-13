@@ -1,9 +1,9 @@
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
-import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
@@ -16,9 +16,11 @@ class TransactionRelationshipPage extends StatefulWidget {
     super.key,
     required this.transactionId,
     required this.flow,
+    this.onOpenQueue,
   });
   final StableId transactionId;
   final ContextualReconciliation flow;
+  final Future<void> Function()? onOpenQueue;
   @override
   State<TransactionRelationshipPage> createState() =>
       _TransactionRelationshipPageState();
@@ -28,6 +30,15 @@ class _TransactionRelationshipPageState
     extends State<TransactionRelationshipPage> {
   TransactionRelationshipContext? _context;
   StableId? _selected;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  }
+
+  PinnedMoneyInput? _pinned;
+  PinnedMoneyInput get _moneyInput =>
+      _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _amount = TextEditingController();
   String _query = '';
   bool _loading = true;
@@ -72,7 +83,10 @@ class _TransactionRelationshipPageState
   }
 
   Future<void> _save() async {
-    final amount = int.tryParse(MoneyInputFormatter.normalize(_amount.text));
+    final amount = _moneyInput.parse(
+      _amount.text,
+      currency: _context!.transaction.amount.currency,
+    );
     if (_selected == null ||
         amount == null ||
         amount <= 0 ||
@@ -211,17 +225,31 @@ class _TransactionRelationshipPageState
             : ListView(
                 padding: const EdgeInsets.all(PlanActSpacing.lg),
                 children: [
+                  if (widget.onOpenQueue != null)
+                    OutlinedButton.icon(
+                      onPressed: _saving
+                          ? null
+                          : () async {
+                              await widget.onOpenQueue!();
+                              if (mounted) {
+                                _dirty = true;
+                                await _load();
+                              }
+                            },
+                      icon: const Icon(Icons.playlist_add_check),
+                      label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+                    ),
                   if (data != null) ...[
                     Text(
                       data.transaction.note ?? 'تراکنش بدون شرح',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      'مبلغ تراکنش: ${PersianMoneyText.money(data.transaction.amount)}',
+                      'مبلغ تراکنش: ${PersianMoneyText.money(data.transaction.amount, unit: MoneyUnitScope.of(context))}',
                     ),
                     Text('حساب: ${data.account?.name ?? 'حساب در دسترس نیست'}'),
                     Text(
-                      'باقی‌مانده برای ارتباط: ${PersianMoneyText.money(data.available)}',
+                      'باقی‌مانده برای ارتباط: ${PersianMoneyText.money(data.available, unit: MoneyUnitScope.of(context))}',
                     ),
                     const SizedBox(height: PlanActSpacing.lg),
                     if (data.review?.isIndependent == true) ...[
@@ -289,10 +317,12 @@ class _TransactionRelationshipPageState
                       TextField(
                         controller: _amount,
                         enabled: !_saving && data.available.minorUnits > 0,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: const [MoneyInputFormatter()],
-                        decoration: const InputDecoration(
-                          labelText: 'مبلغ ارتباط',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText:
+                              'مبلغ ارتباط به ${_moneyInput.label(data.transaction.amount.currency)}',
                         ),
                       ),
                       const SizedBox(height: PlanActSpacing.md),

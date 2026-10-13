@@ -1,3 +1,4 @@
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
@@ -24,6 +25,7 @@ class TodayPage extends StatelessWidget {
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
     required this.onReview,
+    this.onOpenRelationshipQueue,
   });
 
   final List<Commitment> commitments;
@@ -37,6 +39,7 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
   final ValueChanged<TodayActionItem> onReview;
+  final VoidCallback? onOpenRelationshipQueue;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +66,12 @@ class TodayPage extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: PlanActSpacing.lg),
+        if (onOpenRelationshipQueue != null)
+          OutlinedButton.icon(
+            onPressed: onOpenRelationshipQueue,
+            icon: const Icon(Icons.playlist_add_check),
+            label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+          ),
         if (error != null)
           Column(
             children: [
@@ -141,10 +150,12 @@ class _SectionHeader extends StatelessWidget {
         ),
       ),
       const SizedBox(width: PlanActSpacing.sm),
-      Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge
-            ?.copyWith(fontWeight: FontWeight.bold),
+      Expanded(
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.bold),
+        ),
       ),
     ],
   );
@@ -231,6 +242,7 @@ class _ActionItemCard extends StatelessWidget {
               PersianMoneyText.amount(
                 details.amountMinorUnits!,
                 details.currency ?? '',
+                unit: MoneyUnitScope.of(context),
               ),
             if (details.accountName != null) 'حساب: ${details.accountName}',
             if (details.description != null) details.description!,

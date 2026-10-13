@@ -1,6 +1,7 @@
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/finance/domain/account_identifiers.dart';
 
 enum FinancialAccountType { bank, cash, digitalWallet, credit }
 
@@ -66,6 +67,7 @@ class FinancialAccount {
     required this.currency,
     required this.type,
     this.bank,
+    this.identifiers = AccountIdentifiers.empty,
     this.status = FinancialAccountStatus.active,
   }) {
     if (name.trim().isEmpty || currency.trim().isEmpty) {
@@ -77,7 +79,14 @@ class FinancialAccount {
   final String currency;
   final FinancialAccountType type;
   final IranianBank? bank;
+  final AccountIdentifiers identifiers;
   final FinancialAccountStatus status;
+
+  bool sameEditableFields(FinancialAccount other) =>
+      name == other.name &&
+      type == other.type &&
+      bank == other.bank &&
+      identifiers == other.identifiers;
 
   FinancialAccount archive() => FinancialAccount(
     id: id,
@@ -85,6 +94,7 @@ class FinancialAccount {
     currency: currency,
     type: type,
     bank: bank,
+    identifiers: identifiers,
     status: FinancialAccountStatus.archived,
   );
 
@@ -94,6 +104,7 @@ class FinancialAccount {
     currency: currency,
     type: type,
     bank: bank,
+    identifiers: identifiers,
     status: FinancialAccountStatus.active,
   );
 
@@ -107,6 +118,7 @@ class FinancialAccount {
     currency: currency,
     type: type ?? this.type,
     bank: bank ?? this.bank,
+    identifiers: identifiers,
     status: status,
   );
 }

@@ -30,9 +30,13 @@ Read the certificate fingerprint with `keytool -list -v -keystore path/to/planac
 
 Update `pubspec.yaml` to the intended `X.Y.Z+N` version, commit that change, and push it to `master`. In GitHub, open **Actions → Release Android → Run workflow**, select `master`, and enter `X.Y.Z` without the `v` prefix or `+N` suffix. Do not create or push the tag beforehand: the workflow rejects existing tags/releases and creates `vX.Y.Z` only after validation and signed APK verification succeed. Pushing a tag alone does not trigger this workflow.
 
-The current release target is `0.1.14+7`: a patch release for behavior-preserving cleanup and regression coverage. Enter `0.1.14` in the workflow; the resulting tag is `v0.1.14`.
+The current release target is `0.1.15+8`, including long-term hybrid commitment previews and explicit preparation. Enter `0.1.15` in the workflow; the resulting tag is `v0.1.15`. See [candidate acceptance and remaining blockers](releases/0.1.15.md).
 
-The workflow checks the requested version against `pubspec.yaml` and uses it as Android `versionName`. Local builds default to the pubspec build suffix (`7` for this release), while published APKs override it with the release workflow's GitHub Actions run number as `versionCode`. Re-running a workflow run retains its number; a new run of the same workflow receives a higher number. Keep this numbering scheme and workflow identity stable, and verify that a release run number exceeds the versionCode of any previously distributed APK; the local suffix is not proof of that ordering. All universal and ABI-split release APKs use the same versionCode.
+Before dispatch, create the `android-release` GitHub environment with at least one independent required reviewer and **Prevent self-review** enabled. The workflow reads its protection configuration and fails closed if absent, inaccessible or incomplete. Ensure the repository plan supports required reviewers; do not remove the check to work around an unsupported plan. Do not enable administrator bypass of approval.
+
+The build job checks out the immutable dispatch commit, validates and signs the APKs, then uploads `PlanAct-vX.Y.Z-candidate-RUN_ID` for 30 days. Download that artifact and perform required acceptance on those exact APKs. Record the commit, run ID, versionCode and checksums from `BUILD-IDENTITY.txt` and `SHA256SUMS.txt`. Only after independent review and all mandatory product/native gates are satisfied, approve the waiting `android-release` deployment. The publication job downloads the same artifact, verifies its identity and APK checksums, and creates the release/tag targeting the exact commit without rebuilding. Rejection or cancellation prevents publication. A changed commit requires a new run and new acceptance.
+
+The workflow checks the requested version against `pubspec.yaml` and uses it as Android `versionName`. Local builds default to the pubspec build suffix (`8` for this release), while published APKs override it with the release workflow's GitHub Actions run number as `versionCode`. Re-running a workflow run retains its number; a new run of the same workflow receives a higher number. Keep this numbering scheme and workflow identity stable, and verify that a release run number exceeds the versionCode of any previously distributed APK; the local suffix is not proof of that ordering. All universal and ABI-split release APKs use the same versionCode.
 
 Flutter is pinned to 3.47.5 (Dart 3.13.4) in both CI and release workflows, matching the application's Dart SDK constraint. Shared validation resolves dependencies with the checked-in lockfile, checks formatting, runs analyze and tests, and builds a release App Bundle. CI uses an ephemeral signing key; the release workflow uses the production key and additionally builds Universal and ABI-split APKs, validates them, and generates SHA-256 checksums. Android R8 minification and resource shrinking are enabled for release builds; Flutter Dart obfuscation is also enabled for the release APKs. Universal and split builds write to separate symbol directories. Their symbol files are encrypted with the CI-only passphrase and retained as a 90-day Actions artifact, not attached to the public Release.
 
@@ -42,6 +46,7 @@ Release assets:
 - `PlanAct-vX.Y.Z-arm64-v8a.apk`: most current Android phones.
 - `PlanAct-vX.Y.Z-armeabi-v7a.apk`: older 32-bit ARM devices.
 - `PlanAct-vX.Y.Z-x86_64.apk`: primarily emulators and specialized x86 devices.
+- `SHA256SUMS.txt`, `SIGNING-CERTIFICATE-SHA256.txt` and `BUILD-IDENTITY.txt`: APK integrity, signing identity and immutable source/build provenance.
 
 After downloading the APKs and checksum file into the same folder, verify them with `sha256sum -c SHA256SUMS.txt`.
 

@@ -100,7 +100,7 @@ void main() {
     await tester.tap(find.text('جزئیات و ویرایش'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'تغییر');
-    await tester.pageBack();
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(find.text('تغییرات ذخیره نشده'), findsOneWidget);
     expect((await repository.findById(commitment.id))!.title, 'تعهد');

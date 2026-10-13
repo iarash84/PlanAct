@@ -152,6 +152,8 @@ Allowed entry concepts include:
 
 Never maintain a second independent mutable “remaining sessions” counter as a source of truth. A cached value is allowed only if it is rebuildable and verified against the ledger.
 
+Independent correction checkpoint: count termination and package credit are separate preview/confirmation commands. Signed Adjustment units correct granted credit, never consumption; other ledger concepts retain positive units and persisted enum indices stay stable. Fresh transactional writer admission, protected history, append-only audit and post-commit reminder reconciliation are required. The bounded experimental Details path is Partial, with older-reader compatibility and independent acceptance gates recorded in [correction verification](docs/COMMITMENT_CORRECTION_VERIFICATION.md); schema compatibility alone does not prove semantic downgrade safety.
+
 ### 6.5 Financial balance is ledger-based
 
 Financial accounts include bank accounts, cash wallets, digital wallets, and potentially credit accounts later.
@@ -191,6 +193,10 @@ Time semantics must distinguish:
 Do not convert date-only values to midnight UTC as a storage shortcut.
 
 Month-end, leap-year, DST, timezone changes, holidays, pauses, conflicts, and schedule changes are explicit edge cases, not afterthoughts.
+
+Monthly/yearly recurrence must persist its reference calendar and original day/month anchors independently of display conversion. The user-approved 2026-10-10 missing-day policy clamps to the last day of the same target month without changing the original anchor (Jalali Esfand 30 returns in leap years). Never implement annual recurrence by adding a fixed number of days. Legacy rules without calendar metadata retain their original Gregorian semantics; do not silently reinterpret them or repair saved dates/history. Bounded rolling materialization is an explicit startup/resume application command, not a read-side effect. Production generation must read fresh state transactionally, respect effective schedule-version boundaries and insert new logical slots without updating occupied manual/resolved/historical rows; reminder and financial generation intent must commit with those new rows. See docs/MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md for evidence and unresolved acceptance gates.
+
+Long-term hybrid scheduling (user-approved 2026-10-12): count and inclusive end-date termination are durable rules independent of operational generation horizons (including legacy 90 days). Counts count logical recurrence slots, not persisted, completed or active rows. Details and Calendar may read bounded future previews alongside recorded history, without writes, fake occurrence IDs or automatic notification/financial/session effects. Only explicit preparation admits a real occurrence: acquire transactional writer admission, re-read active owner/cycle, versions, exact metadata/templates and original/current occupancy, reject stale/past/ambiguous slots, then insert occurrence and dependent reminder/financial intent atomically. Delivery remains post-commit. Preview must preserve legacy calendars, anchors, historical statuses and count phase; occupied manual/resolved rows suppress duplicates. No past backfill or silent history repair is authorized; missed past materialization remains an unresolved explicit recovery decision. See [hybrid ADR](docs/adr/0019-long-term-hybrid-commitments.md) and [verification](docs/MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md).
 
 ## 8. Session-policy rules
 
@@ -304,6 +310,12 @@ These conventions operationalize the roadmap and exist to keep AI-generated chan
 
 At minimum, each completed feature must include relevant tests at the lowest effective layer.
 
+Derive expected behavior from approved product acceptance criteria, not from the implementation under test. Explicitly challenge assumptions about display versus recurrence calendars, currency/storage units, termination and generation horizons, correction versus deletion, and commit versus platform-delivery outcomes where relevant. A test that reproduces an implementation assumption is not independent evidence of product correctness.
+
+Match evidence to the claim: domain tests prove calculations; production database round-trips and cold reopen prove durability; route-level widget journeys prove navigation and refresh behavior; isolated native/device checks prove platform behavior. For scale or layout claims, use realistic data volumes, a stated reference-device performance budget, narrow screens and large text as applicable. Passing test counts or a successful build do not substitute for missing journey or native evidence.
+
+Significant defect fixes must add regression coverage at the lowest effective layer and identify which acceptance criterion or missing check allowed the defect to escape. Keep this process note brief and actionable; do not expand the fix into unrelated refactoring.
+
 - Domain unit tests: state machines, recurrence, session policy, entitlement folding, money math, reconciliation.
 - Repository/database tests: constraints, transactions, migrations, indexes where meaningful.
 - Scenario tests: language/music/swimming classes, monthly bill, bank↔wallet transfer, partial payment, restore.
@@ -336,6 +348,11 @@ Before marking a task complete, verify:
 - No sensitive data is newly logged.
 - Code is formatted/analyzed according to repository tooling.
 - Documentation/ADR is updated if a durable architecture decision was made.
+- The acceptance contract in Section 17 is satisfied by evidence for the actual entry path and affected consumers, not only isolated components.
+- Implementation status, verification status, missing evidence and release blockers are reported separately using the PRD readiness definitions.
+- Material open gaps have an owner, next action and explicit exposure/release decision in the existing verification record or PR; documentation alone does not make an incomplete capability ready.
+
+A completed infrastructure task is not a completed user capability. Required failed or unexecuted acceptance checks prevent claiming the affected capability ready for release. Review and release acceptance follow [the development workflow](docs/development-workflow.md); CI health and product readiness are separate gates.
 
 ## 17. How an AI coding agent must work
 
@@ -343,7 +360,7 @@ For every prompt:
 
 1. Read this file and the task-specific prompt; also read `docs/product/PRD.md` for product behavior changes and `docs/DESIGN_SYSTEM.md` before meaningful UI/design-system work.
 2. Inspect the existing repository before proposing structure.
-3. State the minimum implementation plan internally and keep the code change focused.
+3. Before a meaningful behavior change, record the concise acceptance contract below and trace the existing user path; then state the minimum implementation plan and keep the code change focused.
 4. Reuse existing conventions and dependencies.
 5. Implement only the current task and prerequisites explicitly allowed by the prompt.
 6. Add tests before or alongside business logic.
@@ -355,7 +372,23 @@ For every prompt:
    - domain decisions made,
    - migrations/dependencies added,
    - tests run and result,
-   - known limitations / next task.
+   - known limitations / next task,
+   - acceptance evidence, unexecuted checks and release-blocking gaps, separately from implemented scope.
+
+### Acceptance contract and bounded delivery
+
+For meaningful feature or behavior changes, put a short acceptance contract in the task/PR or existing feature verification document before implementation. It must state:
+
+- the user outcome, actual entry route and prerequisites (including permissions/accounts when relevant);
+- observable success criteria, failure/cancellation/retry behavior and correction/Undo where applicable;
+- durable state and restart, migration, backup/restore or platform implications where applicable;
+- affected downstream surfaces, explicit scope/non-goals and evidence required for acceptance.
+
+Trace **user action → application command → domain rule → durable write → UI refresh → related consumers** before changing that path. Deliver the smallest complete vertical slice within approved scope; narrow the capability, not its required error, durability or confirmation guarantees. Explicitly scoped infrastructure work is allowed but must be labeled foundation, not user-ready. Do not broaden a task to close every existing gap; identify unmet prerequisites and stop or report partial status when completion requires an unapproved decision.
+
+Acceptance review must be separate from implementation and compare the contract with observable evidence, including plausible counterexamples, rather than repeat the agent's completion claim. An agent's self-review is useful but is not independent release sign-off; missing independent review must be reported. The workflow defines the review/evidence record without requiring duplicated feature documentation.
+
+Apply this proportionally: typo-only/documentation-only changes need consistency/link/diff checks, not artificial device journeys; behavior-neutral refactors need relevant regression evidence. This exception does not waive any applicable existing data-integrity or native release gate.
 
 ## 18. Explicitly prohibited shortcuts
 
@@ -754,7 +787,7 @@ Always verify:
 
 Do not make interactive elements artificially small for visual compactness.
 
-For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The explicitly requested Calendar Month-page fit-to-screen grid is a narrow exception to minimum target width when seven 48dp columns cannot fit: keep all seven RTL columns visible, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Other controls and the modal date picker retain the standard target requirement.
+For visual and interaction expectations, use the measurable requirements in `docs/DESIGN_SYSTEM.md`, including its minimum touch target and contrast guidance. Do not fix overflow by shrinking text or disabling text scaling. The user-approved 2026-10-11 dense-calendar exception applies to Calendar Month and the shared modal date picker when seven 48dp columns cannot fit: keep all seven RTL columns visible without horizontal scrolling, at least 48dp target height, non-overlapping hit regions, full Persian semantics and text-scale-aware height. Use distinct compact weekday labels with full-name semantics when needed. Picker day taps stage selection; explicit confirmation returns the date, with overlapping holiday reasons below the grid and expandable provenance. Other controls and Week retain standard targets. Visual icon size is not hit-target size; do not inflate each day with independent information controls.
 
 ---
 
@@ -833,7 +866,7 @@ Tests must validate behavior, not merely implementation details.
 
 In-memory tests are not sufficient proof of persistence behavior.
 
-After meaningful changes run:
+After meaningful code changes run:
 
 * `dart format`
 * `flutter analyze`
@@ -842,6 +875,44 @@ After meaningful changes run:
 
 Do not report a task as complete when analysis or relevant tests fail.
 
+
+## SMS bounded consent safeguards
+
+SMS permission is not historical-import consent. Inbox requires explicit bounded
+recent-range or new-only selection; navigation, refresh, lifecycle and broadcasts
+must not start a scan without an explicit ingestion action. Source queries must
+bound dates and page in stable timestamp/row-ID order off the native UI thread.
+Persist consent, fixed scan horizon and resumable progress; checkpoint only safely
+handled rows/pages, preserve resolved suggestions and replay interrupted pages
+idempotently. Resume/Retry is explicit after restart/restore. No permanent native
+service is implied. Native provider compatibility, delayed insertions, permission
+revocation and reference-device responsiveness require independent device evidence.
+Existing global fingerprint identity limitations are not proof of lossless imports.
+See [SMS verification](docs/SMS_VERIFICATION.md).
+
+## Inbox review safeguards
+
+Unconfirmed suggestions may be explicitly rejected and reopened for review;
+confirmed suggestions require the existing Finance correction/reversal path,
+never Inbox deletion or recovery. Production review commands compare fresh durable
+status and monotonic per-item revision transactionally and append decision history.
+Recovery reopens the same draft without restoring expired raw SMS or reversing any
+ledger entry. Rescan preserves the latest decision. Versioned per-item metadata in
+schema_metadata preserves parser bank/direction/quality, receipt evidence and date
+origin through personal backup; missing legacy metadata means unknown, not inferred
+values or rewritten dates. Receipt fallback dates must be visibly proposed before
+financial confirmation. Review pending/error/retry belongs to the item, not a global
+queue lock; refresh must retain browsing/form context and discard stale results.
+Original SMS extraction is immutable and separate from reviewed snapshots, including
+partial source date/time, amount/unit, balance and transfer evidence. Explicit edits
+append complete reviewed snapshots; confirmation validates fresh durable exact IRR
+amount/unit consistency transactionally. Missing date/time must not become extracted
+midnight or receipt evidence; receipt/unknown timestamps require visible explicit
+acknowledgement, and timestamp corrections retain reviewer provenance. Original
+transfer evidence blocks income/expense writes even after direction edits; guide the
+user to Finance transfer instead. Additive metadata and appended enum values are not
+proof of semantic downgrade safety; older binaries must not be approved to write these
+new drafts without compatibility acceptance. See [SMS verification](docs/SMS_VERIFICATION.md).
 
 ## Offline Iranian holiday safeguards
 
@@ -857,7 +928,7 @@ Domain commits and external platform delivery are separate outcomes. Do not repo
 
 ## Production backup verification status
 
-The production adapter decisions and unresolved release gates are recorded in docs/adr/0013-production-backup-restore.md and the PRD implementation-status note. Do not describe installation-bound encrypted exports as portable device-loss recovery. Do not weaken isolated schema validation to bypass migrated-schema incompatibility without tested compatibility rules. Backup integration must prove in-flight command exclusion, repository/listener rebind, full logical-state preservation, and isolated native platform behavior before release.
+The production adapter decisions and unresolved release gates are recorded in docs/adr/0013-production-backup-restore.md, docs/adr/0018-independent-recovery-key-backups.md and the PRD implementation-status note. Each new production export must generate a fresh independent CSPRNG 256-bit recovery key using the existing reputable cryptography library, display Persian separate-storage and unrecoverable-loss warnings, and require acknowledgement in that export before saving. Never log or persist the recovery key or write a plaintext sidecar. Format 2 restores offline with file plus user key, without old installation data. Legacy format 1 stays installation-key-only with explicit compatibility warning; do not silently rewrite it or provision a replacement key on import. Do not claim device-loss readiness without isolated fresh-install native evidence and independent acceptance review. Do not weaken isolated schema validation to bypass migrated-schema incompatibility without tested compatibility rules. Backup integration must prove in-flight command exclusion, repository/listener rebind, full logical-state preservation, and isolated native platform behavior before release.
 
 ## Independent holiday package safeguards
 
@@ -866,3 +937,12 @@ Annual packages use explicit first-publisher fingerprint approval and pinned Ed2
 ## Calendar Week safeguards
 
 The month fit-to-screen touch-width exception applies only to Month, never Week. The user-approved 2026-10-07 Week redesign supersedes horizontal phone scrolling: use a single vertical Saturday–Friday agenda with pinned day headings, readable wrapping rows, the shared commitment identity marker, actual status text/icons and standard 48dp targets. No phone horizontal day scrolling or blank 24-hour grid. Open the current week at today with earlier days accessible above; other weeks start Saturday. Keep compact empty days, whole-week empty/add, loading/retry, holidays/overlapping reasons/incomplete coverage and existing navigation/details/reminder flows. Retain the timeline automatically only when actual available width accommodates all seven readable day/lane columns at the current text scale; otherwise use the agenda, without new settings. Recorded LocalDate occurrences are all-day; recorded DateTime occurrences are point starts. Equal starts do not prove conflicts. Do not fabricate ends/durations or persist visual card footprints. Optional explicit interval/midnight layout inputs are pure synthetic seams, not parallel event storage. Identity palette colors remain independent of actual status text/icons. Bounded durable Week reads must respect local/date/instant serialization, preserve every historical status, and never generate or mutate schedules. Existing Today eager plan reads are not eliminated by this scoped Calendar change.
+
+## Iranian currency presentation safeguards
+
+Canonical new Iranian monetary data uses integer IRR. Rial/toman is a durable display/input preference (rial by default), not a currency migration or FX operation. Shared exact signed integer conversion must preserve tenth-toman remainders and reject excess precision/overflow without rounding. Root preference propagation covers pushed and modal routes; manual forms pin an explicitly labelled unit until closed. Failed preference writes retain the previous effective unit. Legacy/non-IRR amounts and currency identifiers must not be silently converted. SMS amount evidence and explicit selection are independent of Settings; ambiguous new drafts cannot enter the ledger. Preference and evidence must survive cold reopen and personal backup/restore. See [currency verification](docs/CURRENCY_UNIFICATION_VERIFICATION.md) for evidence and native/independent acceptance gates.
+
+
+## Financial account metadata safeguards
+
+Optional card/IR IBAN/account identifiers are validated strings normalized through the shared Persian digit formatter, preserving leading zeros; missing values never block otherwise valid creation. Bank and account type remain explicit, never inferred from names or arbitrary numbers. No PIN/CVV/password fields. Account metadata editing must compare original editable fields with fresh durable state transactionally, update only those fields, retain fresh status/currency and leave ledger/history/matches untouched. Archive/restore must not replay stale editable snapshots. Identifiers are masked by default in cards/forms and remasked on background; reveal and clipboard copy require explicit actions, with a separate clipboard privacy confirmation and Persian failure feedback. Masking is not encryption or clipboard control. Versioned account metadata must preserve legacy-empty defaults, cold reopen and strict backup compatibility; schema compatibility does not approve older writers. Native privacy and independent acceptance remain separate gates in [ACCOUNT verification](docs/ACCOUNT_BRAND_VERIFICATION.md).

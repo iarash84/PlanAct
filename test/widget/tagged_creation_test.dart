@@ -70,6 +70,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('capture-date-1')));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید تاریخ'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('انتخاب زمان'));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(TextButton).last);
@@ -197,6 +199,12 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.byType(DraftTagPicker), findsOneWidget);
+          await tester.tap(
+            find.byType(DropdownButtonFormField<FinancialAccount>),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('نقد').last);
+          await tester.pumpAndSettle();
           await tester.enterText(
             find.widgetWithText(TextField, 'مبلغ به ریال'),
             '100',

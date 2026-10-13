@@ -24,6 +24,56 @@ class _RetryFinanceRepository extends InMemoryFinanceRepository {
 }
 
 void main() {
+  testWidgets(
+    'manual draft survives account creation and still requires selection',
+    (tester) async {
+      final repository = InMemoryFinanceRepository();
+      final key = GlobalKey<FinancePageState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: FinancePage(key: key, repository: repository),
+        ),
+      );
+      await tester.pumpAndSettle();
+      key.currentState!.openTransactionForm(income: false);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('برای ثبت، حساب بسازید'), findsOneWidget);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'مبلغ به ریال'),
+        '500',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'شرح هزینه'),
+        'پیش‌نویس',
+      );
+      await tester.tap(find.text('ساخت حساب'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'نام حساب'),
+        'حساب تازه',
+      );
+      await tester.tap(find.text('افزودن').last);
+      await tester.pumpAndSettle();
+      expect(find.text('500'), findsOneWidget);
+      expect(find.text('پیش‌نویس'), findsOneWidget);
+      await tester.tap(find.text('ثبت'));
+      await tester.pumpAndSettle();
+      expect(find.text('حساب مالی را انتخاب کنید.'), findsOneWidget);
+      expect(await repository.listEntries(), isEmpty);
+      await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('حساب تازه').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('ثبت'));
+      await tester.tap(find.text('ثبت'));
+      await tester.pumpAndSettle();
+      final entries = await repository.listEntries();
+      expect(entries, hasLength(1));
+      expect(entries.single.amount.minorUnits, 500);
+      expect(entries.single.note, 'پیش‌نویس');
+    },
+  );
+
   testWidgets('failed write retains transaction draft and retry writes once', (
     tester,
   ) async {
@@ -44,6 +94,14 @@ void main() {
     );
     await tester.pumpAndSettle();
     key.currentState!.openTransactionForm(income: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ثبت'));
+    await tester.pumpAndSettle();
+    expect(find.text('حساب مالی را انتخاب کنید.'), findsOneWidget);
+    expect(repository.attempts, 0);
+    await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حساب آزمایشی').last);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextField, 'مبلغ به ریال'),
@@ -85,6 +143,10 @@ void main() {
     );
     await tester.pumpAndSettle();
     key.currentState!.openTransactionForm(income: true);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حساب آزمایشی').last);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextField, 'مبلغ به ریال'),

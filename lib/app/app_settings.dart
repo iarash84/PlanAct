@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/core/money/iranian_money_unit.dart';
 import 'package:planact/core/database/app_database.dart';
 
 class AppSettings {
@@ -6,6 +7,14 @@ class AppSettings {
   final AppDatabase database;
   static const _themeKey = 'theme_mode';
   static const _appLockKey = 'app_lock_enabled';
+
+  Future<IranianMoneyUnit> readMoneyUnit() async =>
+      await database.readMetadata('iranian_money_unit_v1') == 'toman'
+      ? IranianMoneyUnit.toman
+      : IranianMoneyUnit.rial;
+
+  Future<void> writeMoneyUnit(IranianMoneyUnit unit) =>
+      database.writeMetadata('iranian_money_unit_v1', unit.name);
 
   Future<ThemeMode> readThemeMode() async {
     final value = await database.readMetadata(_themeKey);
