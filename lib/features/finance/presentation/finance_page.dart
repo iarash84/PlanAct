@@ -56,7 +56,7 @@ class _AccountCreationRouteState extends State<_AccountCreationRoute> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('حساب‌های مالی')),
-    body: FinancePage(key: _key, repository: widget.repository),
+    body: FinancePage(key: _key, repository: widget.repository, embedded: true),
   );
 }
 
@@ -69,6 +69,7 @@ class FinancePage extends StatefulWidget {
     this.onTagsChanged,
     this.onDataChanged,
     this.onDetermineRelationship,
+    this.embedded = false,
   });
 
   final Future<void> Function(StableId transactionId)? onDetermineRelationship;
@@ -76,6 +77,7 @@ class FinancePage extends StatefulWidget {
   final Future<void> Function()? onTagsChanged;
   final Future<void> Function()? onDataChanged;
   final FinanceRepository repository;
+  final bool embedded;
   final FinancialExpectationRepository? expectationRepository;
 
   @override
@@ -601,7 +603,7 @@ class FinancePageState extends State<FinancePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('مالی')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('مالی')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : !_hasLoaded

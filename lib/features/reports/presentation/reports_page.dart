@@ -5,6 +5,7 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
@@ -464,6 +465,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 const SizedBox(height: PlanActSpacing.md),
                 Wrap(
                   spacing: PlanActSpacing.sm,
+                  runSpacing: PlanActSpacing.xs,
                   children: [
                     for (final p in [
                       'امروز',
@@ -478,8 +480,10 @@ class _ReportsPageState extends State<ReportsPage> {
                       ),
                   ],
                 ),
+                const SizedBox(height: PlanActSpacing.sm),
                 Wrap(
                   spacing: PlanActSpacing.sm,
+                  runSpacing: PlanActSpacing.sm,
                   children: [
                     OutlinedButton(
                       onPressed: _loading ? null : () => _pickDate(true),
@@ -491,15 +495,26 @@ class _ReportsPageState extends State<ReportsPage> {
                     ),
                   ],
                 ),
-                const Text(
+                const SizedBox(height: PlanActSpacing.sm),
+                Text(
                   'فقط داده‌های ثبت‌شده روی این دستگاه؛ پایان بازه شامل تمام روز است.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-                if (_loading) const LinearProgressIndicator(),
+                const SizedBox(height: PlanActSpacing.md),
+                SizedBox(
+                  height: PlanActSpacing.xs,
+                  child: _loading ? const LinearProgressIndicator() : null,
+                ),
                 if (_error != null) ...[
-                  Text(_error!),
-                  TextButton(
-                    onPressed: _load,
-                    child: const Text('تلاش دوباره'),
+                  PlanActStateMessage(
+                    message: _error!,
+                    isError: true,
+                    action: TextButton(
+                      onPressed: _load,
+                      child: const Text('تلاش دوباره'),
+                    ),
                   ),
                 ],
                 if (data != null && _error == null) ...[

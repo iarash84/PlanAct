@@ -7,6 +7,7 @@ import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
@@ -73,11 +74,13 @@ class TodayPage extends StatelessWidget {
             label: const Text('صف بررسی ارتباط تراکنش‌ها'),
           ),
         if (error != null)
-          Column(
-            children: [
-              Text(error!),
-              TextButton(onPressed: onRetry, child: const Text('تلاش دوباره')),
-            ],
+          PlanActStateMessage(
+            message: error!,
+            isError: true,
+            action: TextButton(
+              onPressed: onRetry,
+              child: const Text('تلاش دوباره'),
+            ),
           )
         else if (center == null)
           const Center(child: CircularProgressIndicator())
@@ -210,6 +213,7 @@ class _AttentionGroups extends StatelessWidget {
                 for (final item in entries[index].value)
                   _ActionItemCard(
                     item: item,
+                    grouped: true,
                     onOpen: onOpen,
                     onReview: () => onReview(item),
                   ),
@@ -226,11 +230,13 @@ class _ActionItemCard extends StatelessWidget {
     required this.item,
     required this.onOpen,
     required this.onReview,
+    this.grouped = false,
   });
 
   final TodayActionItem item;
   final ValueChanged<Commitment> onOpen;
   final VoidCallback onReview;
+  final bool grouped;
 
   @override
   Widget build(BuildContext context) {
@@ -247,47 +253,46 @@ class _ActionItemCard extends StatelessWidget {
             if (details.accountName != null) 'حساب: ${details.accountName}',
             if (details.description != null) details.description!,
           ];
-    return Card(
-      child: ListTile(
-        leading: item.commitment != null
-            ? CommitmentIdentityMarker(
-                key: ValueKey('today-identity-${item.id}'),
-                commitment: item.commitment!,
-                icon: item.type == TodayActionItemType.occurrence
-                    ? Icons.event_available
-                    : Icons.priority_high,
-              )
-            : Icon(
-                item.type == TodayActionItemType.occurrence
-                    ? Icons.event_available
-                    : Icons.priority_high,
-              ),
-        title: Text(item.title),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              [
-                item.subtitle,
-                if (financial.isNotEmpty) financial.first,
-              ].join(' · '),
+    final row = ListTile(
+      leading: item.commitment != null
+          ? CommitmentIdentityMarker(
+              key: ValueKey('today-identity-${item.id}'),
+              commitment: item.commitment!,
+              icon: item.type == TodayActionItemType.occurrence
+                  ? Icons.event_available
+                  : Icons.priority_high,
+            )
+          : Icon(
+              item.type == TodayActionItemType.occurrence
+                  ? Icons.event_available
+                  : Icons.priority_high,
             ),
-            if (item.commitment case final Commitment commitment)
-              TagLabels(labels: commitment.tags),
-          ],
-        ),
-        trailing: TextButton(
-          onPressed: item.commitment == null
-              ? onReview
-              : () => onOpen(item.commitment!),
-          child: Text(
-            item.type == TodayActionItemType.occurrence
-                ? 'تعیین وضعیت'
-                : item.actionLabel,
+      title: Text(item.title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            [
+              item.subtitle,
+              if (financial.isNotEmpty) financial.first,
+            ].join(' · '),
           ),
+          if (item.commitment case final Commitment commitment)
+            TagLabels(labels: commitment.tags),
+        ],
+      ),
+      trailing: TextButton(
+        onPressed: item.commitment == null
+            ? onReview
+            : () => onOpen(item.commitment!),
+        child: Text(
+          item.type == TodayActionItemType.occurrence
+              ? 'تعیین وضعیت'
+              : item.actionLabel,
         ),
       ),
     );
+    return grouped ? row : Card(child: row);
   }
 }
 
@@ -297,16 +302,12 @@ class _EmptyState extends StatelessWidget {
   final VoidCallback onAdd;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text('همه‌چیز مرتب است؛ موردی نیاز به توجه ندارد.'),
-      const SizedBox(height: PlanActSpacing.sm),
-      OutlinedButton.icon(
-        onPressed: onAdd,
-        icon: const Icon(Icons.add),
-        label: const Text('ثبت تعهد جدید'),
-      ),
-    ],
+  Widget build(BuildContext context) => PlanActStateMessage(
+    message: 'همه‌چیز مرتب است؛ موردی نیاز به توجه ندارد.',
+    action: OutlinedButton.icon(
+      onPressed: onAdd,
+      icon: const Icon(Icons.add),
+      label: const Text('ثبت تعهد جدید'),
+    ),
   );
 }

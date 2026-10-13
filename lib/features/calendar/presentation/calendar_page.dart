@@ -665,6 +665,10 @@ class _CalendarDay extends StatelessWidget {
       onTap: onTap,
       child: ExcludeSemantics(
         child: Material(
+          animationDuration: PlanActMotion.duration(
+            context,
+            PlanActMotion.short,
+          ),
           color: selected ? scheme.primaryContainer : scheme.surface,
           borderRadius: PlanActRadius.chip,
           child: InkWell(

@@ -1125,6 +1125,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       FinancePage(
         key: _financePageKey,
+        embedded: true,
         repository: _financeRepository,
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
@@ -1161,16 +1162,27 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final titles = ['امروز', 'تقویم', 'مدیریت مالی', 'بیشتر'];
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_selectedIndex]),
+        title: AnimatedSwitcher(
+          duration: PlanActMotion.duration(context, PlanActMotion.short),
+          switchInCurve: PlanActMotion.curve,
+          switchOutCurve: PlanActMotion.curve,
+          child: Text(titles[_selectedIndex], key: ValueKey(_selectedIndex)),
+        ),
         actions: [
           PopupMenuButton<_AppMenuAction>(
             tooltip: 'گزینه‌های بیشتر',
             icon: const Icon(Icons.more_horiz),
+            position: PopupMenuPosition.under,
+            requestFocus: true,
             onSelected: (action) {
               if (action == _AppMenuAction.addCommitment) {
                 _showCapture();
               } else if (action == _AppMenuAction.timeline) {
                 _showTimeline();
+              } else if (action == _AppMenuAction.reports) {
+                _openReports();
+              } else if (action == _AppMenuAction.inbox) {
+                _openInbox();
               }
             },
             itemBuilder: (context) => const [
@@ -1187,6 +1199,23 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 child: ListTile(
                   leading: Icon(Icons.timeline),
                   title: Text('خط زمانی تعهدات'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: _AppMenuAction.reports,
+                child: ListTile(
+                  leading: Icon(Icons.bar_chart_outlined),
+                  title: Text('گزارش‌ها'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: _AppMenuAction.inbox,
+                child: ListTile(
+                  leading: Icon(Icons.inbox_outlined),
+                  title: Text('صندوق ورودی'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -1284,7 +1313,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 }
 
-enum _AppMenuAction { addCommitment, timeline }
+enum _AppMenuAction { addCommitment, timeline, reports, inbox }
 
 class CommitmentDetailsPage extends StatefulWidget {
   const CommitmentDetailsPage({

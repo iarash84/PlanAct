@@ -1,5 +1,72 @@
 # UI design-system migration checkpoint — 2026-10-06
 
+## Presentation polish — acceptance contract (2026-10-13)
+
+User outcome: clearer navigation and calmer presentation with the existing brand,
+Persian RTL, domain actions and durable state preserved. Entry paths: root AppBar
+menu, Today, embedded/standalone Finance, Reports, Calendar and shared form sheets.
+The upper menu must retain creation/timeline and open the existing Reports/Inbox
+routes without creating records or starting SMS ingestion. Finance has one header
+when embedded and retains its header when standalone. Today groups retain every
+action without nested card surfaces. Reports keeps its current filters, date and
+read semantics while grouping controls. Loading/error/empty remain distinct;
+retry/cancel/save guarantees remain unchanged. Motion uses existing tokens and
+honors disableAnimations, without delaying commands or remounting drafts.
+
+No schema, dependency, palette, font, default, ledger, notification or backup change.
+Evidence required: actual menu navigation, existing affected widget journeys,
+narrow RTL Light/Dark large-text/reduced-motion checks, analyzer and full tests.
+Native visual/TalkBack/profile evidence and independent acceptance remain separate
+unexecuted release checks owned by the maintainer. Existing platform/data gates
+remain in force. Implementation and test results will be recorded below.
+
+### Presentation polish implementation and coverage
+
+Trace: root menu → existing `_openReports` / `_openInbox` → unchanged readers,
+review commands and repositories → existing route refresh. New shortcuts perform
+no write or scan. Finance composition only sets `embedded`; account-creation and
+root hosts own the single header, while standalone defaults remain intact.
+Today classification and action callbacks, report filters/reads, Calendar selection
+and shared-form pending/save/cancel remain owned by their original paths.
+
+| Surface | This change |
+| --- | --- |
+| Root / More | Root menu shortcuts, operation/destination divider, below-anchor placement, short title fade; More links retained. |
+| Today / attention | Plain rows inside attention grouping cards; shared inline error/empty feedback; all callbacks retained. |
+| Finance / account creation | Remove embedded duplicate headers; standalone header and ledger/filters/forms unchanged. |
+| Reports | Wrapping date-control spacing, quieter supporting copy, stable progress slot, shared error/retry feedback. |
+| Calendar Month | Short reduced-motion-aware selected-surface color transition; geometry, semantics and navigation unchanged. |
+| Shared form consumers | Animated action-content size with readable pending progress; inputs, focus, keyboard, errors and command guards retained. Includes capture, quick add, accounts, SMS editors and financial expectation forms. |
+| Details / scheduling / tags | Existing themed expansion and row treatments retained; inherits shared form action polish where applicable. No changes to correction or historical semantics. |
+| Inbox / reconciliation | Existing review panels, consent, per-item pending feedback and confirm/recovery retained; Inbox gains a root shortcut only. |
+| Settings / About / backup / holidays / reminders | Existing theme and confirmations retained; no new local styling, authentication or platform behavior. |
+| Week / date picker / startup / app lock | Existing bounded/responsive or security-specific compositions intentionally retained. No decorative entry motion or new geometry. |
+
+The four new widget cases cover upper-menu Reports/Inbox navigation and return,
+no scan/request-permission call on Inbox entry (mocked native adapter), one root
+Finance header, standalone Finance header, and 320dp/2x RTL Light/Dark menu with
+disabled animations. Existing affected tests cover report kinds, Finance last-row
+access, capture retry/pending guards, shared forms/calendar and root create.
+The initial new test used an English back-tooltip helper and then lacked the SMS
+platform mock; these test-harness issues were corrected. The final new four-case
+run passed. The prior focused run passed the other 46 cases; full-suite final
+results below supersede that intermediate run. No native visual claim is made.
+
+Final verification: `flutter test --no-pub` passed **813 tests** in 4m26s;
+`flutter analyze --no-pub` found no issues. Formatting checked all eight changed
+Dart files with zero changes; `git diff --check` passed. The suite emitted debug
+warnings about multiple test database instances and a non-hit test tap; these
+were not failures and were not suppressed or used as native evidence.
+
+Implementation is complete for the bounded presentation changes above. Automated
+verification passed. Self-review checked menu cancellation/return, native scan
+consent, single-header hosting, unchanged callbacks, pending form guards, and
+reduced-motion final state against the contract. Independent review, physical
+device visual/TalkBack/keyboard and profile-frame checks were not executed;
+maintainer owns those checks before release. No claim of release readiness or
+waiver of existing product release blockers is made. No domain, persistence,
+schema, migration, dependency, backup or palette change was introduced.
+
 ## Single-page commitment creation — acceptance contract (2026-10-13)
 
 - Entry: global Quick Add → Commitment and existing direct capture routes; no new permission/account prerequisite. Title and existing one-off/recurring scheduling stay visible; optional details, reminders, package credit and financial expectation expand in place. No new schedule mode or semantic default.

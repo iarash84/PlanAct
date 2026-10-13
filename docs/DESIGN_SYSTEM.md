@@ -145,6 +145,17 @@ Do not leave asynchronous failures silent and do not use color as the only state
 
 ## Motion
 
+Presentation polish (2026-10-13): the root title fades with the short shared
+duration, Calendar selection uses reduced-motion-aware Material color transitions,
+and form action labels change size smoothly without remounting input fields.
+The upper overflow menu opens below its anchor, separates operations from Reports
+and Inbox destinations, and retains the shared popup surface/shape. Embedded
+Finance omits its own AppBar; standalone Finance retains one. Today attention
+groups use plain child rows inside their grouping card. Inline Today/Reports
+feedback shares an icon/text/action pattern with live error semantics. Reports
+uses wrapping spaced date controls and reserves a small loading-indicator slot.
+Brand/status palettes, typography family and all domain actions remain unchanged.
+
 Motion is restrained and functional: it should communicate state change, continuity, hierarchy, insertion/removal, expansion, success/failure, or navigation—not decoration. Reuse the existing `PlanActMotion` tokens: short 150ms, standard 220ms, emphasis 300ms, `easeOutCubic`. Respect reduced-motion expectations and ensure the final state is correct without animation. Prefer implicit Flutter animations for simple transitions; use explicit controllers only when necessary.
 
 ## RTL

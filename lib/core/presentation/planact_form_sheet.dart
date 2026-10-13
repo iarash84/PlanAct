@@ -107,15 +107,31 @@ class PlanActFormSheet extends StatelessWidget {
                         child: FilledButton(
                           key: primaryKey,
                           onPressed: isLoading ? null : onPrimary,
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(primaryLabel),
+                          child: AnimatedSize(
+                            duration: PlanActMotion.duration(
+                              context,
+                              PlanActMotion.short,
+                            ),
+                            curve: PlanActMotion.curve,
+                            child: isLoading
+                                ? SizedBox(
+                                    height: 24,
+                                    width: 48,
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Text(primaryLabel),
+                          ),
                         ),
                       ),
                     ],
