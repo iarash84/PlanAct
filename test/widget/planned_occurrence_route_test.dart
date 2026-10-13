@@ -66,7 +66,6 @@ void main() {
         find.byKey(const ValueKey('commitment-title-field')),
         'برنامه بلندمدت',
       );
-      await _tap(tester, find.text('ادامه'));
       await _choose(
         tester,
         find.byKey(const ValueKey('commitment-kind-dropdown')),
@@ -100,7 +99,6 @@ void main() {
         find.byKey(const ValueKey('recurrence-count')),
         '۶۰',
       );
-      await _tap(tester, find.text('ادامه'));
       await _tap(tester, find.text('ثبت تعهد'));
       await _drain(tester);
       late Commitment item;

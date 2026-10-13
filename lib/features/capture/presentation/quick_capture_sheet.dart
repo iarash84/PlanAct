@@ -1,4 +1,5 @@
 import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
@@ -43,12 +44,15 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   CommitmentDraft _draft = const CommitmentDraft();
   bool _dateSelected = false;
   bool _timeSelected = false;
-  int _step = 0;
+  final _creditController = ExpansibleController();
+  final _financeController = ExpansibleController();
   String? _error;
   bool _saving = false;
 
   @override
   void dispose() {
+    _creditController.dispose();
+    _financeController.dispose();
     _title.dispose();
     _description.dispose();
     _count.dispose();
@@ -70,53 +74,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       entitlementUnits: int.tryParse(
         MoneyInputFormatter.normalize(_entitlementUnits.text.trim()),
       ),
+      clearEntitlementUnits: _entitlementUnits.text.trim().isEmpty,
       financialAmount: _moneyInput.parse(_financialAmount.text),
       clearFinancialAmount: _moneyInput.parse(_financialAmount.text) == null,
     );
   }
 
-  void _next() {
-    if (_saving) return;
-    _syncDraft();
-    final error = _step == 0
-        ? _draft.validateForStep(1)
-        : _step == 1
-        ? (!_dateSelected || !_timeSelected
-              ? 'تاریخ و زمان شروع را انتخاب کنید.'
-              : _draft.validateForStep(2) ?? _draft.validateForStep(3))
-        : _draft.validateForStep(1) ??
-              (!_dateSelected || !_timeSelected
-                  ? 'تاریخ و زمان شروع را انتخاب کنید.'
-                  : _draft.validateForStep(2)) ??
-              _draft.validateForStep(3);
-    if (error != null) {
-      setState(() => _error = error);
-      return;
-    }
-    if (_step == 2) {
-      _save();
-      return;
-    }
-    setState(() {
-      _error = null;
-      _step++;
-    });
-  }
-
-  void _back() {
-    if (_saving) return;
-    if (_step == 0) {
-      Navigator.of(context).pop();
-      return;
-    }
-    _syncDraft();
-    setState(() {
-      _error = null;
-      _step--;
-    });
-  }
-
   Future<void> _save() async {
+    if (_saving) return;
     _syncDraft();
     final error =
         _draft.validateForStep(1) ??
@@ -126,9 +91,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         _draft.validateForStep(3);
     if (error != null) {
       setState(() => _error = error);
+      if (_draft.entitlement == EntitlementDraft.fixedUnits &&
+          (_draft.entitlementUnits == null || _draft.entitlementUnits! <= 0)) {
+        _creditController.expand();
+      }
+      if (_draft.financialMeaning != CommitmentFinancialMeaning.none &&
+          (_draft.financialAmount == null || _draft.financialAmount! <= 0)) {
+        _financeController.expand();
+      }
       return;
     }
-    if (_saving) return;
     setState(() {
       _saving = true;
       _error = null;
@@ -157,7 +129,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         initialDate: _draft.startAt ?? DateTime.now(),
       ),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     final current = _draft.startAt;
     setState(() {
       _dateSelected = true;
@@ -179,7 +151,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       context: context,
       initialTime: TimeOfDay.fromDateTime(current),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     setState(() {
       _timeSelected = true;
       _draft = _draft.copyWith(
@@ -199,51 +171,124 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     return PopScope(
       canPop: !_saving,
       child: PlanActFormSheet(
-        title: const ['اصل تعهد', 'زمان‌بندی', 'مرور و ثبت'][_step],
-        primaryLabel: _step == 2 ? 'ثبت تعهد' : 'ادامه',
-        secondaryLabel: _step == 0 ? 'انصراف' : 'بازگشت',
-        onPrimary: _next,
-        onSecondary: _back,
+        title: 'افزودن تعهد',
+        primaryLabel: 'ثبت تعهد',
+        onPrimary: _save,
         isLoading: _saving,
         error: _error,
         primaryKey: const ValueKey('commitment-save-button'),
-        child: AnimatedSwitcher(
-          duration: PlanActMotion.duration(context),
-          child: KeyedSubtree(key: ValueKey(_step), child: _buildStep()),
+        child: ExcludeFocus(
+          excluding: _saving,
+          child: AbsorbPointer(
+            absorbing: _saving,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  enabled: !_saving,
+                  key: const ValueKey('commitment-title-field'),
+                  controller: _title,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'عنوان تعهد',
+                    hintText: 'مثلاً کلاس زبان',
+                  ),
+                  onChanged: (_) => setState(_syncDraft),
+                ),
+                const SizedBox(height: PlanActSpacing.lg),
+                Text(
+                  'زمان‌بندی',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: PlanActSpacing.sm),
+                _scheduleFields(),
+                const SizedBox(height: PlanActSpacing.md),
+                _section(
+                  key: 'commitment-reminders-section',
+                  title: 'یادآور',
+                  subtitle: _draft.reminderOffsets.isEmpty
+                      ? 'بدون یادآور'
+                      : _draft.reminderOffsets
+                            .map((offset) => _reminderLabel(offset.inMinutes))
+                            .join('، '),
+                  child: _reminderPicker(),
+                ),
+                _section(
+                  key: 'commitment-credit-section',
+                  title: 'اعتبار جلسات',
+                  subtitle: _draft.entitlement == EntitlementDraft.none
+                      ? 'بدون بستهٔ جلسه'
+                      : '${PersianNumbers.format(_draft.entitlementUnits ?? 0)} جلسه اعتبار',
+                  controller: _creditController,
+                  child: _entitlementFields(),
+                ),
+                _section(
+                  key: 'commitment-finance-section',
+                  title: 'اطلاعات مالی',
+                  subtitle: switch (_draft.financialMeaning) {
+                    CommitmentFinancialMeaning.none => 'بدون انتظار مالی',
+                    CommitmentFinancialMeaning.paymentRequired =>
+                      'پرداخت مورد انتظار',
+                    CommitmentFinancialMeaning.receivable =>
+                      'دریافت مورد انتظار',
+                  },
+                  controller: _financeController,
+                  child: _financialFields(),
+                ),
+                _section(
+                  key: 'commitment-details-section',
+                  title: 'جزئیات بیشتر',
+                  subtitle: 'توضیحات، اولویت، رنگ و برچسب‌ها',
+                  child: _detailFields(),
+                ),
+                const SizedBox(height: PlanActSpacing.md),
+                _summary(),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStep() => switch (_step) {
-    0 => _basicStep(),
-    1 => _scheduleStep(),
-    _ => _reviewStep(),
-  };
+  Widget _section({
+    required String key,
+    required String title,
+    required String subtitle,
+    required Widget child,
+    ExpansibleController? controller,
+  }) => ExpansionTile(
+    key: ValueKey(key),
+    controller: controller,
+    maintainState: true,
+    expansionAnimationStyle: AnimationStyle(
+      duration: PlanActMotion.duration(context),
+      curve: PlanActMotion.curve,
+    ),
+    tilePadding: EdgeInsets.zero,
+    title: Text(title),
+    subtitle: Text(subtitle),
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: child,
+      ),
+    ],
+  );
 
-  Widget _basicStep() => Column(
+  Widget _detailFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      TextFormField(
-        key: const ValueKey('commitment-title-field'),
-        controller: _title,
-        autofocus: true,
-        decoration: const InputDecoration(
-          labelText: 'عنوان تعهد',
-          hintText: 'مثلاً کلاس زبان',
-        ),
-        validator: (value) => value == null || value.trim().isEmpty
-            ? 'عنوان تعهد را وارد کنید.'
-            : null,
-      ),
-      const SizedBox(height: PlanActSpacing.md),
       TextField(
+        enabled: !_saving,
         controller: _description,
         maxLines: 2,
         decoration: const InputDecoration(labelText: 'توضیحات (اختیاری)'),
+        onChanged: (_) => setState(_syncDraft),
       ),
       const SizedBox(height: PlanActSpacing.md),
       DropdownButtonFormField<CommitmentPriority>(
+        isExpanded: true,
         initialValue: _draft.priority,
         decoration: const InputDecoration(labelText: 'اولویت'),
         items: const [
@@ -296,10 +341,11 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     ],
   );
 
-  Widget _scheduleStep() => Column(
+  Widget _scheduleFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       DropdownButtonFormField<CommitmentKind>(
+        isExpanded: true,
         key: const ValueKey('commitment-kind-dropdown'),
         initialValue: _draft.kind,
         decoration: const InputDecoration(labelText: 'نوع برنامه'),
@@ -317,31 +363,28 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             setState(() => _draft = _draft.copyWith(kind: value)),
       ),
       const SizedBox(height: PlanActSpacing.md),
-      Row(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _pickDate,
-              icon: const Icon(Icons.calendar_today_outlined),
-              label: Text(
-                !_dateSelected
-                    ? 'انتخاب تاریخ'
-                    : PersianDateFormatter.date(
-                        JalaliDate.fromDateTime(_draft.startAt!),
-                      ),
-              ),
+          OutlinedButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.calendar_today_outlined),
+            label: Text(
+              !_dateSelected
+                  ? 'انتخاب تاریخ'
+                  : PersianDateFormatter.date(
+                      JalaliDate.fromDateTime(_draft.startAt!),
+                    ),
             ),
           ),
-          const SizedBox(width: PlanActSpacing.sm),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: _pickTime,
-              icon: const Icon(Icons.schedule_outlined),
-              label: Text(
-                !_timeSelected
-                    ? 'انتخاب زمان'
-                    : TimeOfDay.fromDateTime(_draft.startAt!).format(context),
-              ),
+          const SizedBox(height: PlanActSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: _pickTime,
+            icon: const Icon(Icons.schedule_outlined),
+            label: Text(
+              !_timeSelected
+                  ? 'انتخاب زمان'
+                  : TimeOfDay.fromDateTime(_draft.startAt!).format(context),
             ),
           ),
         ],
@@ -454,11 +497,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           ),
         if (_draft.termination == RecurrenceTermination.count)
           TextField(
+            enabled: !_saving,
             key: const ValueKey('recurrence-count'),
             controller: _count,
             keyboardType: TextInputType.number,
             inputFormatters: const [MoneyInputFormatter()],
             decoration: const InputDecoration(labelText: 'تعداد نوبت‌ها'),
+            onChanged: (_) => setState(_syncDraft),
           ),
         if (_draft.termination == RecurrenceTermination.endDate)
           OutlinedButton.icon(
@@ -485,14 +530,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             ),
           ),
       ],
-      const SizedBox(height: PlanActSpacing.lg),
-      _reminderPicker(),
-      const SizedBox(height: PlanActSpacing.md),
-      ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        title: const Text('تنظیمات پیشرفته'),
-        children: [_entitlementStep()],
-      ),
     ],
   );
 
@@ -577,18 +614,19 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   static String _reminderLabel(int minutes) {
     if (minutes >= 1440 && minutes % 1440 == 0) {
       final days = minutes ~/ 1440;
-      return '$days روز قبل';
+      return '${PersianNumbers.format(days)} روز قبل';
     }
     if (minutes >= 60 && minutes % 60 == 0) {
-      return '${minutes ~/ 60} ساعت قبل';
+      return '${PersianNumbers.format(minutes ~/ 60)} ساعت قبل';
     }
-    return '$minutes دقیقه قبل';
+    return '${PersianNumbers.format(minutes)} دقیقه قبل';
   }
 
-  Widget _entitlementStep() => Column(
+  Widget _entitlementFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       DropdownButtonFormField<EntitlementDraft>(
+        isExpanded: true,
         initialValue: _draft.entitlement,
         decoration: const InputDecoration(labelText: 'اعتبار جلسه'),
         items: const [
@@ -607,27 +645,38 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       if (_draft.entitlement == EntitlementDraft.fixedUnits) ...[
         const SizedBox(height: PlanActSpacing.md),
         TextField(
+          enabled: !_saving,
           controller: _entitlementUnits,
           keyboardType: TextInputType.number,
           inputFormatters: const [MoneyInputFormatter()],
           decoration: const InputDecoration(labelText: 'تعداد جلسه'),
-          onChanged: (_) => _syncDraft(),
+          onChanged: (_) => setState(_syncDraft),
         ),
       ],
+      const SizedBox(height: PlanActSpacing.sm),
+      const Text('اعتبار جلسات مستقل از تعداد نوبت‌های زمان‌بندی‌شده است.'),
+    ],
+  );
+
+  Widget _financialFields() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
       if (_draft.financialMeaning != CommitmentFinancialMeaning.none) ...[
         const SizedBox(height: PlanActSpacing.md),
         TextField(
+          enabled: !_saving,
           controller: _financialAmount,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: 'مبلغ مورد انتظار به ${_moneyInput.unit.label}',
           ),
-          onChanged: (_) => _syncDraft(),
+          onChanged: (_) => setState(_syncDraft),
         ),
       ],
       const SizedBox(height: PlanActSpacing.lg),
       const Text('معنای مالی (فقط انتظار مالی، بدون ثبت خودکار تراکنش)'),
       SegmentedButton<CommitmentFinancialMeaning>(
+        direction: Axis.vertical,
         segments: const [
           ButtonSegment(
             value: CommitmentFinancialMeaning.none,
@@ -650,9 +699,12 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     ],
   );
 
-  Widget _reviewStep() => Column(
+  Widget _summary() => Column(
+    key: const ValueKey('commitment-summary'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      Text('خلاصهٔ تعهد', style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: PlanActSpacing.sm),
       Text(
         _draft.reviewSummary(
           formattedFinancialAmount: PersianMoneyText.amount(
@@ -661,24 +713,33 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             unit: MoneyUnitScope.of(context),
           ),
         ),
-        style: Theme.of(context).textTheme.titleMedium,
       ),
+      if (_dateSelected)
+        Text(
+          'شروع: ${PersianDateFormatter.date(JalaliDate.fromDateTime(_draft.startAt!))}',
+        ),
+      if (_timeSelected)
+        Text(
+          'ساعت: ${TimeOfDay.fromDateTime(_draft.startAt!).format(context)}',
+        ),
+      if (_draft.isRecurring && _draft.frequency == RecurrenceFrequency.weekly)
+        Text(
+          'روزها: ${[
+            for (final day in const [(6, 'شنبه'), (7, 'یکشنبه'), (1, 'دوشنبه'), (2, 'سه‌شنبه'), (3, 'چهارشنبه'), (4, 'پنجشنبه'), (5, 'جمعه')])
+              if (_draft.weekdays.contains(day.$1)) day.$2,
+          ].join('، ')}',
+        ),
+      if (_draft.isRecurring &&
+          _draft.termination == RecurrenceTermination.endDate &&
+          _draft.endDate != null)
+        Text(
+          'پایان: ${PersianDateFormatter.date(JalaliDate.fromDateTime(_draft.endDate!))}',
+        ),
+      if (_draft.reminderOffsets.isNotEmpty)
+        Text(
+          'یادآور: ${_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join('، ')}',
+        ),
       if (_draft.tags.isNotEmpty) TagLabels(labels: _draft.tags),
-      const SizedBox(height: PlanActSpacing.md),
-      const Text(
-        'برای اصلاح هر بخش، با بازگشت به مرحلهٔ مربوطه اطلاعات را تغییر دهید.',
-      ),
-      const SizedBox(height: PlanActSpacing.md),
-      OutlinedButton.icon(
-        onPressed: () => setState(() => _step = 0),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('ویرایش اطلاعات پایه'),
-      ),
-      OutlinedButton.icon(
-        onPressed: () => setState(() => _step = 1),
-        icon: const Icon(Icons.edit_calendar_outlined),
-        label: const Text('ویرایش زمان‌بندی'),
-      ),
     ],
   );
 

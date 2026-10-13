@@ -83,7 +83,6 @@ void main() {
         find.byKey(const ValueKey('commitment-title-field')),
         'آزمون محلی‌سازی',
       );
-      await _tap(tester, find.text('ادامه'));
 
       // Localization must not replace PlanAct's custom Jalali date route.
       await _tap(tester, find.text('انتخاب تاریخ'));
@@ -105,11 +104,11 @@ void main() {
       expect(find.byType(TimePickerDialog), findsNothing);
       expect(find.text('انتخاب زمان'), findsOneWidget);
 
-      final advanced = find.text('تنظیمات پیشرفته');
+      final advanced = find.text('اعتبار جلسات');
       await tester.ensureVisible(advanced);
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel(material.expandedHint), findsWidgets);
-      final collapsed = find.bySemanticsLabel(RegExp('تنظیمات پیشرفته'));
+      final collapsed = find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first;
       expect(
         tester.getSemantics(collapsed).getSemanticsData().hint,
         material.expandedHint,
@@ -117,7 +116,7 @@ void main() {
       await _tap(tester, advanced);
       expect(
         tester
-            .getSemantics(find.bySemanticsLabel(RegExp('تنظیمات پیشرفته')))
+            .getSemantics(find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first)
             .getSemanticsData()
             .hint,
         material.collapsedHint,
@@ -125,12 +124,11 @@ void main() {
       await _tap(tester, advanced);
       expect(
         tester
-            .getSemantics(find.bySemanticsLabel(RegExp('تنظیمات پیشرفته')))
+            .getSemantics(find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first)
             .getSemanticsData()
             .hint,
         material.expandedHint,
       );
-      await _tap(tester, find.text('بازگشت'));
       await _tap(tester, find.text('انصراف'));
       expect(find.byType(QuickCaptureSheet), findsNothing);
       expect(await repository.list(), isEmpty);

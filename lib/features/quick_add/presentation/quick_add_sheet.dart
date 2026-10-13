@@ -55,7 +55,7 @@ class QuickAddSheet extends StatelessWidget {
               key: const ValueKey('quick-add-commitment'),
               icon: Icons.add_task,
               title: 'تعهد',
-              subtitle: 'باز کردن مراحل ثبت تعهد',
+              subtitle: 'ثبت عنوان، زمان‌بندی و گزینه‌های اختیاری',
               onTap: () => Navigator.pop(context, QuickAddAction.commitment),
             ),
           ],

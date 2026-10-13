@@ -114,6 +114,8 @@ Use `ColorScheme` surface/container and outline roles consistently. Do not add l
 
 ## Component hierarchy
 
+Commitment creation (user-approved 2026-10-13) uses one form: visible title and scheduling, theme-owned expansion rows for reminders, package credit, finance and optional details, and a live summary. Retain the shared form shell with scrollable content and persistent save/cancel actions above keyboard insets. Expanded fields retain their draft state when collapsed; saving blocks edits and duplicate actions. Use existing Light/Dark theme roles, RTL, spacing and text scaling without feature-local visual tokens. This replaces the capture step-switch composition only; other shared-form consumers are unchanged.
+
 - **Primary action:** one visually dominant action per context; use the shared filled treatment and primary brand role.
 - **Secondary action:** visible but subordinate, using outlined, tonal, or text treatment as appropriate.
 - **Destructive action:** use error semantics only for an actually destructive operation; pair with the required confirmation/undo semantics.

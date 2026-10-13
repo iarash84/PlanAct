@@ -74,7 +74,6 @@ void main() {
               find.byKey(const ValueKey('commitment-title-field')),
               'تعهد ${frequency.name} ${calendar.name}',
             );
-            await _tap(tester, find.text('ادامه'));
             await _choose<CommitmentKind>(
               tester,
               find.byKey(const ValueKey('commitment-kind-dropdown')),
@@ -125,8 +124,8 @@ void main() {
             DateTime? end;
             if (termination == RecurrenceTermination.count) {
               // Validation failure leaves all explicit selections intact.
-              await _tap(tester, find.text('ادامه'));
-              expect(find.text('مرور و ثبت'), findsNothing);
+              await _tap(tester, find.text('ثبت تعهد'));
+              expect(find.byType(QuickCaptureSheet), findsOneWidget);
               await tester.runAsync(() async {
                 expect(await commitments.list(), isEmpty);
               });
@@ -145,8 +144,8 @@ void main() {
               // Cancellation must not invent an end date.
               await _tap(tester, find.text('انصراف').last);
               expect(find.text('انتخاب تاریخ پایان'), findsOneWidget);
-              await _tap(tester, find.text('ادامه'));
-              expect(find.text('مرور و ثبت'), findsNothing);
+              await _tap(tester, find.text('ثبت تعهد'));
+              expect(find.byType(QuickCaptureSheet), findsOneWidget);
               await _tap(
                 tester,
                 find.byKey(const ValueKey('recurrence-end-date')),
@@ -171,10 +170,7 @@ void main() {
               end = expected[1];
               expected.removeLast();
             }
-            await _tap(tester, find.text('ادامه'));
-            expect(find.text('مرور و ثبت'), findsOneWidget);
-            // Review correction route must preserve calendar and termination.
-            await _tap(tester, find.text('ویرایش زمان‌بندی'));
+            // Selections remain editable in place, preserving calendar and termination.
             expect(
               tester
                   .widget<DropdownButtonFormField<RecurrenceCalendar>>(
@@ -183,7 +179,6 @@ void main() {
                   .initialValue,
               calendar,
             );
-            await _tap(tester, find.text('ادامه'));
             await _tap(tester, find.text('ثبت تعهد'));
             await _drainDatabase(tester);
             expect(find.byType(QuickCaptureSheet), findsNothing);
@@ -254,7 +249,6 @@ void main() {
         find.byKey(const ValueKey('commitment-title-field')),
         'پیش‌نویس لغوشده',
       );
-      await _tap(tester, find.text('ادامه'));
       await _choose<CommitmentKind>(
         tester,
         find.byKey(const ValueKey('commitment-kind-dropdown')),
@@ -270,7 +264,6 @@ void main() {
         find.byKey(const ValueKey('recurrence-calendar')),
         'میلادی',
       );
-      await _tap(tester, find.text('بازگشت'));
       await _tap(tester, find.text('انصراف'));
       expect(find.byType(QuickCaptureSheet), findsNothing);
       await tester.runAsync(() async {

@@ -3,7 +3,7 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
-/// Presentation-only state used by the progressive commitment wizard.
+/// Presentation-only state used by the single-page commitment form.
 class CommitmentDraft {
   const CommitmentDraft({
     this.category = CommitmentCategory.other,
@@ -76,6 +76,7 @@ class CommitmentDraft {
     DateTime? endDate,
     EntitlementDraft? entitlement,
     int? entitlementUnits,
+    bool clearEntitlementUnits = false,
     CommitmentFinancialMeaning? financialMeaning,
     int? financialAmount,
     bool clearFinancialAmount = false,
@@ -101,7 +102,9 @@ class CommitmentDraft {
         : occurrenceCount ?? this.occurrenceCount,
     endDate: endDate ?? this.endDate,
     entitlement: entitlement ?? this.entitlement,
-    entitlementUnits: entitlementUnits ?? this.entitlementUnits,
+    entitlementUnits: clearEntitlementUnits
+        ? null
+        : entitlementUnits ?? this.entitlementUnits,
     financialMeaning: financialMeaning ?? this.financialMeaning,
     financialAmount: clearFinancialAmount
         ? null

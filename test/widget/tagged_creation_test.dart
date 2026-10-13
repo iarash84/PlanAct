@@ -17,11 +17,13 @@ import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
 Future<void> addTag(WidgetTester tester, String label) async {
   final field = find.byKey(const ValueKey('draft-tag-label'));
   await tester.ensureVisible(field);
+  await tester.pumpAndSettle();
   await tester.enterText(field, label);
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pumpAndSettle();
   final button = find.text('افزودن برچسب به پیش‌نویس');
   await tester.ensureVisible(button);
+  await tester.pumpAndSettle();
   await tester.tap(button);
   await tester.pumpAndSettle();
 }
@@ -58,13 +60,20 @@ void main() {
         find.byKey(const ValueKey('commitment-title-field')),
         'جلسه',
       );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('جزئیات بیشتر'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('جزئیات بیشتر'));
+      await tester.pumpAndSettle();
       final color = find.byKey(const ValueKey('commitment-color-blue'));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(color);
+      await tester.pumpAndSettle();
       await tester.tap(color);
       await tester.pumpAndSettle();
       await addTag(tester, 'خانه');
-      await tester.ensureVisible(find.text('ادامه'));
-      await tester.tap(find.text('ادامه'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('انتخاب تاریخ'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('انتخاب تاریخ'));
       await tester.pumpAndSettle();
@@ -76,9 +85,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(TextButton).last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('ادامه'));
-      await tester.pumpAndSettle();
-      expect(find.text('#خانه'), findsOneWidget);
+      expect(find.widgetWithText(FilterChip, '#خانه'), findsOneWidget);
       await tester.tap(find.text('ثبت تعهد'));
       await tester.pumpAndSettle();
       expect(calls, 1);
@@ -97,6 +104,11 @@ void main() {
           host(QuickCaptureSheet(tagRepository: tags), dark),
         );
         await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('جزئیات بیشتر'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('جزئیات بیشتر'));
+        await tester.pumpAndSettle();
         await addTag(tester, ' #work ');
         final chip = find.widgetWithText(FilterChip, '#Work');
         expect(tester.widget<FilterChip>(chip).selected, isTrue);
@@ -104,7 +116,9 @@ void main() {
         await addTag(tester, '#خانه');
         expect(find.widgetWithText(FilterChip, '#خانه'), findsOneWidget);
         expect(await tags.list(), hasLength(1));
+        await tester.pumpAndSettle();
         await tester.ensureVisible(chip);
+        await tester.pumpAndSettle();
         await tester.tap(chip);
         await tester.pumpAndSettle();
         expect(tester.widget<FilterChip>(chip).selected, isFalse);

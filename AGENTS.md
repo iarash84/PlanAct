@@ -729,6 +729,8 @@ Avoid independently invented animation durations inside feature widgets.
 
 ## Progressive Disclosure
 
+The user-approved 2026-10-13 commitment creation path is one form with title and scheduling visible, optional sections expanded in place, and an editable live summary. Preserve existing application-command/persistence and refresh paths, explicit date/time selection, separate schedule count and entitlement credit, retry retention and cancellation without writes. Do not add schedule modes or semantic defaults as part of this presentation change. See docs/UI_MIGRATION_VERIFICATION.md for scoped acceptance evidence and remaining device/independent gates.
+
 Complex forms should reveal optional complexity progressively.
 
 Do not overwhelm users with all configuration fields at once when they are not required.
