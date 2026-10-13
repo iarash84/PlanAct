@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:planact/features/scheduling/application/planned_occurrences.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
+
 import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/features/calendar/application/week_timeline.dart';
 import 'package:planact/features/calendar/presentation/week_timeline_view.dart';
@@ -30,6 +33,7 @@ class CalendarPage extends StatefulWidget {
     this.initialDate,
     this.weekLoader,
     this.monthLoader,
+    this.plannedLoader,
     this.holidayProvider = const IranianHolidayProvider(),
   });
 
@@ -37,6 +41,8 @@ class CalendarPage extends StatefulWidget {
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate, LocalDate)?
   monthLoader;
+  final Future<PlannedOccurrenceRange> Function(LocalDate, LocalDate)?
+  plannedLoader;
   final JalaliDate? initialDate;
   final IranianHolidayProvider holidayProvider;
   final Map<String, List<DateTime>> scheduledDates;
@@ -60,6 +66,7 @@ class _CalendarPageState extends State<CalendarPage> {
   bool _monthError = false;
   Map<JalaliDate, List<Commitment>> _monthItems = {};
   Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
+  Map<String, List<PlannedOccurrenceSlot>> _monthPreviews = {};
   final _dayHeadingKey = GlobalKey();
   final _monthScroll = ScrollController();
   double _swipeDistance = 0;
@@ -97,7 +104,10 @@ class _CalendarPageState extends State<CalendarPage> {
         ((grouped[date] ??= {})[id] ??= []).add(occurrence);
       }
       // Legacy fixtures may have dates without recorded occurrence details.
-      if (widget.monthLoader == null) {
+      for (final slot in _monthPreviews[id] ?? <PlannedOccurrenceSlot>[]) {
+        include(JalaliDate.fromDateTime(slot.date.toUtcDateForCalculation()));
+      }
+      if (widget.monthLoader == null && widget.plannedLoader == null) {
         for (final date in widget.scheduledDates[id] ?? const <DateTime>[]) {
           include(JalaliDate.fromDateTime(_displayDate(date)));
         }
@@ -112,11 +122,13 @@ class _CalendarPageState extends State<CalendarPage> {
   Future<void> _loadMonth() async {
     final revision = ++_monthRevision;
     final loader = widget.monthLoader;
+    final plannedLoader = widget.plannedLoader;
+    _monthPreviews = {};
     _monthItems = {};
     _monthOccurrences = {};
     _monthError = false;
-    _monthLoading = loader != null;
-    if (loader == null) {
+    _monthLoading = loader != null || plannedLoader != null;
+    if (loader == null && plannedLoader == null) {
       _groupMonth(widget.occurrences);
       return;
     }
@@ -125,9 +137,11 @@ class _CalendarPageState extends State<CalendarPage> {
       JalaliDate(_month.year, _month.month, _month.monthLength).toDateTime(),
     );
     try {
-      final result = await loader(start, end.addDays(1));
+      final planned = await plannedLoader?.call(start, end.addDays(1));
+      final result = planned?.recorded ?? await loader!(start, end.addDays(1));
       if (!mounted || revision != _monthRevision) return;
       setState(() {
+        _monthPreviews = planned?.preview ?? {};
         _groupMonth(result);
         _monthLoading = false;
       });
@@ -194,6 +208,21 @@ class _CalendarPageState extends State<CalendarPage> {
         }),
       ),
     );
+    final dateButton = TextButton.icon(
+      key: const ValueKey('calendar-pick-date'),
+      icon: const Icon(Icons.calendar_month_outlined),
+      label: const Text('رفتن به تاریخ'),
+      onPressed: () async {
+        final date = await pickPlannedDate(context, _selectedDay);
+        if (date == null || !mounted) return;
+        setState(() {
+          _selectedDay = date;
+          _month = JalaliDate(date.year, date.month, 1);
+          _weekPositionRevision++;
+          if (!_week) _loadMonth();
+        });
+      },
+    );
     final todayButton = Align(
       alignment: AlignmentDirectional.centerEnd,
       child: TextButton.icon(
@@ -224,6 +253,7 @@ class _CalendarPageState extends State<CalendarPage> {
             padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
             child: todayButton,
           ),
+          dateButton,
           Row(
             children: [
               IconButton(
@@ -254,6 +284,7 @@ class _CalendarPageState extends State<CalendarPage> {
               occurrences: widget.occurrences,
               holidays: _holidayProvider,
               loader: widget.weekLoader,
+              plannedLoader: widget.plannedLoader,
               onTap: widget.onCommitmentTap,
               onAdd: widget.onAdd,
             ),
@@ -272,6 +303,7 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         toggle,
         todayButton,
+        dateButton,
         _CalendarHeader(
           month: _month,
           onPrevious: () => _moveMonth(-1),
@@ -472,6 +504,16 @@ class _CalendarPageState extends State<CalendarPage> {
             (item) => CalendarCommitmentCard(
               commitment: item,
               occurrences: _occurrencesFor(item),
+              previews:
+                  (_monthPreviews[item.id.value] ?? <PlannedOccurrenceSlot>[])
+                      .where(
+                        (slot) =>
+                            JalaliDate.fromDateTime(
+                              slot.date.toUtcDateForCalculation(),
+                            ) ==
+                            _selectedDay,
+                      )
+                      .toList(),
               reminderRules: widget.reminderRules,
               onTap: widget.onCommitmentTap == null
                   ? null

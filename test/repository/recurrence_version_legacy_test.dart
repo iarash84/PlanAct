@@ -286,7 +286,9 @@ void main() {
       LocalDate(2026, 3, 19),
       status: OccurrenceStatus.cancelled,
     );
-    // Moving May onto September must not suppress September's independent slot.
+    // The approved hybrid occupancy rule protects both original and current
+    // dates. Moving May onto September suppresses a duplicate destination row,
+    // without changing the five logical slots or authorizing a sixth slot.
     fixture.addOccurrence(
       LocalDate(2026, 5, 19),
       current: LocalDate(2026, 9, 19),
@@ -306,12 +308,10 @@ void main() {
       final command = ExtendRecurringSchedules(
         DriftCommitmentPlanRepository(db),
       );
-      expect(await command(DateTime(2026, 7, 1)), 1);
+      expect(await command(DateTime(2026, 7, 1)), 0);
       final rows = await _occurrences(db, fixture.owner);
-      expect(rows, hasLength(5));
-      final generated = rows.singleWhere((o) => o.scheduleDefinitionId == next);
-      expect(generated.originalScheduledAt, DateTime(2026, 9, 19, 18));
-      expect(generated.currentScheduledAt, DateTime(2026, 9, 19, 18));
+      expect(rows, hasLength(4));
+      expect(rows.where((o) => o.scheduleDefinitionId == next), isEmpty);
       final after = await _stored(db);
       expect(after.where((r) => before.any((b) => b['id'] == r['id'])), before);
       await db.close();

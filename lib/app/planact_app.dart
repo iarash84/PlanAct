@@ -54,6 +54,8 @@ import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
+import 'package:planact/features/scheduling/application/planned_occurrences.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
@@ -424,12 +426,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _tagsChanged() async {
-    await _refresh();
-    if (_todayError != null) throw StateError('Tag refresh failed');
-  }
+  Future<void> _tagsChanged() => _refresh(throwOnFailure: true);
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({bool throwOnFailure = false}) async {
     try {
       final persisted = await _repository.list();
       final allTags = await _tagRepository.list();
@@ -523,6 +522,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           () => _todayError = 'بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.',
         );
       }
+      if (throwOnFailure) rethrow;
     }
   }
 
@@ -1079,6 +1079,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
         occurrences: _calendarOccurrences,
+        plannedLoader: _planRepository is PlannedOccurrencesRepository
+            ? (start, end) => (_planRepository as PlannedOccurrencesRepository)
+                  .loadPlannedRange(
+                    start,
+                    end,
+                    LocalDate.fromDateTime(DateTime.now()),
+                  )
+            : null,
         weekLoader: _planRepository is DriftCommitmentPlanRepository
             ? _planRepository.loadWeek
             : null,
@@ -1437,12 +1445,19 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                 if (mounted) setState(() {});
               },
             ),
-          FutureBuilder<CommitmentPlan?>(
-            future: widget.planRepository.findByCommitmentId(
-              widget.commitment.id,
-            ),
-            builder: (context, snapshot) {
-              final occurrences = snapshot.data?.occurrences ?? const [];
+          PlannedDetailsRange(
+            commitment: widget.commitment,
+            repository: widget.planRepository,
+            onSaved: widget.onSaved,
+            synchronizeReminders:
+                widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                ? () async =>
+                      (widget.occurrenceExecutor
+                              as PersistedOccurrenceActionExecutor)
+                          .reminders
+                          ?.reconcile(now: DateTime.now())
+                : null,
+            builder: (plan, occurrences) {
               if (occurrences.isEmpty) return const SizedBox.shrink();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1468,7 +1483,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                     builder: (_) => EditScheduleDialog(
                                       occurrence: selected,
                                       recurring:
-                                          snapshot.data!.schedule.mode !=
+                                          plan.schedule.mode !=
                                           ScheduleMode.oneOff,
                                     ),
                                   );

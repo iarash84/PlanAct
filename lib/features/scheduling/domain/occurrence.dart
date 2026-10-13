@@ -92,6 +92,28 @@ class Occurrence {
   }
 }
 
+/// A calculated schedule slot, not a recorded occurrence. It has no occurrence
+/// ID, status or history. The opaque fingerprint is supplied by persistence and
+/// must be compared against fresh durable state before explicit preparation.
+class PlannedOccurrenceSlot {
+  const PlannedOccurrenceSlot({
+    required this.scheduleId,
+    required this.cycleId,
+    required this.date,
+    required this.scheduledAt,
+    required this.scheduleFingerprint,
+  });
+
+  final StableId scheduleId;
+  final StableId cycleId;
+  final LocalDate date;
+  final Object scheduledAt;
+  final String scheduleFingerprint;
+
+  String get occurrenceKey =>
+      '${scheduleId.value}:${date.year}-${date.month}-${date.day}';
+}
+
 class OccurrenceGenerator {
   const OccurrenceGenerator();
 
@@ -104,20 +126,71 @@ class OccurrenceGenerator {
     final existingByKey = <String, Occurrence>{
       for (final item in existing) item.occurrenceKey: item,
     };
-    final generated = <Occurrence>[];
-    var lower = windowStart ?? schedule.startDate;
+    final horizonEnd = (windowStart ?? schedule.startDate).addDays(
+      schedule.generationHorizonDays,
+    );
+    final limit = through.compareTo(horizonEnd) < 0 ? through : horizonEnd;
+    return [
+      for (final date in _slotDates(
+        schedule,
+        windowStart ?? schedule.startDate,
+        limit,
+      ))
+        existingByKey['${schedule.id.value}:${date.year}-${date.month}-${date.day}'] ??
+            Occurrence(
+              id: StableId.generate(timestamp: date.toUtcDateForCalculation()),
+              cycleId: schedule.cycleId,
+              scheduleDefinitionId: schedule.id,
+              occurrenceKey:
+                  '${schedule.id.value}:${date.year}-${date.month}-${date.day}',
+              originalScheduledAt: _scheduledValue(schedule, date),
+              currentScheduledAt: _scheduledValue(schedule, date),
+            ),
+    ];
+  }
+
+  /// Half-open 1–31-date range. Unlike operational generation, preview has no
+  /// materialization horizon. Schedule endDate remains inclusive.
+  List<PlannedOccurrenceSlot> plannedSlots({
+    required ScheduleDefinition schedule,
+    required LocalDate start,
+    required LocalDate endExclusive,
+    required String scheduleFingerprint,
+  }) {
+    final days = endExclusive
+        .toUtcDateForCalculation()
+        .difference(start.toUtcDateForCalculation())
+        .inDays;
+    if (days < 1 || days > 31) {
+      throw ArgumentError('Planned range must contain 1–31 local dates.');
+    }
+    return List.unmodifiable([
+      for (final date in _slotDates(schedule, start, endExclusive.addDays(-1)))
+        PlannedOccurrenceSlot(
+          scheduleId: schedule.id,
+          cycleId: schedule.cycleId,
+          date: date,
+          scheduledAt: _scheduledValue(schedule, date),
+          scheduleFingerprint: scheduleFingerprint,
+        ),
+    ]);
+  }
+
+  Iterable<LocalDate> _slotDates(
+    ScheduleDefinition schedule,
+    LocalDate start,
+    LocalDate through,
+  ) sync* {
+    var lower = start;
     if (lower.compareTo(schedule.startDate) < 0) lower = schedule.startDate;
     if (lower.compareTo(schedule.effectiveFrom) < 0) {
       lower = schedule.effectiveFrom;
     }
-    final horizonEnd = (windowStart ?? schedule.startDate).addDays(
-      schedule.generationHorizonDays,
-    );
-    var limit = through.compareTo(horizonEnd) < 0 ? through : horizonEnd;
+    var limit = through;
     if (schedule.endDate != null && schedule.endDate!.compareTo(limit) < 0) {
       limit = schedule.endDate!;
     }
-    if (lower.compareTo(limit) > 0) return generated;
+    if (lower.compareTo(limit) > 0) return;
     var index = _slotsBefore(schedule, lower);
 
     for (final date in _candidateDates(schedule, lower, limit)) {
@@ -129,29 +202,10 @@ class OccurrenceGenerator {
         break;
       }
       if (_matches(schedule, date)) {
-        final key =
-            '${schedule.id.value}:${date.year}-${date.month}-${date.day}';
-        final previous = existingByKey[key];
-        if (date.compareTo(windowStart ?? schedule.startDate) >= 0 &&
-            date.compareTo(schedule.effectiveFrom) >= 0) {
-          generated.add(
-            previous ??
-                Occurrence(
-                  id: StableId.generate(
-                    timestamp: date.toUtcDateForCalculation(),
-                  ),
-                  cycleId: schedule.cycleId,
-                  scheduleDefinitionId: schedule.id,
-                  occurrenceKey: key,
-                  originalScheduledAt: _scheduledValue(schedule, date),
-                  currentScheduledAt: _scheduledValue(schedule, date),
-                ),
-          );
-        }
+        yield date;
         index++;
       }
     }
-    return generated;
   }
 
   // Count recurrence slots, never persisted rows. Daily/weekly prefixes are

@@ -6,6 +6,7 @@ import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 
 import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
+import 'package:planact/features/scheduling/application/planned_occurrences.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 
@@ -27,7 +28,8 @@ class DriftCommitmentPlanRepository
         CommitmentPlanRepository,
         CommitmentPlanTransaction,
         CalendarRangeRepository,
-        RecurringScheduleMaintenance {
+        RecurringScheduleMaintenance,
+        PlannedOccurrencesRepository {
   DriftCommitmentPlanRepository(this.database);
 
   @override
@@ -216,12 +218,14 @@ class DriftCommitmentPlanRepository
           database.occurrences,
         )..where((t) => t.cycleId.equals(cycle.id))).get();
         final occupiedKeys = existing.map((r) => r.occurrenceKey).toSet();
-        final occupiedDates = existing.map((r) {
-          final value = _parseValue(r.originalScheduledValue);
-          return value is LocalDate
-              ? value
-              : LocalDate.fromDateTime(value as DateTime);
-        }).toSet();
+        final occupiedDates = {
+          for (final row in existing)
+            for (final serialized in [
+              row.originalScheduledValue,
+              row.currentScheduledValue,
+            ])
+              _localValueDate(serialized),
+        };
         for (var i = 0; i < rows.length; i++) {
           if (scheduleId != null && rows[i].id != scheduleId.value) continue;
           var schedule = _schedule(rows[i]);
@@ -431,6 +435,252 @@ class DriftCommitmentPlanRepository
     }
     return template;
   }
+
+  @override
+  Future<PlannedOccurrenceRange> loadPlannedRange(
+    LocalDate start,
+    LocalDate endExclusive,
+    LocalDate today, {
+    StableId? commitmentId,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final recorded = await _loadRange(start, endExclusive);
+      if (commitmentId != null) {
+        recorded.removeWhere((key, _) => key != commitmentId.value);
+      }
+      final preview = <String, List<PlannedOccurrenceSlot>>{};
+      final lower = start.compareTo(today) < 0 ? today : start;
+      if (lower.compareTo(endExclusive) < 0) {
+        final cycles =
+            await (database.select(database.commitmentCycles)..where(
+                  (t) => t.status.equals(CommitmentCycleStatus.active.index),
+                ))
+                .get();
+        for (final cycle in cycles) {
+          if (commitmentId != null &&
+              cycle.commitmentId != commitmentId.value) {
+            continue;
+          }
+          final owner = await DriftCommitmentRepository(database)
+              .findById(StableId.parse(cycle.commitmentId));
+          if (owner == null || owner.status != CommitmentStatus.active) {
+            continue;
+          }
+          final slots = await _plannedCycle(
+            cycle,
+            owner.title,
+            lower,
+            endExclusive,
+          );
+          if (slots.isNotEmpty) {
+            preview.putIfAbsent(cycle.commitmentId, () => []).addAll(slots);
+          }
+        }
+      }
+      return PlannedOccurrenceRange(recorded: recorded, preview: preview);
+    }),
+  );
+
+  // Uses the same recurrence math as operational generation, but never upgrades
+  // legacy metadata or writes dependent state during reads.
+  Future<List<PlannedOccurrenceSlot>> _plannedCycle(
+    db.CommitmentCycle cycle,
+    String title,
+    LocalDate start,
+    LocalDate endExclusive,
+  ) async {
+    final rows =
+        await (database.select(database.scheduleDefinitions)
+              ..where((t) => t.cycleId.equals(cycle.id))
+              ..orderBy([(t) => OrderingTerm.asc(t.version)]))
+            .get();
+    final existing = await (database.select(
+      database.occurrences,
+    )..where((t) => t.cycleId.equals(cycle.id))).get();
+    final keys = existing.map((r) => r.occurrenceKey).toSet();
+    final dates = <LocalDate>{
+      for (final row in existing) ...[
+        _localValueDate(row.originalScheduledValue),
+        _localValueDate(row.currentScheduledValue),
+      ],
+    };
+    final result = <PlannedOccurrenceSlot>[];
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      if (row.recurrenceRule == null) continue;
+      var end = endExclusive;
+      if (i + 1 < rows.length) {
+        final boundary = _parseDate(rows[i + 1].effectiveFrom);
+        if (boundary.compareTo(end) < 0) end = boundary;
+      }
+      if (end.compareTo(start) <= 0) continue;
+      final metadata = jsonDecode(row.recurrenceRule!) as Map<String, dynamic>;
+      final originals = existing
+          .where(
+            (r) =>
+                r.scheduleDefinitionId == row.id &&
+                !r.isManualOverride &&
+                r.originalScheduledValue == r.currentScheduledValue &&
+                r.occurrenceKey == '${row.id}:${_date(occupiedDate(r))}',
+          )
+          .toList();
+      if (!metadata.containsKey('generationReminderMinutes')) {
+        final inferred = await _inferReminders(originals, title);
+        if (inferred == null) {
+          continue; // Ambiguous legacy template: fail closed.
+        }
+        metadata['generationReminderMinutes'] = inferred;
+      }
+      if (!metadata.containsKey('generationFinancialExpectation')) {
+        final inferred = await _inferFinancial(originals);
+        if (inferred == null) continue;
+        metadata['generationFinancialExpectation'] = inferred;
+      }
+      final schedule = _schedule(
+        row.copyWith(recurrenceRule: Value(jsonEncode(metadata))),
+      );
+      final fingerprint = jsonEncode({
+        'schedule': row.toJson(),
+        'versions': rows.map((r) => r.toJson()).toList(),
+        'template': metadata,
+        'title': title,
+      });
+      for (final slot in const OccurrenceGenerator().plannedSlots(
+        schedule: schedule,
+        start: start,
+        endExclusive: end,
+        scheduleFingerprint: fingerprint,
+      )) {
+        if (!keys.contains(slot.occurrenceKey) && !dates.contains(slot.date)) {
+          result.add(slot);
+          dates.add(slot.date);
+        }
+      }
+    }
+    return result;
+  }
+
+  static LocalDate _localValueDate(String serialized) {
+    final value = _parseValue(serialized);
+    return value is LocalDate
+        ? value
+        : LocalDate.fromDateTime((value as DateTime).toLocal());
+  }
+
+  @override
+  Future<Occurrence> preparePlannedOccurrence(
+    PlannedOccurrenceSlot slot,
+    LocalDate today,
+  ) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await database.customStatement(
+        'UPDATE schema_metadata SET value = value WHERE key = ?',
+        ['schema_version'],
+      );
+      if (slot.date.compareTo(today) < 0) {
+        throw StateError('Planned slot is past.');
+      }
+      final cycle = await (database.select(
+        database.commitmentCycles,
+      )..where((t) => t.id.equals(slot.cycleId.value))).getSingleOrNull();
+      if (cycle == null || cycle.status != CommitmentCycleStatus.active.index) {
+        throw StateError('Planned cycle is inactive.');
+      }
+      final owner = await DriftCommitmentRepository(database)
+          .findById(StableId.parse(cycle.commitmentId));
+      if (owner == null || owner.status != CommitmentStatus.active) {
+        throw StateError('Planned owner is inactive.');
+      }
+      final fresh = await _plannedCycle(
+        cycle,
+        owner.title,
+        slot.date,
+        slot.date.addDays(1),
+      );
+      if (!fresh.any(
+        (s) =>
+            s.scheduleId == slot.scheduleId &&
+            s.scheduleFingerprint == slot.scheduleFingerprint &&
+            s.scheduledAt == slot.scheduledAt,
+      )) {
+        throw StateError('Planned slot is stale or occupied.');
+      }
+      final row = await (database.select(
+        database.scheduleDefinitions,
+      )..where((t) => t.id.equals(slot.scheduleId.value))).getSingle();
+      // Inferred templates are part of the compared token, not silently persisted.
+      final token =
+          jsonDecode(slot.scheduleFingerprint) as Map<String, dynamic>;
+      final schedule = _schedule(
+        row.copyWith(recurrenceRule: Value(jsonEncode(token['template']))),
+      );
+      final occurrence = Occurrence(
+        id: StableId.generate(),
+        cycleId: slot.cycleId,
+        scheduleDefinitionId: slot.scheduleId,
+        occurrenceKey: slot.occurrenceKey,
+        originalScheduledAt: slot.scheduledAt,
+        currentScheduledAt: slot.scheduledAt,
+      );
+      await database
+          .into(database.occurrences)
+          .insert(
+            db.OccurrencesCompanion.insert(
+              id: occurrence.id.value,
+              cycleId: cycle.id,
+              scheduleDefinitionId: schedule.id.value,
+              occurrenceKey: occurrence.occurrenceKey,
+              timeSemantics: schedule.timeSemantics.index,
+              originalScheduledValue: _value(
+                slot.scheduledAt,
+                schedule.timeSemantics,
+              ),
+              currentScheduledValue: _value(
+                slot.scheduledAt,
+                schedule.timeSemantics,
+              ),
+              status: occurrence.status.index,
+              isManualOverride: false,
+            ),
+          );
+      final template = schedule.generationFinancialExpectation;
+      if (template != null) {
+        final now = DateTime.now().toUtc();
+        await DriftFinancialExpectationRepository(database).saveExpectation(
+          FinancialExpectation(
+            id: StableId.generate(),
+            occurrenceId: occurrence.id,
+            direction: template.direction,
+            amount: template.amount,
+            currency: template.currency,
+            accountId: template.accountId,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      }
+      final reminders = DriftReminderRepository(database);
+      for (final offset in schedule.generationReminderOffsets) {
+        final rule = ReminderRule.beforeOccurrence(
+          occurrenceId: occurrence.id,
+          offset: offset,
+          title: owner.title,
+        );
+        await reminders.saveRule(rule);
+        if (slot.scheduledAt is DateTime) {
+          await reminders.saveInstance(
+            ReminderInstance.fromRule(
+              rule: rule,
+              occurrenceStart: slot.scheduledAt as DateTime,
+            ),
+          );
+        }
+      }
+      return occurrence;
+    }),
+  );
 
   @override
   Future<Map<String, List<Occurrence>>> loadWeek(LocalDate start) =>
