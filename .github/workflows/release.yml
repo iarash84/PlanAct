@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version matching pubspec.yaml, without the v prefix (for example 0.1.14)'
+        description: 'Release version matching pubspec.yaml, without the v prefix (for example 0.1.15)'
         required: true
         type: string
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 concurrency:
   group: release-master
@@ -17,7 +18,9 @@ concurrency:
 
 jobs:
   release:
-    name: Validate, build, and publish Android release
+    name: Validate and build Android candidate
+    outputs:
+      tag: ${{ steps.identity.outputs.tag }}
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -28,10 +31,10 @@ jobs:
       ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
 
     steps:
-      - name: Checkout master
+      - name: Checkout immutable dispatch revision
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Set up Java 17
@@ -48,6 +51,7 @@ jobs:
           cache: true
 
       - name: Validate release version and repository state
+        id: identity
         shell: bash
         run: |
           set -euo pipefail
@@ -60,7 +64,11 @@ jobs:
             echo "Requested version $RELEASE_VERSION does not match pubspec.yaml version $pubspec_version" >&2
             exit 1
           fi
+          # Fail closed: a nonexistent/unprotected environment must not auto-publish.
+          gh api "repos/$GITHUB_REPOSITORY/environments/android-release" > "$RUNNER_TEMP/release-environment.json"
+          jq -e '.protection_rules | any(.type == "required_reviewers" and .prevent_self_review == true and (.reviewers | length > 0))' "$RUNNER_TEMP/release-environment.json" >/dev/null
           tag="v$RELEASE_VERSION"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
             echo "Tag $tag already exists; refusing to overwrite it." >&2
             exit 1
@@ -190,14 +198,66 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Create tag and GitHub Release after successful build
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Record candidate identity
+        shell: bash
         run: |
           set -euo pipefail
-          gh release create "$RELEASE_TAG" \
-            --target master \
+          printf 'commit=%s\nrun_id=%s\nversion=%s\nversion_code=%s\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" "$RELEASE_VERSION" "$RELEASE_BUILD_NUMBER" > release-assets/BUILD-IDENTITY.txt
+          {
+            echo "## Android candidate $RELEASE_TAG"
+            echo "Commit: $GITHUB_SHA; run: $GITHUB_RUN_ID; versionCode: $RELEASE_BUILD_NUMBER"
+            echo 'Download the candidate artifact and review its exact APKs before approving android-release. Approval must include device evidence and all inherited release gates.'
+            echo '```text'
+            cat release-assets/SHA256SUMS.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload candidate for independent acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlanAct-${{ env.RELEASE_TAG }}-candidate-${{ github.run_id }}
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish accepted candidate without rebuilding
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: android-release
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ needs.release.outputs.tag }}
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - name: Download exact candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: PlanAct-${{ needs.release.outputs.tag }}-candidate-${{ github.run_id }}
+          path: release-assets
+
+      - name: Verify identity and checksums, then publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          grep -Fx "commit=$GITHUB_SHA" BUILD-IDENTITY.txt
+          grep -Fx "run_id=$GITHUB_RUN_ID" BUILD-IDENTITY.txt
+          grep -Fx "version=$RELEASE_VERSION" BUILD-IDENTITY.txt
+          grep -Fx "version_code=$GITHUB_RUN_NUMBER" BUILD-IDENTITY.txt
+          sha256sum -c SHA256SUMS.txt
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release tag already exists; refusing to overwrite.' >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
             --generate-notes \
             --title "PlanAct $RELEASE_TAG" \
-            --notes "Android APKs are signed, verified, and accompanied by SHA256SUMS.txt." \
-            release-assets/*.apk release-assets/SHA256SUMS.txt release-assets/SIGNING-CERTIFICATE-SHA256.txt
+            --notes "Android APKs are signed and verified. Published files are the independently accepted candidate from commit $GITHUB_SHA, Actions run $GITHUB_RUN_ID. See SHA256SUMS.txt and BUILD-IDENTITY.txt." \
+            ./*.apk SHA256SUMS.txt SIGNING-CERTIFICATE-SHA256.txt BUILD-IDENTITY.txt

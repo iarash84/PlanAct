@@ -2,7 +2,7 @@
 
 **Document type:** Product Requirements Document  
 **Product:** PlanAct  
-**Current application version:** `0.1.7+2`
+**Current application version:** `0.1.15+8` (release candidate; acceptance pending)
 **Status:** Living Document / Active Development
 
 ## Document Governance
