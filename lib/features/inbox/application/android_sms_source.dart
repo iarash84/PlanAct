@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:async';
 
 import 'package:flutter/services.dart';
@@ -25,17 +27,17 @@ class AndroidSmsMessage {
     final body = map['body'];
     final timestamp = map['receivedAt'];
     if (sourceKey is! String || sourceKey.trim().isEmpty) {
-      throw const AndroidSmsParseError('شناسهٔ پیامک معتبر نیست.');
+      throw const AndroidSmsParseError(PersianCopy.androidSmsSourceMessage);
     }
     if (body is! String || body.length > 100000) {
-      throw const AndroidSmsParseError('متن پیامک معتبر نیست.');
+      throw const AndroidSmsParseError(PersianCopy.androidSmsSourceMessage2);
     }
     if (timestamp is! int || timestamp < 0 || timestamp > 32503680000000) {
-      throw const AndroidSmsParseError('زمان پیامک معتبر نیست.');
+      throw const AndroidSmsParseError(PersianCopy.androidSmsSourceMessage3);
     }
     final address = map['address'];
     if (address != null && address is! String) {
-      throw const AndroidSmsParseError('مبدأ پیامک معتبر نیست.');
+      throw const AndroidSmsParseError(PersianCopy.androidSmsSourceMessage4);
     }
     return AndroidSmsMessage(
       sourceKey: sourceKey,
@@ -84,7 +86,9 @@ class AndroidSmsSource {
       },
     );
     if (result == null || result.length > 100) {
-      throw const AndroidSmsParseError('صفحهٔ پیامک معتبر نیست.');
+      throw const AndroidSmsParseError(
+        PersianCopy.androidSmsSourceReadPageMessage,
+      );
     }
     return SmsProviderPage(
       result
@@ -92,7 +96,9 @@ class AndroidSmsSource {
             final id = item['id'];
             final timestamp = item['receivedAt'];
             if (id is! int || id < 0 || timestamp is! int || timestamp < 0) {
-              throw const AndroidSmsParseError('نشانگر پیامک معتبر نیست.');
+              throw const AndroidSmsParseError(
+                PersianCopy.androidSmsSourceReadPageMessage2,
+              );
             }
             return SmsProviderRow(
               timestamp,

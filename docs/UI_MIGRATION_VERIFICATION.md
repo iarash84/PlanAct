@@ -1,61 +1,39 @@
-# UI design-system migration checkpoint — 2026-10-06
+# ارزیابی مهاجرت رابط به سیستم طراحی
 
-## Scope and integrity
+## وضعیت جاری
 
-This is an implemented presentation migration, not an audit-only deliverable. The shared theme now separates business semantics from brand roles, provides brightness-specific contrast pairs, improves typography/component treatments, and constrains root content and sheets. Calendar, shared forms/date picker, Finance picker, Inbox, startup, Today and root navigation received focused changes. No database schema, domain lifecycle, historical data, authentication, reminder intent, financial matching or backup behavior changed. No dependency, font asset or migration was added.
+تم/نقش‌های مشترک، تایپوگرافی، عرض محتوا و پنجره، تقویم، فرم‌ها، انتخابگر، مالی، ورودی، آغاز برنامه، امروز و ناوبری به قرارداد مشترک منتقل شده‌اند. این رکورد گواه پیاده‌سازی و آزمون محدود است، نه تأیید بصری همهٔ دستگاه‌ها. [سیستم طراحی](DESIGN_SYSTEM.md) مشخصات جاری را تعیین می‌کند.
 
-The existing system-sans font remains an explicit limitation. No licensed Persian font was available in repository assets. Platform font shaping/metrics still require real-device review.
+فونت فارسی دارای مجوز در دارایی مخزن اضافه نشده؛ قلم sans سیستم به کار می‌رود. شکل‌دهی و اندازهٔ واقعی قلم، متن بزرگ، صفحه‌خوان و عملکرد به دستگاه نیاز دارند. تغییرات نمایشی، دامنه/دفتر/احراز هویت/یادآور/تطبیق/پشتیبان را تغییر نمی‌دهند؛ طرح، وابستگی و دارایی قلم جدید نداریم.
 
-## Coverage inventory
+## قرارداد فرم یک‌صفحه‌ای؛ ۲۰۲۶-۱۰-۱۳
 
-Statuses describe implementation/source review, not universal visual certification. “Migrated” includes surfaces consuming changed shared themes even when local composition remains unchanged. “Intentionally Unchanged” identifies retained composition and its reason. All listed surfaces were considered; none is claimed device-certified.
+مسیر افزودن سریع ← تعهد و مسیرهای مستقیم ثبت، بدون حساب/مجوز تازه، یک فرم دارد. عنوان و برنامهٔ یک‌باره/تکراری نمایان‌اند؛ جزئیات، یادآور، اعتبار بسته و انتظار مالی درجا باز می‌شوند. خلاصهٔ زنده قابل ویرایش و یک ذخیرهٔ نهایی دارد. حالت برنامه یا پیش‌فرض دامنه جدیدی اضافه نشده است.
 
-| Surface | Status | Scope / reason |
-| --- | --- | --- |
-| Root shell and navigation | Migrated | Removed repeated AppBar logo; theme-owned primary selected container, readable 840dp content width, reduced-motion-aware page transitions. Existing navigation destinations and page controller retained. |
-| Today / Attention / Next | Migrated | Brightness-aware information/status accents and shared typography. Central domain classification and actions preserved. |
-| Commitment rows | Migrated | Success/attention/inactive roles; cancellation/archival no longer error-colored. Text/icon labels retained. |
-| Calendar | Migrated | Holiday information, selected/unselected foregrounds and shared radius retained. Follow-up phone fix fits seven RTL columns without horizontal scrolling, uses compact weekday labels with full semantics, and measures text-scale-aware cell height. Narrow target-width exception documented in DESIGN_SYSTEM/AGENTS/PRD. Existing holiday coverage warning and all reasons preserved. |
-| Quick Add | Migrated | Shared form action overflow, live error announcements, typography, fields/buttons/sheet treatment. Local scheduling and default semantics retained. |
-| Quick Capture | Migrated | Shared form changes and reduced-motion-aware step switch. Capture command, draft, retries and progressive disclosure preserved. |
-| Commitment Details | Migrated | Shared typography, Material fields/cards/dialogs/actions. Existing occurrence, reminders, tags, financial expectation and historical controls retained; no new detail-page architecture. |
-| Finance | Migrated | Shared themes/typography; duplicate Jalali picker removed in favor of shared accessible picker, aligning month-control direction. Ledger/source-of-truth and save failure semantics unchanged. |
-| Inbox | Migrated | Review warnings use attention rather than error; state panels scroll safely; shared component themes. Raw SMS/privacy and confirmation unchanged. |
-| Transaction relationship | Migrated | Shared fields/buttons/cards/typography; existing scrolling, saving guard, error feedback and many-to-many confirmation retained. |
-| More | Migrated | Root readable width and shared typography/list treatment; existing routes retained. |
-| Settings / About | Migrated | Shared typography/cards/buttons/list treatment. About retains appropriate brand asset. No setting defaults changed. |
-| App lock and lock settings | Intentionally Unchanged | Existing lock panel already scrolls and uses semantic theme roles. It inherits typography/button changes; root coverage, device authentication, lifecycle and persisted setting behavior deliberately untouched. |
-| Flutter startup | Migrated | Static logo/title with scroll-safe content and named progress; removed decorative glow, shadow and entrance controller. Loader/error/retry behavior preserved. |
-| Android launcher/native startup | Intentionally Unchanged | Inspected actual launcher and adaptive/light/dark resources; existing navy/teal artwork and brightness-specific backgrounds retained. No native release/device evidence obtained. |
-| Dialogs / sheets / forms | Migrated | Central popup, segmented-button and sheet themes; 640dp sheet cap; overflow form actions and live errors. Unique product confirmations retained. |
-| Jalali date picker | Migrated | Explicit grid dimensions avoid dialog intrinsic-viewport failure; scalable cells, selected-date semantics and horizontal overflow retain targets. Finance and capture reuse it. |
-| Reminder controls / permissions | Migrated | Shared Material theme/typography; existing platform permission and command/reconciliation handling preserved. |
-| Tags and financial expectation editor | Migrated | Shared fields, chips, dialogs, buttons and typography; local wrap-based metadata/action patterns retained. |
-| Backup and holiday package settings | Intentionally Unchanged | Existing cards/actions inherit shared theme. Destructive confirmation, trust approval, import/restore exclusions and security release gates not altered. |
-| Loading / empty / error / saving / disabled states | Migrated | Shared progress theme, live form errors, inbox scroll-safe state panels and retained operation-specific Persian feedback. No replacement universal state widget or swallowed exceptions introduced. |
+مسیر اجرا: `QuickCaptureSheet` ← `HomeShell._saveCapturedCommitment` ← `CreateCommitmentPlan` ← مخزن تراکنشی تولید ← بازخوانی امروز/تقویم/جزئیات و محاسبات یادآور/مالی. تقویم تکرار، خاتمه، تعداد مستقل از اعتبار و نتیجهٔ ذخیره در برابر تحویل اعلان حفظ می‌شوند. لغو نمی‌نویسد؛ خطای اعتبارسنجی/ذخیره همهٔ ورودی‌ها را برای تلاش مجدد نگه می‌دارد. هنگام ذخیره، ورودی/تمرکز/ارسال تکراری غیرفعال‌اند؛ خطای اعتبار بخش مربوط را باز می‌کند.
 
-## Automated evidence
+شواهد ویندوز Flutter 3.47.5 / Dart 3.13.4، درخت کاری بر پایهٔ `b10603c`: یازده آزمون فرم/پیش‌نویس، اجرای منتخب ۲۱ موفق، اجرای پایدار کامل ۷۸۷ موفق در حدود ۴دقیقه۳۰ثانیه، تحلیل بدون مسئله و قالب‌بندی ۳۰۷ فایل بدون تغییر. گزارش محلی `build/verification/commitment-single-page-final-tests.log` است؛ فایل انتشار نیست.
 
-- New regression suite: `test/widget/design_system_test.dart`, eight tests covering Light/Dark normal-text contrast of Material and semantic pairs, 320dp RTL calendar target dimensions and 200% text scale, picker/form overflow and reduced motion.
-- Contrast assertions require at least 4.5:1 for every tested foreground/background pair, including business foregrounds on scaffold surfaces. Tests do not certify arbitrary alpha blends or every external bank color.
-- Existing focused journey run: 22 tests passed across shared calendar/reminders, capture retry, root create/navigation/startup, finance transaction form and new design-system tests.
-- Initial full run exposed picker intrinsic-dimension failures affecting three flows. Corrected by giving its grid explicit calculated height; focused rerun passed all formerly failing flows.
-- Static analysis after migration: no issues found.
-- Final post-fix full run: flutter test --no-pub — 343 tests passed in approximately 72 seconds.
-- Final flutter analyze --no-pub: no issues found (5.8 seconds). Formatting completed and git diff --check passed.
+آزمون پاک‌کردن اعتبار معتبر، خطای مسیر جایگزین در `copyWith` را آشکار کرد؛ پاک‌کردن صریح اکنون ذخیره را رد و تعداد تکرار را حفظ می‌کند. عرض ۳۲۰/متن دوبرابر/صفحه‌کلید سرریز تاریخ/زمان/مالی را آشکار کرد؛ کنترل‌ها عمودی شدند، مقیاس متن کم نشد. هویت ذخیرهٔ پیمایش بخش اعتبار با فیلد داخلی تداخل داشت؛ کلید عادی پایدار و حفظ فرزند اصلاح شد. تلاش‌های ابتدایی هم‌زمان، قفل DLL SQLite داشتند؛ نتیجهٔ اجرای پایدار و بدون ویرایش حین اجرا مبناست.
 
-## Calendar phone follow-up validation
+قرارداد فرم فعلی، متن قدیمی مراحل «پایه/بررسی» را جایگزین می‌کند؛ تاریخچهٔ آزمون آن مراحل معنای مسیر جاری نیست. ایجاد/لغو/تلاش مجدد، برچسب، تکرار، بازگشایی سرد و بازخوانی مصرف‌کنندگان در آزمون‌های مسیر موجود حفظ شدند.
 
-- Focused files: calendar_page.dart, PersianDateFormatter compact weekday labels, design_system_test.dart and new calendar_responsive_test.dart; governance/spec/product requirements updated with the bounded target-width exception. Previous tagging, Today, Settings and Finance work was preserved.
-- Twelve new widget cases cover 320/360/390dp, Light/Dark, RTL and 100%/200% text scale. They assert no horizontal scrollable, all weekday columns in bounds and RTL order, all 31 date targets in bounds and selectable with full Persian semantics, and month navigation without overflow. Existing holiday/count/selected-day/reminder and picker regressions also pass.
-- Focused Dart formatting completed. Flutter analyze: no issues found. Final flutter test --no-pub: **375 tests passed**. Git diff --check passed.
-- No domain/persistence/schema/backup behavior, dependency or migration changed. Physical-device font metrics, TalkBack and visual acceptance remain unverified; this is not native release certification.
+## قرارداد پرداخت رابط؛ ۲۰۲۶-۱۰-۱۳
 
-## Remaining production validation / limitations
+منوی بالایی، ایجاد/تقویم را حفظ و گزارش/ورودی موجود را باز می‌کند؛ بازکردن ورودی اسکن یا درخواست مجوز ندارد. مالی جاسازی‌شده یک سربرگ و مالی مستقل سربرگ خودش دارد. امروز، تمام عملیات را در گروه‌های ساده بدون کارت تو‌در‌تو نگه می‌دارد. فیلتر/تاریخ/خواندن گزارش با چیدمان کنترل‌های گروهی حفظ می‌شود. حالت خطا/خالی/بارگذاری جدا و لغو/تلاش مجدد/ذخیره بدون تغییرند؛ حرکت از توکن مشترک و `disableAnimations` پیروی می‌کند و فرمان یا پیش‌نویس را به تأخیر/بازسازی نمی‌کشاند.
 
-- No Android physical-device screenshots, TalkBack/focus traversal, native date/time/authentication dialogs, system bars/recents evidence, or profile frame/memory measurements were collected.
-- Existing Android/native integration gates remain separate; Flutter tests do not prove security or notification release readiness.
-- The Calendar-page follow-up supersedes the migration's horizontal-scroll behavior: all seven columns fit even on narrow phones. At 320dp, day targets are approximately 40dp wide with at least 48dp height; this explicitly documented exception trades minimum target width for simultaneous weekday visibility. Text scaling, holiday/count cues and full Persian semantics remain. The modal date picker intentionally retains minimum 48dp cells and horizontal scrolling when needed; no shared picker consumer changed in this follow-up.
-- Root uses existing bottom navigation rather than introducing a rail or new state-management architecture. The readable width cap is not a complete tablet-specific redesign.
-- Test coverage demonstrates specified pairs and journeys, not exhaustive screenshots of every content combination, brightness, text scaler or viewport. Additional device visual acceptance is required before claiming comprehensive production UI certification.
-- All durable domain and product release limitations in existing verification documents remain in force.
+مسیر منو ← `_openReports`/`_openInbox` ← خواننده/فرمان موجود ← بازخوانی است. `embedded` فقط میزبانی سربرگ را تنظیم می‌کند. ماه گذار کوتاه رنگ انتخاب دارد؛ فرم مشترک اندازهٔ محتوای عمل/پیشرفت را با حفظ ورودی/تمرکز/حفاظت فرمان تغییر می‌دهد. جزئیات/برچسب/ورودی/قفل/هفته/انتخابگر رفتار دامنه یا طراحی مستقل جدید ندارند.
+
+چهار آزمون تازه مسیر منو/برگشت، نبود اسکن/درخواست مجوز با آداپتور شبیه‌سازی‌شده، سربرگ یکتا/مستقل و منوی ۳۲۰/متن دوبرابر/دو تم/حرکت خاموش را پوشش دادند. ۴۶ آزمون منتخب دیگر گذشتند؛ اجرای نهایی کامل ۸۱۳ موفق در ۴دقیقه۲۶ثانیه، تحلیل بدون مسئله، قالب‌بندی هشت فایل بدون تغییر و اختلاف موفق. هشدارهای پایگاه متعدد آزمایشی/لمس ازدست‌رفته حذف یا شاهد بومی تلقی نشدند.
+
+## سابقهٔ مهاجرت اولیه؛ ۲۰۲۶-۱۰-۰۶
+
+هشت آزمون سیستم طراحی تضاد نقش‌های Material/معنایی حداقل ۴٫۵:۱، RTL و هدف تقویم ۳۲۰/متن دوبرابر، انتخابگر/فرم و حرکت کاهش‌یافته را پوشش دادند. اجرای منتخب ۲۲ و اجرای نهایی کامل ۳۴۳ آزمون در حدود ۷۲ثانیه موفق بود؛ تحلیل بدون مسئله. این بررسی، ترکیب آلفا یا رنگ همهٔ بانک‌های بیرونی را تأیید نمی‌کند.
+
+اصلاح بعدی تلفن تقویم، دوازده حالت ۳۲۰/۳۶۰/۳۹۰، دو تم و متن عادی/دوبرابر را افزود: همهٔ هفت ستون و ۳۱ هدف با معنای کامل جلالی در دید و قابل انتخاب‌اند؛ پیمایش افقی ندارد. اجرای کامل آن مرحله ۳۷۵ موفق بود. در عرض ۳۲۰ هدف روز حدود ۴۰ عرض و حداقل ۴۸ ارتفاع دارد؛ استثنای صریح فقط شبکهٔ ماه/انتخابگر است، نه هفته یا کنترل دیگر. انتخابگر پاسخ‌گوی جدید در [رکورد تاریخ](DATE_PICKER_VERIFICATION.md)، دستور قدیمی پیمایش افقی انتخابگر را نیز جایگزین کرده است.
+
+## پوشش و پذیرش
+
+پوسته/ناوبری، امروز، ماه، مالی/انتخابگر، ورودی، فرم مشترک و حالت‌ها از تم مشترک استفاده می‌کنند؛ علامت هویت تعهد مستقل از وضعیت است. تنظیمات/درباره/پشتیبان/تعطیلات/یادآور و مسیرهای جزئیات، قرارداد رفتار خود را حفظ می‌کنند. قفل، آغاز و دیالوگ بومی حوزهٔ پذیرش مستقل دارند؛ نقش رنگ جدید به معنی تغییر احراز هویت نیست. قلم/رنگ/حرکت تازهٔ محلی ساخته نشده است.
+
+پیاده‌سازی محدود و شواهد خودکار موفق‌اند؛ خودبازبینی پذیرش مستقل نیست. نگه‌دارنده مسئول تصویر دستگاه، قلم/صفحه‌کلید/TalkBack/تمرکز، نوار سیستم/برنامه‌های اخیر، پروفایل فریم/حافظه و بررسی پُرداده است. هیچ شمار آزمون، گالری مصنوعی یا ساخت آزمایشی ادعای کامل بصری/بومی نمی‌دهد؛ دروازه‌های امنیت، داده و قابلیت‌های مربوط برقرارند.

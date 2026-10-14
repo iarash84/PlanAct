@@ -1,3 +1,6 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:io';
 
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
@@ -107,7 +110,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       try {
         await _holidayPackages!.load();
       } catch (_) {
-        _message = 'دادهٔ واردشدهٔ تعطیلات قابل بررسی نیست؛ تقویم پایه نمایش داده می‌شود. دادهٔ قبلی حفظ شده است؛ برای بازیابی فایل با پشتیبانی تماس بگیرید.';
+        _message = PersianCopy.backupApplicationScopeStartMessage;
       }
       // Build a trusted reference using the real current creation/migration code.
       final reference = File(
@@ -142,7 +145,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         // Normal startup must remain usable without optional capabilities.
         // Recovery still requires a successful rebuild before committing.
         if (recovering) rethrow;
-        _message = 'یادآوری‌ها ذخیره شده‌اند، اما مجوز اعلان یا زنگ دقیق فعال نیست. از تنظیمات یادآوری‌ها را فعال کنید.';
+        _message = PersianCopy.backupApplicationScopeStartMessage2;
       }
       if (recovering) await storage.clearRecoveryMarker();
       const keys = SecureBackupKeys();
@@ -167,7 +170,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         setState(() {
           _busy = false;
           _failed = true;
-          _message = 'آماده‌سازی امن اطلاعات ممکن نشد. دوباره تلاش کنید.';
+          _message = PersianCopy.backupApplicationScopeStartMessage3;
         });
       }
     }
@@ -218,11 +221,11 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       await drained;
       final success = await operation();
       _message = success
-          ? 'عملیات پشتیبان‌گیری یا بازیابی با موفقیت انجام شد.'
+          ? PersianCopy.backupApplicationScopeExclusiveMessage
           : null;
       return success;
     } catch (_) {
-      _message = 'عملیات انجام نشد. فایل، فضای ذخیره‌سازی و کلید بازیابی (یا کلید نصب اصلی برای فایل قدیمی) را بررسی کنید و دوباره تلاش کنید.';
+      _message = PersianCopy.backupApplicationScopeExclusiveMessage2;
       if (await File('${_live.path}.restore-marker').exists()) {
         await _close();
       }
@@ -282,16 +285,21 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         child: Scaffold(
           body: Center(
             child: _busy
-                ? const CircularProgressIndicator(
-                    semanticsLabel: 'در حال آماده‌سازی اطلاعات',
+                ? CircularProgressIndicator(
+                    semanticsLabel: planActL10n(context)
+                        .backupApplicationScopeBuildSemanticsLabel,
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_message ?? 'بازیابی امن نیاز به تلاش دوباره دارد.'),
+                      Text(
+                        _message ??
+                            planActL10n(context)
+                                .backupApplicationScopeBuildChildren,
+                      ),
                       TextButton(
                         onPressed: _start,
-                        child: const Text('تلاش دوباره'),
+                        child: Text(planActL10n(context).commonRetry),
                       ),
                     ],
                   ),

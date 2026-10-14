@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
@@ -45,12 +46,18 @@ extension AttentionReasonX on AttentionReason {
 
 extension AttentionActionX on AttentionAction {
   String get label => switch (this) {
-    AttentionAction.determineOccurrenceStatus => 'تعیین وضعیت',
-    AttentionAction.reconcilePayment => 'تطبیق پرداخت',
-    AttentionAction.reviewExpectedIncoming => 'بررسی دریافت',
-    AttentionAction.classifyTransaction => 'تعیین ارتباط',
-    AttentionAction.reviewInbox => 'بازبینی تراکنش',
-    AttentionAction.resolveReconciliation => 'حل مغایرت',
+    AttentionAction.determineOccurrenceStatus =>
+      PersianCopy.attentionEngineAttentionActionDetermineOccurrenceStatus,
+    AttentionAction.reconcilePayment =>
+      PersianCopy.attentionEngineAttentionActionReconcilePayment,
+    AttentionAction.reviewExpectedIncoming =>
+      PersianCopy.attentionEngineAttentionActionReviewExpectedIncoming,
+    AttentionAction.classifyTransaction =>
+      PersianCopy.financePageEntryOperationsItemBuilder,
+    AttentionAction.reviewInbox =>
+      PersianCopy.attentionEngineAttentionActionReviewInbox,
+    AttentionAction.resolveReconciliation =>
+      PersianCopy.attentionEngineAttentionActionResolveReconciliation,
   };
 }
 
@@ -145,7 +152,8 @@ class TodayActionItem {
   final AttentionItem? attentionItem;
   final Commitment? commitment;
 
-  String get actionLabel => attentionAction?.label ?? 'اقدام';
+  String get actionLabel =>
+      attentionAction?.label ?? PersianCopy.attentionEngineActionLabelMessage;
 }
 
 class TodayActionCenter {
@@ -219,7 +227,7 @@ class AttentionEngine {
           title: commitment?.title ?? item.title,
           subtitle: occurrence == null
               ? item.explanation
-              : 'این نوبت عقب‌افتاده است؛ وضعیت آن را ثبت کنید.',
+              : PersianCopy.attentionEngineBuildActionCenterSubtitle,
           urgency: item.urgency,
           scheduledAt:
               _dateOf(occurrence?.currentScheduledAt) ?? item.occurredAt,
@@ -248,7 +256,7 @@ class AttentionEngine {
               id: 'today:${occurrence.id.value}',
               type: TodayActionItemType.occurrence,
               title: commitment.title,
-              subtitle: 'امروز؛ اقدام بعدی را انتخاب کنید.',
+              subtitle: PersianCopy.attentionEngineBuildActionCenterSubtitle2,
               urgency: 60,
               scheduledAt: date,
               sourceReference: occurrence.id.value,
@@ -262,7 +270,7 @@ class AttentionEngine {
               id: 'upcoming-occurrence:${occurrence.id.value}',
               type: TodayActionItemType.occurrence,
               title: commitment.title,
-              subtitle: 'در روزهای آینده؛ برای آن آماده شوید.',
+              subtitle: PersianCopy.attentionEngineBuildActionCenterSubtitle3,
               urgency: 20,
               scheduledAt: date,
               sourceReference: occurrence.id.value,
@@ -328,7 +336,7 @@ class AttentionEngine {
               id: 'commitment:${occurrence.id.value}',
               reason: AttentionReason.overdueCommitment,
               title: commitment.title,
-              explanation: 'این تعهد سررسید شده و هنوز تکمیل نشده است.',
+              explanation: PersianCopy.attentionEngineBuildExplanation,
               urgency: 100,
               occurredAt: date,
             ),
@@ -337,8 +345,13 @@ class AttentionEngine {
       }
     }
 
+    final reversedIds = entries
+        .where((entry) => entry.type == AccountEntryType.reversal)
+        .map((entry) => entry.referenceId)
+        .toSet();
     final allocatedByOccurrence = <StableId, int>{};
     for (final match in matches.where((m) => m.status == MatchStatus.active)) {
+      if (reversedIds.contains(match.transactionId.value)) continue;
       for (final allocation in match.allocations) {
         allocatedByOccurrence[allocation.occurrenceId] =
             (allocatedByOccurrence[allocation.occurrenceId] ?? 0) +
@@ -364,10 +377,11 @@ class AttentionEngine {
             AttentionItem(
               id: 'expectation:${expectation.id.value}',
               reason: AttentionReason.overdueUnpaidExpectation,
-              title: 'پرداخت مورد انتظار',
+              title: PersianCopy
+                  .quickCaptureSheetCommitmentFinancialMeaningPaymentRequired,
               explanation: date.isBefore(now)
-                  ? 'پرداخت مورد انتظار سررسید شده و هنوز کامل تطبیق داده نشده است.'
-                  : 'پرداخت مورد انتظار امروز سررسید می‌شود و هنوز کامل تطبیق داده نشده است.',
+                  ? PersianCopy.attentionEngineBuildExplanation2
+                  : PersianCopy.attentionEngineBuildExplanation3,
               urgency: date.isBefore(now) ? 95 : 80,
               occurredAt: date,
               amountMinorUnits: remaining,
@@ -382,8 +396,9 @@ class AttentionEngine {
           AttentionItem(
             id: 'incoming:${expectation.id.value}',
             reason: AttentionReason.expectedIncomingMissing,
-            title: 'دریافت مورد انتظار',
-            explanation: 'دریافت مورد انتظار سررسید شده و هنوز با تراکنش تطبیق داده نشده است.',
+            title: PersianCopy
+                .quickCaptureSheetCommitmentFinancialMeaningReceivable,
+            explanation: PersianCopy.attentionEngineBuildExplanation4,
             urgency: 75,
             occurredAt: date,
             amountMinorUnits: remaining,
@@ -405,8 +420,10 @@ class AttentionEngine {
           (item) => AttentionItem(
             id: 'inbox:${item.id.value}',
             reason: AttentionReason.inboxReview,
-            title: item.draft.type.isEmpty ? 'تراکنش واردشده' : item.draft.type,
-            explanation: 'یک تراکنش بانکی نیاز به بررسی دارد.',
+            title: item.draft.type.isEmpty
+                ? PersianCopy.attentionEngineInboxTitle
+                : item.draft.type,
+            explanation: PersianCopy.attentionEngineInboxExplanation,
             urgency: 70,
             amountMinorUnits: item.draft.amount.minorUnits,
             currency: item.draft.amount.currency,
@@ -424,10 +441,6 @@ class AttentionEngine {
         latestReviews[review.transactionId] = review;
       }
     }
-    final reversedIds = entries
-        .where((entry) => entry.type == AccountEntryType.reversal)
-        .map((entry) => entry.referenceId)
-        .toSet();
     final unmatched = <AccountEntry>[];
     final reviews = <StableId, RelationshipReview>{};
     for (final entry in entries) {
@@ -454,8 +467,8 @@ class AttentionEngine {
         AttentionItem(
           id: 'transaction:${entry.id.value}',
           reason: AttentionReason.unmatchedTransaction,
-          title: 'تراکنش نیازمند بررسی',
-          explanation: 'مبلغ باقی‌ماندهٔ این تراکنش نیازمند تعیین ارتباط است.',
+          title: PersianCopy.attentionEngineBuildTitle,
+          explanation: PersianCopy.attentionEngineBuildExplanation5,
           urgency: 65,
           amountMinorUnits: reviews[entry.id]!.remainderMinorUnits,
           currency: entry.amount.currency,

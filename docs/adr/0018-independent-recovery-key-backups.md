@@ -1,49 +1,15 @@
-# ADR 0018 — Independent recovery-key backups
+# تصمیم معماری ۰۰۱۸: کلید مستقل بازیابی پشتیبان
 
-Status: Accepted for implementation from the explicit user mission (2026-10-10).
-Supersedes ADR 0013 only for new export key ownership; its storage, validation,
-rollback, command drainage and native verification safeguards remain binding.
+وضعیت: پذیرفته‌شده در ۲۰۲۶-۱۰-۱۰. فقط مالکیت کلید خروجی جدیدِ تصمیم ۰۰۱۳ را جایگزین می‌کند؛ ایمنی ذخیره، اعتبارسنجی، برگشت تراکنش و تخلیهٔ فرمان باقی است.
 
-## Acceptance contract (recorded before code)
+مسیر «بیشتر → پشتیبان/بازیابی» به پایگاه محلی نیاز دارد، نه حساب/شبکه. هر خروجی، کلید تازهٔ AES-256 با مولد امن می‌سازد. پیش از ذخیره، کلید و هشدار فارسیِ نگهداری جدا و زیان برگشت‌ناپذیر نمایش داده و برای همان خروجی تأیید می‌شود. انصراف چیزی ذخیره نمی‌کند. کلید در لاگ، ذخیرهٔ امن یا فایل همراه نوشته نمی‌شود. نصب تازهٔ آفلاین، قالب ۲ را فقط با فایل و کلید کاربر بازمی‌گرداند. قالب ۱ فقط با کلید نصب قدیمی و هشدار صریح است؛ واردسازی کلید تازه نمی‌سازد و قالب را بازنویسی نمی‌کند.
 
-Entry: More → backup/restore, with local database available; no account/network.
-Each production export generates a fresh cryptography AES-256 key. Before any
-file save, Persian UI displays the key, separate-storage and unrecoverable-loss
-warnings, and requires explicit acknowledgement in that export. Cancellation
-saves nothing. No key is logged, stored in secure storage or written to a sidecar.
-A new offline installation restores format 2 from file plus user key alone.
-Format 1 remains installation-key-only, with explicit warning/confirmation and
-no rewriting or provisioning on import.
+گفت‌وگوی کلید پیش از ورود انحصاری است، زیرا تخلیهٔ فرمان محدودهٔ رابط را می‌بندد. خروجی: اقدام → کلید موقت/تأیید → تخلیه → تصویر جدا/رمزگذاری/اعتبارسنجی → انتخابگر. واردسازی: انتخاب فایل → نسخه/کلید یا تأیید قدیمی → تخلیه → رمزگشایی احرازشده → SQLite جدا → تصویر ایمنی/نشانگر/تعویض اتمیک → اتصال دوباره/بازسازی یادآور.
 
-Trace: More card → recovery-aware file actions → ephemeral key/confirmation →
-exclusive command drainage → isolated snapshot/encryption/validation → picker;
-import picker → version validation → key input or legacy acknowledgement →
-exclusive drainage → authenticated decryption → strict isolated SQLite validation
-→ validated safety/marker/atomic replacement → repository rebind/reminder rebuild.
-UI key dialogs occur before exclusive mode, because the host disposes feature
-navigation while draining. Cancel, wrong key, tampering, incompatible schema and
-write failures preserve current state. Post-replacement failures retain existing
-rollback/recovery rules. Retry starts a new export with a new key.
+انصراف، کلید غلط، دست‌کاری، طرحوارهٔ ناسازگار و شکست نوشتن حالت زنده را حفظ می‌کنند؛ شکست پس از تعویض تابع برگشت تراکنش مصوب است. تلاش مجدد خروجی با کلید تازه شروع می‌شود.
 
-## Format and scope
+قالب ۲ AES-256-GCM، SHA-256 متن رمز‌شده و نسخه/طرحوارهٔ احرازشده را حفظ می‌کند. کلید خام ۲۵۶بیتی است، نه گذرواژه/KDF؛ متن base64url متعارف و طول/کدگذاری معتبر لازم است. قالب ۱ تغییر نمی‌کند. مهاجرت، وابستگی، سپردن کلید، بازیابی گذرواژه، ارسال خودکار یا فایل متن آشکار اضافه نمی‌شود.
 
-Format 2 retains AES-256-GCM, ciphertext SHA-256, schema compatibility checking
-and version/schema authenticated data. Metadata identifies an independent raw
-256-bit recovery key (not a password/KDF). Key text is canonical base64url;
-invalid lengths/encoding are rejected. Format 1 metadata is unchanged.
-No database migration or new dependency. No key escrow, password recovery,
-automatic upload, automatic clipboard write or plaintext companion file.
-The explicit 2026-10-10 follow-up permits user-initiated «کپی کلید» only, with
-clipboard sensitivity warning and Persian success/failure feedback. Copy does
-not satisfy the separate per-export safe-storage acknowledgement. Key-loss
-warning uses shared bold title typography. No key persistence or format change.
+تکمیل صریح «کپی کلید» فقط با اقدام کاربر، هشدار حساسیت و پیام فارسی موفقیت/خطاست. کپی جای تأیید نگهداری امن همان خروجی را نمی‌گیرد؛ نوشتن خودکار در کلیپ‌بورد وجود ندارد.
 
-## Required evidence and exposure
-
-Automated independent-key/install, wrong-key/tamper, legacy, migrated-schema,
-full logical state, write/rebuild failure, command drainage and Persian UI tests
-are required. Native picker/storage, isolated fresh-install offline restore,
-process interruption, notification and power-loss checks remain release blockers.
-Owner: release maintainer; next action: run isolated-device checklist in
-BACKUP_VERIFICATION.md. Do not claim device-loss readiness without those checks
-and independent acceptance review. Never use the personal installation.
+تست کلید مستقل/نصب، کلید غلط/دست‌کاری، قالب قدیمی، مهاجرت، حفظ همه‌داده، شکست نوشتن/بازسازی، تخلیه و رابط لازم است. انتخابگر/ذخیرهٔ بومی، نصب تازهٔ جدا، توقف پردازش، اعلان و قطع برق هنوز مانع انتشارند. مسئول انتشار باید [فهرست بررسی](../BACKUP_VERIFICATION.md) را در نصب آزمایشی جدا اجرا کند؛ نصب شخصی مجاز نیست. آمادگی بازیابی پس از فقدان دستگاه به شاهد بومی و پذیرش مستقل نیاز دارد.

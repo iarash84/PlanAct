@@ -47,6 +47,45 @@ void top(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets('empty weeks stay compact beside a dense week', (tester) async {
+    size(tester);
+    const date = JalaliDate(1405, 1, 1);
+    final items = List.generate(
+      4,
+      (index) => Commitment.create(title: 'کلاس موسیقی و تمرین گروهی $index'),
+    );
+    await tester.pumpWidget(
+      host(
+        CalendarPage(
+          commitments: items,
+          scheduledDates: {
+            for (final item in items) item.id.value: [date.toDateTime()],
+          },
+          initialDate: date,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final dense = tester.getRect(find.byKey(const ValueKey('calendar-day-1')));
+    final empty = tester.getRect(find.byKey(const ValueKey('calendar-day-15')));
+    expect(empty.height, inInclusiveRange(48, 64));
+    expect(dense.height, greaterThan(empty.height));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('calendar-month-grid'))).height,
+      lessThan(450),
+    );
+    await tester.tap(find.byKey(const ValueKey('calendar-day-15')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<Semantics>(find.byKey(const ValueKey('calendar-day-15')))
+          .properties
+          .selected,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   for (final brightness in Brightness.values) {
     for (final scale in [1.0, 2.0]) {
       testWidgets(

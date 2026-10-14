@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/automation/domain/automation.dart';
 import 'package:planact/features/automation/domain/predictive.dart';
 
@@ -106,8 +107,8 @@ class PredictiveService {
       anomalies: anomalies,
       provider: PredictiveProvider.deterministic,
       explanation: enableAi
-          ? 'هوش مصنوعی محلی در دسترس یا قابل اعتماد نبود؛ نتیجه قطعی‌پذیر استفاده شد.'
-          : 'هوش مصنوعی اختیاری خاموش است؛ نتیجه قطعی‌پذیر استفاده شد.',
+          ? PersianCopy.localAiFallbackExplanation
+          : PersianCopy.localAiFallbackExplanation2,
     );
     final adapter = aiAdapter;
     if (!enableAi ||
@@ -126,7 +127,7 @@ class PredictiveService {
         anomalies: anomalies,
         provider: PredictiveProvider.onDeviceAi,
         aiInsight: insight,
-        explanation: 'خلاصه اختیاری روی دستگاه تولید شد؛ داده‌های قطعی‌پذیر همچنان مبنای نتیجه هستند.',
+        explanation: PersianCopy.localAiEvaluateExplanation,
       );
     } catch (_) {
       return fallback;

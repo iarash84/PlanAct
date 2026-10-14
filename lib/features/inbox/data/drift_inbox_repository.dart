@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:convert';
 
 import 'package:planact/core/application/command_gate.dart';
@@ -74,7 +76,7 @@ class DriftInboxRepository
       if (metadata['revision'] != suggestion.revision ||
           row.status != suggestion.status.index) {
         throw const ValidationError(
-          'تغییر جدیدی ثبت شده است؛ ابتدا بازخوانی کنید.',
+          PersianCopy.driftInboxRepositoryReviewAtomicallyMessage,
         );
       }
       if (recover
@@ -82,7 +84,7 @@ class DriftInboxRepository
           : row.status != SuggestionStatus.pending.index &&
                 row.status != SuggestionStatus.edited.index) {
         throw const ValidationError(
-          'تراکنش تأییدشده را از بخش مالی اصلاح کنید.',
+          PersianCopy.driftInboxRepositoryReviewAtomicallyMessage2,
         );
       }
       await (database.update(
@@ -223,20 +225,22 @@ class DriftInboxRepository
       );
       if (entry.type != AccountEntryType.income &&
           entry.type != AccountEntryType.expense) {
-        throw const ValidationError('نوع تراکنش در این مسیر پشتیبانی نمی‌شود.');
+        throw const ValidationError(
+          PersianCopy.driftInboxRepositoryConfirmAtomicallyMessage,
+        );
       }
       metadata['reviewed'] = fresh.draft.toReviewJson();
       final currencyEvidence = metadata['currencyEvidence'];
       if (currencyEvidence != null &&
           SmsCurrencyEvidence.fromJson(currencyEvidence as Map<String, dynamic>)
               .requiresSelection) {
-        throw const ValidationError('واحد مبلغ پیامک را صریحاً انتخاب کنید.');
+        throw const ValidationError(
+          PersianCopy.driftInboxRepositoryConfirmAtomicallyMessage2,
+        );
       }
       if (expectedRevision != null &&
           metadata['revision'] != expectedRevision) {
-        throw const ValidationError(
-          'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
-        );
+        throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
       }
       if (suggestion.status != SuggestionStatus.confirmed.index) {
         if (suggestion.minorUnits != entry.amount.minorUnits ||
@@ -409,20 +413,22 @@ class DriftInboxRepository
       if (stored != null &&
           (stored.status == SuggestionStatus.confirmed.index ||
               stored.status == SuggestionStatus.rejected.index)) {
-        throw const ValidationError('پیشنهاد بررسی‌شده قابل بازنویسی نیست.');
+        throw const ValidationError(
+          PersianCopy.driftInboxRepositorySaveSuggestionMessage,
+        );
       }
       final metadata = await _metadata(suggestion.id.value);
       if (stored != null &&
           suggestion.revision != (metadata['revision'] as int) + 1) {
-        throw const ValidationError(
-          'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
-        );
+        throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
       }
       if (stored != null &&
           (stored.draftId != suggestion.draft.id.value ||
               stored.stagedImportId != suggestion.stagedImportId.value ||
               suggestion.status != SuggestionStatus.edited)) {
-        throw const ValidationError('شناسه یا وضعیت پیشنهاد قابل تغییر نیست.');
+        throw const ValidationError(
+          PersianCopy.driftInboxRepositorySaveSuggestionMessage2,
+        );
       }
       // Only staging establishes original evidence. Legacy absence stays unknown.
       if (stored == null) {
@@ -431,7 +437,7 @@ class DriftInboxRepository
       metadata['reviewed'] = suggestion.draft.toReviewJson();
       if (metadata['currencyEvidence'] != null &&
           suggestion.draft.currencyEvidence == null) {
-        throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');
+        throw const ValidationError(PersianCopy.inboxUseCasesEditMessage2);
       }
       metadata.addAll({
         'currencyEvidence': suggestion.draft.currencyEvidence?.toJson(),

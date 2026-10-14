@@ -36,6 +36,17 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
+          // Empty months must not reserve title/count space. At normal text
+          // size the complete grid fits a compact phone viewport; larger text
+          // can grow the holiday labels without inflating every row for events.
+          if (scale == 1) {
+            expect(
+              tester
+                  .getSize(find.byKey(const ValueKey('calendar-month-grid')))
+                  .height,
+              lessThan(400),
+            );
+          }
           expect(
             find.byWidgetPredicate(
               (w) =>

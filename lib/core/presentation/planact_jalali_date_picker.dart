@@ -1,3 +1,6 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -34,10 +37,12 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
   }
 
   static String _kindLabel(CalendarHolidayKind kind) => switch (kind) {
-    CalendarHolidayKind.weekend => 'تعطیلی هفتگی',
-    CalendarHolidayKind.officialFixed ||
-    CalendarHolidayKind.officialVariable => 'تعطیل رسمی',
-    CalendarHolidayKind.special => 'تعطیلی خاص',
+    CalendarHolidayKind.weekend =>
+      PersianCopy.planactJalaliDatePickerCalendarHolidayKindWeekend,
+    CalendarHolidayKind.officialFixed || CalendarHolidayKind.officialVariable =>
+      PersianCopy.planactJalaliDatePickerKindLabelMessage,
+    CalendarHolidayKind.special =>
+      PersianCopy.planactJalaliDatePickerCalendarHolidayKindSpecial,
   };
 
   static IconData _kindIcon(CalendarHolidayKind kind) => switch (kind) {
@@ -91,7 +96,7 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
         title: Row(
           children: [
             IconButton(
-              tooltip: 'ماه قبل',
+              tooltip: planActL10n(context).planactJalaliDatePickerBuildTooltip,
               onPressed: () => setState(() => _month = _month.addMonths(-1)),
               icon: const Icon(Icons.chevron_left),
             ),
@@ -102,7 +107,8 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
               ),
             ),
             IconButton(
-              tooltip: 'ماه بعد',
+              tooltip: planActL10n(context)
+                  .planactJalaliDatePickerBuildTooltip2,
               onPressed: () => setState(() => _month = _month.addMonths(1)),
               icon: const Icon(Icons.chevron_right),
             ),
@@ -202,7 +208,7 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
                                 ...reasons.map(
                                   (h) => '${_kindLabel(h.kind)}: ${h.title}',
                                 ),
-                              ].join('، '),
+                              ].join(planActL10n(context).commonListSeparator),
                               selected: selected,
                               button: true,
                               child: InkWell(
@@ -298,13 +304,21 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
                 ExpansionTile(
                   key: const ValueKey('date-reasons'),
                   tilePadding: EdgeInsets.zero,
-                  title: const Text('منبع و جزئیات تعطیلات'),
+                  title: Text(
+                    planActL10n(context).planactJalaliDatePickerBuildTitle,
+                  ),
                   children: [
                     for (final holiday in holidays)
                       Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: Text(
-                          '${holiday.title}\nمنبع: ${holiday.source}\nنسخه: ${holiday.version}\nمحدوده: ${holiday.scope}',
+                          planActL10n(context)
+                              .planactJalaliDatePickerBuildChildren(
+                                (holiday.title).toString(),
+                                (holiday.source).toString(),
+                                (holiday.version).toString(),
+                                (holiday.scope).toString(),
+                              ),
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
@@ -314,7 +328,7 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
                 Semantics(
                   liveRegion: true,
                   child: Text(
-                    'پوشش تعطیلات رسمی این سال کامل نیست؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.',
+                    planActL10n(context).planactJalaliDatePickerBuildChildren2,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: status.attention,
                     ),
@@ -326,11 +340,13 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('انصراف'),
+            child: Text(planActL10n(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, _selected.toDateTime()),
-            child: const Text('تأیید تاریخ'),
+            child: Text(
+              planActL10n(context).planactJalaliDatePickerBuildActions,
+            ),
           ),
         ],
       ),

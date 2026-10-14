@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -74,7 +76,7 @@ class FileBackupActions implements RecoveryBackupActions {
             );
             final bytes = Uint8List.fromList(utf8.encode(decoded.encode()));
             final path = await FilePicker.platform.saveFile(
-              dialogTitle: 'ذخیره نسخه پشتیبان',
+              dialogTitle: PersianCopy.fileBackupActionsPathDialogTitle,
               fileName:
                   'planact-${DateTime.now().millisecondsSinceEpoch}.planact',
               bytes: bytes,
@@ -96,7 +98,7 @@ class FileBackupActions implements RecoveryBackupActions {
     required Future<bool> Function() confirmLegacy,
   }) => _admit(() async {
     final result = await FilePicker.platform.pickFiles(
-      dialogTitle: 'انتخاب نسخه پشتیبان',
+      dialogTitle: PersianCopy.fileBackupActionsResultDialogTitle,
       withData: false,
     );
     if (result == null) return false;

@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 
@@ -9,8 +10,8 @@ class PlanActFormSheet extends StatelessWidget {
     required this.child,
     this.formKey,
     this.onPrimary,
-    this.primaryLabel = 'ذخیره',
-    this.secondaryLabel = 'انصراف',
+    this.primaryLabel = PersianCopy.commonSave,
+    this.secondaryLabel = PersianCopy.commonCancel,
     this.onSecondary,
     this.isLoading = false,
     this.error,
@@ -107,15 +108,31 @@ class PlanActFormSheet extends StatelessWidget {
                         child: FilledButton(
                           key: primaryKey,
                           onPressed: isLoading ? null : onPrimary,
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(primaryLabel),
+                          child: AnimatedSize(
+                            duration: PlanActMotion.duration(
+                              context,
+                              PlanActMotion.short,
+                            ),
+                            curve: PlanActMotion.curve,
+                            child: isLoading
+                                ? SizedBox(
+                                    height: 24,
+                                    width: 48,
+                                    child: Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Text(primaryLabel),
+                          ),
                         ),
                       ),
                     ],
@@ -136,8 +153,8 @@ Future<T?> showPlanActFormSheet<T>({
   required WidgetBuilder builder,
   GlobalKey<FormState>? formKey,
   VoidCallback? onPrimary,
-  String primaryLabel = 'ذخیره',
-  String secondaryLabel = 'انصراف',
+  String primaryLabel = PersianCopy.commonSave,
+  String secondaryLabel = PersianCopy.commonCancel,
   VoidCallback? onSecondary,
   bool isLoading = false,
   String? error,

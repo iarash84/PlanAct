@@ -20,13 +20,12 @@ void main() {
 
     await tester.tap(find.text('ثبت تعهد جدید'));
     await tester.pumpAndSettle();
-    expect(find.text('اصل تعهد'), findsOneWidget);
+    expect(find.text('افزودن تعهد'), findsOneWidget);
 
     await tester.enterText(
       find.byKey(const ValueKey('commitment-title-field')),
       'کلاس زبان',
     );
-    await tester.tap(find.text('ادامه'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('انتخاب تاریخ'));
     await tester.pumpAndSettle();
@@ -38,32 +37,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(TextButton).last);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
+    await tester.ensureVisible(
       find.byKey(const ValueKey('commitment-kind-dropdown')),
-      300,
-      scrollable: find.byType(Scrollable).last,
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('commitment-kind-dropdown')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تکرارشونده').last);
     await tester.pumpAndSettle();
-    // Recurrence weekdays use Dart's DateTime convention (Sunday = 1).
+    // Recurrence weekdays use Dart's DateTime convention (Monday = 1).
     const weekdayLabelsByDartWeekday = ['د', 'س', 'چ', 'پ', 'ج', 'ش', 'ی'];
     final todayLabel = weekdayLabelsByDartWeekday[DateTime.now().weekday - 1];
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilterChip, todayLabel),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.widgetWithText(FilterChip, todayLabel));
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('commitment-save-button')),
-      300,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.byKey(const ValueKey('commitment-save-button')));
+    await tester.ensureVisible(find.widgetWithText(FilterChip, todayLabel));
     await tester.pumpAndSettle();
-    expect(find.text('مرور و ثبت'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilterChip, todayLabel));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('commitment-save-button')));
     await tester.pumpAndSettle();
 

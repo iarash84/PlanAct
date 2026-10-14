@@ -6,6 +6,7 @@ import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 import 'package:planact/features/inbox/presentation/inbox_page.dart';
 
 import '../fixtures/real_bank_sms.dart';
@@ -254,12 +255,26 @@ void main() {
           );
           await _tap(tester, find.text('واریز').last);
           if (actualFormat) {
-            await _tap(tester, find.text('واحد مبلغ'));
+            // A selected dropdown floats its label outside the tap region.
+            // Exercise the actual control at narrow widths and large text.
+            await _tap(
+              tester,
+              find.byType(DropdownButtonFormField<SmsMoneyUnit>),
+            );
             await _tap(tester, find.text('ریال').last);
           }
           await _tap(tester, find.text('ذخیره و بررسی'));
           final edited = (await repository.listSuggestions()).single;
           expect(edited.draft.type, 'income');
+          expect(
+            edited.draft.currencyEvidence!.selectedUnit,
+            SmsMoneyUnit.rial,
+          );
+          expect(
+            edited.draft.amount.minorUnits,
+            original.draft.currencyEvidence!.sourceAmount,
+          );
+          expect(edited.revision, original.revision + 1);
           expect(
             edited.extractedEvidence!.toJson(),
             original.extractedEvidence!.toJson(),

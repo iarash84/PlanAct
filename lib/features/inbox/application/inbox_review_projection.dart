@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -25,9 +26,9 @@ class InboxReviewItem {
   final FinancialAccount? account;
 
   String? get sourceLabel => switch (import.provenance.source) {
-    ImportSource.sms => 'پیامک بانکی',
-    ImportSource.file => 'فایل واردشده',
-    ImportSource.manual => 'ورود دستی',
+    ImportSource.sms => PersianCopy.inboxReviewProjectionImportSourceSms,
+    ImportSource.file => PersianCopy.inboxReviewProjectionImportSourceFile,
+    ImportSource.manual => PersianCopy.inboxReviewProjectionImportSourceManual,
   };
 }
 
@@ -97,21 +98,21 @@ class InboxReviewProjection {
     final warnings = <String>[];
 
     if (draft.quality == ParseQuality.high) {
-      reasons.add('مبلغ و جهت تراکنش از متن پیامک بانکی تشخیص داده شد');
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage);
     } else if (draft.quality == ParseQuality.medium) {
-      reasons.add('مبلغ از متن پیامک تشخیص داده شد؛ جهت تراکنش قطعی نیست');
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage2);
     } else {
-      reasons.add('اطلاعات واردشده نیاز به بررسی دستی دارد');
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage3);
     }
     if (draft.merchant case final merchant? when merchant.trim().isNotEmpty) {
-      reasons.add('نام پذیرنده از متن پیامک استخراج شد');
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage4);
     }
     if (account != null) {
-      reasons.add('تنها حساب فعال سازگار با واحد پول پیدا شد');
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage5);
     } else if (matchingAccounts.isEmpty) {
-      warnings.add('حساب فعال سازگار برای ثبت پیدا نشد');
+      warnings.add(PersianCopy.inboxReviewProjectionItemMessage6);
     } else {
-      warnings.add('چند حساب سازگار وجود دارد؛ حساب باید انتخاب شود');
+      warnings.add(PersianCopy.inboxReviewProjectionItemMessage7);
     }
 
     final sameAmount = entries.where(
@@ -121,8 +122,8 @@ class InboxReviewProjection {
           entry.type == _entryType(draft.direction),
     );
     if (sameAmount.isNotEmpty) {
-      warnings.add('تراکنش دیگری با همین مبلغ و نوع قبلاً ثبت شده است');
-      reasons.add('هشدار تکراری بودن بر اساس مبلغ و نوع تراکنش');
+      warnings.add(PersianCopy.inboxReviewProjectionItemMessage8);
+      reasons.add(PersianCopy.inboxReviewProjectionItemMessage9);
     }
     if (draft.reference case final reference?
         when reference.trim().isNotEmpty) {
@@ -130,8 +131,8 @@ class InboxReviewProjection {
         (entry) => entry.referenceId == reference,
       );
       if (sameReference.isNotEmpty) {
-        warnings.add('شناسه پیگیری قبلاً در دفترکل دیده شده است');
-        reasons.add('هشدار تکراری بودن بر اساس شناسه پیگیری');
+        warnings.add(PersianCopy.inboxReviewProjectionItemMessage10);
+        reasons.add(PersianCopy.inboxReviewProjectionItemMessage11);
       }
     }
 

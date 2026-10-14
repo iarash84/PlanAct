@@ -1,3 +1,9 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/application/undo_token.dart';
+import 'package:planact/core/presentation/undo_feedback.dart';
+import 'package:planact/features/scheduling/application/schedule_undo.dart';
+import 'package:planact/features/scheduling/presentation/schedule_undo_button.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/commitments/data/drift_commitment_correction_repository.dart';
 import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
 import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
@@ -13,6 +19,9 @@ import 'package:planact/features/classification/application/tag_repository.dart'
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reports/data/drift_reports_reader.dart';
+import 'package:planact/features/reports/application/repository_reports_reader.dart';
+import 'package:planact/features/reports/presentation/reports_page.dart';
 import 'package:planact/features/reminders/presentation/occurrence_reminders.dart';
 import 'package:planact/features/scheduling/application/edit_commitment_schedule.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
@@ -129,8 +138,7 @@ class _PlanActAppState extends State<PlanActApp> {
     } catch (_) {
       if (mounted) {
         setState(
-          () =>
-              _moneyUnitError = 'خواندن واحد پول انجام نشد؛ دوباره تلاش کنید.',
+          () => _moneyUnitError = PersianCopy.planactAppLoadMoneyUnitMessage,
         );
       }
     }
@@ -157,7 +165,7 @@ class _PlanActAppState extends State<PlanActApp> {
       if (mounted) {
         setState(
           () => _appLockSettingError =
-              'خواندن تنظیمات قفل برنامه ممکن نشد. دوباره تلاش کنید.',
+              PersianCopy.planactAppLoadAppLockSettingMessage,
         );
       }
     }
@@ -186,10 +194,11 @@ class _PlanActAppState extends State<PlanActApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'پلن‌اکت',
+      onGenerateTitle: (context) => planActL10n(context).appName,
       locale: const Locale('fa'),
-      supportedLocales: const [Locale('fa')],
+      supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -219,7 +228,9 @@ class _PlanActAppState extends State<PlanActApp> {
                                   Text(_moneyUnitError!),
                                   TextButton(
                                     onPressed: _loadMoneyUnit,
-                                    child: const Text('تلاش دوباره'),
+                                    child: Text(
+                                      planActL10n(context).commonRetry,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -241,7 +252,7 @@ class _PlanActAppState extends State<PlanActApp> {
                           Text(_appLockSettingError!),
                           TextButton(
                             onPressed: _loadAppLockSetting,
-                            child: const Text('تلاش دوباره'),
+                            child: Text(planActL10n(context).commonRetry),
                           ),
                         ],
                       ),
@@ -408,9 +419,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text(
-                  'زمان‌بندی ثبت شده است؛ هماهنگی یادآوری دوباره تلاش می‌شود.',
-                ),
+                content: Text(PersianCopy.planactAppMaintainSchedulesContent),
               ),
             );
           }
@@ -420,7 +429,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       await _refresh();
       if (mounted) {
         setState(
-          () => _todayError = 'ادامهٔ زمان‌بندی یا هماهنگی یادآوری انجام نشد. با بازگشت به برنامه دوباره تلاش می‌شود.',
+          () => _todayError = PersianCopy.planactAppMaintainSchedulesMessage,
         );
       }
     }
@@ -518,9 +527,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       }
     } catch (_) {
       if (mounted) {
-        setState(
-          () => _todayError = 'بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.',
-        );
+        setState(() => _todayError = PersianCopy.planactAppRefreshMessage);
       }
       if (throwOnFailure) rethrow;
     }
@@ -571,7 +578,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
     if (saved == true) {
       await _refresh();
-      _showMessage('ارتباط تراکنش ثبت شد.');
+      _showMessage(PersianCopy.planactAppOpenRelationshipMessage);
     }
   }
 
@@ -579,8 +586,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('صندوق ورودی')),
+          appBar: AppBar(
+            title: const Text(PersianCopy.planactAppOpenInboxTitle),
+          ),
           body: InboxPage(
+            tagRepository: _tagRepository,
             inbox: _inboxUseCases,
             onDataChanged: () async {
               await _refresh();
@@ -638,12 +648,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     try {
       await _refresh();
     } catch (_) {
-      _showMessage('تعهد و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
+      _showMessage(PersianCopy.planactAppSaveCapturedCommitmentMessage);
     }
     if (plan.reminderDeliveryPending) {
-      _showMessage(
-        'تعهد ذخیره شد؛ هماهنگ‌سازی یادآوری هنوز انجام نشده است. مجوزهای یادآوری را در تنظیمات بررسی کنید؛ با بازکردن دوباره برنامه، هماهنگ‌سازی تکرار می‌شود.',
-      );
+      _showMessage(PersianCopy.planactAppSaveCapturedCommitmentMessage2);
     }
   }
 
@@ -672,7 +680,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final accounts = await _financeRepository.listAccounts();
     if (!mounted) return;
     if (accounts.isEmpty) {
-      _showMessage('ابتدا یک حساب اضافه کنید.');
+      _showMessage(PersianCopy.planactAppShowQuickFinancialEntryMessage);
       _goToFinance();
       return;
     }
@@ -720,9 +728,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
     try {
       await _refresh();
-      _showMessage(result.income ? 'درآمد ثبت شد.' : 'هزینه ثبت شد.');
+      _showMessage(
+        result.income
+            ? PersianCopy.planactAppSaveQuickFinancialEntryMessage
+            : PersianCopy.planactAppSaveQuickFinancialEntryMessage2,
+      );
     } catch (_) {
-      _showMessage('تراکنش و برچسب‌ها ذخیره شدند؛ نمایش اطلاعات به‌روز نشد.');
+      _showMessage(PersianCopy.planactAppSaveQuickFinancialEntryMessage3);
     }
   }
 
@@ -730,7 +742,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final accounts = await _financeRepository.listAccounts();
     if (!mounted) return;
     if (accounts.length < 2) {
-      _showMessage('برای انتقال، دست‌کم دو حساب فعال لازم است.');
+      _showMessage(PersianCopy.planactAppShowQuickTransferMessage);
       _goToFinance();
       return;
     }
@@ -753,9 +765,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         occurredAt: DateTime.now(),
       );
       await _refresh();
-      if (mounted) _showMessage('انتقال ثبت شد.');
+      if (mounted) {
+        _showMessage(PersianCopy.planactAppShowQuickTransferMessage2);
+      }
     } catch (_) {
-      if (mounted) _showMessage('ثبت انتقال انجام نشد؛ دوباره تلاش کنید.');
+      if (mounted) {
+        _showMessage(PersianCopy.planactAppShowQuickTransferMessage3);
+      }
     }
   }
 
@@ -769,6 +785,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
+    final lifecycle = _repository;
+    final undo = lifecycle is CommitmentLifecycleRepository
+        ? await (lifecycle as CommitmentLifecycleRepository).statusUndo(
+            commitment.id,
+          )
+        : null;
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -789,7 +812,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 if (commitment.status == CommitmentStatus.active)
                   ListTile(
                     leading: const Icon(Icons.check_circle_outline),
-                    title: const Text('انجام شد'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _applyStatus(commitment, CommitmentStatus.completed);
@@ -798,7 +823,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 if (commitment.status == CommitmentStatus.active)
                   ListTile(
                     leading: const Icon(Icons.pause_circle_outline),
-                    title: const Text('توقف موقت'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle2,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _applyStatus(commitment, CommitmentStatus.paused);
@@ -807,7 +834,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 if (commitment.status == CommitmentStatus.paused)
                   ListTile(
                     leading: const Icon(Icons.play_circle_outline),
-                    title: const Text('ادامه'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle3,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _applyStatus(commitment, CommitmentStatus.active);
@@ -817,7 +846,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     commitment.status == CommitmentStatus.paused)
                   ListTile(
                     leading: const Icon(Icons.cancel_outlined),
-                    title: const Text('لغو تعهد'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle4,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _applyStatus(commitment, CommitmentStatus.cancelled);
@@ -826,7 +857,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 if (commitment.status != CommitmentStatus.archived)
                   ListTile(
                     leading: const Icon(Icons.archive_outlined),
-                    title: const Text('بایگانی'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle5,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _applyStatus(commitment, CommitmentStatus.archived);
@@ -835,46 +868,33 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 if (commitment.status == CommitmentStatus.archived)
                   ListTile(
                     leading: const Icon(Icons.unarchive_outlined),
-                    title: const Text('بازگردانی از بایگانی'),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle6,
+                    ),
                     onTap: () {
                       Navigator.pop(sheetContext);
                       _restoreCommitment(commitment);
                     },
                   ),
+                if (undo != null)
+                  ListTile(
+                    leading: const Icon(Icons.undo),
+                    title: Text(planActL10n(sheetContext).undoStatusAction),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _undoCommitmentStatus(commitment, undo);
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
-                  title: const Text('جزئیات و ویرایش'),
+                  title: const Text(
+                    PersianCopy.planactAppShowCommitmentDetailsTitle7,
+                  ),
                   onTap: () {
                     Navigator.pop(sheetContext);
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => CommitmentDetailsPage(
-                          commitment: commitment,
-                          repository: _repository,
-                          tagRepository: _tagRepository,
-                          planRepository: _planRepository,
-                          expectationRepository: _expectationRepository,
-                          occurrenceExecutor: PersistedOccurrenceActionExecutor(
-                            plans: _planRepository,
-                            actuals: _repository is DriftCommitmentRepository
-                                ? DriftActualRepository(_repository.database)
-                                : null,
-                            reminders: _createCommitmentPlan.reminderService,
-                            replacements:
-                                _repository is DriftCommitmentRepository
-                                ? DriftReplacementRepository(
-                                    _repository.database,
-                                  )
-                                : null,
-                            policyRepository:
-                                _repository is DriftCommitmentRepository
-                                ? DriftSessionPolicyRepository(
-                                    _repository.database,
-                                  )
-                                : null,
-                          ),
-                          onSaved: _tagsChanged,
-                        ),
+                        builder: (_) => _detailsPage(commitment),
                       ),
                     );
                   },
@@ -896,7 +916,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       final id = commitment.id;
       switch (status) {
         case CommitmentStatus.active:
-          await ResumeCommitment(_repository)(id);
+          if (commitment.status == CommitmentStatus.archived) {
+            await RestoreCommitment(_repository)(id);
+          } else {
+            await ResumeCommitment(_repository)(id);
+          }
         case CommitmentStatus.paused:
           await PauseCommitment(_repository)(id);
         case CommitmentStatus.completed:
@@ -906,43 +930,121 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         case CommitmentStatus.archived:
           await ArchiveCommitment(_repository)(id);
       }
-      await _refresh();
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('ذخیرهٔ وضعیت انجام نشد؛ دوباره تلاش کنید.'),
-        ),
+      if (mounted) {
+        showRecordedActionFeedback(context, planActL10n(context).undoConflict);
+      }
+      return;
+    }
+    UndoToken? token;
+    final lifecycle = _repository;
+    if (lifecycle is CommitmentLifecycleRepository) {
+      token = await (lifecycle as CommitmentLifecycleRepository).statusUndo(
+        commitment.id,
       );
+    }
+    final pending = await _reconcileStatusReminders();
+    try {
+      await _refresh(throwOnFailure: true);
+    } catch (_) {
+      if (mounted) {
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).undoRefreshPending,
+        );
+      }
+      return;
+    }
+    if (mounted) {
+      showRecordedActionFeedback(
+        context,
+        pending
+            ? planActL10n(context).planactAppBuildContent
+            : planActL10n(context).undoStateSaved,
+        onUndo: token == null
+            ? null
+            : () => _undoCommitmentStatus(commitment, token!),
+      );
+    }
+  }
+
+  Future<bool> _reconcileStatusReminders() async {
+    try {
+      await _createCommitmentPlan.reminderService?.reconcile(
+        now: DateTime.now(),
+      );
+      return false;
+    } catch (_) {
+      return true;
     }
   }
 
   Future<void> _restoreCommitment(Commitment commitment) async {
+    if (!await confirmRecordedAction(
+          context,
+          planActL10n(context).legacyArchiveRestoreMessage,
+        ) ||
+        !mounted) {
+      return;
+    }
+    await _applyStatus(commitment, CommitmentStatus.active);
+  }
+
+  Future<void> _undoCommitmentStatus(
+    Commitment commitment,
+    UndoToken token,
+  ) async {
+    final lifecycle = _repository;
+    if (lifecycle is! CommitmentLifecycleRepository) return;
+    if (!await confirmRecordedAction(
+          context,
+          planActL10n(context).undoConfirmMessage,
+        ) ||
+        !mounted) {
+      return;
+    }
     try {
-      await RestoreCommitment(_repository)(commitment.id);
-      await _refresh();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعهد از بایگانی بازگردانی شد.')),
+      await (lifecycle as CommitmentLifecycleRepository).undoStatus(
+        commitment.id,
+        token,
       );
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('بازگردانی تعهد انجام نشد؛ دوباره تلاش کنید.'),
-        ),
+      if (mounted) {
+        showRecordedActionFeedback(context, planActL10n(context).undoConflict);
+      }
+      return;
+    }
+    final pending = await _reconcileStatusReminders();
+    try {
+      await _refresh(throwOnFailure: true);
+    } catch (_) {
+      if (mounted) {
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).undoRefreshPending,
+        );
+      }
+      return;
+    }
+    if (mounted) {
+      showRecordedActionFeedback(
+        context,
+        pending
+            ? planActL10n(context).planactAppBuildContent
+            : planActL10n(context).undoSuccess,
       );
     }
   }
 
-  Future<void> _showTimeline() async {
+  Future<void> _showTimeline({bool includeHistory = false}) async {
     final items =
         _commitments
             .where(
               (item) =>
-                  item.status != CommitmentStatus.completed &&
-                  item.status != CommitmentStatus.cancelled &&
-                  item.status != CommitmentStatus.archived,
+                  includeHistory ||
+                  (item.status != CommitmentStatus.completed &&
+                      item.status != CommitmentStatus.cancelled &&
+                      item.status != CommitmentStatus.archived),
             )
             .toList()
           ..sort((a, b) {
@@ -961,11 +1063,15 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('خط زمانی تعهدات باقی‌مانده'),
+          title: Text(
+            includeHistory
+                ? planActL10n(context).commitmentHistoryTitle
+                : PersianCopy.planactAppShowTimelineTitle,
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: items.isEmpty
-                ? const Text('تعهد باقی‌مانده‌ای وجود ندارد.')
+                ? const Text(PersianCopy.planactAppShowTimelineContent)
                 : ListView.separated(
                     shrinkWrap: true,
                     itemCount: items.length,
@@ -979,8 +1085,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                         ),
                         title: Text(item.title),
                         subtitle: Text(
-                          '${_firstScheduledDate(item) == null ? 'زمان‌بندی در دسترس نیست' : _formatDate(_firstScheduledDate(item)!)} · '
-                          '${_statusLabel(item.status)}',
+                          PersianCopy.planactAppShowTimelineSubtitle2(
+                            (_firstScheduledDate(item) == null
+                                    ? PersianCopy.planactAppShowTimelineSubtitle
+                                    : _formatDate(_firstScheduledDate(item)!))
+                                .toString(),
+                            (_statusLabel(item.status)).toString(),
+                          ),
                         ),
                         onTap: () {
                           Navigator.of(context).pop();
@@ -993,7 +1104,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('بستن'),
+              child: const Text(PersianCopy.commonClose),
             ),
           ],
         ),
@@ -1006,29 +1117,69 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     return dates.firstOrNull;
   }
 
+  Future<void> _openReports() => Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (_) => ReportsPage(
+        reader: _repository is DriftCommitmentRepository
+            ? DriftReportsReader(_repository.database)
+            : RepositoryReportsReader(
+                commitments: _repository,
+                plans: _planRepository,
+                finance: _financeRepository,
+                expectations: _expectationRepository,
+                tags: _tagRepository,
+              ),
+        onOpenCommitment: _openReportCommitment,
+        onOpenTransaction: _openRelationship,
+      ),
+    ),
+  );
+
+  CommitmentDetailsPage _detailsPage(Commitment commitment) =>
+      CommitmentDetailsPage(
+        commitment: commitment,
+        repository: _repository,
+        tagRepository: _tagRepository,
+        planRepository: _planRepository,
+        expectationRepository: _expectationRepository,
+        occurrenceExecutor: PersistedOccurrenceActionExecutor(
+          plans: _planRepository,
+          actuals: _repository is DriftCommitmentRepository
+              ? DriftActualRepository(_repository.database)
+              : null,
+          reminders: _createCommitmentPlan.reminderService,
+          replacements: _repository is DriftCommitmentRepository
+              ? DriftReplacementRepository(_repository.database)
+              : null,
+          policyRepository: _repository is DriftCommitmentRepository
+              ? DriftSessionPolicyRepository(_repository.database)
+              : null,
+        ),
+        onSaved: _tagsChanged,
+      );
+
+  Future<void> _openReportCommitment(Commitment commitment) async {
+    await Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
+    if (mounted) await _refresh();
+  }
+
   String _formatDate(DateTime value) {
     final local = value.toLocal();
     final date = JalaliDate.fromDateTime(local);
     final time =
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-    return '${PersianDateFormatter.date(date)} ${PersianNumbers.format(date.year)}، ${PersianNumbers.format(time)}';
+    return PersianCopy.planactAppFormatDateMessage(
+      (PersianDateFormatter.date(date)).toString(),
+      (PersianNumbers.format(date.year)).toString(),
+      (PersianNumbers.format(time)).toString(),
+    );
   }
 
   Future<void> _archiveCommitment(Commitment commitment) async {
     if (commitment.status == CommitmentStatus.archived) return;
-    try {
-      await ArchiveCommitment(_repository)(commitment.id);
-      await _refresh();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('تعهد بایگانی شد.')));
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('بایگانی انجام نشد؛ دوباره تلاش کنید.')),
-      );
-    }
+    await _applyStatus(commitment, CommitmentStatus.archived);
   }
 
   @override
@@ -1100,6 +1251,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       FinancePage(
         key: _financePageKey,
+        embedded: true,
         repository: _financeRepository,
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
@@ -1109,6 +1261,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       _MorePage(
         onInbox: _openInbox,
+        onReports: _openReports,
         holidayPackages: widget.holidayPackages,
         onHolidaysChanged: () => setState(() {}),
         backupActions: widget.backupActions,
@@ -1132,27 +1285,45 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ),
       ),
     ];
-    final titles = ['امروز', 'تقویم', 'مدیریت مالی', 'بیشتر'];
+    final titles = [
+      planActL10n(context).commonToday,
+      planActL10n(context).navigationCalendar,
+      planActL10n(context).planactAppTitlesMessage,
+      planActL10n(context).navigationMore,
+    ];
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_selectedIndex]),
+        title: AnimatedSwitcher(
+          duration: PlanActMotion.duration(context, PlanActMotion.short),
+          switchInCurve: PlanActMotion.curve,
+          switchOutCurve: PlanActMotion.curve,
+          child: Text(titles[_selectedIndex], key: ValueKey(_selectedIndex)),
+        ),
         actions: [
           PopupMenuButton<_AppMenuAction>(
-            tooltip: 'گزینه‌های بیشتر',
+            tooltip: planActL10n(context).planactAppBuildTooltip,
             icon: const Icon(Icons.more_horiz),
+            position: PopupMenuPosition.under,
+            requestFocus: true,
             onSelected: (action) {
               if (action == _AppMenuAction.addCommitment) {
                 _showCapture();
               } else if (action == _AppMenuAction.timeline) {
                 _showTimeline();
+              } else if (action == _AppMenuAction.history) {
+                _showTimeline(includeHistory: true);
+              } else if (action == _AppMenuAction.reports) {
+                _openReports();
+              } else if (action == _AppMenuAction.inbox) {
+                _openInbox();
               }
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: _AppMenuAction.addCommitment,
                 child: ListTile(
                   leading: Icon(Icons.add_task),
-                  title: Text('افزودن تعهد'),
+                  title: Text(planActL10n(context).planactAppBuildTitle),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -1160,7 +1331,32 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 value: _AppMenuAction.timeline,
                 child: ListTile(
                   leading: Icon(Icons.timeline),
-                  title: Text('خط زمانی تعهدات'),
+                  title: Text(planActL10n(context).planactAppBuildTitle2),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: _AppMenuAction.history,
+                child: ListTile(
+                  leading: const Icon(Icons.history),
+                  title: Text(planActL10n(context).commitmentHistoryTitle),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: _AppMenuAction.reports,
+                child: ListTile(
+                  leading: Icon(Icons.bar_chart_outlined),
+                  title: Text(planActL10n(context).planactAppBuildTitle3),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              PopupMenuItem(
+                value: _AppMenuAction.inbox,
+                child: ListTile(
+                  leading: Icon(Icons.inbox_outlined),
+                  title: Text(planActL10n(context).planactAppOpenInboxTitle),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -1193,7 +1389,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       floatingActionButton: _selectedIndex == 2
           ? null
           : FloatingActionButton(
-              tooltip: 'افزودن سریع',
+              tooltip: planActL10n(context).commonQuickAdd,
               onPressed: _showQuickAdd,
               child: const Icon(Icons.add),
             ),
@@ -1213,7 +1409,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   alignment: AlignmentDirectional.centerEnd,
                   heightFactor: 1,
                   child: FloatingActionButton(
-                    tooltip: 'افزودن سریع',
+                    tooltip: planActL10n(context).commonQuickAdd,
                     onPressed: _showQuickAdd,
                     child: const Icon(Icons.add),
                   ),
@@ -1230,25 +1426,25 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 curve: PlanActMotion.curve,
               );
             },
-            destinations: const [
+            destinations: [
               NavigationDestination(
                 icon: Icon(Icons.today_outlined),
                 selectedIcon: Icon(Icons.today),
-                label: 'امروز',
+                label: planActL10n(context).commonToday,
               ),
               NavigationDestination(
                 icon: Icon(Icons.calendar_month_outlined),
                 selectedIcon: Icon(Icons.calendar_month),
-                label: 'تقویم',
+                label: planActL10n(context).navigationCalendar,
               ),
               NavigationDestination(
                 icon: Icon(Icons.account_balance_wallet_outlined),
                 selectedIcon: Icon(Icons.account_balance_wallet),
-                label: 'مالی',
+                label: planActL10n(context).navigationFinance,
               ),
               NavigationDestination(
                 icon: Icon(Icons.more_horiz),
-                label: 'بیشتر',
+                label: planActL10n(context).navigationMore,
               ),
             ],
           ),
@@ -1258,7 +1454,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 }
 
-enum _AppMenuAction { addCommitment, timeline }
+enum _AppMenuAction { addCommitment, timeline, history, reports, inbox }
 
 class CommitmentDetailsPage extends StatefulWidget {
   const CommitmentDetailsPage({
@@ -1316,16 +1512,16 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       (await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('تغییرات ذخیره نشده'),
-              content: const Text('تغییرات ذخیره نشده‌اند. خارج می‌شوید؟'),
+              title: const Text(PersianCopy.planactAppConfirmLeaveTitle),
+              content: const Text(PersianCopy.planactAppConfirmLeaveContent),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('ادامهٔ ویرایش'),
+                  child: const Text(PersianCopy.planactAppConfirmLeaveActions),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('خروج بدون ذخیره'),
+                  child: const Text(PersianCopy.planactAppConfirmLeaveActions2),
                 ),
               ],
             ),
@@ -1349,9 +1545,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ذخیرهٔ تغییرات انجام نشد؛ دوباره تلاش کنید.'),
-          ),
+          const SnackBar(content: Text(PersianCopy.planactAppSaveContent)),
         );
       }
     } finally {
@@ -1368,29 +1562,37 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       }
     },
     child: Scaffold(
-      appBar: AppBar(title: const Text('جزئیات تعهد')),
+      appBar: AppBar(title: Text(planActL10n(context).planactAppBuildTitle4)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'وضعیت: ${_statusLabel(widget.commitment.status)}',
+            planActL10n(context).planactAppBuildChildren(
+              (_statusLabel(widget.commitment.status)).toString(),
+            ),
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
           Text(
-            'نوع: ${_kindLabel(widget.commitment.kind)}',
+            planActL10n(context).planactAppBuildChildren2(
+              (_kindLabel(widget.commitment.kind)).toString(),
+            ),
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 20),
           TextField(
             controller: _title,
-            decoration: const InputDecoration(labelText: 'عنوان'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).planactAppBuildLabelText,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _description,
             maxLines: 4,
-            decoration: const InputDecoration(labelText: 'توضیحات'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).planactAppBuildLabelText2,
+            ),
           ),
           const SizedBox(height: 16),
           CommitmentColorPicker(
@@ -1400,7 +1602,9 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           ),
           DropdownButtonFormField<CommitmentPriority>(
             initialValue: _priority,
-            decoration: const InputDecoration(labelText: 'اولویت'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).planactAppBuildLabelText3,
+            ),
             items: CommitmentPriority.values
                 .map(
                   (value) => DropdownMenuItem(
@@ -1429,6 +1633,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           else
             TagLabels(labels: widget.commitment.tags),
           const SizedBox(height: PlanActSpacing.lg),
+          if (widget.planRepository case final ScheduleUndoRepository undo)
+            ScheduleUndoButton(
+              repository: undo,
+              commitmentId: widget.commitment.id,
+              reminders:
+                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                  ? (widget.occurrenceExecutor
+                            as PersistedOccurrenceActionExecutor)
+                        .reminders
+                  : null,
+              onChanged: () async {
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
+            ),
           if (widget.planRepository
               case final DriftCommitmentPlanRepository plans)
             CommitmentCorrectionCard(
@@ -1462,14 +1681,14 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('نوبت‌ها'),
+                  Text(planActL10n(context).planactAppBuildChildren3),
                   const SizedBox(height: 8),
                   for (final occurrence in occurrences)
                     OccurrenceActionRow(
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
                       key: ValueKey(
-                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}',
+                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
                       onChanged: () async {
                         await widget.onSaved();
@@ -1512,17 +1731,20 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                   SnackBar(
                                     content: Text(
                                       pending
-                                          ? 'زمان ذخیره شد؛ هماهنگ‌سازی یادآوری در انتظار است.'
-                                          : 'زمان ذخیره شد؛ سوابق قبلی محفوظ است.',
+                                          ? planActL10n(context)
+                                                .planactAppBuildContent
+                                          : planActL10n(context)
+                                                .planactAppBuildContent2,
                                     ),
                                   ),
                                 );
                               } catch (_) {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'تغییر زمان انجام نشد. نوبت‌های گذشته، دستی یا تغییر تاریخ سری ماهانه و سالانه قابل ویرایش نیستند؛ نوبت را دوباره بررسی کنید.',
+                                      planActL10n(context)
+                                          .planactAppBuildContent3,
                                     ),
                                   ),
                                 );
@@ -1544,11 +1766,9 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                         ),
                   const SizedBox(height: 16),
                   ExpansionTile(
-                    title: const Text('انتظار مالی نوبت‌ها'),
+                    title: Text(planActL10n(context).planactAppBuildTitle5),
                     children: [
-                      const Text(
-                        'برای هر نوبتِ این تعهد، مبلغ جداگانه و اختیاری ثبت کنید.',
-                      ),
+                      Text(planActL10n(context).planactAppBuildChildren4),
                       for (final occurrence in occurrences)
                         _FinancialExpectationOccurrenceRow(
                           occurrence: occurrence,
@@ -1567,7 +1787,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             onPressed: _saving ? null : _save,
             child: _saving
                 ? const CircularProgressIndicator()
-                : const Text('ذخیره'),
+                : Text(planActL10n(context).commonSave),
           ),
         ],
       ),
@@ -1612,13 +1832,13 @@ class _FinancialExpectationOccurrenceRowState
     final scheduled = widget.occurrence.currentScheduledAt;
     final dateLabel = scheduled is DateTime
         ? PersianDateFormatter.date(JalaliDate.fromDateTime(scheduled))
-        : 'تاریخ نوبت مشخص نشده است';
+        : planActL10n(context).planactAppDateLabelMessage;
     return Card(
       child: ExpansionTile(
         initiallyExpanded: false,
         onExpansionChanged: _expand,
         title: Text(dateLabel),
-        subtitle: const Text('برای ثبت یا ویرایش انتظار مالی باز کنید'),
+        subtitle: Text(planActL10n(context).planactAppBuildSubtitle),
         children: [
           if (_expanded)
             Padding(
@@ -1638,28 +1858,29 @@ class _FinancialExpectationOccurrenceRowState
 }
 
 String _statusLabel(CommitmentStatus status) => switch (status) {
-  CommitmentStatus.active => 'فعال',
-  CommitmentStatus.paused => 'متوقف‌شده',
-  CommitmentStatus.completed => 'تکمیل‌شده',
-  CommitmentStatus.cancelled => 'لغوشده',
-  CommitmentStatus.archived => 'بایگانی‌شده',
+  CommitmentStatus.active => PersianCopy.planactAppCommitmentStatusActive,
+  CommitmentStatus.paused => PersianCopy.planactAppCommitmentStatusPaused,
+  CommitmentStatus.completed => PersianCopy.planactAppCommitmentStatusCompleted,
+  CommitmentStatus.cancelled => PersianCopy.occurrenceCancelled,
+  CommitmentStatus.archived => PersianCopy.planactAppCommitmentStatusArchived,
 };
 
 String _kindLabel(CommitmentKind kind) => switch (kind) {
-  CommitmentKind.oneOff => 'یک‌باره',
-  CommitmentKind.recurring => 'تکرارشونده',
+  CommitmentKind.oneOff => PersianCopy.planactAppCommitmentKindOneOff,
+  CommitmentKind.recurring => PersianCopy.planactAppCommitmentKindRecurring,
 };
 
 String _priorityLabel(CommitmentPriority priority) => switch (priority) {
-  CommitmentPriority.low => 'کم',
-  CommitmentPriority.normal => 'عادی',
-  CommitmentPriority.high => 'زیاد',
-  CommitmentPriority.urgent => 'فوری',
+  CommitmentPriority.low => PersianCopy.planactAppCommitmentPriorityLow,
+  CommitmentPriority.normal => PersianCopy.planactAppCommitmentPriorityNormal,
+  CommitmentPriority.high => PersianCopy.planactAppCommitmentPriorityHigh,
+  CommitmentPriority.urgent => PersianCopy.planactAppCommitmentPriorityUrgent,
 };
 
 class _MorePage extends StatelessWidget {
   const _MorePage({
     required this.onInbox,
+    required this.onReports,
     required this.settings,
     this.holidayPackages,
     this.onHolidaysChanged,
@@ -1668,6 +1889,7 @@ class _MorePage extends StatelessWidget {
   });
 
   final VoidCallback onInbox;
+  final VoidCallback onReports;
   final Widget settings;
   final HolidayPackageService? holidayPackages;
   final VoidCallback? onHolidaysChanged;
@@ -1680,9 +1902,18 @@ class _MorePage extends StatelessWidget {
     children: [
       Card(
         child: ListTile(
+          leading: const Icon(Icons.analytics_outlined),
+          title: Text(planActL10n(context).planactAppBuildTitle3),
+          subtitle: Text(planActL10n(context).planactAppBuildSubtitle2),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: onReports,
+        ),
+      ),
+      Card(
+        child: ListTile(
           leading: const Icon(Icons.inbox_outlined),
-          title: const Text('صندوق ورودی'),
-          subtitle: const Text('بررسی پیام‌های واردشده پیش از ثبت مالی'),
+          title: Text(planActL10n(context).planactAppOpenInboxTitle),
+          subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
           trailing: const Icon(Icons.chevron_left),
           onTap: onInbox,
         ),
@@ -1690,13 +1921,15 @@ class _MorePage extends StatelessWidget {
       Card(
         child: ListTile(
           leading: const Icon(Icons.settings_outlined),
-          title: const Text('تنظیمات'),
-          subtitle: const Text('نمایش، امنیت و مجوزهای برنامه'),
+          title: Text(planActL10n(context).planactAppBuildTitle6),
+          subtitle: Text(planActL10n(context).planactAppBuildSubtitle4),
           trailing: const Icon(Icons.chevron_left),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('تنظیمات')),
+                appBar: AppBar(
+                  title: Text(planActL10n(context).planactAppBuildTitle6),
+                ),
                 body: settings,
               ),
             ),

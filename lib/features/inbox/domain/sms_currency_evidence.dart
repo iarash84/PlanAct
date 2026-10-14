@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/errors/app_error.dart';
 
 /// SMS source units are evidence, not a display preference.
@@ -6,12 +7,15 @@ enum SmsMoneyUnit {
   rial,
   toman;
 
-  String get label => this == rial ? 'ریال' : 'تومان';
+  String get label =>
+      this == rial ? PersianCopy.currencyRial : PersianCopy.currencyToman;
 
   int canonicalIrr(int value) {
     final result = BigInt.from(value) * BigInt.from(this == toman ? 10 : 1);
     if (result > BigInt.parse('9223372036854775807') || result <= BigInt.zero) {
-      throw const ValidationError('مبلغ خارج از محدودهٔ مجاز است.');
+      throw const ValidationError(
+        PersianCopy.smsCurrencyEvidenceCanonicalIrrMessage,
+      );
     }
     return result.toInt();
   }
@@ -46,7 +50,7 @@ class SmsCurrencyEvidence {
 
   factory SmsCurrencyEvidence.fromJson(Map<String, dynamic> json) {
     if (json['version'] != 1) {
-      throw const ValidationError('نسخهٔ شواهد واحد پیامک پشتیبانی نمی‌شود.');
+      throw const ValidationError(PersianCopy.smsCurrencyEvidenceMessage);
     }
     return SmsCurrencyEvidence(
       sourceAmount: json['sourceAmount'] as int,

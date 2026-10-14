@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -34,28 +36,39 @@ class _HolidayPackageSettingsCardState
       final approved = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('تأیید بستهٔ تعطیلات'),
+          title: const Text(
+            PersianCopy.holidayPackageSettingsCardApprovedTitle,
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'سال ${PersianNumbers.format(package.year)} · نسخه ${PersianNumbers.format(package.revision)}',
+                  PersianCopy.holidayPackageSettingsCardApprovedChildren(
+                    (PersianNumbers.format(package.year)).toString(),
+                    (PersianNumbers.format(package.revision)).toString(),
+                  ),
                 ),
-                Text('منبع: ${package.source}'),
-                const Text('اثر انگشت ناشر:'),
+                Text(
+                  PersianCopy.holidayPackageSettingsCardApprovedChildren2(
+                    (package.source).toString(),
+                  ),
+                ),
+                const Text(
+                  PersianCopy.holidayPackageSettingsCardApprovedChildren3,
+                ),
                 SelectableText(
                   package.fingerprint,
                   textDirection: TextDirection.ltr,
                 ),
                 Text(
                   first
-                      ? 'این ناشر هنوز مورد اعتماد شما نیست. اثر انگشت را از یک مسیر مستقل با ناشر بررسی کنید. تأیید، این کلید را برای بسته‌های بعدی مورد اعتماد قرار می‌دهد؛ امضا به معنی تأیید رسمی منبع نیست.'
-                      : 'امضا با ناشر مورد اعتماد یکسان است. دادهٔ این سال جایگزین می‌شود.',
+                      ? PersianCopy.holidayPackageSettingsCardApprovedChildren4
+                      : PersianCopy.holidayPackageSettingsCardApprovedChildren5,
                 ),
                 const Text(
-                  'رخدادها، یادآورها و سوابق شما تغییر نمی‌کنند. بسته‌ها در نسخهٔ پشتیبان شخصی نیستند؛ فایل اصلی را نگه دارید.',
+                  PersianCopy.holidayPackageSettingsCardApprovedChildren6,
                 ),
               ],
             ),
@@ -63,11 +76,15 @@ class _HolidayPackageSettingsCardState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('انصراف'),
+              child: const Text(PersianCopy.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(first ? 'تأیید ناشر و ورود بسته' : 'ورود بسته'),
+              child: Text(
+                first
+                    ? PersianCopy.holidayPackageSettingsCardApprovedActions
+                    : PersianCopy.holidayPackageSettingsCardApprovedActions2,
+              ),
             ),
           ],
         ),
@@ -79,7 +96,7 @@ class _HolidayPackageSettingsCardState
       );
       if (!mounted) return;
       setState(
-        () => _message = 'بستهٔ تعطیلات ذخیره شد و بدون اینترنت در دسترس است.',
+        () => _message = PersianCopy.holidayPackageSettingsCardImportMessage,
       );
       widget.onInstalled();
     } on HolidayPackageException catch (error) {
@@ -87,7 +104,7 @@ class _HolidayPackageSettingsCardState
     } catch (_) {
       if (mounted) {
         setState(
-          () => _message = 'ورود بسته انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید؛ دادهٔ قبلی حفظ شده است.',
+          () => _message = PersianCopy.holidayPackageSettingsCardImportMessage2,
         );
       }
     } finally {
@@ -101,11 +118,18 @@ class _HolidayPackageSettingsCardState
       children: [
         ListTile(
           leading: const Icon(Icons.event_available_outlined),
-          title: const Text('دادهٔ تعطیلات'),
+          title: Text(
+            planActL10n(context).holidayPackageSettingsCardBuildTitle,
+          ),
           subtitle: Text(
             widget.service.packages.isEmpty
-                ? 'دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه'
-                : 'بسته‌های نصب‌شده: ${widget.service.packages.map((p) => PersianNumbers.format(p.year)).join('، ')}',
+                ? planActL10n(context).holidayPackageSettingsCardBuildSubtitle
+                : planActL10n(context).holidayPackageSettingsCardBuildSubtitle2(
+                    (widget.service.packages
+                            .map((p) => PersianNumbers.format(p.year))
+                            .join(planActL10n(context).commonListSeparator))
+                        .toString(),
+                  ),
           ),
         ),
         if (widget.service.loadError != null)
@@ -123,11 +147,16 @@ class _HolidayPackageSettingsCardState
           child: FilledButton.tonalIcon(
             onPressed: _busy ? null : _import,
             icon: _busy
-                ? const CircularProgressIndicator(
-                    semanticsLabel: 'در حال بررسی و ذخیرهٔ بسته',
+                ? CircularProgressIndicator(
+                    semanticsLabel: planActL10n(context)
+                        .holidayPackageSettingsCardBuildSemanticsLabel,
                   )
                 : const Icon(Icons.file_open_outlined),
-            label: Text(_busy ? 'در حال ورود بسته…' : 'ورود بسته از فایل'),
+            label: Text(
+              _busy
+                  ? planActL10n(context).holidayPackageSettingsCardBuildLabel
+                  : planActL10n(context).holidayPackageSettingsCardBuildLabel2,
+            ),
           ),
         ),
       ],

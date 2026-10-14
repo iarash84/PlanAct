@@ -36,106 +36,52 @@ class CreateCommitment {
 
 class PauseCommitment {
   const PauseCommitment(this.repository);
-
   final CommitmentRepository repository;
-
-  Future<Commitment> call(StableId id) => _update(id, (item) => item.pause());
-
-  Future<Commitment> _update(
-    StableId id,
-    Commitment Function(Commitment) transition,
-  ) => CommandGate.runFor(repository, () async {
-    final current = await repository.findById(id);
-    if (current == null) {
-      throw NotFoundError('Commitment was not found');
-    }
-    final updated = transition(current);
-    await repository.save(updated);
-    return updated;
-  });
+  Future<Commitment> call(StableId id) =>
+      _changeStatus(repository, id, CommitmentStatus.paused);
 }
 
 class ResumeCommitment {
   const ResumeCommitment(this.repository);
-
   final CommitmentRepository repository;
-
-  Future<Commitment> call(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await repository.findById(id);
-        if (current == null) {
-          throw NotFoundError('Commitment was not found');
-        }
-        final updated = current.resume();
-        await repository.save(updated);
-        return updated;
-      });
+  Future<Commitment> call(StableId id) => _changeStatus(
+    repository,
+    id,
+    CommitmentStatus.active,
+    expectedStatus: CommitmentStatus.paused,
+  );
 }
 
 class ArchiveCommitment {
   const ArchiveCommitment(this.repository);
-
   final CommitmentRepository repository;
-
   Future<Commitment> call(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await _load(id);
-        final updated = current.archive();
-        await repository.save(updated);
-        return updated;
-      });
-
-  Future<Commitment> _load(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await repository.findById(id);
-        if (current == null) throw NotFoundError('Commitment was not found');
-        return current;
-      });
+      _changeStatus(repository, id, CommitmentStatus.archived);
 }
 
 class RestoreCommitment {
   const RestoreCommitment(this.repository);
-
   final CommitmentRepository repository;
-
-  Future<Commitment> call(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await repository.findById(id);
-        if (current == null) throw NotFoundError('Commitment was not found');
-        final updated = current.restore();
-        await repository.save(updated);
-        return updated;
-      });
+  Future<Commitment> call(StableId id) => _changeStatus(
+    repository,
+    id,
+    CommitmentStatus.active,
+    expectedStatus: CommitmentStatus.archived,
+  );
 }
 
 class CompleteCommitment {
   const CompleteCommitment(this.repository);
-
   final CommitmentRepository repository;
-
   Future<Commitment> call(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await repository.findById(id);
-        if (current == null) throw NotFoundError('Commitment was not found');
-        final updated = current.complete();
-        await repository.save(updated);
-        return updated;
-      });
+      _changeStatus(repository, id, CommitmentStatus.completed);
 }
 
 class CancelCommitment {
   const CancelCommitment(this.repository);
-
   final CommitmentRepository repository;
-
   Future<Commitment> call(StableId id) =>
-      CommandGate.runFor(repository, () async {
-        final current = await repository.findById(id);
-        if (current == null) throw NotFoundError('Commitment was not found');
-        final updated = current.cancel();
-        await repository.save(updated);
-        return updated;
-      });
+      _changeStatus(repository, id, CommitmentStatus.cancelled);
 }
 
 class UpdateCommitmentMetadata {
@@ -163,3 +109,35 @@ class UpdateCommitmentMetadata {
     return updated;
   });
 }
+
+Future<Commitment> _changeStatus(
+  CommitmentRepository repository,
+  StableId id,
+  CommitmentStatus status, {
+  CommitmentStatus? expectedStatus,
+}) => CommandGate.runFor(repository, () async {
+  if (repository is CommitmentLifecycleRepository) {
+    return (repository as CommitmentLifecycleRepository).changeStatus(
+      id,
+      status,
+      expectedStatus: expectedStatus,
+    );
+  }
+  final current = await repository.findById(id);
+  if (current == null) throw NotFoundError('Commitment was not found');
+  if (expectedStatus != null && current.status != expectedStatus) {
+    throw const ValidationError('Commitment status changed; reload first');
+  }
+  final updated = switch (status) {
+    CommitmentStatus.paused => current.pause(),
+    CommitmentStatus.completed => current.complete(),
+    CommitmentStatus.cancelled => current.cancel(),
+    CommitmentStatus.archived => current.archive(),
+    CommitmentStatus.active =>
+      current.status == CommitmentStatus.archived
+          ? current.restore()
+          : current.resume(),
+  };
+  await repository.save(updated);
+  return updated;
+});

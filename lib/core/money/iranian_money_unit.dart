@@ -1,9 +1,12 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 /// Presentation/input units only. Durable Iranian amounts remain integer IRR.
 enum IranianMoneyUnit {
   rial,
   toman;
 
-  String get label => this == rial ? 'ریال' : 'تومان';
+  String get label =>
+      this == rial ? PersianCopy.currencyRial : PersianCopy.currencyToman;
 
   String inputText(int rials) {
     final magnitude = BigInt.from(rials).abs();

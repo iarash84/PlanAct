@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -39,7 +40,9 @@ class ReconciliationCandidate {
   final ReconciliationSuggestionStatus status;
   final Money availableAmount;
 
-  String get explanation => reasons.map((reason) => reason.text).join('، ');
+  String get explanation => reasons
+      .map((reason) => reason.text)
+      .join(PersianCopy.commonListSeparator);
 }
 
 class ReconciliationScorer {
@@ -67,17 +70,35 @@ class ReconciliationScorer {
         .abs();
     if (difference == 0) {
       score += 50;
-      reasons.add(const MatchReason(points: 50, text: 'مبلغ یکسان است'));
+      reasons.add(
+        const MatchReason(
+          points: 50,
+          text: PersianCopy.reconciliationScoreText,
+        ),
+      );
     } else if (difference <= toleranceMinorUnits) {
       score += 30;
       reasons.add(
-        const MatchReason(points: 30, text: 'اختلاف مبلغ در محدوده مجاز است'),
+        const MatchReason(
+          points: 30,
+          text: PersianCopy.reconciliationScoreText2,
+        ),
       );
     } else if (transaction.amount.minorUnits < expectation.amount) {
       score += 15;
-      reasons.add(const MatchReason(points: 15, text: 'پرداخت جزئی است'));
+      reasons.add(
+        const MatchReason(
+          points: 15,
+          text: PersianCopy.reconciliationScoreText3,
+        ),
+      );
     } else {
-      reasons.add(const MatchReason(points: 0, text: 'اختلاف مبلغ زیاد است'));
+      reasons.add(
+        const MatchReason(
+          points: 0,
+          text: PersianCopy.reconciliationScoreText4,
+        ),
+      );
     }
 
     final expectedDirection =
@@ -86,9 +107,19 @@ class ReconciliationScorer {
         : AccountEntryType.expense;
     if (transaction.type == expectedDirection) {
       score += 25;
-      reasons.add(const MatchReason(points: 25, text: 'جهت تراکنش درست است'));
+      reasons.add(
+        const MatchReason(
+          points: 25,
+          text: PersianCopy.reconciliationScoreText5,
+        ),
+      );
     } else {
-      reasons.add(const MatchReason(points: 0, text: 'جهت تراکنش نادرست است'));
+      reasons.add(
+        const MatchReason(
+          points: 0,
+          text: PersianCopy.reconciliationScoreText6,
+        ),
+      );
       return ReconciliationCandidate(
         transaction: transaction,
         score: score,
@@ -103,11 +134,16 @@ class ReconciliationScorer {
       reasons.add(
         const MatchReason(
           points: 15,
-          text: 'حساب مورد انتظار و حساب تراکنش یکسان است',
+          text: PersianCopy.reconciliationScoreText7,
         ),
       );
     } else if (expectation.accountId != null) {
-      reasons.add(const MatchReason(points: 0, text: 'حساب تراکنش متفاوت است'));
+      reasons.add(
+        const MatchReason(
+          points: 0,
+          text: PersianCopy.reconciliationScoreText8,
+        ),
+      );
     }
 
     final days = transaction.occurredAt.difference(expectedAt).inDays.abs();
@@ -117,14 +153,14 @@ class ReconciliationScorer {
       reasons.add(
         MatchReason(
           points: points,
-          text: '$days روز با تاریخ مورد انتظار فاصله دارد',
+          text: PersianCopy.reconciliationScoreText9((days).toString()),
         ),
       );
     } else {
       reasons.add(
         const MatchReason(
           points: 0,
-          text: 'تاریخ تراکنش خارج از بازه بررسی است',
+          text: PersianCopy.reconciliationScoreText10,
         ),
       );
     }

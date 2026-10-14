@@ -11,6 +11,19 @@ abstract interface class FinancialExpectationRepository {
   Future<void> saveExpectation(FinancialExpectation expectation);
   Future<List<TransactionMatch>> listMatches();
   Future<List<FinancialAccount>> listAccounts();
+  Future<FinancialExpectationSettlementSnapshot> readSettlementSnapshot();
+}
+
+/// A coherent read of settlement inputs, including financial reversal evidence.
+class FinancialExpectationSettlementSnapshot {
+  const FinancialExpectationSettlementSnapshot({
+    required this.expectations,
+    required this.matches,
+    required this.entries,
+  });
+  final List<FinancialExpectation> expectations;
+  final List<TransactionMatch> matches;
+  final List<AccountEntry> entries;
 }
 
 class InMemoryFinancialExpectationRepository
@@ -18,6 +31,15 @@ class InMemoryFinancialExpectationRepository
   final Map<StableId, FinancialExpectation> _items = {};
   List<TransactionMatch> matches = const [];
   List<FinancialAccount> accounts = const [];
+  List<AccountEntry> entries = const [];
+
+  @override
+  Future<FinancialExpectationSettlementSnapshot>
+  readSettlementSnapshot() async => FinancialExpectationSettlementSnapshot(
+    expectations: List.unmodifiable(_items.values),
+    matches: List.unmodifiable(matches),
+    entries: List.unmodifiable(entries),
+  );
 
   @override
   Future<List<FinancialExpectation>> listExpectations() async =>
@@ -123,12 +145,20 @@ class FinancialExpectationUseCases {
 
   Future<List<FinancialExpectationSettlement>> _settlements() =>
       CommandGate.runFor(repository, () async {
-        final active = (await repository.listExpectations()).where(
+        final snapshot = await repository.readSettlementSnapshot();
+        final active = snapshot.expectations.where(
           (item) => item.status == FinancialExpectationStatus.active,
         );
+        final reversedIds = snapshot.entries
+            .where((entry) => entry.type == AccountEntryType.reversal)
+            .map((entry) => entry.referenceId)
+            .toSet();
         final totals = <(StableId, String), int>{};
-        for (final match in await repository.listMatches()) {
-          if (match.status != MatchStatus.active) continue;
+        for (final match in snapshot.matches) {
+          if (match.status != MatchStatus.active ||
+              reversedIds.contains(match.transactionId.value)) {
+            continue;
+          }
           for (final allocation in match.allocations) {
             final key = (allocation.occurrenceId, allocation.amount.currency);
             totals.update(

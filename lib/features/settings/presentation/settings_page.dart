@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/settings/presentation/money_unit_settings_card.dart';
@@ -54,33 +55,38 @@ class _SettingsPageState extends State<SettingsPage> {
     padding: const EdgeInsets.all(16),
     children: [
       const MoneyUnitSettingsCard(),
-      Text('عمومی', style: Theme.of(context).textTheme.titleLarge),
+      Text(
+        planActL10n(context).commonGeneral,
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
       const SizedBox(height: 12),
       Card(
         child: Column(
           children: [
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.brightness_6_outlined),
-              title: Text('حالت نمایش'),
-              subtitle: Text('انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه'),
+              title: Text(planActL10n(context).settingsAppearance),
+              subtitle: Text(
+                planActL10n(context).settingsAppearanceDescription,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: SegmentedButton<ThemeMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: ThemeMode.system,
-                    label: Text('دستگاه'),
+                    label: Text(planActL10n(context).settingsThemeSystem),
                     icon: Icon(Icons.settings_brightness_outlined),
                   ),
                   ButtonSegment(
                     value: ThemeMode.light,
-                    label: Text('روشن'),
+                    label: Text(planActL10n(context).settingsThemeLight),
                     icon: Icon(Icons.light_mode_outlined),
                   ),
                   ButtonSegment(
                     value: ThemeMode.dark,
-                    label: Text('تاریک'),
+                    label: Text(planActL10n(context).settingsThemeDark),
                     icon: Icon(Icons.dark_mode_outlined),
                   ),
                 ],
@@ -92,7 +98,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
       const SizedBox(height: 20),
-      Text('امنیت', style: Theme.of(context).textTheme.titleLarge),
+      Text(
+        planActL10n(context).settingsSecurity,
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
       const SizedBox(height: 12),
       AppLockSettingsCard(
         enabled: widget.appLockEnabled,
@@ -101,13 +110,16 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 20),
       if (widget.enableReminders != null)
         ReminderPermissionsCard(enable: widget.enableReminders!),
-      Text('درباره', style: Theme.of(context).textTheme.titleLarge),
+      Text(
+        planActL10n(context).settingsAbout,
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
       const SizedBox(height: 12),
       Card(
         child: ListTile(
           leading: const Icon(Icons.info_outline),
-          title: const Text('درباره پلن‌اکت'),
-          subtitle: const Text('نسخه، build و اطلاعات محلی برنامه'),
+          title: Text(planActL10n(context).settingsAboutApp),
+          subtitle: Text(planActL10n(context).settingsPageBuildSubtitle),
           trailing: const Icon(Icons.chevron_left),
           onTap: widget.onAbout,
         ),

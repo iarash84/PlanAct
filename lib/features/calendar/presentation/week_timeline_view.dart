@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 
 import 'dart:async';
@@ -150,8 +152,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(
-            child: CircularProgressIndicator(semanticsLabel: 'بارگذاری هفته'),
+          return Center(
+            child: CircularProgressIndicator(
+              semanticsLabel: planActL10n(context)
+                  .weekTimelineViewBuildSemanticsLabel,
+            ),
           );
         }
         if (snapshot.hasError) {
@@ -159,10 +164,10 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('بارگذاری هفته انجام نشد.'),
+                Text(planActL10n(context).weekTimelineViewBuildChildren),
                 TextButton(
                   onPressed: () => setState(_load),
-                  child: const Text('تلاش دوباره'),
+                  child: Text(planActL10n(context).commonRetry),
                 ),
               ],
             ),
@@ -238,8 +243,16 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     // A visual footprint, never an inferred scheduled duration.
     final cardHeight = math.max(
       96.0,
-      measured('عنوان', theme.textTheme.titleMedium, laneWidth - 16) +
-          measured('۲۳:۵۹', theme.textTheme.bodySmall, laneWidth - 16) +
+      measured(
+            PersianCopy.planactAppBuildLabelText,
+            theme.textTheme.titleMedium,
+            laneWidth - 16,
+          ) +
+          measured(
+            PersianCopy.weekTimelineViewCardHeightMessage,
+            theme.textTheme.bodySmall,
+            laneWidth - 16,
+          ) +
           OccurrenceStatus.values
               .map(
                 (s) => measured(
@@ -287,12 +300,10 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
           children: [
             const Padding(
               padding: EdgeInsets.all(PlanActSpacing.sm),
-              child: Text(
-                'کارت‌ها زمان شروع را نشان می‌دهند؛ زمان پایان ثبت نشده است.',
-              ),
+              child: Text(PersianCopy.weekTimelineViewContentChildren),
             ),
             if (entries.isEmpty)
-              const Text('برای این هفته رخدادی ثبت نشده است.'),
+              const Text(PersianCopy.weekTimelineViewContentChildren2),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -317,7 +328,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                           SizedBox(
                             width: WeekTimelineGeometry.gutterWidth,
                             height: headerHeight,
-                            child: const Center(child: Text('تمام‌روز')),
+                            child: const Center(
+                              child: Text(
+                                PersianCopy.weekTimelineViewContentChildren3,
+                              ),
+                            ),
                           ),
                           Expanded(
                             child: SingleChildScrollView(
@@ -371,7 +386,8 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                                                   day.year,
                                                 ))
                                               const Text(
-                                                'دادهٔ تعطیلات کامل نیست؛ نبود نشان تعطیلی به معنی روز کاری قطعی نیست.',
+                                                PersianCopy
+                                                    .weekTimelineViewContentChildren4,
                                               ),
                                             for (final entry in entries.values)
                                               if (entry.$2.currentScheduledAt
@@ -521,7 +537,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     for (final day in days) {
       final painter = TextPainter(
         text: TextSpan(
-          text: '${PersianDateFormatter.date(day)} · امروز',
+          text: PersianCopy.weekTimelineViewPainterText(
+            (PersianDateFormatter.date(day)).toString(),
+          ),
           style: style,
         ),
         textDirection: Directionality.of(context),
@@ -580,7 +598,13 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                       child: Semantics(
                         header: true,
                         child: Text(
-                          '${PersianDateFormatter.date(days[index])}${days[index] == JalaliDate.now() ? ' · امروز' : ''}',
+                          PersianCopy.weekTimelineViewAgendaDelegate2(
+                            (PersianDateFormatter.date(days[index])).toString(),
+                            (days[index] == JalaliDate.now()
+                                    ? PersianCopy.weekTimelineViewAgendaDelegate
+                                    : '')
+                                .toString(),
+                          ),
                           style: style.copyWith(
                             color: days[index] == JalaliDate.now()
                                 ? theme.colorScheme.onPrimaryContainer
@@ -600,14 +624,16 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (entries.isEmpty && index == initialDay) ...[
-                        const Text('برای این هفته رخدادی ثبت نشده است.'),
+                        const Text(
+                          PersianCopy.weekTimelineViewContentChildren2,
+                        ),
                         if (widget.onAdd != null)
                           Align(
                             alignment: AlignmentDirectional.centerStart,
                             child: TextButton.icon(
                               onPressed: widget.onAdd,
                               icon: const Icon(Icons.add),
-                              label: const Text('افزودن سریع'),
+                              label: const Text(PersianCopy.commonQuickAdd),
                             ),
                           ),
                       ],
@@ -629,7 +655,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                                     .hasCompleteOfficialCoverage(day.year),
                               )))
                         const Text(
-                          'دادهٔ تعطیلات کامل نیست؛ نبود نشان تعطیلی به معنی روز کاری قطعی نیست.',
+                          PersianCopy.weekTimelineViewContentChildren4,
                         ),
                       ..._agendaEntries(days[index], entries),
                     ],
@@ -667,7 +693,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                 .compareTo(WeekTimeline.displayDate(bStart));
             return order != 0 ? order : a.$2.key.compareTo(b.$2.key);
           });
-    if (items.isEmpty) return [const Text('رخدادی ثبت نشده است.')];
+    if (items.isEmpty) {
+      return [const Text(PersianCopy.weekTimelineViewAgendaEntriesMessage)];
+    }
     return [for (final entry in items) _agendaRow(entry.$1, entry.$2)];
   }
 
@@ -683,7 +711,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     final start = occurrence.currentScheduledAt;
     final dateTime = WeekTimeline.displayDate(start);
     final time = start is LocalDate
-        ? 'تمام‌روز'
+        ? PersianCopy.weekTimelineViewContentChildren3
         : PersianNumbers.format(
             '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
           );
@@ -755,7 +783,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       theme.brightness,
     );
     final time = minute == null
-        ? 'تمام‌روز (بدون ساعت)'
+        ? PersianCopy.calendarCommitmentCardBuildText2
         : PersianNumbers.format(
             '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute.toInt() % 60).toString().padLeft(2, '0')}',
           );
@@ -770,8 +798,13 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
           borderRadius: PlanActRadius.chip,
           child: Semantics(
             button: true,
-            label:
-                '${commitment.title}، $time، ${calendarStatusLabel(occurrence.status)}، ${minute == null ? '' : 'زمان پایان ثبت نشده'}',
+            label: PersianCopy.weekTimelineViewCardLabel2(
+              (commitment.title).toString(),
+              (time).toString(),
+              (calendarStatusLabel(occurrence.status)).toString(),
+              (minute == null ? '' : PersianCopy.weekTimelineViewCardLabel)
+                  .toString(),
+            ),
             child: ExcludeSemantics(
               child: Padding(
                 padding: const EdgeInsets.all(PlanActSpacing.xs),
@@ -882,7 +915,7 @@ class _CurrentTimeIndicatorState extends State<_CurrentTimeIndicator> {
             left: 0,
             right: 0,
             child: Semantics(
-              label: 'زمان اکنون',
+              label: planActL10n(context).weekTimelineViewBuildLabel,
               child: Container(
                 height: 2,
                 color: Theme.of(context).colorScheme.primary,

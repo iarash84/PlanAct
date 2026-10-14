@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 
 /// The callback authenticates and persists before this control reports success.
@@ -40,13 +42,15 @@ class _AppLockSettingsCardState extends State<AppLockSettingsCard> {
       if (mounted) {
         setState(() {
           _enabled = enabled;
-          _message = enabled ? 'قفل برنامه فعال شد.' : 'قفل برنامه غیرفعال شد.';
+          _message = enabled
+              ? PersianCopy.appLockSettingsCardChangeMessage
+              : PersianCopy.appLockSettingsCardChangeMessage2;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(
-          () => _message = 'تغییر قفل انجام نشد. احراز هویت و قفل دستگاه را بررسی و دوباره تلاش کنید.',
+          () => _message = PersianCopy.appLockSettingsCardChangeMessage3,
         );
       }
     } finally {
@@ -60,9 +64,11 @@ class _AppLockSettingsCardState extends State<AppLockSettingsCard> {
       children: [
         SwitchListTile.adaptive(
           secondary: const Icon(Icons.lock_outline),
-          title: const Text('قفل برنامه'),
+          title: Text(planActL10n(context).appLockSettingsCardBuildTitle),
           subtitle: Text(
-            _busy ? 'در حال تأیید و ذخیره…' : 'ورود و بازگشت به برنامه با اثر انگشت یا رمز قفل دستگاه؛ تغییر این گزینه نیز نیازمند تأیید هویت است.',
+            _busy
+                ? planActL10n(context).appLockSettingsCardBuildSubtitle
+                : planActL10n(context).appLockSettingsCardBuildSubtitle2,
           ),
           value: _enabled,
           onChanged: _busy || widget.change == null ? null : _change,

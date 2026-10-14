@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -37,7 +38,7 @@ class _EditScheduleDialogState extends State<EditScheduleDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('ویرایش زمان نوبت'),
+    title: Text(planActL10n(context).editScheduleDialogBuildTitle),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -72,20 +73,26 @@ class _EditScheduleDialogState extends State<EditScheduleDialog> {
           DropdownButtonFormField<SeriesEditScope>(
             initialValue: _scope,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'دامنهٔ تغییر'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).editScheduleDialogBuildLabelText,
+            ),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: SeriesEditScope.onlyThis,
-                child: Text('فقط این نوبت'),
+                child: Text(planActL10n(context).editScheduleDialogBuildItems),
               ),
               if (widget.recurring) ...[
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: SeriesEditScope.thisAndFollowing,
-                  child: Text('این نوبت و نوبت‌های بعد'),
+                  child: Text(
+                    planActL10n(context).editScheduleDialogBuildItems2,
+                  ),
                 ),
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: SeriesEditScope.entireActiveCycle,
-                  child: Text('نوبت‌های آیندهٔ دورهٔ فعال'),
+                  child: Text(
+                    planActL10n(context).editScheduleDialogBuildItems3,
+                  ),
                 ),
               ],
             ],
@@ -94,16 +101,14 @@ class _EditScheduleDialogState extends State<EditScheduleDialog> {
             },
           ),
           const SizedBox(height: PlanActSpacing.md),
-          const Text(
-            'سوابق انجام‌شده و نوبت‌های دستی تغییر نمی‌کنند. پرداخت و اعتبار جلسه نیز تغییر نمی‌کند.',
-          ),
+          Text(planActL10n(context).editScheduleDialogBuildChildren),
         ],
       ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('انصراف'),
+        child: Text(planActL10n(context).commonCancel),
       ),
       FilledButton(
         onPressed: () {
@@ -129,7 +134,7 @@ class _EditScheduleDialogState extends State<EditScheduleDialog> {
           }
           Navigator.pop(context, ScheduleEditSelection(selected, _scope));
         },
-        child: const Text('ذخیرهٔ زمان'),
+        child: Text(planActL10n(context).editScheduleDialogBuildActions),
       ),
     ],
   );

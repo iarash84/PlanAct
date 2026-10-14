@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
@@ -74,7 +76,7 @@ class CalendarCommitmentCard extends StatelessWidget {
                 ),
               if (occurrences.isEmpty && previews.isEmpty) ...[
                 const SizedBox(height: PlanActSpacing.md),
-                const Text('جزئیات رخداد در دسترس نیست.'),
+                Text(planActL10n(context).calendarCommitmentCardBuildChildren),
               ],
               for (final occurrence in occurrences) ...[
                 const Padding(
@@ -88,8 +90,16 @@ class CalendarCommitmentCard extends StatelessWidget {
                     _Metadata(
                       icon: Icons.schedule_outlined,
                       text: occurrence.currentScheduledAt is DateTime
-                          ? 'ساعت ${reminderTimeLabel(WeekTimeline.displayDate(occurrence.currentScheduledAt))}'
-                          : 'تمام‌روز (بدون ساعت)',
+                          ? planActL10n(context)
+                                .calendarCommitmentCardBuildText(
+                                  (reminderTimeLabel(
+                                    WeekTimeline.displayDate(
+                                      occurrence.currentScheduledAt,
+                                    ),
+                                  )).toString(),
+                                )
+                          : planActL10n(context)
+                                .calendarCommitmentCardBuildText2,
                     ),
                     _Metadata(
                       icon: calendarStatusIcon(occurrence.status),
@@ -115,8 +125,11 @@ class CalendarCommitmentCard extends StatelessWidget {
       (rule) => rule.enabled && rule.occurrenceId == occurrence.id,
     );
     return rules.isEmpty
-        ? 'بدون یادآوری'
-        : 'یادآوری: ${rules.map(reminderRuleLabel).join('، ')}';
+        ? PersianCopy.calendarCommitmentCardRemindersMessage
+        : PersianCopy.calendarCommitmentCardRemindersMessage2(
+            (rules.map(reminderRuleLabel).join(PersianCopy.commonListSeparator))
+                .toString(),
+          );
   }
 }
 

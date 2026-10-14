@@ -11,6 +11,9 @@ import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/actuals/data/drift_actual_repository.dart';
+import 'package:planact/features/actuals/domain/actual.dart';
+import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 
 class _Platform implements ReminderPlatformAdapter {
   final active = <String, ReminderInstance>{};
@@ -30,6 +33,131 @@ class _Platform implements ReminderPlatformAdapter {
 }
 
 void main() {
+  test('lifecycle Undo preserves snooze and never reopens an independently cancelled reminder', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'lifecycle-reminder-undo-',
+    );
+    final file = File('${directory.path}/state.sqlite');
+    var database = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(() async {
+      await database.close();
+      await directory.delete(recursive: true);
+    });
+    final platform = _Platform();
+    var repository = DriftReminderRepository(database);
+    var service = ReminderService(repository: repository, platform: platform);
+    final plans = DriftCommitmentPlanRepository(database);
+    final commitments = DriftCommitmentRepository(database);
+    final plan =
+        await CreateCommitmentPlan(
+          commitments: commitments,
+          plans: plans,
+          reminderService: service,
+        )(
+          title: 'lifecycle',
+          startAt: DateTime(2030, 1, 1, 18),
+          reminderOffsets: [
+            Duration.zero,
+            const Duration(minutes: 15),
+            const Duration(hours: 1),
+          ],
+        );
+    final instances = await repository.listInstances();
+    await service.snooze(instances[0], DateTime.utc(2030, 1, 2));
+    await service.cancel(instances[1]);
+    await ArchiveCommitment(commitments)(plan.commitment.id);
+    final token = (await commitments.statusUndo(plan.commitment.id))!;
+    await service.reconcile(now: DateTime.utc(2029));
+    expect(platform.active, isEmpty);
+    await database.close();
+    database = AppDatabase.forTesting(NativeDatabase(file));
+    repository = DriftReminderRepository(database);
+    service = ReminderService(repository: repository, platform: platform);
+    await DriftCommitmentRepository(database)
+        .undoStatus(plan.commitment.id, token);
+    await service.reconcile(now: DateTime.utc(2029));
+    expect(platform.active.keys.toSet(), {
+      instances[0].id.value,
+      instances[2].id.value,
+    });
+    final restored = await repository.listInstances();
+    expect(
+      restored.firstWhere((r) => r.id == instances[0].id).snoozedUntil,
+      DateTime.utc(2030, 1, 2),
+    );
+    expect(
+      restored.firstWhere((r) => r.id == instances[1].id).status,
+      ReminderInstanceStatus.cancelled,
+    );
+  });
+  test('interrupted same-time Actual reopening repairs all rules; explicit cancellation remains cancelled', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'actual-reminder-undo-',
+    );
+    final file = File('${directory.path}/state.sqlite');
+    var database = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(() async {
+      await database.close();
+      await directory.delete(recursive: true);
+    });
+    final platform = _Platform();
+    final service = ReminderService(
+      repository: DriftReminderRepository(database),
+      platform: platform,
+    );
+    final plans = DriftCommitmentPlanRepository(database);
+    final plan =
+        await CreateCommitmentPlan(
+          commitments: DriftCommitmentRepository(database),
+          plans: plans,
+          reminderService: service,
+        )(
+          title: 'reopening',
+          startAt: DateTime(2030, 1, 1, 18),
+          reminderOffsets: [Duration.zero, const Duration(minutes: 15)],
+        );
+    final actuals = DriftActualRepository(database);
+    final completed = await actuals.recordOccurrenceActual(
+      expected: plan.occurrences.single,
+      outcome: ActualOutcome.completed,
+      recordedAt: DateTime.utc(2026),
+    );
+    await service.synchronizeOccurrence(
+      occurrenceId: completed.id,
+      occurrenceStart: completed.currentScheduledAt as DateTime,
+      resolved: true,
+    );
+    expect(platform.active, isEmpty);
+    // The durable domain commit succeeds, then the application stops before any delivery call.
+    await actuals.recordOccurrenceActual(
+      expected: completed,
+      outcome: ActualOutcome.reopened,
+      recordedAt: DateTime.utc(2026),
+    );
+    await database.close();
+    database = AppDatabase.forTesting(NativeDatabase(file));
+    final recovered = ReminderService(
+      repository: DriftReminderRepository(database),
+      platform: platform,
+    );
+    await recovered.reconcile(now: DateTime.utc(2029));
+    expect(platform.active.length, 2);
+    expect(
+      await (recovered.repository as DriftReminderRepository)
+          .hasPendingReopening(completed.id),
+      false,
+    );
+    final instances = await recovered.repository.listInstances();
+    await recovered.cancel(instances.first);
+    await recovered.reconcile(now: DateTime.utc(2029));
+    expect(platform.active.length, 1);
+    expect(
+      (await recovered.repository.listInstances())
+          .firstWhere((i) => i.id == instances.first.id)
+          .status,
+      ReminderInstanceStatus.cancelled,
+    );
+  });
   test(
     'replacement intent commits before cancellation failure; restart retries',
     () async {

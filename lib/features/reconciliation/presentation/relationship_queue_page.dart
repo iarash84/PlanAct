@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -75,7 +77,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
       if (!mounted || generation != _generation) return;
       setState(() {
         _loading = false;
-        _error = 'بارگذاری صف انجام نشد؛ دوباره تلاش کنید.';
+        _error = PersianCopy.relationshipQueuePageLoadMessage;
       });
     }
   }
@@ -98,19 +100,24 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
     final approved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأیید مستقل بودن باقی‌مانده‌ها'),
+        title: const Text(PersianCopy.relationshipQueuePageApprovedTitle),
         content: Text(
-          '${PersianNumbers.format(snapshots.length)} مورد ${retry ? 'ناموفق از انتخاب قبلی' : 'انتخاب‌شده از صفحهٔ نمایش‌داده‌شده'} به تعهدی مربوط نیستند؟\n'
-          'این انتخاب همهٔ نتایج فیلتر نیست. فقط باقی‌مانده‌ها مستقل ثبت می‌شوند؛ موجودی، تراکنش‌ها و ارتباط‌های قبلی تغییر نمی‌کنند.',
+          PersianCopy.relationshipQueuePageApprovedContent3(
+            (PersianNumbers.format(snapshots.length)).toString(),
+            (retry
+                    ? PersianCopy.relationshipQueuePageApprovedContent2
+                    : PersianCopy.relationshipQueuePageApprovedContent)
+                .toString(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('تأیید مستقل بودن'),
+            child: const Text(PersianCopy.relationshipQueuePageApprovedActions),
           ),
         ],
       ),
@@ -154,7 +161,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
     } catch (_) {
       if (mounted) {
         setState(
-          () => _error = 'تصمیم‌ها ذخیره شدند؛ به‌روزرسانی نمایش انجام نشد. بازخوانی کنید.',
+          () => _error = PersianCopy.relationshipQueuePageConfirmMessage,
         );
       }
     }
@@ -177,11 +184,9 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'بررسی ارتباط دوباره باز شد؛ تاریخچه و موجودی حفظ شدند.',
-          ),
+          content: const Text(PersianCopy.relationshipQueuePageReopenContent),
           action: SnackBarAction(
-            label: 'بازگردانی',
+            label: PersianCopy.inboxPageRejectLabel,
             onPressed: () => _undoReopen(review),
           ),
         ),
@@ -190,9 +195,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
       await widget.onDataChanged();
     } catch (_) {
       if (mounted) {
-        setState(
-          () => _error = 'بازگشایی انجام نشد یا نمایش به‌روز نشد؛ بازخوانی کنید و دوباره تلاش کنید.',
-        );
+        setState(() => _error = PersianCopy.relationshipQueuePageReopenMessage);
       }
     } finally {
       if (mounted) setState(() => _active = null);
@@ -211,7 +214,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
     } catch (_) {
       if (mounted) {
         setState(
-          () => _error = 'بازگردانی انجام نشد؛ ممکن است تصمیم یا ارتباط جدیدی ثبت شده باشد. بازخوانی کنید.',
+          () => _error = PersianCopy.relationshipQueuePageUndoReopenMessage,
         );
       }
     }
@@ -223,46 +226,57 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
         .where((item) => !_committed.contains(item.transaction.id))
         .toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('صف بررسی ارتباط تراکنش‌ها')),
+      appBar: AppBar(
+        title: Text(planActL10n(context).relationshipQueuePageBuildTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(PlanActSpacing.lg),
         children: [
-          const Text(
-            'فقط باقی‌ماندهٔ درآمدها و هزینه‌های برگشت‌نخورده بررسی می‌شود.',
-          ),
+          Text(planActL10n(context).relationshipQueuePageBuildChildren),
           TextField(
-            decoration: const InputDecoration(labelText: 'جستجوی شرح تراکنش'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context)
+                  .relationshipQueuePageBuildLabelText,
+            ),
             onChanged: (value) => _filter(() => _query = value.trim()),
           ),
           Wrap(
             spacing: PlanActSpacing.sm,
             children: [
               ChoiceChip(
-                label: const Text('همه'),
+                label: Text(
+                  planActL10n(context).relationshipQueuePageBuildLabel,
+                ),
                 selected: _type == null,
                 onSelected: (_) => _filter(() => _type = null),
               ),
               ChoiceChip(
-                label: const Text('درآمد'),
+                label: Text(planActL10n(context).inboxPageBuildTitle4),
                 selected: _type == AccountEntryType.income,
                 onSelected: (_) =>
                     _filter(() => _type = AccountEntryType.income),
               ),
               ChoiceChip(
-                label: const Text('هزینه'),
+                label: Text(planActL10n(context).inboxPageBuildTitle3),
                 selected: _type == AccountEntryType.expense,
                 onSelected: (_) =>
                     _filter(() => _type = AccountEntryType.expense),
               ),
               FilterChip(
-                label: const Text('مستقل‌های بررسی‌شده'),
+                label: Text(
+                  planActL10n(context).relationshipQueuePageBuildLabel2,
+                ),
                 selected: _independent,
                 onSelected: (value) => _filter(() => _independent = value),
               ),
             ],
           ),
           Text(
-            'صفحهٔ ${PersianNumbers.format(_page + 1)} · حداکثر ${PersianNumbers.format(BulkRelationshipReview.pageSize)} مورد؛ انتخاب همهٔ نتایج نیست.',
+            planActL10n(context).relationshipQueuePageBuildChildren2(
+              (PersianNumbers.format(_page + 1)).toString(),
+              (PersianNumbers.format(BulkRelationshipReview.pageSize))
+                  .toString(),
+            ),
           ),
           Wrap(
             spacing: PlanActSpacing.sm,
@@ -274,7 +288,9 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page--);
                         _load();
                       },
-                child: const Text('صفحهٔ قبل'),
+                child: Text(
+                  planActL10n(context).inboxPageBulkControlsChildren7,
+                ),
               ),
               TextButton(
                 onPressed: !_hasNext
@@ -283,9 +299,14 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page++);
                         _load();
                       },
-                child: const Text('صفحهٔ بعد'),
+                child: Text(
+                  planActL10n(context).inboxPageBulkControlsChildren8,
+                ),
               ),
-              TextButton(onPressed: _load, child: const Text('بازخوانی')),
+              TextButton(
+                onPressed: _load,
+                child: Text(planActL10n(context).inboxPageBuildTooltip),
+              ),
               if (!_independent)
                 TextButton(
                   onPressed: _running || _loading
@@ -298,18 +319,24 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                             }
                           }
                         }),
-                  child: const Text('انتخاب همین صفحه'),
+                  child: Text(
+                    planActL10n(context).relationshipQueuePageBuildChildren3,
+                  ),
                 ),
               if (_selection.isNotEmpty)
                 TextButton(
                   onPressed: () => setState(_selection.clear),
-                  child: const Text('پاک‌کردن انتخاب'),
+                  child: Text(
+                    planActL10n(context).relationshipQueuePageBuildChildren4,
+                  ),
                 ),
               if (!_independent)
                 FilledButton(
                   onPressed: _running || _selection.isEmpty ? null : _confirm,
                   child: Text(
-                    'مستقل ثبت کن (${PersianNumbers.format(_selection.length)})',
+                    planActL10n(context).relationshipQueuePageBuildChildren5(
+                      (PersianNumbers.format(_selection.length)).toString(),
+                    ),
                   ),
                 ),
             ],
@@ -322,7 +349,11 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                 children: [
                   if (_running) const LinearProgressIndicator(),
                   Text(
-                    'بررسی‌شده: ${PersianNumbers.format(_attempted)} · موفق: ${PersianNumbers.format(_succeeded)} · ناموفق: ${PersianNumbers.format(_failures.length)}',
+                    planActL10n(context).relationshipQueuePageBuildChildren6(
+                      (PersianNumbers.format(_attempted)).toString(),
+                      (PersianNumbers.format(_succeeded)).toString(),
+                      (PersianNumbers.format(_failures.length)).toString(),
+                    ),
                   ),
                   if (_running)
                     TextButton(
@@ -330,12 +361,17 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         _runner?.cancel();
                         setState(() {});
                       },
-                      child: const Text('توقف پس از مورد جاری'),
+                      child: Text(
+                        planActL10n(context).inboxPageBulkControlsChildren11,
+                      ),
                     ),
                   if (!_running && _failures.isNotEmpty)
                     TextButton(
                       onPressed: () => _confirm(retry: true),
-                      child: const Text('تلاش دوباره برای ناموفق‌ها'),
+                      child: Text(
+                        planActL10n(context)
+                            .relationshipQueuePageBuildChildren7,
+                      ),
                     ),
                 ],
               ),
@@ -351,7 +387,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error == null && visible.isEmpty)
-            const Text('موردی در این صفحه برای بررسی وجود ندارد.'),
+            Text(planActL10n(context).relationshipQueuePageBuildChildren8),
           if (!_loading && _error == null)
             for (final item in visible)
               Card(
@@ -363,8 +399,14 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                               value: _selection.containsKey(
                                 item.transaction.id,
                               ),
-                              semanticLabel:
-                                  'انتخاب ${item.transaction.note ?? 'تراکنش بدون شرح'}',
+                              semanticLabel: planActL10n(context)
+                                  .relationshipQueuePageBuildSemanticLabel2(
+                                    (item.transaction.note ??
+                                            planActL10n(
+                                              context,
+                                            ).relationshipQueuePageBuildSemanticLabel)
+                                        .toString(),
+                                  ),
                               onChanged: _running
                                   ? null
                                   : (value) => setState(() {
@@ -376,16 +418,39 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                                     }),
                             )
                           : const Icon(Icons.check_circle_outline),
-                      title: Text(item.transaction.note ?? 'تراکنش بدون شرح'),
+                      title: Text(
+                        item.transaction.note ??
+                            planActL10n(context)
+                                .relationshipQueuePageBuildSemanticLabel,
+                      ),
                       subtitle: Text(
-                        '${item.transaction.type == AccountEntryType.income ? 'درآمد' : 'هزینه'} · باقی‌مانده: ${PersianMoneyText.amount(item.review.remainderMinorUnits, item.review.transactionAmount.currency, unit: MoneyUnitScope.of(context))}${item.review.isIndependent ? ' · مستقل' : ''}',
+                        planActL10n(context)
+                            .relationshipQueuePageBuildSubtitle2(
+                              (item.transaction.type == AccountEntryType.income
+                                      ? planActL10n(context)
+                                            .inboxPageBuildTitle4
+                                      : planActL10n(context)
+                                            .inboxPageBuildTitle3)
+                                  .toString(),
+                              (PersianMoneyText.amount(
+                                item.review.remainderMinorUnits,
+                                item.review.transactionAmount.currency,
+                                unit: MoneyUnitScope.of(context),
+                              )).toString(),
+                              (item.review.isIndependent
+                                      ? planActL10n(context)
+                                            .relationshipQueuePageBuildSubtitle
+                                      : '')
+                                  .toString(),
+                            ),
                       ),
                     ),
                     if (_active == item.transaction.id)
                       const LinearProgressIndicator(),
                     if (_failures.containsKey(item.transaction.id))
-                      const Text(
-                        'ثبت انجام نشد؛ بازخوانی یا تلاش دوباره با تأیید لازم است.',
+                      Text(
+                        planActL10n(context)
+                            .relationshipQueuePageBuildChildren9,
                       ),
                     Wrap(
                       spacing: PlanActSpacing.sm,
@@ -394,14 +459,20 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                           onPressed: _active == item.transaction.id
                               ? null
                               : () => _open(item),
-                          child: const Text('بررسی تکی ارتباط'),
+                          child: Text(
+                            planActL10n(context)
+                                .relationshipQueuePageBuildChildren10,
+                          ),
                         ),
                         if (item.review.isIndependent)
                           TextButton(
                             onPressed: _active == item.transaction.id
                                 ? null
                                 : () => _reopen(item),
-                            child: const Text('بازگشایی بررسی ارتباط'),
+                            child: Text(
+                              planActL10n(context)
+                                  .relationshipQueuePageBuildChildren11,
+                            ),
                           ),
                       ],
                     ),

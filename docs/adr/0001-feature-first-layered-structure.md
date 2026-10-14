@@ -1,25 +1,11 @@
-# ADR 0001: Feature-first layered structure
+# تصمیم معماری ۰۰۰۱: ساختار قابلیت‌محور و لایه‌ای
 
-- Status: Accepted
-- Date: 2026-09-20
+وضعیت: پذیرفته‌شده؛ تاریخ: ۲۰۲۶-۰۹-۲۰.
 
-## Context
+پروژه به ساختار قابل پیش‌بینی و دامنهٔ مستقل از ویجت Flutter، جدول Drift و API پلتفرم نیاز دارد. هر قابلیت به‌اندازهٔ نیاز، لایه‌های `domain`، `application`، `data` و `presentation` دارد. انواع مشترک در `lib/core` و ترکیب وابستگی‌ها در `lib/app` قرار می‌گیرند.
 
-The project needs a predictable structure before product features are implemented. The domain must remain independent from Flutter widgets, Drift tables, and platform APIs.
+جهت مجاز:
+- `presentation → application → domain`
+- `data/infrastructure → domain/application contracts`
 
-## Decision
-
-Use feature-first organization with explicit `domain`, `application`, `data`, and `presentation` layers where a feature requires them. Shared primitives belong under `lib/core`, and composition belongs under `lib/app`.
-
-Allowed dependency direction:
-
-- `presentation -> application -> domain`
-- `data/infrastructure -> domain/application contracts`
-
-No generic `utils`, `helpers`, or `services` dumping grounds will be introduced.
-
-## Consequences
-
-- New code has an explicit ownership boundary.
-- Domain logic can be tested without Flutter or persistence.
-- Empty directories are represented by this baseline README/ADR until their first implementation arrives.
+پوشهٔ عمومی و بی‌مالک `utils`، `helpers` یا `services` ایجاد نمی‌شود. مالکیت کد روشن می‌ماند و منطق دامنه بدون رابط و پایگاه داده تست می‌شود. ساختار فعلی را برای زیبایی بازآرایی نکنید؛ وجود راهنمای پایه به معنی پیاده‌سازی قابلیت نیست.

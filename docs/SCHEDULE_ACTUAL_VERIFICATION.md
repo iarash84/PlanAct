@@ -1,29 +1,92 @@
-# Priorities 6 and 7 — partial implementation checkpoint
+# ارزیابی زمان‌بندی، نتیجه و بازگردانی
 
-Status: **Partial**, not release acceptance. Existing priorities 1–5 keep their independent unresolved gates. Priorities 8–10 are outside this change.
+وضعیت قابلیت‌های زمان‌بندی/نتیجه **ناقص** است؛ دروازه‌های مستقل سایر قابلیت‌ها برقرارند. این رکورد، تصمیم‌های اولیه و اصلاحات بعدی را جدا می‌کند؛ رفع نقص نرم‌افزاری پذیرش انتشار نیست.
 
-## Implemented path
+## قرارداد اصلاح سه نقص بررسی کد؛ ۲۰۲۶-۱۰-۱۴
 
-- Commitment Details exposes a shared Jalali date picker and explicit date/time edit scopes: only this, this and following, or future automatic occurrences of the active cycle.
-- Writes reload the plan transactionally, reject stale input and resolved/past occurrences, preserve manual overrides, original values and stable occurrence identifiers, and retain older schedule definitions.
-- Recurring date/time edits create a schedule version. Fixed-count/manual schedules, monthly/yearly date shifts and non-unit interval date shifts are rejected instead of inventing termination or recurrence semantics.
-- Result choices include completion, attendance, cancellation, no-show and partial completion. Actual insertion and occurrence status update commit in one SQLite transaction. Reopening appends a new result and retains earlier results; it is not a financial or entitlement reversal.
-- Existing actual fields cannot be overwritten through the repository; evidence addition still uses the existing evidence contract.
-- Details offers result history with loading, empty and error states. Database commit and reminder delivery remain separate outcomes.
-- No schema migration or dependency was introduced; the new outcome is appended to the persisted enum to retain existing indices.
+محدودهٔ مجاز به ترتیب بررسی:
+۱. لغو/اصلاح پرداخت تخصیص‌یافته باید باقی‌ماندهٔ پرداخت‌نشده را در امروز، انتظار و گزارش یکسان کند.
+۲. بازگشایی موفق نتیجه/برنامه باید قصد بازیابی را مصرف کند، بدون نقض لغو صریح بعدی نمونهٔ یادآور.
+۳. ویرایش تاریخچه/جزئیات تعهد متوقف/بایگانی نباید برای مالک یا چرخهٔ غیرمجاز اعلان بسازد.
 
-## Evidence
+مسیر مالی: منو ← برگشت/اصلاح اتمیک ← حفظ دفتر/ارتباط ← بازخوانی ریشه ← محاسبهٔ فقط‌خواندنی تسویه/امروز/گزارش. مسیر جزئیات: بازگشایی/ویرایش ← فرمان پایدار رخداد/نتیجه ← قصد اتمیک یادآور ← تحویل پس از ثبت ← بازخوانی و تطبیق آغاز/بازگشت. تأیید/تلاش مجدد و تفاوت ثبت/تحویل حفظ می‌شوند. حذف تطبیق خودکار، تعمیر قدیمی، مجوز/وابستگی/مهاجرت/بازطراحی تازه مجاز نبود.
 
-Repository tests cover file-backed reopening, same-second append order, stale result rejection, transaction rollback, persisted schedule versions and preservation of manual/resolved rows. A widget test covers all-day date editing without inventing a time. These tests do not establish native delivery or complete product acceptance.
+پیش از نقص بعدی، بازتولید شکست، آزمون منتخب موفق و تحلیل لازم بود. مالی به فایل واقعی/بازگشایی/تصویر پشتیبان و حفظ تخصیص زنده، یادآور به قطع/برگشت/چندقاعده/لغو بعدی/تعویق/شکست تحویل و صلاحیت به مالک/چرخه تازه و حالت فعال نیاز داشت. پایان با اجرای کامل/قالب‌بندی/اختلاف بررسی شد.
 
-## Remaining acceptance gates
+## نتیجهٔ سه اصلاح
 
-- Full recurrence frequency/termination editing, fixed-count remainder semantics and regeneration beyond the materialized horizon. Version boundaries and logical generation identity need explicit integration tests before claiming infinite/open-ended series editing complete.
-- Append-only intermediate schedule edit audit: current storage retains original/current times and schedule definitions, not every intermediate single-occurrence change.
-- Reopening restores an actionable scheduled/rescheduled state, not an exact prior status snapshot; no explicit reversal reference is stored. Partial results remain pending decision.
-- Same-second ordering currently follows SQLite row insertion order. Production file backup retains it, but arbitrary logical row re-import/reordering is not yet proven. ABA/concurrent partial-result updates need a durable revision contract.
-- Complete Today/Calendar outcome journeys, note/evidence capture, accessibility/large-text and both-theme acceptance, multiple-cycle history selection, and command refresh error boundaries.
-- Reminder intent is synchronized after domain commit. Same-time interrupted reopening recovery and native cancellation/delivery retain the Priority 5 gates in TRANSACTIONAL_PLATFORM_VERIFICATION.md.
-- No automatic policy/financial/entitlement consumption or reversal is added. Policy-confirmed consumption and correction remain separate commands.
+1. خواندن انتظار، تاریخچهٔ تطبیق و شاهد دفتر در یک تراکنش SQLite منسجم است. تخصیص تراکنش برگشت‌خورده از تسویه و جمع امروز کنار می‌رود، مطابق گزارش؛ ردیف ارتباط/دفتر حذف نمی‌شود. تراکنش اصلاحی تخصیص صریح خودش را می‌خواهد.
+2. همگام‌سازی رخداد قصد **همهٔ قواعد** را آماده و قصد بازگشایی را در یک تراکنش نویسنده مصرف می‌کند، سپس لغو/زمان‌بندی خارجی انجام می‌شود. شکست ماندگاری کل دسته را عقب و قصد بازیابی را نگه می‌دارد؛ شکست تحویل همهٔ قصد ثبت‌شده را حفظ می‌کند. لغو مستقل بعدی، تعویق و تاریخچهٔ تحویل پس از تطبیق/بازگشایی سرد محفوظ‌اند. بازگردانی برنامه همان مسیر را استفاده می‌کند.
+3. زمان‌بندی مشترک در پذیرش نویسنده، مالک/چرخه/رخداد تازه را می‌سنجد. ویرایش تاریخچهٔ غیرفعال رفتار پایدار مصوب را حفظ، تحویل کهنه را لغو و از ساخت جایگزین لغوشده‌ای که بازیابی هنگام فعال‌شدن را مسدود کند جلوگیری می‌کند. قصد بازگشایی غیرفعال تا بازیابی مجاز باقی می‌ماند؛ اعلان جدید ندارد.
 
-Do not label priorities 6 or 7 fully implemented based on this checkpoint.
+## شواهد اصلاحات اخیر
+
+شش آزمون مالی روی منطق اولیه شکست خوردند؛ سپس اجرای هشت‌فایلی۵۱موفق و مسیر واقعی مالی ← امروز یک موفق داشت. چهار بازگشایی پیش از اصلاح شکست و پس از آن۴۲ آزمون هشت‌فایلی گذشتند. نه صلاحیت ابتدا شکست خورد؛ مثال نقض دهم بازگشایی بایگانی حفظ قصد را لازم کرد. نهایی صلاحیت/بازگشایی/مسیر واقعی۲۲موفق و تحلیل هر مرحله بدون مسئله بود.
+
+۲۳ آزمون جدید: شش مالی، چهار بازگشایی، ده صلاحیت و سه مسیر رابط. فایل مالی هر دو جهت، اصلاح، پرداخت جزئی زنده، بازگشایی فایل و بازگردانی تصویر شخصی پالایش‌شده را با حفظ تاریخچه سنجید. یادآور چندقاعده، برگشت اتمیک، قطع، شکست تحویل و لغو بعدی را پوشش داد. صلاحیت بایگانی/توقف/چرخه غیرفعال/نتیجهٔ حل‌شده/قصد معوق را سنجید. رابط واقعی ریشه و ویرایشگر جلالی جزئیات با پلتفرم آزمایشی بررسی شد.
+
+انتظار جدید نادرست «۱۵دقیقه بعد» به قرارداد مصوب «۱۵دقیقه قبل» اصلاح شد؛ آزمون مودال گذار را بدون انتظار پایان نشانگر مشغول زیرین طی می‌کند. این‌ها اصلاح آزمون بودند، نه تغییر قاعدهٔ تکرار/یادآور.
+
+علت فرار نقص: برگشت مالی و تخصیص جدا آزموده می‌شدند؛ لغو یادآور بعد از بازیابی آغاز برنامه بررسی می‌شد، نه بعد از بازگشایی موفق؛ صلاحیت فقط در تطبیق بود، نه زمان‌بندی مستقیم. آزمون جدید این مرزها و مصرف‌کنندگان مالی را به هم وصل می‌کند.
+
+اجرای نهایی روی میزبان ویندوز، درخت کاری بر پایهٔ `5d9445a`، بعداً ثبت‌شده در `e18936f`:
+
+| بررسی | نتیجه |
+| --- | --- |
+| `flutter test --no-pub --reporter expanded` | **۸۸۸ موفق، بدون شکست**،۴دقیقه۳۶ثانیه، شامل۲۳ مورد جدید |
+| سه مثال نقض خارجی اولیه | هر سه پس از اصلاح نهایی موفق |
+| `flutter analyze --no-pub` | بدون مسئله،۵٫۸ثانیه |
+| قالب‌بندی هشت فایل Dart تغییرکرده/جدید و `git diff --check` | بدون تغییر لازم و موفق |
+
+گزارش کامل محلی `build/verification/review-regression-full-tests.log` نادیده‌گرفته‌شده است. اجرای خارجی هم‌زمان ابتدا قفل DLL دارایی بومی داشت؛ پس از پایان اجرای کامل موفق شد. ساخت/دستگاه/تحویل بومی اجرا نشد. طرح، وابستگی، متن کاربر، شمارش نوع‌دار پایدار و قالب پشتیبان عوض نشد؛ شاهد برگشت/بازگشایی موجود فقط خوانده یا مصرف شد و تاریخچه تعمیر نشد.
+
+## قرارداد بازگردانی مصوب؛ ۲۰۲۶-۱۰-۱۴
+
+مسیرهای واقعی: مالی ← منوی تراکنش/حساب، پنجرهٔ عملیات تعهد/تاریخچه و جزئیات ← منوی رخداد/برنامه. قابلیت آفلاین بدون مجوز تازه است. لغو/اصلاح مالی، بایگانی/بازیابی حساب، بازگردانی چرخهٔ عمر، حذف/اصلاح ارتباط واقعی، بازگشایی نتیجهٔ جزئی و بازگردانی تاریخ/زمان با بازخورد فارسی در محدوده‌اند.
+
+نوشتن تازهٔ SQLite، تاریخچهٔ افزایشی و تغییر دامنه باید اتمیک باشند؛ تأیید صریح، رد نشانهٔ کهنه و بازخوانی امروز/تقویم/گزارش لازم است. انتقال هر دو طرف و کارمزد ثبت‌شده را با افشای صریح یکجا برمی‌گرداند. لغو تکراری دوباره مانده را تغییر نمی‌دهد. فقط آخرین عملیات مجاز قابل بازگردانی است؛ فرمان بعدی بازنویسی نمی‌شود و دسترسی فراتر از پیام گذرا لازم است.
+
+ثبت‌های نسخه‌دار افزایشی با سر پایدار هر مالک و تصویر قبل/بعد در `schema_metadata` موجود قرار دارند. طرح/جدول/وابستگی تازه نیست؛ پشتیبان SQLite شخصی آن‌ها را حفظ و تصویر قدیمی بدون آن‌ها همچنان خوانده می‌شود. سازگاری طرح، نویسندهٔ قدیمی را ایمن نمی‌کند. تاریخچهٔ قدیمی ناشناخته اختراع یا خودکار تعمیر نمی‌شود.
+
+## اجرای محدود زمان‌بندی و نتیجه
+
+جزئیات، انتخابگر مشترک جلالی و محدودهٔ صریح «فقط این»، «این و بعدی» یا «خودکارهای آیندهٔ چرخهٔ فعال» دارد. نوشتن برنامه را تازه می‌خواند، ورودی کهنه/گذشته/حل‌شده را رد، ویرایش دستی، مقدار اصلی، شناسهٔ پایدار و تمام تعریف‌های قدیمی را حفظ می‌کند. تکرار تاریخ/زمان نسخهٔ جدید می‌سازد. تغییر تاریخ ماهانه/سالانه، فاصلهٔ غیرواحد و برنامهٔ تعدادثابت/دستی که معنای خاتمه‌اش تعریف نشده محافظه‌کارانه رد می‌شوند؛ ویرایشگر عمومی تناوب/خاتمه نیست.
+
+نتیجه شامل تکمیل، حضور، لغو، عدم حضور و جزئی است. افزودن نتیجهٔ واقعی و وضعیت رخداد تراکنشی است؛ فیلد قبلی بازنویسی نمی‌شود. بازگشایی نتیجهٔ تازه می‌افزاید و گذشته را نگه می‌دارد؛ به حالت قابل اقدام برنامه‌ریزی/جابه‌جاشده می‌رود و دقیقاً وضعیت پیشین یا پول/سهمیه را بازنمی‌گرداند. نتیجهٔ جزئی اکنون قابل بازگشایی صریح است. افزودن شاهد قرارداد جدا دارد؛ یادداشت/شاهد کامل مسیر کاربر ادعا نمی‌شود.
+
+تاریخچهٔ نتیجه حالت بارگذاری/خالی/خطا دارد. ترتیب هم‌ثانیه بر درج SQLite متکی است؛ پشتیبان فایل حفظ می‌کند ولی ورود منطقی با ترتیب دلخواه هنوز اثبات نشده است. تاریخچهٔ میانی برنامه و حفاظت ABA که در مرحلهٔ اولیه شکاف بودند، اکنون برای مسیر محدود بازگردانی با دفتر عملیات و پذیرش تازه پوشش دارند؛ این رفع محدود، تاریخچهٔ عمومی نامحدود نیست.
+
+## پیگیری بازگردانی: اجرا و شواهد
+
+لغو/اصلاح مالی، جبران کامل انتقال/کارمزد، بازگردانی حساب و چرخهٔ عمر با تاریخچهٔ پایدار، اصلاح/حذف ارتباط با حفظ تخصیص تاریخی، بازگشایی جزئی و بازگردانی برنامه پیاده شده‌اند. نشانهٔ رابط فقط فرمان پایدار را معرفی می‌کند؛ حافظه منبع حقیقت نیست. اصلاح ارتباط پول/نتیجه/اعتبار مصرف‌شده را تغییر نمی‌دهد. جبران مالی قدیمی شناخته‌شده در برابر لغو دوم حفاظت دارد ولی خودکار بازطبقه‌بندی نمی‌شود.
+
+بازگردانی برنامه ممیزی میانی، شناسه و همهٔ تعریف‌ها را حفظ و سری را با نسخهٔ روبه‌جلو بازمی‌گرداند. تمام‌روز امروز تاریخ محلی است؛ زمان‌دار گذشتهٔ امروز نیز مثل روز قبلی حفاظت دارد. آماده‌سازی/تولید تازه، تاریخچهٔ حفاظت‌شده، تغییر قاعده یا نوشتن مرتبط دیگر می‌تواند تصویر را نامعتبر کند؛ امتناع محافظه‌کارانه عمدی است. بازگردانی چندگامی/بازانجام یا بازیابی نامحدود تاریخی عرضه نمی‌شود.
+
+تعلیق چرخهٔ عمر قصد برنامه‌ریزی/تعویق و شاهد قاعده را حفظ می‌کند؛ بازیابی تعویق را نگه و یادآور مستقل لغوشدهٔ پیش از تعلیق را احیا نمی‌کند. شکست تحویل از فرمان ثبت‌شده جدا و با تطبیق پایدار قابل تلاش مجدد است. سه اصلاح تازهٔ بالا این مسیر را برای چند قاعده/مالک غیرفعال تکمیل می‌کنند.
+
+شاهد مرحلهٔ بازگردانی: **۸۶۵ آزمون کامل موفق** در حدود۴دقیقه۸ثانیه؛ پس از حفاظت باریک فعال‌سازی/بایگانی۲۵ بررسی و حفاظت زمان همان‌روز۱۱ مخزن موفق بودند. کل اجرا در همان مرحله پس از آن دو حفاظت تکرار نشده بود؛ اجرای جدیدتر۸۸۸ بالا آن وضعیت تاریخی را جایگزین می‌کند. تحلیل، تولید پیش‌فرض فارسی، قالب، اختلاف و پیوندها موفق؛ گزارش `build/undo-*.log` محلی است.
+
+آزمون‌های مخزن برگشت علامت‌دار/تکراری/هم‌زمان، انتقال/کارمزد و شکست میانی، برگشت اصلاح، نشانهٔ چرخه/حساب کهنه، بازگشایی/تصویر شخصی، جزئی/ABA، تاریخچهٔ میانی/نسخهٔ جلو، برگشت ممیزی و زمان گذشته را سنجیدند. مسیر واقعی تاریخچه پس از پیام گذرا، لغو/تأیید، بایگانی، مالی/خطای بازخوانی پس از ثبت، ارتباط، جزئیات/برنامه و نتیجهٔ جزئی پوشش دارد. هش کنترلی متن پیش از مهاجرت ثابت و متن تازهٔ بازگردانی علامت‌دار و دارای بررسی پارامتر/تولید است.
+
+## وضعیت پذیرش و مسئولیت
+
+سه نقص نرم‌افزاری گزارش‌شده رفع و شواهد یکپارچه موفق‌اند؛ پذیرش مقایسه‌ای خودبازبینی است، نه تأیید مستقل انتشار. هیچ تعمیر خودکار سابقه، مصرف سیاستی/سهمیه یا معنای اضافه‌پرداخت تازه‌ای اضافه نشد.
+
+نگه‌دارندهٔ قابلیت مسئول شکاف نرم‌افزاری؛ QA دستگاه و بازبین محصول/انتشار مسئول شواهد بومی/مستقل‌اند. اقدام بعدی، بررسی همین مسیرها و سیاست نسخهٔ قدیمی روی کاندید دستگاه با هویت ثابت است. موانع باقی‌مانده:
+
+- اعلان/مجوز/تحویل/راه‌اندازی دوباره و بازگردانی دستگاه مستقل؛
+- حجم واقعی دفتر عملیات و پذیرش کنترل‌های جدید با صفحه‌خوان/متن بزرگ؛
+- اعمال سیاست نویسندهٔ قدیمی، بازیابی مالی قدیمی و تاریخچهٔ بایگانی/یادآور ناشناخته؛
+- ویرایش کامل تناوب/تعداد/خاتمه، ادامهٔ سری فراتر از افق، یادداشت/شاهد و ناوبری چندچرخه؛
+- ورود منطقی ردیف‌ها با ترتیب دلخواه و مسیرهای کامل نتیجهٔ امروز/تقویم.
+
+تا شواهد الزامی فراهم نشوند، عرضهٔ توسعه‌ای و وضعیت **ناقص/مسدود برای انتشار تولید** باقی است؛ این قابلیت بازگردانی عمومی همهٔ عملیات نیست.
+
+## مراجع کد و شواهد
+
+- [reversal_settlement_regression_test.dart](../test/repository/reversal_settlement_regression_test.dart)
+- [reminder_reopening_regression_test.dart](../test/repository/reminder_reopening_regression_test.dart)
+- [reminder_eligibility_regression_test.dart](../test/repository/reminder_eligibility_regression_test.dart)
+- [undo_repair_test.dart](../test/repository/undo_repair_test.dart)
+- [undo_repair_journeys_test.dart](../test/widget/undo_repair_journeys_test.dart)
+- [reminder_interruption_recovery_test.dart](../test/repository/reminder_interruption_recovery_test.dart)

@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
@@ -22,21 +24,27 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          importing ? 'بازیابی نسخه پشتیبان؟' : 'ذخیره نسخه پشتیبان؟',
+          importing
+              ? PersianCopy.backupSettingsCardConfirmedTitle
+              : PersianCopy.backupSettingsCardConfirmedTitle2,
         ),
         content: Text(
           importing
-              ? 'تمام اطلاعات فعلی با اطلاعات فایل جایگزین می‌شود. پیش از جایگزینی، نسخه ایمنی ساخته می‌شود. فایل جدید به کلید بازیابی خودش نیاز دارد؛ فایل قدیمی فقط با کلید نصب اصلی قابل بازیابی است.'
-              : 'این فایل حاوی اطلاعات شخصی و مالی رمزنگاری‌شده است؛ آن را در محل امن نگه دارید. متن خام پیامک‌ها صادر نمی‌شود. در مرحله بعد کلید مستقل این نسخه نمایش داده می‌شود؛ آن را جدا و امن نگه دارید.',
+              ? PersianCopy.backupSettingsCardConfirmedContent
+              : PersianCopy.backupSettingsCardConfirmedContent2,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(importing ? 'تأیید بازیابی' : 'تأیید ذخیره'),
+            child: Text(
+              importing
+                  ? PersianCopy.backupSettingsCardConfirmedActions
+                  : PersianCopy.backupSettingsCardConfirmedActions2,
+            ),
           ),
         ],
       ),
@@ -71,8 +79,8 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
           SnackBar(
             content: Text(
               importing
-                  ? 'اطلاعات با موفقیت بازیابی شد.'
-                  : 'نسخه پشتیبان ذخیره شد.',
+                  ? PersianCopy.backupSettingsCardRunContent
+                  : PersianCopy.backupSettingsCardRunContent2,
             ),
           ),
         );
@@ -81,7 +89,7 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
       if (mounted) {
         setState(() {
           _retryImport = importing;
-          _error = 'عملیات انجام نشد. فایل، کلید بازیابی و فضای ذخیره‌سازی را بررسی کنید و دوباره تلاش کنید. فایل قدیمی به کلید نصب اصلی نیاز دارد.';
+          _error = PersianCopy.backupSettingsCardRunMessage;
         });
       }
     } finally {
@@ -95,24 +103,26 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
       children: [
         ListTile(
           leading: const Icon(Icons.backup_outlined),
-          title: const Text('پشتیبان‌گیری و بازیابی'),
+          title: Text(planActL10n(context).backupSettingsCardBuildTitle),
           subtitle: Text(
-            widget.message ?? 'نسخه رمزنگاری‌شده محلی؛ بدون متن خام پیامک',
+            widget.message ??
+                planActL10n(context).backupSettingsCardBuildSubtitle,
           ),
         ),
         if (_busy)
-          const LinearProgressIndicator(
-            semanticsLabel: 'در حال پشتیبان‌گیری یا بازیابی',
+          LinearProgressIndicator(
+            semanticsLabel: planActL10n(context)
+                .backupSettingsCardBuildSemanticsLabel,
           ),
         ListTile(
           leading: const Icon(Icons.file_upload_outlined),
-          title: const Text('ذخیره نسخه پشتیبان'),
+          title: Text(planActL10n(context).fileBackupActionsPathDialogTitle),
           enabled: !_busy,
           onTap: _busy ? null : () => _run(false),
         ),
         ListTile(
           leading: const Icon(Icons.file_download_outlined),
-          title: const Text('بازیابی از فایل'),
+          title: Text(planActL10n(context).backupSettingsCardBuildTitle2),
           enabled: !_busy,
           onTap: _busy ? null : () => _run(true),
         ),
@@ -124,7 +134,7 @@ class _BackupSettingsCardState extends State<BackupSettingsCard> {
                 Text(_error!),
                 TextButton(
                   onPressed: _busy ? null : () => _run(_retryImport!),
-                  child: const Text('تلاش دوباره'),
+                  child: Text(planActL10n(context).commonRetry),
                 ),
               ],
             ),

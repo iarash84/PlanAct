@@ -1,16 +1,9 @@
-# ADR 0003: Dependency and privacy baseline
+# تصمیم معماری ۰۰۰۳: وابستگی و حریم خصوصی پایه
 
-- Status: Accepted
-- Date: 2026-09-20
+وضعیت: پذیرفته‌شده؛ تاریخ: ۲۰۲۶-۰۹-۲۰.
 
-## Decisions
+ابزار تست و تحلیل موجود Flutter و SQLite/Drift استفاده می‌شوند. کد جدول با `build_runner` و `drift_dev` تولید می‌شود. وابستگی تازهٔ مدیریت وضعیت، اعلان، رمزنگاری یا ثبت گزارش باید به نیاز معماری مشخص و تصمیم همان مرحله وابسته باشد.
 
-- Reuse Flutter's existing test and lint tooling.
-- Use Drift/SQLite for local persistence; generated code is produced by `build_runner` and `drift_dev`.
-- Do not introduce state management, notification, encryption, or logging packages before their relevant milestone and an explicit decision.
-- Core logs use a small local logger with field-level redaction. Raw SMS text, private notes, account identifiers, financial amounts, tokens, and secrets are never written by default.
-- Core flows remain offline and no telemetry dependency is introduced.
+ثبت گزارش محلی، دادهٔ حساس را در سطح فیلد می‌پوشاند. متن خام پیامک، یادداشت خصوصی، شناسهٔ حساب، مبلغ حساس، توکن و راز به‌طور پیش‌فرض ثبت نمی‌شوند. هسته آفلاین است و وابستگی ارسال دورسنجی افزوده نمی‌شود. آداپتور بومی آینده می‌تواند خروجی کنترل‌شده فراهم کند، بدون وابسته‌کردن دامنه به پلتفرم.
 
-## Consequences
-
-Dependency additions stay tied to a concrete architectural need. Privacy-sensitive data is protected at the logging seam, while future platform adapters can provide controlled sinks without changing domain code.
+این تصمیم تاریخی مانع استفاده از وابستگی‌های بعداً مصوبِ موجود در `pubspec.yaml` نیست؛ نسخه و توجیه آن‌ها از تصمیم مربوط و فایل قفل خوانده می‌شود.

@@ -1,37 +1,9 @@
-# Today, Settings and Finance fixes — 2026-10-06
+# اصلاح امروز، تنظیمات و مالی — ۲۰۲۶-۱۰-۰۶
 
-## Scope and files
+امروز در حالت خالی/خطا/محتوا همواره قابل کشیدن برای تازه‌سازی است. پوسته هنگام بازگشت تب، برگشت صندوق و تغییر مالی، مخزن و نمای توجه‌ها را دوباره می‌خواند. پشتیبان و ابزار تعطیلی به «بیشتر» منتقل شدند؛ حالت نمایش روی مسیر تنظیماتِ باز بلافاصله انتخاب را نشان می‌دهد.
 
-- `lib/features/today/presentation/today_page.dart`: pull-to-refresh, with always-scrollable empty/error/content states.
-- `lib/app/planact_app.dart`: refresh Today on tab return, Inbox return and Finance data changes; backup and holiday tools move to More.
-- `lib/features/settings/presentation/settings_page.dart`: local presentation selection updates immediately on an already pushed route. Existing theme persistence remains unchanged.
-- `lib/features/finance/presentation/finance_page.dart`: notify the shell after account/transaction mutations; use ledger-aware transaction labels and icons.
-- `lib/features/finance/presentation/transaction_direction.dart`: shared financial direction presentation, using signedAmount, distinct incoming/outgoing icons, Persian semantic labels and existing Light/Dark success/attention foreground-container pairs. Ordinary withdrawals are not failures or destructive actions.
-- `test/widget/today_settings_finance_refresh_test.dart`: regression checks.
-- `docs/product/PRD.md`: current refresh and navigation behavior.
+جهت مالی با `signedAmount`، آیکون ورودی/خروجی، برچسب فارسی و رنگ معنایی مشترک روشن/تیره نمایش داده می‌شود؛ برداشت عادی خطا/اقدام مخرب نیست و انتقال، درآمد/هزینه نمی‌شود. امضای اصلاح/برگشت اثر واقعی حساب را دنبال می‌کند. تازه‌سازی رکورد، ارتباط یا تاریخچه نمی‌سازد؛ امروز همهٔ دفتر را به‌عنوان اقدام نمایش نمی‌دهد.
 
-## Domain and safety
+شاهد تاریخی: ۲۱ تست ویجت متمرکز و ۳۴۷ تست کامل موفق؛ تحلیل بدون ایراد، شش فایل Dart قالب‌بندی شدند. `today_settings_finance_refresh_test.dart` تازه‌خواندن دادهٔ SQLite از امروز خالی و تغییر فوری سه حالت نمایش را می‌سنجد. همهٔ انواع ثبت و دو علامت در دو تم پوشش دارند.
 
-Refresh rereads local repositories and existing Attention projections; it does not create entries, change matching or alter history. Today continues to show transactions needing attention under existing rules, not every ledger record as an outstanding action. Transfers remain transfers; signed adjustments/reversals follow their actual account effect. No schema, migration, dependency, backup format or sensitive logging changes.
-
-## Proportional presentation coverage
-
-| Surface | Status | Evidence |
-| --- | --- | --- |
-| Today | Migrated | Empty short-list pull refresh rereads a persisted transaction from SQLite |
-| Settings | Migrated | All three display choices update selection on the pushed production route |
-| More | Migrated | Existing consent-bearing backup and holiday cards relocated without changing operations |
-| Finance | Migrated | Incoming/outgoing icon and semantic color checks for every entry type and both signs in Light/Dark; existing transaction, tag and loading tests pass |
-| Backup/holiday dialogs | Intentionally Unchanged | Existing cards and confirmation flows reused; full suite includes their tests |
-| Other application surfaces | Intentionally Unchanged | No foundational theme or domain change |
-
-## Validation
-
-- Focused formatting: six changed/new Dart files formatted.
-- Static analysis: no issues found.
-- Targeted widget checks: 21 passed.
-- Complete Flutter test suite: 347 passed.
-
-## Limitations
-
-No native-device gesture, screen-reader or visual certification is claimed. This task does not add background SMS ingestion, continuous database watching, or a daily ledger feed to Today. Existing backup portability and native release gates remain unchanged.
+طرح پایگاه داده، مهاجرت، وابستگی، قالب پشتیبان و لاگ حساس تغییر نکردند. ابزار/گفت‌وگو موجود دوباره استفاده شدند و طراحی سراسری نبود. دریافت پس‌زمینهٔ پیامک، تماشای دائمی پایگاه و جریان روزانهٔ دفتر به امروز اضافه نشد. ژست، صفحه‌خوان و پذیرش دیداری دستگاه همچنان جداست.

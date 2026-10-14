@@ -1,0 +1,143 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
+import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/l10n/generated/app_localizations.dart';
+import 'package:planact/l10n/generated/app_localizations_fa.dart';
+
+import '../../tool/generate_persian_copy.dart' as generator;
+
+void main() {
+  final catalog = jsonDecode(
+    File('lib/l10n/app_fa.arb').readAsStringSync(),
+  ) as Map<String, dynamic>;
+
+  test('Persian remains the only exposed locale and template', () {
+    expect(AppLocalizations.supportedLocales.map((l) => l.languageCode), [
+      'fa',
+    ]);
+    expect(catalog['@@locale'], 'fa');
+    final copy = AppLocalizationsFa();
+    expect(copy.commonSave, 'ذخیره');
+    expect(copy.commonCancel, 'انصراف');
+    expect(copy.commonRetry, 'تلاش دوباره');
+    expect(
+      copy.appLockAuthenticationReason,
+      'برای ورود به پلن‌اکت هویت خود را تأیید کنید.',
+    );
+    expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
+    expect(copy.occurrenceCancelled, 'لغوشده');
+  });
+
+  test(
+    'default resource generation is reproducible and framework independent',
+    () {
+      final expected = generator.render(catalog);
+      expect(
+        File('lib/core/localization/persian_copy.g.dart')
+            .readAsStringSync()
+            .replaceAll('\r\n', '\n'),
+        expected,
+      );
+      expect(expected, isNot(contains('import ')));
+      expect(PersianCopy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
+      expect(PersianDateFormatter.monthNames, [
+        'فروردین',
+        'اردیبهشت',
+        'خرداد',
+        'تیر',
+        'مرداد',
+        'شهریور',
+        'مهر',
+        'آبان',
+        'آذر',
+        'دی',
+        'بهمن',
+        'اسفند',
+      ]);
+      expect(PersianDateFormatter.compactWeekdayNames, [
+        'ش',
+        'ی',
+        'د',
+        'س',
+        'چ',
+        'پ',
+        'ج',
+      ]);
+      expect(PersianMoneyText.amount(-1234567, 'IRR'), '-۱,۲۳۴,۵۶۷ ریال');
+    },
+  );
+
+  test('all migrated Persian templates preserve the pre-migration copy', () {
+    // Frozen from the original source expressions before their replacement,
+    // including punctuation and placeholder order. Intentional copy changes
+    // must update this baseline with explicit review, not regenerate it in CI.
+    // New user-approved Undo messages are separately marked and are not part
+    // of the frozen pre-migration source. All catalog metadata is still checked.
+    final templates =
+        catalog.entries
+            .where((entry) => !entry.key.startsWith('@'))
+            .where(
+              (entry) =>
+                  (catalog['@${entry.key}']
+                      as Map<String, dynamic>)['x-planact-introduced'] !=
+                  'undo-2026-10-14',
+            )
+            .map((entry) => entry.value as String)
+            .toSet()
+            .toList()
+          ..sort();
+    expect(
+      sha256.convert(utf8.encode(templates.join('\n'))).toString(),
+      'b04b4a228fd63f3ee19492423d368c56b5510970a67bb85c6f0b4667da577140',
+    );
+    for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
+      final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;
+      expect(metadata['description'], isA<String>(), reason: entry.key);
+      final referenced = RegExp(r'\{([a-zA-Z][a-zA-Z0-9]*)\}')
+          .allMatches(entry.value as String)
+          .map((m) => m.group(1))
+          .toSet();
+      final placeholders = metadata['placeholders'] as Map<String, dynamic>?;
+      expect(referenced, (placeholders?.keys ?? []).toSet(), reason: entry.key);
+    }
+  });
+
+  test(
+    'default generator preserves literal dollars, quotes and placeholders',
+    () {
+      final source = generator.render({
+        'plain': 'سلام؛ "متن" و \$literal',
+        '@plain': {'x-planact-default': true},
+        'message': 'مبلغ {amount}؛ نام {name}',
+        '@message': {
+          'x-planact-default': true,
+          'placeholders': {
+            'amount': {'type': 'String'},
+            'name': {'type': 'String'},
+          },
+        },
+      });
+      expect(source, contains(r'\$literal'));
+      expect(source, contains('String amount, String name'));
+      expect(source, contains(r'${amount}'));
+      expect(source, contains(r'${name}'));
+      expect(
+        () => generator.render({
+          'message': '{count, plural, one {جلسه} other {جلسات}}',
+          '@message': {
+            'x-planact-default': true,
+            'placeholders': {
+              'count': {'type': 'int'},
+            },
+          },
+        }),
+        throwsFormatException,
+      );
+    },
+  );
+}

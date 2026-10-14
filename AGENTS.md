@@ -33,6 +33,8 @@ The product is **not** primarily a calendar, to-do list, reminder app, expense t
 - **RTL by default.** The application UI must use right-to-left layout semantics correctly. Do not achieve RTL by manually reversing lists or hard-coding directional padding/icons; use Flutter directionality and start/end-aware layout APIs.
 - **Jalali calendar for users.** User-facing dates, date pickers, calendar views, recurrence editing, and date-related summaries must use the Persian (Jalali) calendar and Persian locale conventions. Domain persistence must retain unambiguous, testable date/time semantics and must not conflate display-calendar conversion with stored instants or local dates.
 - **Locale-aware formatting.** Persian digits, weekday/month names, number formatting, and pluralization must be handled through locale-aware presentation code, not scattered string replacements.
+- Application-owned Persian copy belongs in `lib/l10n/app_fa.arb`, with stable semantic keys, descriptions and placeholder contracts. Widgets use the registered generated localization resources. Pure-domain/context-free compatibility defaults are generated from the same catalog, never maintained separately; do not import Flutter localization into domain code. Parser vocabularies, source datasets, currency identity and persisted/user-authored text are not blanket translation targets. The current migration is Persian-only foundation; another language requires explicit localization of default-copy boundaries and separate direction/calendar/formatting/platform acceptance. See [localization verification](docs/LOCALIZATION_VERIFICATION.md).
+- Monetary fields and displays must group integer digits from the right in threes while preserving sign, precision and canonical stored values. Inbox review may visibly suggest the app default for ambiguous SMS units only when explicit reviewer saving persists the choice; source evidence and historical amounts must remain intact.
 
 ## 3. Current implementation baseline
 
@@ -162,6 +164,7 @@ Financial accounts include bank accounts, cash wallets, digital wallets, and pot
 - Account balance must be rebuildable from account entries.
 - A transfer between the user’s own accounts is **not** income and **not** expense.
 - A correction/reversal must leave an audit trail; do not erase history.
+- User-approved Undo repair (2026-10-14): new financial reversals use the stable reversal enum and exactly negate the original signed integer effect. Transactional fresh writer admission rejects repeated cancellation; transfer cancellation covers both legs and recorded fees with explicit disclosure. Versioned append-only Undo evidence in the existing metadata extension store must survive restart and backup, with durable per-owner heads rejecting superseded operations. Known legacy compensation cannot be silently rewritten or cancelled twice. Lifecycle Undo restores recorded prior status; legacy archive restoration to active must be disclosed. Schedule Undo retains every definition and uses forward versioning for series restoration. See ADR 0007 and SCHEDULE_ACTUAL_VERIFICATION.md; unchanged schema does not establish older-writer safety or release acceptance.
 - Accounts with history should be archived, not hard-deleted.
 
 ## 7. Scheduling rules
@@ -252,6 +255,25 @@ Financial matching between transactions and occurrences is many-to-many to suppo
 Transaction relationship review is separate from real matches, categories and tags. Only explicit confirmation may resolve an unmatched remainder as independent; navigation/cancellation is not review. Persist append-only independent/reopened decisions with transaction amount, allocation/history fingerprints and monotonic per-transaction revision. Undo/reopening appends history; it must not reverse financial entries or remove matches. A changed amount or allocation history invalidates the old decision for the current remainder, without deleting it. Today must classify eligible unreversed income/expense remainders through the domain projection, not suppress a whole transaction because any active match exists. Production allocation admission and review compare-and-append must validate fresh durable state transactionally; CommandGate alone is not serialization. New review history belongs in personal backup logical preservation and schema compatibility tests. See docs/adr/0015-transaction-relationship-review.md.
 
 ## 11. Persistence and migration rules
+
+Reporting checkpoint (2026-10-13): personal reports are read-only projections of
+coherent durable snapshots. Use occurrence dates for performance/settlement,
+transaction dates for cash, and ledger entries through the selected end day for
+credit/account balances. Keep future previews separate from recorded effects.
+Missing Grant history must be disclosed, never synthesized from configured package
+units. Tag/subject allocation views must not count a whole shared payment as each
+subject's cash. Account balance remains a full-ledger projection even when detail
+rows are tag-filtered; disclose that exception in the report. See
+[report verification](docs/REPORTS_VERIFICATION.md) for bounded scope and evidence.
+
+Financial chart extensions retain integer projections, separate currencies and
+confirmed allocation semantics. Financial overdue uses occurrence due time/date
+and unpaid remainder independently of occurrence completion. Daily balance lines
+use the full account ledger; preceding equal-length civil-day comparisons preserve
+all filter dimensions. Donut shares exclude nonpositive category totals with
+explicit disclosure, never silently discard correction evidence. Recurring expense
+reports require explicit recurring commitment kind, never infer debt or forecast
+unrecorded payments. Chart geometry alone may use floating point.
 
 - Use foreign keys, indexes, transactional writes, and explicit migrations from the beginning.
 - Use stable IDs independent from local row auto-increment. UUIDv7 or ULID are acceptable implementation choices; record the final choice in an ADR.
@@ -728,6 +750,8 @@ Avoid independently invented animation durations inside feature widgets.
 ---
 
 ## Progressive Disclosure
+
+The user-approved 2026-10-13 commitment creation path is one form with title and scheduling visible, optional sections expanded in place, and an editable live summary. Preserve existing application-command/persistence and refresh paths, explicit date/time selection, separate schedule count and entitlement credit, retry retention and cancellation without writes. Do not add schedule modes or semantic defaults as part of this presentation change. See docs/UI_MIGRATION_VERIFICATION.md for scoped acceptance evidence and remaining device/independent gates.
 
 Complex forms should reveal optional complexity progressively.
 

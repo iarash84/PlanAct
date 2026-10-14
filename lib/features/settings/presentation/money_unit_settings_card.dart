@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 
@@ -18,9 +20,7 @@ class _MoneyUnitSettingsCardState extends State<MoneyUnitSettingsCard> {
       await controller.select(unit);
     } catch (_) {
       if (mounted) {
-        setState(
-          () => _error = 'ذخیرهٔ واحد پول انجام نشد؛ دوباره انتخاب کنید.',
-        );
+        setState(() => _error = PersianCopy.moneyUnitSettingsCardSelectMessage);
       }
     }
   }
@@ -35,22 +35,20 @@ class _MoneyUnitSettingsCardState extends State<MoneyUnitSettingsCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'واحد نمایش و ورود پول',
+              planActL10n(context).moneyUnitSettingsCardBuildChildren,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const Text(
-              'مبالغ ایرانی با این واحد نمایش داده می‌شوند؛ مبالغ ذخیره‌شده تغییر نمی‌کنند. واحد هر فرم هنگام باز شدن مشخص می‌شود.',
-            ),
+            Text(planActL10n(context).moneyUnitSettingsCardBuildChildren2),
             const SizedBox(height: 12),
             SegmentedButton<IranianMoneyUnit>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: IranianMoneyUnit.rial,
-                  label: Text('ریال'),
+                  label: Text(planActL10n(context).currencyRial),
                 ),
                 ButtonSegment(
                   value: IranianMoneyUnit.toman,
-                  label: Text('تومان'),
+                  label: Text(planActL10n(context).currencyToman),
                 ),
               ],
               selected: {controller?.value ?? IranianMoneyUnit.rial},

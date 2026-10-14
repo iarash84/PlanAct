@@ -1,28 +1,13 @@
-# M0 baseline
+# مبنای تاریخی مرحلهٔ M0
 
-M0 establishes a testable engineering foundation without product features.
+این سند زیرساخت اولیه را ثبت می‌کند، نه وضعیت جاری برنامه یا فهرست قابلیت آمادهٔ انتشار.
 
-## Included
+مبنای اولیه شامل ساختار لایه‌ای، SQLite/Drift و مسیر مهاجرت، UUIDv7 مستقل از ردیف، ساعت UTC قابل تزریق، پول صحیح، خطای صریح، لاگ با پوشاندن فیلد حساس، الزامات فارسی/جلالی/راست‌به‌چپ و تست پایهٔ مخزن بود.
 
-- Feature-first layered project skeleton.
-- Drift/SQLite database lifecycle with schema metadata and migration seam.
-- UUIDv7 stable IDs independent from SQLite row IDs.
-- Injectable UTC clock abstractions.
-- Integer minor-unit money primitive.
-- Explicit application error types.
-- Privacy-preserving logger with sensitive field redaction.
-- Persian-first, Jalali-calendar, and RTL requirements documented as product constraints.
-- Repository and unit smoke tests.
+دروازهٔ تاریخی M0: تحلیل بدون خطا، تست موفق و ساخت پایگاه حافظه‌ای با خواندن نسخهٔ طرحواره. فرمان تولید جدول:
 
-## Verification gate
-
-Run:
-
-```text
-flutter pub get
- dart run build_runner build
-flutter analyze
-flutter test
+```sh
+dart run build_runner build
 ```
 
-The M0 gate passes when analysis is clean, tests pass, and the database smoke test can create an in-memory database and read its schema version.
+بررسی جاری و شرایط امضا را از [گردش توسعه](development-workflow.md) بخوانید. این مرحله شاهد قابلیت محصول یا ایمنی دستگاه نیست.

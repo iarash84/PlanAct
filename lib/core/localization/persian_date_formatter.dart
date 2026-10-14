@@ -1,48 +1,53 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 
 abstract final class PersianDateFormatter {
   static const monthNames = <String>[
-    'فروردین',
-    'اردیبهشت',
-    'خرداد',
-    'تیر',
-    'مرداد',
-    'شهریور',
-    'مهر',
-    'آبان',
-    'آذر',
-    'دی',
-    'بهمن',
-    'اسفند',
+    PersianCopy.jalaliMonthFarvardin,
+    PersianCopy.jalaliMonthOrdibehesht,
+    PersianCopy.jalaliMonthKhordad,
+    PersianCopy.jalaliMonthTir,
+    PersianCopy.jalaliMonthMordad,
+    PersianCopy.jalaliMonthShahrivar,
+    PersianCopy.jalaliMonthMehr,
+    PersianCopy.jalaliMonthAban,
+    PersianCopy.jalaliMonthAzar,
+    PersianCopy.jalaliMonthDey,
+    PersianCopy.jalaliMonthBahman,
+    PersianCopy.jalaliMonthEsfand,
   ];
 
   static const weekdayNames = <String>[
-    'شنبه',
-    'یکشنبه',
-    'دوشنبه',
-    'سه‌شنبه',
-    'چهارشنبه',
-    'پنجشنبه',
-    'جمعه',
+    PersianCopy.weekdaySaturday,
+    PersianCopy.weekdaySunday,
+    PersianCopy.weekdayMonday,
+    PersianCopy.weekdayTuesday,
+    PersianCopy.weekdayWednesday,
+    PersianCopy.weekdayThursday,
+    PersianCopy.weekdayFriday,
   ];
 
   // Distinct compact labels for a seven-column calendar; semantics use full names.
   static const compactWeekdayNames = <String>[
-    'ش',
-    'ی',
-    'د',
-    'س',
-    'چ',
-    'پ',
-    'ج',
+    PersianCopy.weekdayShortSaturday,
+    PersianCopy.weekdayShortSunday,
+    PersianCopy.weekdayShortMonday,
+    PersianCopy.weekdayShortTuesday,
+    PersianCopy.weekdayShortWednesday,
+    PersianCopy.weekdayShortThursday,
+    PersianCopy.weekdayShortFriday,
   ];
 
   static String month(JalaliDate date) =>
       '${monthNames[date.month - 1]} ${PersianNumbers.format(date.year)}';
 
   static String date(JalaliDate date) =>
-      '${weekdayNames[date.weekDay - 1]}، ${PersianNumbers.format(date.day)} ${monthNames[date.month - 1]}';
+      PersianCopy.persianDateFormatterDateMessage(
+        (weekdayNames[date.weekDay - 1]).toString(),
+        (PersianNumbers.format(date.day)).toString(),
+        (monthNames[date.month - 1]).toString(),
+      );
 
   static String shortDate(JalaliDate date) =>
       '${PersianNumbers.format(date.day)} ${monthNames[date.month - 1]}';
@@ -53,9 +58,9 @@ abstract final class PersianDateFormatter {
         .toDateTime()
         .difference(reference.toDateTime())
         .inDays;
-    if (difference == 0) return 'امروز';
-    if (difference == 1) return 'فردا';
-    if (difference == -1) return 'دیروز';
+    if (difference == 0) return PersianCopy.commonToday;
+    if (difference == 1) return PersianCopy.commonTomorrow;
+    if (difference == -1) return PersianCopy.commonYesterday;
     return shortDate(date);
   }
 }

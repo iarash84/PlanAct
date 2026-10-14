@@ -4,6 +4,21 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 void main() {
+  test(
+    'clearing package credit rejects saving and leaves schedule count intact',
+    () {
+      const draft = CommitmentDraft(
+        entitlement: EntitlementDraft.fixedUnits,
+        entitlementUnits: 4,
+        occurrenceCount: 10,
+      );
+      final cleared = draft.copyWith(clearEntitlementUnits: true);
+      expect(cleared.entitlementUnits, isNull);
+      expect(cleared.occurrenceCount, 10);
+      expect(cleared.validateForStep(3), 'تعداد جلسهٔ معتبر را وارد کنید.');
+      expect(cleared.copyWith(entitlementUnits: 6).validateForStep(3), isNull);
+    },
+  );
   test('minimal draft validates only required title and schedule', () {
     const draft = CommitmentDraft();
     expect(draft.validateForStep(1), 'عنوان تعهد را وارد کنید.');

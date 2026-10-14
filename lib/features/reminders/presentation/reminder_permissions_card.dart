@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 
 /// Explicit user action is the only entry point to Android permission prompts.
@@ -24,14 +26,14 @@ class _ReminderPermissionsCardState extends State<ReminderPermissionsCard> {
       if (mounted) {
         setState(
           () => _message = allowed
-              ? 'مجوزها فعال شدند و یادآوری‌های آینده دوباره زمان‌بندی شدند.'
-              : 'مجوز اعلان یا زنگ دقیق فعال نیست. یادآوری‌ها ذخیره شده‌اند؛ مجوزها را بررسی کنید و دوباره تلاش کنید.',
+              ? PersianCopy.reminderPermissionsCardEnableMessage
+              : PersianCopy.reminderPermissionsCardEnableMessage2,
         );
       }
     } catch (_) {
       if (mounted) {
         setState(
-          () => _message = 'فعال‌سازی یادآوری‌ها انجام نشد. اطلاعات شما محفوظ است؛ دوباره تلاش کنید.',
+          () => _message = PersianCopy.reminderPermissionsCardEnableMessage3,
         );
       }
     } finally {
@@ -44,11 +46,11 @@ class _ReminderPermissionsCardState extends State<ReminderPermissionsCard> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const ListTile(
+        ListTile(
           leading: Icon(Icons.notifications_outlined),
-          title: Text('یادآوری‌های دستگاه'),
+          title: Text(planActL10n(context).reminderPermissionsCardBuildTitle),
           subtitle: Text(
-            'برای نمایش به‌موقع یادآوری‌ها، اجازهٔ اعلان و زنگ دقیق لازم است. اگر تنظیمات اعلان دستگاه باز شد، اعلان‌های برنامه را فعال کنید و به برنامه برگردید تا یادآوری‌ها بازسازی شوند. ثبت و نگهداری تعهدها به این مجوزها وابسته نیست.',
+            planActL10n(context).reminderPermissionsCardBuildSubtitle,
           ),
         ),
         Padding(
@@ -67,8 +69,8 @@ class _ReminderPermissionsCardState extends State<ReminderPermissionsCard> {
                     : const Icon(Icons.notifications_active_outlined),
                 label: Text(
                   _busy
-                      ? 'در حال بررسی مجوزها'
-                      : 'فعال‌سازی و بازسازی یادآوری‌ها',
+                      ? planActL10n(context).reminderPermissionsCardBuildLabel
+                      : planActL10n(context).reminderPermissionsCardBuildLabel2,
                 ),
               ),
             ],

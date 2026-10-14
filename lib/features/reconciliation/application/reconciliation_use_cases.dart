@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -18,6 +19,10 @@ abstract interface class AtomicMatchCorrection {
     required TransactionMatch original,
     required TransactionMatch corrected,
   });
+}
+
+abstract interface class AtomicMatchRemoval {
+  Future<void> removeMatch(TransactionMatch expected);
 }
 
 class ReconciliationEngine {
@@ -274,6 +279,21 @@ class ReconciliationUseCases {
 
   Future<void> reject(TransactionMatch match) =>
       CommandGate.runFor(repository, () async {
+        if (match.status != MatchStatus.active) {
+          throw const ValidationError('Only an active match can be removed');
+        }
+        if (repository case AtomicMatchRemoval atomic) {
+          await atomic.removeMatch(match);
+          return;
+        }
+        final current = (await repository.list())
+            .where((m) => m.id == match.id)
+            .firstOrNull;
+        if (current == null ||
+            allocationFingerprintFor([current]) !=
+                allocationFingerprintFor([match])) {
+          throw const ValidationError('Match changed; reload first');
+        }
         await repository.save(
           TransactionMatch(
             id: match.id,
@@ -295,6 +315,9 @@ class ReconciliationUseCases {
     required List<Money> allocations,
   }) => CommandGate.runFor(repository, () async {
     if (repository case AtomicMatchCorrection atomic) {
+      if (original.status != MatchStatus.active) {
+        throw const ValidationError('Only active matches can be corrected');
+      }
       // Validate and build without persisting an active replacement first.
       if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
         throw const ValidationError('Occurrences and allocations must align');
@@ -374,10 +397,10 @@ class ReconciliationUseCases {
             plannedAmount: item.value,
             matchedAmount: actual,
             explanation: actual.minorUnits == 0
-                ? 'برای این تعهد پرداختی تطبیق داده نشده است.'
+                ? PersianCopy.reconciliationUseCasesPlannedVsActualExplanation
                 : actual.minorUnits == item.value.minorUnits
-                ? 'پرداخت کامل تطبیق داده شده است.'
-                : 'پرداخت به‌صورت جزئی تطبیق داده شده است.',
+                ? PersianCopy.reconciliationUseCasesPlannedVsActualExplanation2
+                : PersianCopy.reconciliationUseCasesPlannedVsActualExplanation3,
           );
         })
         .toList(growable: false);

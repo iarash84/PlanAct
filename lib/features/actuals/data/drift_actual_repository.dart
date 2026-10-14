@@ -1,4 +1,5 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/core/database/undo_journal.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
@@ -97,6 +98,23 @@ class DriftActualRepository
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      final journal = UndoJournal(database);
+      await journal.admitWriter();
+      final history = await database
+          .customSelect(
+            'SELECT id, outcome FROM actuals WHERE occurrence_id = ? ORDER BY rowid',
+            variables: [Variable(expected.id.value)],
+            readsFrom: {database.actuals},
+          )
+          .get();
+      if (history.length != expected.resultRevision ||
+          (outcome == ActualOutcome.reopened &&
+              expected.status == OccurrenceStatus.pendingDecision &&
+              (history.isEmpty ||
+                  history.last.read<int>('outcome') !=
+                      ActualOutcome.partial.index))) {
+        throw const ValidationError('Result changed; reload before recording');
+      }
       final row = await (database.select(
         database.occurrences,
       )..where((t) => t.id.equals(expected.id.value))).getSingleOrNull();
@@ -142,13 +160,15 @@ class DriftActualRepository
         currentScheduledAt: expected.currentScheduledAt,
         status: status,
         isManualOverride: expected.isManualOverride,
+        resultRevision: history.length + 1,
       );
       final timestamp = recordedAt.toUtc();
+      final actualId = StableId.generate().value;
       await database
           .into(database.actuals)
           .insert(
             db.ActualsCompanion.insert(
-              id: StableId.generate().value,
+              id: actualId,
               occurrenceId: expected.id.value,
               outcome: outcome.index,
               recordedAt: timestamp,
@@ -158,6 +178,21 @@ class DriftActualRepository
       await (database.update(database.occurrences)
             ..where((t) => t.id.equals(expected.id.value)))
           .write(db.OccurrencesCompanion(status: Value(status.index)));
+      await journal.append(
+        owner: 'actual:${expected.id.value}',
+        before: {
+          'status': expected.status.index,
+          'actualId': history.isEmpty ? null : history.last.read<String>('id'),
+        },
+        after: {'status': status.index, 'actualId': actualId},
+        undoOf: outcome == ActualOutcome.reopened && history.isNotEmpty
+            ? history.last.read<String>('id')
+            : null,
+      );
+      await database.writeMetadata(
+        'reminder_reopen_v1:${expected.id.value}',
+        outcome == ActualOutcome.reopened ? '1' : '0',
+      );
       return updated;
     }),
   );

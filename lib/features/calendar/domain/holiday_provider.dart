@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/domain/iranian_holiday_data.dart';
 
@@ -57,7 +58,12 @@ class IranianHolidayProvider {
     final weekday = date.weekDay;
     final result = <CalendarHoliday>[];
     if (weekday == 7) {
-      result.add(CalendarHoliday(date: date, title: 'تعطیلی هفتگی (جمعه)'));
+      result.add(
+        CalendarHoliday(
+          date: date,
+          title: PersianCopy.holidayProviderHolidaysForTitle,
+        ),
+      );
     }
     // Current fixed rules are not evidence for arbitrary historical years.
     if (annualOverrides[date.year] case final overrides?) {

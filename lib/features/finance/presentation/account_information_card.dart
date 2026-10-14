@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -8,6 +10,7 @@ import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/features/finance/domain/account_identifiers.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 
 /// A ledger account summary, deliberately not a payment-card representation.
 class AccountInformationCard extends StatefulWidget {
@@ -61,18 +64,18 @@ class _AccountInformationCardState extends State<AccountInformationCard>
     final approved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('کپی اطلاعات حساب'),
-        content: const Text(
-          'این شناسه در کلیپ‌بورد دستگاه قرار می‌گیرد و ممکن است برنامه‌های دیگر یا همگام‌سازی دستگاه به آن دسترسی داشته باشند. ادامه می‌دهید؟',
-        ),
+        title: const Text(PersianCopy.accountInformationCardApprovedTitle),
+        content: const Text(PersianCopy.accountInformationCardApprovedContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('تأیید کپی'),
+            child: const Text(
+              PersianCopy.accountInformationCardApprovedActions,
+            ),
           ),
         ],
       ),
@@ -82,12 +85,10 @@ class _AccountInformationCardState extends State<AccountInformationCard>
       try {
         await Clipboard.setData(ClipboardData(text: value));
         if (mounted) {
-          _message(
-            'شناسه کپی شد؛ اطلاعات کلیپ‌بورد را پس از استفاده پاک کنید.',
-          );
+          _message(PersianCopy.accountInformationCardCopyMessage);
         }
       } catch (_) {
-        if (mounted) _message('کپی انجام نشد؛ دوباره تلاش کنید.');
+        if (mounted) _message(PersianCopy.accountInformationCardCopyMessage2);
       }
     }
     if (mounted) setState(() => _copying = false);
@@ -108,11 +109,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  account.type == FinancialAccountType.bank
-                      ? Icons.account_balance
-                      : Icons.account_balance_wallet,
-                ),
+                AccountIdentityIcon(account: account),
                 const SizedBox(width: PlanActSpacing.sm),
                 Expanded(
                   child: Text(
@@ -126,14 +123,17 @@ class _AccountInformationCardState extends State<AccountInformationCard>
             Text(
               [
                 accountTypeLabel(account.type),
-                if (account.bank != null) 'بانک ${account.bank!.label}',
+                if (account.bank != null)
+                  planActL10n(context).accountInformationCardBuildChildren(
+                    (account.bank!.label).toString(),
+                  ),
                 if (account.status == FinancialAccountStatus.archived)
-                  'بایگانی‌شده',
+                  planActL10n(context).planactAppCommitmentStatusArchived,
               ].join(' · '),
             ),
             const SizedBox(height: PlanActSpacing.sm),
             Text(
-              'موجودی دفتر حساب',
+              planActL10n(context).accountInformationCardBuildChildren2,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             Text(
@@ -143,11 +143,20 @@ class _AccountInformationCardState extends State<AccountInformationCard>
               ),
             ),
             if (account.identifiers.cardNumber case final String value)
-              _identifier('شماره کارت', value),
+              _identifier(
+                planActL10n(context).accountInformationCardBuildChildren3,
+                value,
+              ),
             if (account.identifiers.iban case final String value)
-              _identifier('شماره شبا', value),
+              _identifier(
+                planActL10n(context).accountInformationCardBuildChildren4,
+                value,
+              ),
             if (account.identifiers.accountNumber case final String value)
-              _identifier('شماره حساب', value),
+              _identifier(
+                planActL10n(context).accountInformationCardBuildChildren5,
+                value,
+              ),
           ],
         ),
       ),
@@ -184,12 +193,24 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                 ),
-                label: Text('${revealed ? 'پنهان کردن' : 'نمایش'} $label'),
+                label: Text(
+                  PersianCopy.accountFormSheetIdentifierTooltip3(
+                    (revealed
+                            ? PersianCopy.accountFormSheetIdentifierTooltip2
+                            : PersianCopy.accountFormSheetIdentifierTooltip)
+                        .toString(),
+                    (label).toString(),
+                  ),
+                ),
               ),
               TextButton.icon(
                 onPressed: _copying ? null : () => _copy(value),
                 icon: const Icon(Icons.copy_outlined),
-                label: Text('کپی $label'),
+                label: Text(
+                  PersianCopy.accountInformationCardIdentifierLabel(
+                    (label).toString(),
+                  ),
+                ),
               ),
             ],
           ),

@@ -6,6 +6,7 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/reconciliation/data/drift_transaction_match_reader.dart';
 
@@ -16,6 +17,19 @@ class DriftFinancialExpectationRepository
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<FinancialExpectationSettlementSnapshot> readSettlementSnapshot() =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(
+          () async => FinancialExpectationSettlementSnapshot(
+            expectations: await listExpectations(),
+            matches: await listMatches(),
+            entries: await DriftFinanceRepository(database).listEntries(),
+          ),
+        ),
+      );
 
   @override
   Future<List<FinancialExpectation>> listExpectations() => CommandGate.runFor(

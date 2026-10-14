@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
@@ -61,7 +63,7 @@ class TodayPage extends StatelessWidget {
         ),
         const SizedBox(height: PlanActSpacing.xs),
         Text(
-          'چه چیزی نیاز به توجه دارد؟',
+          planActL10n(context).todayPageContentChildren,
           style: Theme.of(context).textTheme.headlineSmall
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
@@ -70,14 +72,16 @@ class TodayPage extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onOpenRelationshipQueue,
             icon: const Icon(Icons.playlist_add_check),
-            label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+            label: Text(planActL10n(context).relationshipQueuePageBuildTitle),
           ),
         if (error != null)
-          Column(
-            children: [
-              Text(error!),
-              TextButton(onPressed: onRetry, child: const Text('تلاش دوباره')),
-            ],
+          PlanActStateMessage(
+            message: error!,
+            isError: true,
+            action: TextButton(
+              onPressed: onRetry,
+              child: Text(planActL10n(context).commonRetry),
+            ),
           )
         else if (center == null)
           const Center(child: CircularProgressIndicator())
@@ -96,7 +100,7 @@ class TodayPage extends StatelessWidget {
           ],
           if (center.today.isNotEmpty) ...[
             _SectionHeader(
-              title: 'امروز',
+              title: planActL10n(context).commonToday,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: PlanActSpacing.sm),
@@ -111,7 +115,7 @@ class TodayPage extends StatelessWidget {
           ],
           if (center.upcoming.isNotEmpty) ...[
             _SectionHeader(
-              title: 'آینده نزدیک',
+              title: planActL10n(context).todayPageContentTitle,
               color: PlanActStatusColors.of(context).info,
             ),
             const SizedBox(height: PlanActSpacing.sm),
@@ -171,8 +175,12 @@ class _AttentionSummary extends StatelessWidget {
     final urgentCount = items.where((item) => item.urgency >= 90).length;
     return Text(
       urgentCount == 0
-          ? '${items.length} مورد برای رسیدگی وجود دارد.'
-          : '${items.length} مورد برای رسیدگی؛ $urgentCount مورد فوری است.',
+          ? planActL10n(context)
+                .todayPageBuildMessage((items.length).toString())
+          : planActL10n(context).todayPageBuildMessage2(
+              (items.length).toString(),
+              (urgentCount).toString(),
+            ),
       style: Theme.of(context).textTheme.bodyMedium
           ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
     );
@@ -205,11 +213,16 @@ class _AttentionGroups extends StatelessWidget {
             child: ExpansionTile(
               initiallyExpanded: index == 0,
               title: Text(entries[index].key),
-              subtitle: Text('${entries[index].value.length} مورد'),
+              subtitle: Text(
+                planActL10n(context).todayPageBuildSubtitle(
+                  (entries[index].value.length).toString(),
+                ),
+              ),
               children: [
                 for (final item in entries[index].value)
                   _ActionItemCard(
                     item: item,
+                    grouped: true,
                     onOpen: onOpen,
                     onReview: () => onReview(item),
                   ),
@@ -226,11 +239,13 @@ class _ActionItemCard extends StatelessWidget {
     required this.item,
     required this.onOpen,
     required this.onReview,
+    this.grouped = false,
   });
 
   final TodayActionItem item;
   final ValueChanged<Commitment> onOpen;
   final VoidCallback onReview;
+  final bool grouped;
 
   @override
   Widget build(BuildContext context) {
@@ -244,50 +259,53 @@ class _ActionItemCard extends StatelessWidget {
                 details.currency ?? '',
                 unit: MoneyUnitScope.of(context),
               ),
-            if (details.accountName != null) 'حساب: ${details.accountName}',
+            if (details.accountName != null)
+              planActL10n(context).transactionRelationshipPageBuildChildren3(
+                (details.accountName).toString(),
+              ),
             if (details.description != null) details.description!,
           ];
-    return Card(
-      child: ListTile(
-        leading: item.commitment != null
-            ? CommitmentIdentityMarker(
-                key: ValueKey('today-identity-${item.id}'),
-                commitment: item.commitment!,
-                icon: item.type == TodayActionItemType.occurrence
-                    ? Icons.event_available
-                    : Icons.priority_high,
-              )
-            : Icon(
-                item.type == TodayActionItemType.occurrence
-                    ? Icons.event_available
-                    : Icons.priority_high,
-              ),
-        title: Text(item.title),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              [
-                item.subtitle,
-                if (financial.isNotEmpty) financial.first,
-              ].join(' · '),
+    final row = ListTile(
+      leading: item.commitment != null
+          ? CommitmentIdentityMarker(
+              key: ValueKey('today-identity-${item.id}'),
+              commitment: item.commitment!,
+              icon: item.type == TodayActionItemType.occurrence
+                  ? Icons.event_available
+                  : Icons.priority_high,
+            )
+          : Icon(
+              item.type == TodayActionItemType.occurrence
+                  ? Icons.event_available
+                  : Icons.priority_high,
             ),
-            if (item.commitment case final Commitment commitment)
-              TagLabels(labels: commitment.tags),
-          ],
-        ),
-        trailing: TextButton(
-          onPressed: item.commitment == null
-              ? onReview
-              : () => onOpen(item.commitment!),
-          child: Text(
-            item.type == TodayActionItemType.occurrence
-                ? 'تعیین وضعیت'
-                : item.actionLabel,
+      title: Text(item.title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            [
+              item.subtitle,
+              if (financial.isNotEmpty) financial.first,
+            ].join(' · '),
           ),
+          if (item.commitment case final Commitment commitment)
+            TagLabels(labels: commitment.tags),
+        ],
+      ),
+      trailing: TextButton(
+        onPressed: item.commitment == null
+            ? onReview
+            : () => onOpen(item.commitment!),
+        child: Text(
+          item.type == TodayActionItemType.occurrence
+              ? planActL10n(context)
+                    .attentionEngineAttentionActionDetermineOccurrenceStatus
+              : item.actionLabel,
         ),
       ),
     );
+    return grouped ? row : Card(child: row);
   }
 }
 
@@ -297,16 +315,12 @@ class _EmptyState extends StatelessWidget {
   final VoidCallback onAdd;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text('همه‌چیز مرتب است؛ موردی نیاز به توجه ندارد.'),
-      const SizedBox(height: PlanActSpacing.sm),
-      OutlinedButton.icon(
-        onPressed: onAdd,
-        icon: const Icon(Icons.add),
-        label: const Text('ثبت تعهد جدید'),
-      ),
-    ],
+  Widget build(BuildContext context) => PlanActStateMessage(
+    message: planActL10n(context).todayPageBuildMessage3,
+    action: OutlinedButton.icon(
+      onPressed: onAdd,
+      icon: const Icon(Icons.add),
+      label: Text(planActL10n(context).todayPageBuildLabel),
+    ),
   );
 }

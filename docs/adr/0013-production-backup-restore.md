@@ -1,98 +1,33 @@
-# ADR 0013 — Production encrypted backup and restore
+# تصمیم معماری ۰۰۱۳: پشتیبان رمزگذاری‌شده و بازیابی تولیدی
 
-Status: Implemented adapter design; release verification remains partial.
+وضعیت: طراحی آداپتور پیاده شده؛ پذیرش انتشار جزئی است.
 
-## Decision
+## تصمیم پایه و تکمیل جدید
 
-Use the existing format-1 AES-256-GCM orchestration with production SQLite,
-secure-storage, and user-selected file adapters. No database migration or backup
-format change is introduced. sqlite3 is now a production dependency;
-flutter_secure_storage 9.2.4 supplies platform key storage (encrypted Android
-shared preferences backed by platform security).
+آداپتور SQLite، ذخیرهٔ امن و فایل انتخابی کاربر به هماهنگی رمزنگاری AES-256-GCM متصل‌اند. `sqlite3` وابستگی تولیدی و `flutter_secure_storage 9.2.4` ذخیرهٔ کلید بومی است. تصمیم اولیه قالب ۱ و کلید تصادفی ۲۵۶بیتیِ نصب را تعریف کرد؛ فقط خروجی می‌توانست کلید ایجاد کند و واردسازی هرگز آن را جایگزین نمی‌کرد. حذف نصب یا دستگاه، بازیابی قالب ۱ را ناممکن می‌کند.
 
-Export alone provisions a random 256-bit installation key. Import never creates
-or substitutes a key. The key is not included in the package. Consequently this
-implementation supports recovery only while the original installation key
-remains available. Uninstall, device loss, or transfer to another device may make
-a package unrecoverable. Persian export/import confirmation states this
-limitation. Portable key recovery requires a separate approved product/security
-decision; this implementation must not be described as complete device-loss
-protection.
+[تصمیم ۰۰۱۸](0018-independent-recovery-key-backups.md) از ۲۰۲۶-۱۰-۱۰ برای **خروجی‌های جدید** قالب ۲ و کلید مستقل کاربر را جایگزین کرد. محدودیت قالب ۱ همچنان برقرار است؛ قواعد ذخیره، اعتبارسنجی، برگشت تراکنش، تخلیهٔ فرمان، مالکیت و پذیرش بومی این تصمیم باقی‌اند.
 
-## Superseding key-ownership decision (2026-10-10)
+## تصویر داده و حریم خصوصی
 
-ADR 0018 supersedes the installation-bound limitation above for **new production
-exports**: format 2 uses a fresh independent user recovery key per export.
-Format 1 remains installation-key-only. Storage, strict schema validation,
-rollback, drainage, repository ownership and native verification constraints
-in this ADR remain in force. See [ADR 0018](0018-independent-recovery-key-backups.md).
+`VACUUM INTO` تصویر منسجم همهٔ جدول‌ها را می‌سازد، نه فهرست دستی موجودیت‌ها. فقط تصویر خروجی، `staged_imports.raw_text` و شناسهٔ بومی اعلان را پاک می‌کند؛ حذف امن و VACUUM متن را از صفحات آزاد نیز برمی‌دارند. سایر رکوردها و تنظیمات می‌مانند. تصویر خصوصی برگشت تراکنش متن اصلی را حفظ می‌کند تا حالت کاربر عیناً قابل بازگشت باشد. فایل خصوصی است و دادهٔ حساس یا پیامک لاگ نمی‌شود.
 
-## Snapshot and privacy
+خروجی رمز‌شده پیش از تحویل به انتخابگر، بازخوانی، اعتبارسنجی، رمزگشایی و به‌عنوان SQLite جدا بررسی می‌شود. بازیابی قالب، هش کنترلی متن رمز‌شده، اصالت، اندازه، نسخه و اعلان‌های دقیق `sqlite_master`، فراداده، `integrity_check` و `foreign_key_check` را پیش از جایگزینی بررسی می‌کند. اعتبارسنجیِ خواندنی پایگاه زنده را مهاجرت نمی‌دهد.
 
-VACUUM INTO creates a consistent snapshot containing every SQLite table, not a
-hand-maintained selection of entities. Export redacts staged_imports.raw_text and
-removes platform notification IDs only in the isolated snapshot. Secure deletion
-and VACUUM remove raw SMS from free pages. Other durable records and settings
-remain present. Private rollback snapshots preserve raw SMS because rollback
-must preserve the user's original logical state. Files remain in application
-private storage; no sensitive values or SMS are logged.
+## مالکیت و شکست
 
-The serialized encrypted export is decoded, validated, decrypted and validated
-as an isolated SQLite file before the file picker receives it. Restore verifies
-format, ciphertext checksum, authentication, size, schema version, canonical
-sqlite_master declarations, schema metadata, integrity_check and
-foreign_key_check before live replacement. Read-only validation never migrates
-the live database.
+حوزهٔ کاربرد پیش از بازیابی، کارِ فرمان‌ها را تخلیه و محدودهٔ ویجت/قابلیت را می‌بندد؛ مالک بستن/بازگشایی و ساخت مجدد مخزن و رابط است. تصویر ایمنی، نامزد معتبر و نشانگر بازیابی با SHA-256 تصویر ایمنی، پیش از فعال‌سازی نوشته و تخلیهٔ فایل می‌شوند. تعویض با تغییر نام در همان پوشه، پس از بستن Drift و حذف فایل‌های جانبی SQLite انجام می‌شود.
 
-## Ownership and recovery
+شکست تلاش می‌کند تصویر ایمنی را جایگزین و مصرف‌کنندگان را دوباره متصل کند؛ شکست بازیابی، نشانگر را نگه می‌دارد و اجازهٔ نمایش نامزد را نمی‌دهد. شروع برنامه پیش از بازکردن پایگاه زنده نشانگر را بررسی و محافظه‌کارانه اصل را بازیابی می‌کند. نشانگر فقط پس از بازگشایی و بازسازی یادآور حذف می‌شود. دوامِ قطع برق با directory-fsync در Android اثبات نشده است.
 
-The application scope suspends and disposes its feature/widget scope before
-restore. It owns database close/reopen and recreates repository/UI references.
-Before activation it writes and flushes a validated private safety snapshot,
-validated candidate and recovery marker containing the safety SHA-256 digest.
-Replacement uses same-directory rename after closing the Drift owner and removing
-SQLite sidecars. Any restore failure attempts safety replacement and rebind;
-failed recovery retains the marker and prevents displaying the candidate.
-Startup checks the marker before opening the live database and conservatively
-restores the original snapshot. Commit removes the marker only after reopen and
-reminder rebuild. Dart file flushing and rename are used; full directory-fsync
-power-loss durability has not been demonstrated on Android.
+صف اعلان در بازیابی پاک و از قواعد/نمونه‌های پایدار بازسازی می‌شود؛ رخداد حل‌شده اعلان فعال نمی‌گیرد و سابقهٔ تحویل حفظ می‌شود.
 
-Notification queues are cleared during restore and crash recovery, then rebuilt
-from persisted rules/instances. Resolved occurrences cannot regain active
-notifications. Delivered notification history is preserved.
+## شواهد و محدودیت
 
-## Known limitations / release evidence
+- پذیرش امضای طرحواره فقط برای ساختار تازه یا زنجیرهٔ کامل مهاجرتِ شناخته‌شده است؛ اعلان مخلوط، امضای ناشناخته و دست‌کاری رد می‌شوند. رکورد قدیمی در طرحوارهٔ جاری جداگانه نیز اعتبارسنجی می‌شود؛ این مجوز همهٔ پایگاه‌های نسخهٔ قدیمی نیست.
+- شاهد تاریخی نسخهٔ ۱۶ شامل ۱۲ نمونهٔ تازه/زنجیره‌ای از ۱۰ تا ۱۵ و آزمون ۲۳ جدول بود. طرحوارهٔ جاری ۱۸ و ۲۴ جدول دارد؛ این اعداد قدیمی، شمار فعلی نیستند.
+- تست فایل‌محور، تکرار بازیابی، خرابی، ناسازگاری، FK، شکست بازسازی، نشانگر توقف، خرابی ایمنی، پوشاندن پیامک و شکست نوشتن را می‌سنجد. تست کلید و فایلِ تنظیمات از آداپتور کنترل‌شده استفاده می‌کند.
+- نمونهٔ همه‌داده، بایگانی، دفتر اعتبار، جایگزین، انتقال/برگشت مالی، ارتباط/تخصیص اصلاح‌شده، نتیجه/شاهد، برچسب، صندوق و تنظیمات را حفظ می‌کند. اختلاف مجاز خروجی فقط پوشاندن پیامک و حذف شناسهٔ بومی است؛ افزودن جدول بدون دادهٔ تست باید پوشش را بشکند.
+- تست میزبان تخلیهٔ فرمان کامل، کارِ تو‌در‌تو/بدون await، بستن حالت قدیم، رد مخزن کهنه و نسل تازه پس از انصراف را می‌سنجد؛ شاهد اتصال شنوندهٔ بومی نیست.
 
-- Version-16 compatibility accepts only the fresh schema or complete trusted
-  schema signatures produced by real committed historical migrations. Twelve
-  historical fixtures cover fresh v10–v15 and sequential migration chains.
-  Legacy rows are also copied into an isolated current schema to enforce current
-  constraints, including previously undeclared foreign keys. Unknown signatures,
-  mixed declarations and schema tampering remain rejected; this is not general
-  acceptance of arbitrary version-16 databases.
-- A file-backed host widget test proves full-command drainage through a delayed
-  platform effect, disposal of the old application state, stale repository
-  rejection and a fresh database/repository generation after cancellation. Gate
-  unit tests also cover nested and unawaited work. Platform effects in this host
-  test are controlled, not native Android evidence; restore/recovery integration
-  with production platform listeners still requires device verification.
-- Real file-backed tests cover encrypted repeated restore/reopen, corruption,
-  incompatible/incomplete schema, FK violations, rebuild rollback, crash marker
-  recovery, damaged safety, snapshot SMS privacy and write-stage failures.
-  Secure-key tests mock platform storage; Settings tests mock file actions.
-- The full-state file-backed fixture populates all 23 persisted tables and
-  compares every logical row after encrypted restore and cold reopen, as well as
-  after an injected rebuild failure and rollback. It includes archived records,
-  entitlement grant/consume/restore, replacement chains, financial transfer and
-  reversal, corrected matches/allocations, actual/evidence, tags, inbox and
-  settings. The only expected export differences are raw SMS redaction and
-  removal of platform notification IDs. Fixture coverage fails when a new table
-  is introduced without corresponding populated data. This proves persistence,
-  not every possible domain scenario or native notification outcome.
-- Native picker, Keystore, notification permission failures, process killing,
-  and Android filesystem power-loss behavior require an isolated test install.
-  The connected personal-data installation must not be used for this testing.
-
-This ADR records the implemented seam and limitations; it does not waive the
-PRD backup release gate or claim Priority 1 is fully verified.
+انتخابگر، مخزن کلید امن، مجوز اعلان، توقف پردازش، اتصال شنونده‌ها و فایل‌سیستم/قطع برق باید در **نصب آزمایشی جدا** بررسی شوند؛ نصب حاوی دادهٔ شخصی برای این آزمون مجاز نیست. [شواهد پشتیبان](../BACKUP_VERIFICATION.md) مرجع مالک، اقدام بعدی و مانع انتشار است؛ این تصمیم شرط انتشار PRD را حذف نمی‌کند.

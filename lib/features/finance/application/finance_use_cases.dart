@@ -1,4 +1,5 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -42,8 +43,44 @@ abstract interface class AtomicFinanceCorrection {
   });
 }
 
+abstract interface class AtomicFinanceReversal {
+  Future<AccountEntry> reverseEntry({
+    required AccountEntry expected,
+    required StableId accountId,
+    required DateTime occurredAt,
+    AccountEntry? corrected,
+  });
+}
+
+abstract interface class AccountStatusUndoRepository {
+  Future<UndoToken?> accountStatusUndo(StableId id);
+  Future<void> undoAccountStatus(StableId id, UndoToken expected);
+}
+
 class InMemoryFinanceRepository
-    implements FinanceRepository, AtomicAccountEditing {
+    implements FinanceRepository, AtomicAccountEditing, AtomicFinanceReversal {
+  @override
+  Future<AccountEntry> reverseEntry({
+    required AccountEntry expected,
+    required StableId accountId,
+    required DateTime occurredAt,
+    AccountEntry? corrected,
+  }) async {
+    final reversals = prepareFinanceReversal(
+      expected: expected,
+      accountId: accountId,
+      entries: _entries.values.toList(),
+      accounts: _accounts.values.toList(),
+      occurredAt: occurredAt,
+      corrected: corrected,
+    );
+    for (final entry in reversals) {
+      _entries[entry.id] = entry;
+    }
+    if (corrected != null) _entries[corrected.id] = corrected;
+    return reversals.firstWhere((e) => e.referenceId == expected.id.value);
+  }
+
   @override
   Future<void> editAccount({
     required FinancialAccount original,
@@ -299,18 +336,6 @@ class FinanceUseCases {
   }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
-    final reversal = AccountEntry(
-      id: StableId.generate(timestamp: occurredAt),
-      accountId: account.id,
-      type: original.signedAmount.minorUnits > 0
-          ? AccountEntryType.expense
-          : AccountEntryType.income,
-      amount: original.amount,
-      occurredAt: occurredAt.toUtc(),
-      referenceId: original.id.value,
-      note: 'اصلاح تراکنش ${original.id.value}',
-      source: AccountEntrySource.manual,
-    );
     final corrected = AccountEntry(
       id: StableId.generate(
         timestamp: occurredAt.add(const Duration(microseconds: 1)),
@@ -324,11 +349,15 @@ class FinanceUseCases {
       category: category,
       source: AccountEntrySource.manual,
     );
-    if (repository case AtomicFinanceCorrection atomic) {
-      await atomic.saveCorrection(reversal: reversal, corrected: corrected);
+    if (repository case AtomicFinanceReversal atomic) {
+      await atomic.reverseEntry(
+        expected: original,
+        accountId: account.id,
+        occurredAt: occurredAt,
+        corrected: corrected,
+      );
     } else {
-      await repository.saveEntry(reversal);
-      await repository.saveEntry(corrected);
+      throw const ValidationError('Atomic finance reversal is required');
     }
     return corrected;
   });
@@ -339,20 +368,14 @@ class FinanceUseCases {
     DateTime? occurredAt,
   }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
-    final reversal = AccountEntry(
-      id: StableId.generate(timestamp: occurredAt),
-      accountId: account.id,
-      type: original.signedAmount.minorUnits > 0
-          ? AccountEntryType.expense
-          : AccountEntryType.income,
-      amount: original.amount,
-      occurredAt: (occurredAt ?? DateTime.now()).toUtc(),
-      referenceId: original.id.value,
-      note: 'حذف امن تراکنش ${original.id.value}',
-      source: AccountEntrySource.manual,
-    );
-    await repository.saveEntry(reversal);
-    return reversal;
+    if (repository case AtomicFinanceReversal atomic) {
+      return atomic.reverseEntry(
+        expected: original,
+        accountId: account.id,
+        occurredAt: occurredAt ?? DateTime.now().toUtc(),
+      );
+    }
+    throw const ValidationError('Atomic finance reversal is required');
   });
 
   Future<Money> balance(FinancialAccount account) async =>
@@ -369,4 +392,100 @@ class FinanceUseCases {
       throw const ValidationError('Account and entry currencies must match');
     }
   }
+}
+
+/// Fresh-state admission shared by production persistence and test repositories.
+List<AccountEntry> prepareFinanceReversal({
+  required AccountEntry expected,
+  required StableId accountId,
+  required List<AccountEntry> entries,
+  required List<FinancialAccount> accounts,
+  required DateTime occurredAt,
+  AccountEntry? corrected,
+}) {
+  final original = entries.where((e) => e.id == expected.id).firstOrNull;
+  if (original == null ||
+      original.accountId != accountId ||
+      original.type != expected.type ||
+      original.amount != expected.amount ||
+      original.referenceId != expected.referenceId ||
+      original.transferGroupId != expected.transferGroupId ||
+      original.occurredAt.millisecondsSinceEpoch ~/ 1000 !=
+          expected.occurredAt.millisecondsSinceEpoch ~/ 1000 ||
+      original.type == AccountEntryType.reversal) {
+    throw const ValidationError('Transaction changed or cannot be reversed');
+  }
+  final targets = original.transferGroupId == null
+      ? [original]
+      : entries
+            .where(
+              (e) =>
+                  e.transferGroupId == original.transferGroupId &&
+                  e.type != AccountEntryType.reversal,
+            )
+            .toList();
+  if (original.transferGroupId != null) {
+    final outgoing = targets
+        .where((e) => e.type == AccountEntryType.transferOut)
+        .toList();
+    final incoming = targets
+        .where((e) => e.type == AccountEntryType.transferIn)
+        .toList();
+    if (corrected != null ||
+        outgoing.length != 1 ||
+        incoming.length != 1 ||
+        outgoing.single.amount != incoming.single.amount ||
+        outgoing.single.accountId == incoming.single.accountId ||
+        targets.any(
+          (e) => !{
+            AccountEntryType.transferOut,
+            AccountEntryType.transferIn,
+            AccountEntryType.expense,
+          }.contains(e.type),
+        )) {
+      throw const ValidationError(
+        'Transfer reversal requires its complete group',
+      );
+    }
+  }
+  for (final entry in targets) {
+    final account = accounts.where((a) => a.id == entry.accountId).firstOrNull;
+    if (account == null ||
+        account.status != FinancialAccountStatus.active ||
+        account.currency != entry.amount.currency ||
+        entries.any(
+          (e) =>
+              e.referenceId == entry.id.value &&
+              (e.type == AccountEntryType.reversal ||
+                  e.note == 'حذف امن تراکنش ${entry.id.value}' ||
+                  e.note == 'اصلاح تراکنش ${entry.id.value}'),
+        )) {
+      throw const ValidationError(
+        'Entry already reversed or account unavailable',
+      );
+    }
+  }
+  if (corrected != null &&
+      (corrected.accountId != accountId ||
+          corrected.amount.currency != original.amount.currency ||
+          !{
+            AccountEntryType.income,
+            AccountEntryType.expense,
+          }.contains(corrected.type) ||
+          corrected.amount.minorUnits <= 0 ||
+          original.transferGroupId != null)) {
+    throw const ValidationError('Invalid corrected entry');
+  }
+  return [
+    for (final entry in targets)
+      AccountEntry(
+        id: StableId.generate(),
+        accountId: entry.accountId,
+        type: AccountEntryType.reversal,
+        amount: -entry.signedAmount,
+        occurredAt: occurredAt.toUtc(),
+        referenceId: entry.id.value,
+        transferGroupId: entry.transferGroupId,
+      ),
+  ];
 }

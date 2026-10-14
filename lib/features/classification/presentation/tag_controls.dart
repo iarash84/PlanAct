@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -68,7 +70,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'خواندن برچسب‌ها انجام نشد؛ دوباره تلاش کنید.';
+          _error = PersianCopy.tagControlsLoadMessage;
         });
       }
     }
@@ -86,7 +88,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
     if (!widget.enabled) return;
     final label = normalizeTagLabel(_label.text);
     if (label.isEmpty) {
-      setState(() => _error = 'نام برچسب را وارد کنید.');
+      setState(() => _error = PersianCopy.tagControlsAddMessage);
       return;
     }
     final existing = _tags
@@ -109,12 +111,10 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'برچسب‌ها (اختیاری)',
+          planActL10n(context).tagControlsBuildChildren,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const Text(
-          'برچسب‌ها همراه با ثبت نهایی ذخیره می‌شوند؛ انصراف تغییری ایجاد نمی‌کند.',
-        ),
+        Text(planActL10n(context).tagControlsBuildChildren2),
         if (_loading) const LinearProgressIndicator(),
         if (_error != null) ...[
           Semantics(
@@ -126,7 +126,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
           ),
           TextButton(
             onPressed: widget.enabled && !_loading ? _load : null,
-            child: const Text('تلاش دوباره'),
+            child: Text(planActL10n(context).commonRetry),
           ),
         ],
         Wrap(
@@ -148,13 +148,15 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
           key: const ValueKey('draft-tag-label'),
           controller: _label,
           enabled: widget.enabled,
-          decoration: const InputDecoration(labelText: 'برچسب جدید'),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).tagControlsBuildLabelText,
+          ),
           onSubmitted: (_) => _add(),
         ),
         OutlinedButton.icon(
           onPressed: widget.enabled ? _add : null,
           icon: const Icon(Icons.add),
-          label: const Text('افزودن برچسب به پیش‌نویس'),
+          label: Text(planActL10n(context).tagControlsBuildLabel),
         ),
       ],
     );
@@ -181,7 +183,7 @@ class TagFilter extends StatelessWidget {
     runSpacing: PlanActSpacing.xs,
     children: [
       FilterChip(
-        label: const Text('همهٔ برچسب‌ها'),
+        label: Text(planActL10n(context).tagControlsBuildLabel2),
         selected: selected == null,
         onSelected: enabled ? (_) => onChanged(null) : null,
       ),
@@ -306,7 +308,7 @@ class _TagPanelState extends State<_TagPanel> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'خواندن برچسب‌ها انجام نشد؛ دوباره تلاش کنید.';
+          _error = PersianCopy.tagControlsLoadMessage;
         });
       }
     }
@@ -325,16 +327,16 @@ class _TagPanelState extends State<_TagPanel> {
       await widget.onChanged();
       await _load();
       if (mounted && _error == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('برچسب‌ها به‌روز شدند.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(PersianCopy.tagControlsMutateContent)),
+        );
       }
     } catch (_) {
       if (mounted) {
         setState(
           () => _error = committed
-              ? 'تغییر ذخیره شد؛ نمایش اطلاعات به‌روز نشد. دوباره تلاش کنید.'
-              : 'تغییر برچسب انجام نشد؛ نام تکراری یا نامعتبر را بررسی و دوباره تلاش کنید.',
+              ? PersianCopy.tagControlsMutateMessage
+              : PersianCopy.tagControlsMutateMessage2,
         );
       }
     } finally {
@@ -362,20 +364,22 @@ class _TagPanelState extends State<_TagPanel> {
       builder: (context) {
         removed ??= ModalRoute.of(context)!.completed.then((_) {});
         return AlertDialog(
-          title: const Text('تغییر نام برچسب'),
+          title: const Text(PersianCopy.tagControlsLabelTitle),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'نام برچسب'),
+            decoration: const InputDecoration(
+              labelText: PersianCopy.tagControlsLabelLabelText,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('انصراف'),
+              child: const Text(PersianCopy.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('ذخیره'),
+              child: const Text(PersianCopy.commonSave),
             ),
           ],
         );
@@ -393,18 +397,20 @@ class _TagPanelState extends State<_TagPanel> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف برچسب از همهٔ موارد؟'),
+        title: const Text(PersianCopy.tagControlsConfirmedTitle),
         content: Text(
-          'برچسب ${tag.displayLabel} و اتصال آن به همهٔ تعهدها و تراکنش‌ها حذف می‌شود. خود تعهدها و تراکنش‌ها باقی می‌مانند. این کار قابل بازگردانی نیست.',
+          PersianCopy.tagControlsConfirmedContent(
+            (tag.displayLabel).toString(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('حذف از همهٔ موارد'),
+            child: const Text(PersianCopy.tagControlsConfirmedActions),
           ),
         ],
       ),
@@ -421,14 +427,13 @@ class _TagPanelState extends State<_TagPanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          _manager ? 'مدیریت برچسب‌ها' : 'برچسب‌های این مورد',
+          _manager
+              ? planActL10n(context).tagControlsContentChildren
+              : planActL10n(context).tagControlsContentChildren2,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        if (!_manager)
-          const Text(
-            'تغییر برچسب‌ها بلافاصله ذخیره می‌شود؛ نیازی به ذخیرهٔ فرم نیست.',
-          ),
+        if (!_manager) Text(planActL10n(context).tagControlsContentChildren3),
         if (_loading || _busy) const LinearProgressIndicator(),
         if (_error != null) ...[
           Text(
@@ -437,11 +442,11 @@ class _TagPanelState extends State<_TagPanel> {
           ),
           TextButton(
             onPressed: _busy ? null : () => _mutate(() async {}),
-            child: const Text('تلاش دوباره'),
+            child: Text(planActL10n(context).commonRetry),
           ),
         ],
         if (!_loading && _error == null && _tags.isEmpty)
-          const Text('هنوز برچسبی ندارید؛ یک برچسب بسازید.'),
+          Text(planActL10n(context).tagControlsContentChildren4),
         if (!_manager)
           Wrap(
             spacing: PlanActSpacing.sm,
@@ -452,8 +457,8 @@ class _TagPanelState extends State<_TagPanel> {
                   label: Text(tag.displayLabel),
                   selected: _assigned.contains(tag.id),
                   tooltip: _assigned.contains(tag.id)
-                      ? 'برداشتن از این مورد'
-                      : 'افزودن به این مورد',
+                      ? planActL10n(context).tagControlsContentTooltip
+                      : planActL10n(context).tagControlsContentTooltip2,
                   onSelected: _busy || _loading
                       ? null
                       : (selected) => _mutate(
@@ -479,12 +484,16 @@ class _TagPanelState extends State<_TagPanel> {
               trailing: Wrap(
                 children: [
                   IconButton(
-                    tooltip: 'تغییر نام ${tag.displayLabel}',
+                    tooltip: planActL10n(
+                      context,
+                    ).tagControlsContentTooltip3((tag.displayLabel).toString()),
                     onPressed: _busy ? null : () => _rename(tag),
                     icon: const Icon(Icons.edit_outlined),
                   ),
                   IconButton(
-                    tooltip: 'حذف سراسری ${tag.displayLabel}',
+                    tooltip: planActL10n(
+                      context,
+                    ).tagControlsContentTooltip4((tag.displayLabel).toString()),
                     onPressed: _busy ? null : () => _remove(tag),
                     icon: const Icon(Icons.delete_outline),
                   ),
@@ -495,19 +504,25 @@ class _TagPanelState extends State<_TagPanel> {
         TextField(
           controller: _label,
           enabled: !_busy && !_loading,
-          decoration: const InputDecoration(labelText: 'برچسب جدید'),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).tagControlsBuildLabelText,
+          ),
           onSubmitted: (_) => _create(),
         ),
         const SizedBox(height: PlanActSpacing.sm),
         OutlinedButton.icon(
           onPressed: _busy || _loading ? null : _create,
           icon: const Icon(Icons.add),
-          label: Text(_manager ? 'ساخت برچسب' : 'ساخت و افزودن برچسب'),
+          label: Text(
+            _manager
+                ? planActL10n(context).tagControlsContentLabel
+                : planActL10n(context).tagControlsContentLabel2,
+          ),
         ),
         if (widget.onManage != null)
           TextButton(
             onPressed: _busy || _loading ? null : widget.onManage,
-            child: const Text('مدیریت برچسب‌ها'),
+            child: Text(planActL10n(context).tagControlsContentChildren),
           ),
       ],
     );

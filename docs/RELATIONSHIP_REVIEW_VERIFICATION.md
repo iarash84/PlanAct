@@ -1,47 +1,37 @@
-# Transaction relationship review — focused verification
+# شواهد بررسی ارتباط تراکنش
 
-Date: 2026-10-07. Status: implemented for the bounded local review journey; not a native release sign-off.
+ثبت ۲۰۲۶-۱۰-۰۷؛ مسیر محلی محدود پیاده است، نه تأیید انتشار بومی.
 
-## Product path and decisions
+تصمیم مستقلِ باقی‌مانده از ارتباط مالی، دسته و برچسب جداست. ارتباط جزئی فقط تخصیص را پوشش می‌دهد و باقی‌ماندهٔ معتبر در امروز می‌ماند. مبلغ یا سابقهٔ تخصیص تازه، تأیید مستقل قبلی را بدون حذف نامعتبر می‌کند. توکن فرم و بازخوانی تازهٔ تراکنشی، بازبینی یکتا و جمع تخصیص را حتی خارج فرم کنترل می‌کنند؛ تلاش مجدد بی‌صدا تأیید تازه نیست.
 
-- [Domain projection](../lib/features/reconciliation/domain/relationship_review.dart:38) separates independent-remainder disposition from actual financial matches, category and tags. Partial matches leave only their outstanding remainder in Today. A new amount/allocation history invalidates an old independent approval without deleting it.
-- [Application contract](../lib/features/reconciliation/application/relationship_review_repository.dart) and [contextual commands](../lib/features/reconciliation/application/contextual_reconciliation.dart) carry loaded snapshot tokens. [Production admission](../lib/features/reconciliation/data/drift_reconciliation_repository.dart:133) compares fresh state transactionally. Cumulative matching is guarded even outside the contextual form.
-- [Persian relationship flow](../lib/features/reconciliation/presentation/transaction_relationship_page.dart:112) explicitly confirms «به تعهدی مربوط نیست», shows reviewed disposition, supports Undo and reopening, preserves drafts on failure, and prevents duplicate busy actions. Back/cancellation without a decision writes nothing; back after a decision refreshes Today.
-- [Today classification](../lib/features/today/application/attention_engine.dart:420) uses eligible unreversed income/expense remainders and durable review history loaded by the [composition root](../lib/app/planact_app.dart:364). Transfers, adjustments and reversal entries are not review obligations.
-- Existing [Finance transaction relationship action](../lib/features/finance/presentation/finance_page.dart:864) remains available for independently reviewed entries; reopening there permits later real linking. No separate Finance badge/history browser is claimed.
+«به تعهدی مربوط نیست»، واگرد و بازگشایی، تصمیم الحاقی‌اند و پول، موجودی، ارتباط، نتیجه یا انتظار را تغییر نمی‌دهند. بازگشت/انصراف بدون تصمیم نمی‌نویسد؛ پس از تصمیم امروز تازه می‌شود. مالی اقدام تعیین ارتباط برای مورد مستقل را حفظ می‌کند؛ انتقال/اصلاح/برگشت تکلیف بررسی نیستند.
 
-Financial amounts, account balances, existing matches, occurrence results, expectations, category and tags are not changed by review commands. No new dependency or sensitive logging is introduced. See [ADR 0015](adr/0015-transaction-relationship-review.md).
+مهاجرت ۱۶ → ۱۷ سابقه با FK، قید و حفاظت به‌روزرسانی/حذف افزود و قدیمی را بررسی‌نشده گذاشت. نمونهٔ مهاجرت و تثبیت کامل طرح پایگاه داده، تصویر داده شخصی و اعتبارسنجی ردیف جاری، سابقه را حفظ می‌کنند؛ واردسازی مستقیم همهٔ قالب‌های طرح پایگاه داده قدیمی مجاز نیست. محدودیت تاریخی کلید نصب برای خروجی جدید با [تصمیم ۰۰۱۸](adr/0018-independent-recovery-key-backups.md) جایگزین شده است.
 
-## Persistence and backup
+شاهد تاریخی: ۴۰۴ تست کامل، تحلیل بدون ایراد، ۲۲ فایلِ بدون تغییر قالب و اختلاف موفق. تست دامنهٔ اثر انگشت/بازبینی، مخزن فایل سرد/رقابت اتصال جدا/کهنه/برگشت تراکنش/پشتیبان، دادهٔ آزمایشی تاریخی، امروز و مسیر واقعی جزئی/مستقل/بازگشایی/واگرد/انصراف/خطا را پوشش دادند. تفاوت قالب دو تست نامرتبط آن مرحله عمداً اصلاح نشد؛ نتیجهٔ امروز از بررسی جاری خوانده می‌شود.
 
-[Schema 17](../lib/core/database/app_database.dart) adds append-only review rows with transaction FK, constraints and unique monotonic per-transaction revisions. The forward migration preserves older financial/history data and does not infer past review decisions. Generated Drift bindings are updated.
+تکمیل ۲۰۲۶-۱۰-۱۴: نمایش سابقه و اصلاح/قطع ارتباطِ پرداخت فعال با تأیید و پذیرش نویسنده اضافه شد؛ تخصیص تاریخی دیگر در تغییر وضعیت حذف/درج دوباره نمی‌شود. [شواهد واگرد](SCHEDULE_ACTUAL_VERIFICATION.md). بررسی دسته‌ای نیز [دامنهٔ محدود جدا](BULK_REVIEW_VERIFICATION.md) دارد. سیاست اضافه‌پرداخت/ویرایش استرداد، مقصد صرفاً تعهد و مرورگر عمومی سابقه هنوز ادعا نمی‌شوند.
 
-[Trusted backup compatibility](../lib/features/backup/data/sqlite_backup_storage.dart:42) includes actual v10–v16 historical fixture migrations to v17, retaining full-schema pins and isolated current constraint validation. [Full-state encrypted round-trip](../test/repository/backup_full_state_test.dart) preserves the new history, and [review repository tests](../test/repository/relationship_review_test.dart) verify effective review reconstruction after backup. Personal snapshot redaction does not remove review history.
+تم مشترک، RTL و متن ۱٫۸برابر در دو تم شاهد ویجت دارند؛ این گواهی دستگاه/صفحه‌خوان/چرخه/مخزن کلید امن نیست. مسئول انتشار باید بومی و بازبینی مستقل و موانع پشتیبان را جدا ثبت کند؛ محاسبهٔ دامنهٔ اضافه‌پرداخت اجازهٔ ذخیرهٔ بیش‌تخصیص نیست.
 
-Old-version exports are not directly imported by the current-version gate; installed database upgrade then export is supported. Encryption remains installation-bound, not portable device-loss recovery. Other native backup release gates are not waived.
+## مراجع کد و شواهد
 
-## Evidence
-
-- [Domain tests](../test/unit/relationship_review_test.dart): remainder projection, identity/history fingerprints, invalidation, revisions and in-memory review behavior.
-- [Repository tests](../test/repository/relationship_review_test.dart): cold file-backed restart, stale tokens, duplicate decisions, separate-connection races, allocation admission, correction rollback, append-only guards and backup reconstruction.
-- [Historical migration fixtures](../test/repository/relationship_schema_fixture_test.dart) and [backup compatibility tests](../test/repository/sqlite_backup_schema_compatibility_test.dart): real migrations, v16 fixture, strict rejection of tampered schemas and invalid rows.
-- [Attention tests](../test/unit/attention_engine_test.dart) and [critical widget journeys](../test/widget/contextual_reconciliation_test.dart): partial remainder, independence, reopening/relinking, Undo, no candidates, no review on back, stale failure/draft retention, loading, Today refresh and durable suppression after app reconstruction.
-- Final Flutter analysis: **no issues found**.
-- Final complete Flutter test suite: **404 passed**.
-- Changed Dart file format check: **22 files, zero changes**. Diff whitespace check passed.
-- Whole-repository non-writing format check also identified pre-existing formatting differences in [occurrence tests](../test/unit/occurrence_test.dart) and [series-editing tests](../test/unit/series_editing_test.dart). They were deliberately left unchanged; no claim of repository-wide formatting compliance is made.
-
-## Proportional visual coverage
-
-| Surface | Status | Evidence/scope |
-| --- | --- | --- |
-| Relationship page | Migrated | Theme-owned Material actions, Persian copy, semantic live errors, busy state, Undo/reopen; Light/Dark, RTL and 1.8× text scale widget checks |
-| Today | Migrated | Domain-derived remainder/independent classification; existing row visuals retained |
-| Finance | Intentionally Unchanged | Existing relationship action opens reviewed entry; no new component or local design variant |
-| Shared theme/components | Intentionally Unchanged | Existing styles/tokens reused; no global visual change |
-
-## Remaining scope and limitations
-
-No match-correction authoring UI, bulk allocation, commitment-only target, explicit overpayment policy or review-history browser was added. Old independent decisions stay inspectable in durable history but are not presented as a new timeline UI. Pure-domain overpayment calculations do not authorize persisted over-allocation. A stale form requires explicit reload/retry; no silent approval retry is performed.
-
-Automated checks are not native-device accessibility, screen-reader, lifecycle/crash, picker or Keystore certification. Native release evidence and broader backup recovery remain separate existing gates.
+- [relationship_review.dart](../lib/features/reconciliation/domain/relationship_review.dart)
+- [relationship_review_repository.dart](../lib/features/reconciliation/application/relationship_review_repository.dart)
+- [contextual_reconciliation.dart](../lib/features/reconciliation/application/contextual_reconciliation.dart)
+- [drift_reconciliation_repository.dart](../lib/features/reconciliation/data/drift_reconciliation_repository.dart)
+- [transaction_relationship_page.dart](../lib/features/reconciliation/presentation/transaction_relationship_page.dart)
+- [attention_engine.dart](../lib/features/today/application/attention_engine.dart)
+- [planact_app.dart](../lib/app/planact_app.dart)
+- [finance_page.dart](../lib/features/finance/presentation/finance_page.dart)
+- [app_database.dart](../lib/core/database/app_database.dart)
+- [sqlite_backup_storage.dart](../lib/features/backup/data/sqlite_backup_storage.dart)
+- [backup_full_state_test.dart](../test/repository/backup_full_state_test.dart)
+- [relationship_review_test.dart](../test/repository/relationship_review_test.dart)
+- [relationship_review_test.dart](../test/unit/relationship_review_test.dart)
+- [relationship_schema_fixture_test.dart](../test/repository/relationship_schema_fixture_test.dart)
+- [sqlite_backup_schema_compatibility_test.dart](../test/repository/sqlite_backup_schema_compatibility_test.dart)
+- [attention_engine_test.dart](../test/unit/attention_engine_test.dart)
+- [contextual_reconciliation_test.dart](../test/widget/contextual_reconciliation_test.dart)
+- [occurrence_test.dart](../test/unit/occurrence_test.dart)
+- [series_editing_test.dart](../test/unit/series_editing_test.dart)

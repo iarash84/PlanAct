@@ -1,3 +1,6 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -13,13 +16,15 @@ import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 String smsDirectionLabel(TransactionDirection direction) => switch (direction) {
-  TransactionDirection.incoming => 'واریز',
-  TransactionDirection.outgoing => 'برداشت',
-  TransactionDirection.unknown => 'نامشخص',
+  TransactionDirection.incoming =>
+    PersianCopy.transactionDirectionAccountEntryTypeIncome,
+  TransactionDirection.outgoing =>
+    PersianCopy.transactionDirectionAccountEntryTypeExpense,
+  TransactionDirection.unknown => PersianCopy.commonUnknown,
 };
 
 String maskedSmsEvidence(String? value) {
-  if (value == null || value.isEmpty) return 'نامشخص';
+  if (value == null || value.isEmpty) return PersianCopy.commonUnknown;
   // Never reveal a complete short identifier either.
   return value.length <= 4
       ? '••••'
@@ -38,9 +43,11 @@ class SmsOriginalEvidence extends StatelessWidget {
     final original = evidence?.draft;
     String dateLabel() {
       final source = evidence?.sourceDate;
-      if (source == null) return 'نامشخص';
+      if (source == null) return planActL10n(context).commonUnknown;
       if (!RegExp(r'^\d{4}[-/]\d{1,2}[-/]\d{1,2}$').hasMatch(source)) {
-        return '${PersianNumbers.format(source)} (سال نامشخص)';
+        return planActL10n(context).smsReviewEditorDateLabelMessage(
+          (PersianNumbers.format(source)).toString(),
+        );
       }
       final parts = source.split(RegExp('[-/]')).map(int.parse).toList();
       final date = parts.first < 1500
@@ -53,28 +60,82 @@ class SmsOriginalEvidence extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'شواهد اصلی پیامک (بدون تغییر)',
+          planActL10n(context).smsReviewEditorBuildChildren,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         if (original == null)
-          const Text('شواهد اصلی پیامک قدیمی در دسترس نیست.')
+          Text(planActL10n(context).smsReviewEditorBuildChildren2)
         else ...[
           Text(
-            'مبلغ اصلی: ${original.currencyEvidence == null ? PersianMoneyText.money(original.amount, unit: MoneyUnitScope.of(context)) : '${PersianNumbers.format(original.currencyEvidence!.sourceAmount)} ${original.currencyEvidence!.effectiveUnit?.label ?? 'واحد نامشخص'}'}',
+            planActL10n(context).smsReviewEditorBuildChildren4(
+              (original.currencyEvidence == null
+                      ? PersianMoneyText.money(
+                          original.amount,
+                          unit: MoneyUnitScope.of(context),
+                        )
+                      : planActL10n(context).accountFormSheetIdentifierTooltip3(
+                          (PersianNumbers.format(
+                            MoneyInputFormatter.groupText(
+                              original.currencyEvidence!.sourceAmount
+                                  .toString(),
+                            ),
+                          )).toString(),
+                          (original.currencyEvidence!.effectiveUnit?.label ??
+                                  planActL10n(context)
+                                      .smsReviewEditorBuildChildren3)
+                              .toString(),
+                        ))
+                  .toString(),
+            ),
           ),
           Text(
-            'جهت پیامک: ${evidence!.isTransfer ? 'انتقال' : smsDirectionLabel(original.direction)}',
-          ),
-          Text('شرح اصلی: ${original.merchant ?? 'نامشخص'}'),
-          Text('بانک اصلی: ${original.bank ?? 'نامشخص'}'),
-          Text('راهنمای حساب اصلی: ${maskedSmsEvidence(original.accountHint)}'),
-          Text('پیگیری اصلی: ${maskedSmsEvidence(original.reference)}'),
-          Text('تاریخ پیامک: ${dateLabel()}'),
-          Text(
-            'ساعت پیامک: ${evidence.sourceTime == null ? 'نامشخص' : PersianNumbers.format(evidence.sourceTime!)}',
+            planActL10n(context).smsReviewEditorBuildChildren6(
+              (evidence!.isTransfer
+                      ? planActL10n(context).smsReviewEditorBuildChildren5
+                      : smsDirectionLabel(original.direction))
+                  .toString(),
+            ),
           ),
           Text(
-            'زمان دریافت پیامک: ${original.receivedAt == null ? 'نامشخص' : smsReviewTimestamp(original.receivedAt!)}',
+            planActL10n(context).smsReviewEditorBuildChildren7(
+              (original.merchant ?? planActL10n(context).commonUnknown)
+                  .toString(),
+            ),
+          ),
+          Text(
+            planActL10n(context).smsReviewEditorBuildChildren8(
+              (original.bank ?? planActL10n(context).commonUnknown).toString(),
+            ),
+          ),
+          Text(
+            planActL10n(context).smsReviewEditorBuildChildren9(
+              (maskedSmsEvidence(original.accountHint)).toString(),
+            ),
+          ),
+          Text(
+            planActL10n(context).smsReviewEditorBuildChildren10(
+              (maskedSmsEvidence(original.reference)).toString(),
+            ),
+          ),
+          Text(
+            planActL10n(context)
+                .smsReviewEditorBuildChildren11((dateLabel()).toString()),
+          ),
+          Text(
+            planActL10n(context).smsReviewEditorBuildChildren12(
+              (evidence.sourceTime == null
+                      ? planActL10n(context).commonUnknown
+                      : PersianNumbers.format(evidence.sourceTime!))
+                  .toString(),
+            ),
+          ),
+          Text(
+            planActL10n(context).smsReviewEditorBuildChildren13(
+              (original.receivedAt == null
+                      ? planActL10n(context).commonUnknown
+                      : smsReviewTimestamp(original.receivedAt!))
+                  .toString(),
+            ),
           ),
         ],
       ],
@@ -152,15 +213,22 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
       _legacyUnit = _draft.amount.currency == 'IRR'
           ? MoneyUnitScope.of(context)
           : IranianMoneyUnit.rial;
+      if (_draft.currencyEvidence?.requiresSelection == true) {
+        _unit = _legacyUnit == IranianMoneyUnit.toman
+            ? SmsMoneyUnit.toman
+            : SmsMoneyUnit.rial;
+      }
       _amount = TextEditingController(
-        text: _draft.currencyEvidence == null
-            ? _legacyUnit.inputText(_draft.amount.minorUnits)
-            : _unit == null
-            ? _draft.currencyEvidence!.sourceAmount.toString()
-            : (_unit == SmsMoneyUnit.toman
-                      ? IranianMoneyUnit.toman
-                      : IranianMoneyUnit.rial)
-                  .inputText(_draft.amount.minorUnits),
+        text: MoneyInputFormatter.groupText(
+          _draft.currencyEvidence == null
+              ? _legacyUnit.inputText(_draft.amount.minorUnits)
+              : _draft.currencyEvidence!.requiresSelection
+              ? _draft.currencyEvidence!.sourceAmount.toString()
+              : (_unit == SmsMoneyUnit.toman
+                        ? IranianMoneyUnit.toman
+                        : IranianMoneyUnit.rial)
+                    .inputText(_draft.amount.minorUnits),
+        ),
       );
       _initialized = true;
     }
@@ -185,31 +253,24 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
         : IranianMoneyUnit.rial;
     final amount = unit.parse(_amount.text);
     if (currency != null && _unit == null) {
-      setState(
-        () => _error = 'واحد مبلغ نامشخص است؛ ریال یا تومان را انتخاب کنید.',
-      );
+      setState(() => _error = PersianCopy.smsReviewEditorSaveMessage);
       return;
     }
     if (amount == null || amount <= 0) {
-      setState(() => _error = 'مبلغ باید معتبر و بزرگ‌تر از صفر باشد.');
+      setState(() => _error = PersianCopy.smsReviewEditorSaveMessage2);
       return;
     }
     // The current draft requires a complete timestamp. Partial source evidence
     // stays immutable; editing a timestamp never synthesizes its missing part.
     if (_dateEdited && (_date == null || _time == null)) {
-      setState(
-        () => _error =
-            'برای تغییر زمان تراکنش، تاریخ و ساعت را صریحاً انتخاب کنید.',
-      );
+      setState(() => _error = PersianCopy.smsReviewEditorSaveMessage3);
       return;
     }
     int? reviewedAmount;
     if (currency != null) {
       final divisor = _unit == SmsMoneyUnit.toman ? 10 : 1;
       if (amount % divisor != 0) {
-        setState(
-          () => _error = 'مبلغ پیامک باید در واحد انتخابی عدد صحیح باشد؛ برای باقی‌ماندهٔ ریالی، ریال را انتخاب کنید.',
-        );
+        setState(() => _error = PersianCopy.smsReviewEditorSaveMessage4);
         return;
       }
       reviewedAmount = amount ~/ divisor;
@@ -269,7 +330,7 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'ذخیره انجام نشد؛ مقادیر فرم حفظ شده‌اند. دوباره تلاش کنید.';
+          _error = PersianCopy.smsReviewEditorSaveMessage5;
         });
       }
     }
@@ -279,6 +340,9 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
     padding: const EdgeInsets.only(bottom: PlanActSpacing.sm),
     child: TextField(
       controller: controller,
+      inputFormatters: controller == _amount
+          ? const [MoneyInputFormatter(decimal: true)]
+          : null,
       enabled: !_saving,
       decoration: InputDecoration(labelText: label),
     ),
@@ -287,8 +351,8 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: PlanActFormSheet(
-      title: 'ویرایش پیشنهاد تراکنش',
-      primaryLabel: 'ذخیره و بررسی',
+      title: planActL10n(context).smsReviewEditorBuildTitle,
+      primaryLabel: planActL10n(context).smsReviewEditorBuildPrimaryLabel,
       onPrimary: _save,
       isLoading: _saving,
       error: _error,
@@ -297,20 +361,22 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
         children: [
           SmsOriginalEvidence(suggestion: widget.suggestion),
           const SizedBox(height: PlanActSpacing.md),
-          const Text(
-            'مقادیر بررسی‌شدهٔ شما؛ ذخیرهٔ ویرایش هنوز تراکنش مالی ثبت نمی‌کند.',
-          ),
+          Text(planActL10n(context).smsReviewEditorBuildChildren14),
           _field(
             _amount,
             _draft.currencyEvidence == null
-                ? 'مبلغ به ${_legacyUnit.label}'
-                : 'مبلغ (واحد انتخابی)',
+                ? planActL10n(
+                    context,
+                  ).financePageResultLabelText((_legacyUnit.label).toString())
+                : planActL10n(context).smsReviewEditorBuildChildren15,
           ),
           if (_draft.currencyEvidence != null)
             DropdownButtonFormField<SmsMoneyUnit>(
               initialValue: _unit,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'واحد مبلغ'),
+              decoration: InputDecoration(
+                labelText: planActL10n(context).smsReviewEditorBuildLabelText,
+              ),
               items: [
                 for (final u in SmsMoneyUnit.values)
                   DropdownMenuItem(value: u, child: Text(u.label)),
@@ -318,40 +384,48 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
               onChanged: _saving ? null : (v) => setState(() => _unit = v),
             )
           else
-            const Text(
-              'واحد پیامک قدیمی نامشخص است؛ مقدار ذخیره‌شده بازتفسیر نمی‌شود.',
-            ),
-          _field(_merchant, 'پذیرنده یا شرح'),
-          _field(_reference, 'شناسه پیگیری'),
-          _field(_bank, 'نام بانک'),
-          _field(_hint, 'راهنمای حساب یا کارت'),
+            Text(planActL10n(context).smsReviewEditorBuildChildren16),
+          _field(
+            _merchant,
+            planActL10n(context).smsReviewEditorBuildChildren17,
+          ),
+          _field(
+            _reference,
+            planActL10n(context).smsReviewEditorBuildChildren18,
+          ),
+          _field(_bank, planActL10n(context).smsReviewEditorBuildChildren19),
+          _field(_hint, planActL10n(context).smsReviewEditorBuildChildren20),
           DropdownButtonFormField<TransactionDirection>(
             initialValue: _direction,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'جهت پیامک'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).smsReviewEditorBuildLabelText2,
+            ),
             items: [
               for (final d in TransactionDirection.values)
                 DropdownMenuItem(value: d, child: Text(smsDirectionLabel(d))),
             ],
             onChanged: _saving ? null : (v) => setState(() => _direction = v!),
           ),
-          const Text(
-            'واریز یا برداشت به‌تنهایی به معنی درآمد یا هزینه نیست؛ طبقه‌بندی مالی را پیش از تأیید نهایی بررسی کنید.',
-          ),
+          Text(planActL10n(context).smsReviewEditorBuildChildren21),
           if (widget.suggestion.extractedEvidence?.isTransfer == true)
-            const Text(
-              'شواهد پیامک نشان‌دهندهٔ انتقال است؛ ثبت درآمد یا هزینه مجاز نیست. انتقال را در بخش مالی بین دو حساب ثبت کنید.',
-            ),
+            Text(planActL10n(context).smsReviewEditorBuildChildren22),
           if (_draft.dateSource == TransactionDateSource.receipt)
             Text(
-              'پیشنهاد زمان دریافت (نه زمان تراکنش): ${smsReviewTimestamp(_draft.occurredAt)}',
+              planActL10n(context).smsReviewEditorBuildChildren23(
+                (smsReviewTimestamp(_draft.occurredAt)).toString(),
+              ),
             ),
           TextButton.icon(
             icon: const Icon(Icons.calendar_month_outlined),
             label: Text(
               _date == null
-                  ? 'انتخاب تاریخ تراکنش (نامشخص)'
-                  : 'تاریخ تراکنش: ${PersianDateFormatter.date(JalaliDate.fromDateTime(_date!))}',
+                  ? planActL10n(context).smsReviewEditorBuildLabel
+                  : planActL10n(context).smsReviewEditorBuildLabel2(
+                      (PersianDateFormatter.date(
+                        JalaliDate.fromDateTime(_date!),
+                      )).toString(),
+                    ),
             ),
             onPressed: _saving
                 ? null
@@ -374,8 +448,12 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
             icon: const Icon(Icons.schedule),
             label: Text(
               _time == null
-                  ? 'انتخاب ساعت تراکنش (نامشخص)'
-                  : 'ساعت تراکنش: ${PersianNumbers.format('${_time!.hour.toString().padLeft(2, '0')}:${_time!.minute.toString().padLeft(2, '0')}')}',
+                  ? planActL10n(context).smsReviewEditorBuildLabel3
+                  : planActL10n(context).smsReviewEditorBuildLabel4(
+                      (PersianNumbers.format(
+                        '${_time!.hour.toString().padLeft(2, '0')}:${_time!.minute.toString().padLeft(2, '0')}',
+                      )).toString(),
+                    ),
             ),
             onPressed: _saving
                 ? null
@@ -385,9 +463,11 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
                       initialTime:
                           _time ??
                           TimeOfDay.fromDateTime(_draft.occurredAt.toLocal()),
-                      cancelText: 'انصراف',
-                      confirmText: 'تأیید ساعت',
-                      helpText: 'انتخاب ساعت تراکنش',
+                      cancelText: planActL10n(context).commonCancel,
+                      confirmText: planActL10n(context)
+                          .smsReviewEditorResultConfirmText,
+                      helpText: planActL10n(context)
+                          .smsReviewEditorResultHelpText,
                     );
                     if (result != null && mounted) {
                       setState(() {

@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -21,7 +22,7 @@ class CommitmentColorPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'رنگ تعهد (اختیاری)',
+          planActL10n(context).commitmentColorPickerBuildChildren,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: PlanActSpacing.sm),
@@ -30,7 +31,7 @@ class CommitmentColorPicker extends StatelessWidget {
           runSpacing: PlanActSpacing.sm,
           children: [
             ChoiceChip(
-              label: const Text('خودکار'),
+              label: Text(planActL10n(context).commitmentColorPickerBuildLabel),
               selected: selected == null,
               onSelected: enabled ? (_) => onChanged(null) : null,
             ),
@@ -51,7 +52,7 @@ class CommitmentColorPicker extends StatelessWidget {
           ],
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        const Text('رنگ فقط برای شناسایی تعهد است؛ وضعیت را تغییر نمی‌دهد.'),
+        Text(planActL10n(context).commitmentColorPickerBuildChildren2),
       ],
     );
   }

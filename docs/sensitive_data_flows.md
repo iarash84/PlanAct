@@ -1,60 +1,33 @@
-# مسیر دادهٔ حساس: SMS، staging و backup
+# مسیر دادهٔ حساس: پیامک، پشتیبان و حساب
 
-این سند وضعیت فعلی و مرزهای امنیتی مورد نیاز برای فازهای بعد را ثبت می‌کند. این تغییر مستندسازی است و کد production را تغییر نمی‌دهد.
+## پیامک بانکی
 
-## مسیر SMS بانکی
+رویداد Android ← `BankSmsReceiver` ← `SmsBridge` ← منبع محلی. گیرنده و پل، به‌تنهایی اسکن تاریخچه یا ثبت مالی آغاز نمی‌کنند. کاربر در ورودی بازهٔ ۷/۳۰روز یا فقط جدید را صریح انتخاب می‌کند؛ مجوز سیستم رضایت بازه نیست. صفحه‌های حداکثر ۱۰۰ ردیفی با کران ثابت و ترتیب زمان/شناسه خوانده می‌شوند؛ توضیح سقف کلی قدیمی ۵۰۰ پیام منسوخ است.
 
-```text
-Android SMS broadcast
-  → BankSmsReceiver
-  → SmsBridge.publish (in-memory EventChannel)
-  → AndroidSmsSource
-  → inbox ingestion/parser
-  → StagedImports.rawText + fingerprint/source metadata
-  → InboxSuggestions
-  → تأیید یا رد صریح کاربر
-  → در پذیرش: AccountEntry / تاریخچهٔ مالی
-```
+ورود صریح ← تحلیل محلی ← `StagedImports.rawText` و اثرانگشت/شواهد منبع ← `InboxSuggestions` ← بازبینی و تأیید صریح ← `AccountEntry`. رد و صرف مشاهدهٔ پیشنهاد دفتر را تغییر نمی‌دهند. ادامهٔ ورود پس از توقف/راه‌اندازی مجدد یا بازگردانی پشتیبان خودکار نیست.
 
-- [`BankSmsReceiver`](android/app/src/main/kotlin/com/example/planact/BankSmsReceiver.kt:9) متن body و originating address را از broadcast می‌خواند و با `sourceKey` به [`SmsBridge.publish()`](android/app/src/main/kotlin/com/example/planact/SmsBridge.kt:19) می‌دهد.
-- [`SmsBridge`](android/app/src/main/kotlin/com/example/planact/SmsBridge.kt:13) داده را از طریق EventChannel به Flutter می‌رساند و در صورت نبود permission آن را منتشر نمی‌کند.
-- خواندن inbox از مسیر `readRelevant` حداکثر ۵۰۰ پیام را به Flutter برمی‌گرداند؛ body در این مرحله هنوز raw و حساس است.
-- staging در جدول [`StagedImports`](lib/core/database/app_database.dart:264) قرار دارد. [`InboxSuggestions`](lib/core/database/app_database.dart:278) نتیجهٔ parser است و نباید منبع مستقیم mutation حساب مالی باشد.
-- طبق قرارداد محصول، فقط پذیرش کاربر می‌تواند به `AccountEntry` برسد؛ reject نباید ledger را تغییر دهد.
-- در وضعیت فعلی، raw text در staging retention نامحدود دارد و پاک‌سازی خودکار ندارد؛ این limitation در [`ADR 0010`](docs/adr/0010-raw-sms-retention.md) ثبت شده است.
+متن خام روی دستگاه ماندگار است؛ پاک‌سازی خودکار ندارد. [تصمیم ۰۰۱۰](adr/0010-raw-sms-retention.md) سیاست آینده را تعریف می‌کند و پنجرهٔ زمانی پنهانی مجاز نیست. متن/شماره‌ها در لاگ یا تله‌متری عادی نباید ظاهر شوند. شواهد منبع تغییرناپذیر و جدا از مقدار بازبینی‌شده است؛ پوشاندن در رابط، حذف دادهٔ SQLite نیست.
 
-## مسیر backup
+## پشتیبان و بازگردانی
 
-```text
-SQLite/domain state
-  → backup payload serialization
-  → BackupPackage envelope
-  → validation/checksum فعلی
-  → storage
-  → restore validation
-  → safety snapshot
-  → replacement
-  → rebuild derived state/reminders
-```
+حالت SQLite ← بستهٔ منطقی ← پوشش رمزنگاری احرازشده ← فایل انتخاب‌شدهٔ کاربر. صادرات جدید قالب ۲، کلید بازیابی مستقل دارد؛ قالب ۱ قدیمی به کلید امن اصلی دستگاه وابسته است. base64 و هش کنترلی به‌تنهایی رمزنگاری نیستند؛ توصیف قدیمی پشتیبان خام دیگر وضعیت مسیر تولید نیست.
 
-- [`BackupPackage`](lib/features/backup/domain/backup_package.dart:7) در وضعیت فعلی payload را base64 و checksum را SHA-256 نگه می‌دارد؛ `encryptionMetadata` صرفاً metadata است و به‌تنهایی رمزنگاری ایجاد نمی‌کند.
-- [`BackupService`](lib/features/backup/application/backup_service.dart:15) پیش از restore اعتبارسنجی می‌کند، safety snapshot می‌سازد، state را جایگزین و سپس rebuild می‌کند؛ در شکست rebuild به state قبلی برمی‌گردد.
-- تا اجرای ADR 0009، backup را encrypted-at-rest فرض نکنید و raw SMS را بدون مسیر رمزنگاری authenticated صادر نکنید.
-- platform notification IDها دادهٔ قابل حمل backup نیستند و باید پس از restore بازسازی شوند.
+بازگردانی: رمزگشایی/احراز اصالت و اعتبارسنجی موقت طرح/یکپارچگی ← تصویر ایمنی ← بستن و جایگزینی هماهنگ پایگاه ← بازاتصال مخزن‌ها و بازسازی مشتقات/یادآورها. شکست باید دادهٔ قبلی را حفظ یا بازیابی کند. شناسهٔ اعلان پلتفرم قابل حمل نیست. [ارزیابی پشتیبان](BACKUP_VERIFICATION.md) حدود بررسی هم‌زمانی فرمان‌ها، نصب مستقل و ازدست‌رفتن دستگاه را ثبت می‌کند.
 
-## نقاط کنترل اجباری فازهای بعد
+صادرات نیازمند اقدام و هشدار حریم خصوصی است. رمزنگاری صادرات، رمزنگاری فایل زندهٔ SQLite را ثابت نمی‌کند. فرادادهٔ باقی‌مانده و شواهد تصمیم طبق قرارداد پشتیبان حفظ می‌شوند؛ وضعیت حذف‌شده نباید هنگام بازگردانی بی‌اجازه زنده شود.
 
-1. raw SMS در log، crash report، telemetry و backup غیررمزشده ظاهر نشود.
-2. staging و retention با migration، restart و deletion tests پوشش داده شوند.
-3. backup قبل از جایگزینی decrypt/validate موقت، authenticated و schema-compatible باشد.
-4. lifecycle database یک مالک composition-root داشته باشد و close آن با توقف adapterها هماهنگ شود.
-5. permission denial/revocation graceful باشد و prompt فقط در capability موردنظر نمایش داده شود.
+## شناسه‌های حساب؛ اجرای ۲۰۲۶-۱۰-۱۲
 
+ورودی صریح ← اعتبارسنجی/عادی‌سازی رقم ← فرمان ← ردیف و فرادادهٔ نسخه‌دار SQLite ← کارت/فرم مالی. بانک انتخاب می‌شود و حدس زده نمی‌شود. کارت، شبا و حساب رشتهٔ اختیاری با صفر آغازین‌اند؛ PIN/CVV/رمز ذخیره نمی‌شوند. شناسه‌ها دادهٔ مالی شخصی‌اند، نه اطلاعات احراز هویت بانکی.
 
-## Account identifiers — current implementation, 2026-10-12
+کارت و فرم شناسه را پیش‌فرض می‌پوشانند؛ آشکار/پنهان‌کردن صریح و خروج از پیش‌زمینه موجب پوشاندن دوباره است. این کار داده را از کنترل‌کنندهٔ فرم یا پایگاه حذف نمی‌کند، عکس صفحه/برنامه‌های اخیر را تضمین نمی‌کند و پذیرش صفحه‌خوان بومی نیست. شناسه‌ها در SQLite و محتوای پشتیبان شخصی حفظ می‌شوند.
 
-Explicit user input → field validation/shared digit normalization → application command → account row and versioned per-account SQLite metadata → informational Finance card/edit form. Bank is selected, never inferred. Card number, Iranian IBAN and account number are optional strings with leading zeros preserved; no PIN, CVV or password storage is provided. These identifiers are personal financial data, not authentication credentials.
+کپی هشدار و تأیید فارسی جداگانه می‌خواهد؛ لغو نمی‌نویسد و شکست نمایان است. پس از تأیید، متن استاندارد آشکار به کلیپ‌بورد سیستم می‌رسد. برنامه‌های دیگر، صفحه‌کلید، تاریخچه و همگام‌سازی سیستم ممکن است آن را بخوانند؛ برنامه حذف یا جلوگیری از انتشار را تضمین نمی‌کند و خودکار کلیپ‌بورد را پاک نمی‌کند.
 
-Cards and form fields mask identifiers by default; explicit reveal/hide is available and leaving foreground remasks them. Masking does not encrypt the SQLite database, remove identifiers from widget controllers, prevent OS screenshots/recents or establish native screen-reader privacy. Identifiers remain on-device in SQLite and are preserved in personal backup payloads; production exports use the existing encrypted backup envelope and independent recovery-key safeguards. Do not describe the database itself as encrypted or the feature as device-loss verified.
+تلاش مجدد فرم پیش‌نویس را تا بستن نگه می‌دارد؛ ویرایش مشخصات دفتر/تاریخچه را عوض نمی‌کند. [ارزیابی حساب](ACCOUNT_BRAND_VERIFICATION.md) مسئولیت نگه‌دارنده/بازبین انتشار برای کلیپ‌بورد، صفحه‌کلید، پس‌زمینه، دسترس‌پذیری و پذیرش مستقل را مشخص می‌کند. این دروازه‌ها هنوز مانع ادعای آمادگی حریم خصوصی‌اند.
 
-Clipboard copy requires a separate Persian warning and confirmation; cancellation writes nothing and copy errors are visible. Canonical unmasked text is handed to the OS clipboard only after confirmation. Other applications, clipboard history, keyboards or device clipboard sync may access it; PlanAct cannot guarantee removal or prevent propagation and does not automatically clear the clipboard. No identifier telemetry/logging is added. Account creation/edit retry retains draft data until the form closes; edits do not alter ledger/history. Native clipboard/IME/background/accessibility checks and independent review remain release blockers, owned by the maintainer/release reviewer; see [ACCOUNT verification](ACCOUNT_BRAND_VERIFICATION.md).
+## مراجع کد و شواهد
+
+- [app_database.dart](../lib/core/database/app_database.dart)
+- [backup_package.dart](../lib/features/backup/domain/backup_package.dart)
+- [backup_service.dart](../lib/features/backup/application/backup_service.dart)

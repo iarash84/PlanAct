@@ -1,9 +1,10 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
-/// Presentation-only state used by the progressive commitment wizard.
+/// Presentation-only state used by the single-page commitment form.
 class CommitmentDraft {
   const CommitmentDraft({
     this.category = CommitmentCategory.other,
@@ -76,6 +77,7 @@ class CommitmentDraft {
     DateTime? endDate,
     EntitlementDraft? entitlement,
     int? entitlementUnits,
+    bool clearEntitlementUnits = false,
     CommitmentFinancialMeaning? financialMeaning,
     int? financialAmount,
     bool clearFinancialAmount = false,
@@ -101,7 +103,9 @@ class CommitmentDraft {
         : occurrenceCount ?? this.occurrenceCount,
     endDate: endDate ?? this.endDate,
     entitlement: entitlement ?? this.entitlement,
-    entitlementUnits: entitlementUnits ?? this.entitlementUnits,
+    entitlementUnits: clearEntitlementUnits
+        ? null
+        : entitlementUnits ?? this.entitlementUnits,
     financialMeaning: financialMeaning ?? this.financialMeaning,
     financialAmount: clearFinancialAmount
         ? null
@@ -113,41 +117,43 @@ class CommitmentDraft {
   );
 
   String? validateForStep(int step) {
-    if (step == 1 && title.trim().isEmpty) return 'عنوان تعهد را وارد کنید.';
+    if (step == 1 && title.trim().isEmpty) {
+      return PersianCopy.commitmentTitleRequired;
+    }
     if (step == 2 && startAt == null) {
-      return 'تاریخ و زمان شروع را انتخاب کنید.';
+      return PersianCopy.quickCaptureSheetErrorMessage;
     }
     if (step == 2 &&
         isRecurring &&
         frequency == RecurrenceFrequency.weekly &&
         weekdays.isEmpty) {
-      return 'حداقل یک روز هفته را انتخاب کنید.';
+      return PersianCopy.commitmentDraftValidateForStepMessage;
     }
     if (step == 3 &&
         entitlement == EntitlementDraft.fixedUnits &&
         (entitlementUnits == null || entitlementUnits! <= 0)) {
-      return 'تعداد جلسهٔ معتبر را وارد کنید.';
+      return PersianCopy.commitmentDraftValidateForStepMessage2;
     }
     if (step == 3 &&
         financialMeaning != CommitmentFinancialMeaning.none &&
         (financialAmount == null || financialAmount! <= 0)) {
-      return 'مبلغ مورد انتظار را وارد کنید.';
+      return PersianCopy.commitmentDraftValidateForStepMessage3;
     }
     if (isRecurring &&
         termination == RecurrenceTermination.count &&
         (occurrenceCount == null || occurrenceCount! <= 0)) {
-      return 'تعداد تکرار را وارد کنید.';
+      return PersianCopy.commitmentDraftValidateForStepMessage4;
     }
     if (isRecurring &&
         termination == RecurrenceTermination.endDate &&
         endDate == null) {
-      return 'تاریخ پایان را انتخاب کنید.';
+      return PersianCopy.commitmentDraftValidateForStepMessage5;
     }
     if (isRecurring &&
         termination == RecurrenceTermination.count &&
         occurrenceCount != null &&
         occurrenceCount! <= 0) {
-      return 'تعداد تکرار باید مثبت باشد.';
+      return PersianCopy.commitmentDraftValidateForStepMessage6;
     }
     if (termination == RecurrenceTermination.endDate &&
         endDate != null &&
@@ -155,41 +161,75 @@ class CommitmentDraft {
         LocalDate.fromDateTime(endDate!)
                 .compareTo(LocalDate.fromDateTime(startAt!)) <
             0) {
-      return 'پایان برنامه نمی‌تواند قبل از شروع باشد.';
+      return PersianCopy.commitmentDraftValidateForStepMessage7;
     }
     return null;
   }
 
   String reviewSummary({String? formattedFinancialAmount}) {
     final schedule = !isRecurring
-        ? 'یک‌بار در ${startAt == null ? 'زمان انتخاب‌شده' : 'تاریخ انتخاب‌شده'}'
-        : 'تکرار ${_frequencyLabel(frequency)} · ${recurrenceCalendar == RecurrenceCalendar.jalali ? 'تقویم شمسی' : 'تقویم میلادی'} · ${switch (termination) {
-            RecurrenceTermination.open => 'بدون پایان',
-            RecurrenceTermination.count => '${PersianNumbers.format(occurrenceCount ?? 0)} نوبت',
-            RecurrenceTermination.endDate => 'تا تاریخ پایان انتخاب‌شده',
-          }}';
+        ? PersianCopy.commitmentDraftScheduleMessage3(
+            (startAt == null
+                    ? PersianCopy.commitmentDraftScheduleMessage2
+                    : PersianCopy.commitmentDraftScheduleMessage)
+                .toString(),
+          )
+        : PersianCopy.commitmentDraftScheduleMessage6(
+            (_frequencyLabel(frequency)).toString(),
+            (recurrenceCalendar == RecurrenceCalendar.jalali
+                    ? PersianCopy.commitmentDraftScheduleMessage5
+                    : PersianCopy.commitmentDraftScheduleMessage4)
+                .toString(),
+            (switch (termination) {
+              RecurrenceTermination.open =>
+                PersianCopy.quickCaptureSheetScheduleFieldsItems3,
+              RecurrenceTermination.count =>
+                PersianCopy.commitmentDraftRecurrenceTerminationCount(
+                  (PersianNumbers.format(occurrenceCount ?? 0)).toString(),
+                ),
+              RecurrenceTermination.endDate =>
+                PersianCopy.commitmentDraftRecurrenceTerminationEndDate,
+            }).toString(),
+          );
     final package = switch (entitlement) {
-      EntitlementDraft.none => 'بدون بستهٔ جلسه',
-      EntitlementDraft.unlimited => 'بدون محدودیت تعداد جلسه',
+      EntitlementDraft.none => PersianCopy.quickCaptureSheetBuildSubtitle2,
+      EntitlementDraft.unlimited =>
+        PersianCopy.commitmentDraftEntitlementDraftUnlimited,
       EntitlementDraft.fixedUnits =>
-        '${PersianNumbers.format(entitlementUnits ?? 0)} جلسه',
-      EntitlementDraft.validUntil => 'معتبر تا تاریخ انتخاب‌شده',
+        PersianCopy.commitmentDraftEntitlementDraftFixedUnits(
+          (PersianNumbers.format(entitlementUnits ?? 0)).toString(),
+        ),
+      EntitlementDraft.validUntil =>
+        PersianCopy.commitmentDraftEntitlementDraftValidUntil,
     };
     final finance = switch (financialMeaning) {
-      CommitmentFinancialMeaning.none => 'بدون انتظار مالی',
+      CommitmentFinancialMeaning.none =>
+        PersianCopy.quickCaptureSheetCommitmentFinancialMeaningNone,
       CommitmentFinancialMeaning.paymentRequired =>
-        'نیازمند پرداخت (${formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'})',
+        PersianCopy.commitmentDraftCommitmentFinancialMeaningPaymentRequired2(
+          (formattedFinancialAmount ??
+                  PersianCopy.commitmentDraftCommitmentFinancialMeaningPaymentRequired(
+                    (PersianNumbers.format(financialAmount ?? 0)).toString(),
+                  ))
+              .toString(),
+        ),
       CommitmentFinancialMeaning.receivable =>
-        'دارای دریافتی مورد انتظار (${formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'})',
+        PersianCopy.commitmentDraftCommitmentFinancialMeaningReceivable(
+          (formattedFinancialAmount ??
+                  PersianCopy.commitmentDraftCommitmentFinancialMeaningPaymentRequired(
+                    (PersianNumbers.format(financialAmount ?? 0)).toString(),
+                  ))
+              .toString(),
+        ),
     };
     return '$title · $schedule · $package · $finance';
   }
 
   String _frequencyLabel(RecurrenceFrequency value) => switch (value) {
-    RecurrenceFrequency.daily => 'روزانه',
-    RecurrenceFrequency.weekly => 'هفتگی',
-    RecurrenceFrequency.monthly => 'ماهانه',
-    RecurrenceFrequency.yearly => 'سالانه',
+    RecurrenceFrequency.daily => PersianCopy.recurrenceDaily,
+    RecurrenceFrequency.weekly => PersianCopy.recurrenceWeekly,
+    RecurrenceFrequency.monthly => PersianCopy.recurrenceMonthly,
+    RecurrenceFrequency.yearly => PersianCopy.recurrenceYearly,
   };
 }
 

@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -126,14 +128,15 @@ class AndroidReminderPlatformAdapter
     }
     await _plugin.zonedSchedule(
       id: id,
-      title: 'یادآوری پلن‌اکت',
-      body: 'زمان انجام یک تعهد فرا رسیده است.',
+      title: PersianCopy.reminderPlatformScheduleTitle,
+      body: PersianCopy.reminderPlatformScheduleBody,
       scheduledDate: tz.TZDateTime.from(scheduledAt, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'planact_reminders',
-          'یادآوری‌ها',
-          channelDescription: 'یادآوری تعهدهای پلن‌اکت',
+          PersianCopy.reminderPlatformScheduleAndroid,
+          channelDescription:
+              PersianCopy.reminderPlatformScheduleChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
           visibility: NotificationVisibility.private,

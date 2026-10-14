@@ -102,14 +102,23 @@ class Commitment {
     return _copyWith(status: CommitmentStatus.archived);
   }
 
-  Commitment restore() {
+  Commitment restore({
+    CommitmentStatus previousStatus = CommitmentStatus.active,
+  }) {
     if (status != CommitmentStatus.archived) {
       throw const ValidationError(
         'Only an archived commitment can be restored',
       );
     }
-    return _copyWith(status: CommitmentStatus.active);
+    if (previousStatus == CommitmentStatus.archived) {
+      throw const ValidationError('Cannot restore to archived status');
+    }
+    return _copyWith(status: previousStatus);
   }
+
+  /// Used only by a confirmed, freshly validated durable Undo operation.
+  Commitment restoreRecordedStatus(CommitmentStatus previousStatus) =>
+      _copyWith(status: previousStatus);
 
   Commitment updateMetadata({
     required String title,
