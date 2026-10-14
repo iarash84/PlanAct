@@ -29,6 +29,11 @@ abstract interface class ReminderOccurrenceSchedule {
   Future<DateTime?> occurrenceStart(StableId occurrenceId);
 }
 
+abstract interface class ReminderOccurrenceReopeningIntent {
+  Future<bool> hasPendingReopening(StableId occurrenceId);
+  Future<void> finishReopening(StableId occurrenceId);
+}
+
 class InMemoryReminderRepository implements ReminderRepository {
   final Map<StableId, ReminderRule> _rules = {};
   final Map<StableId, ReminderInstance> _instances = {};
@@ -257,6 +262,7 @@ class ReminderService {
       // A committed rule/occurrence may outlive an interrupted platform phase.
       // Repair missing and stale active intent before rebuilding Android state.
       await _persistIntent(() async {
+        final reopening = <StableId>{};
         if (repository case final ReminderOccurrenceSchedule source) {
           for (final rule in rules.where((rule) => rule.enabled)) {
             final eligible =
@@ -265,6 +271,11 @@ class ReminderService {
                   rule.occurrenceId,
                 );
             if (!eligible) continue;
+            if (repository is ReminderOccurrenceReopeningIntent &&
+                await (repository as ReminderOccurrenceReopeningIntent)
+                    .hasPendingReopening(rule.occurrenceId)) {
+              reopening.add(rule.occurrenceId);
+            }
             final start = await source.occurrenceStart(rule.occurrenceId);
             if (start == null) continue;
             final expected = ReminderInstance.fromRule(
@@ -276,6 +287,12 @@ class ReminderService {
             );
             final needsRepair =
                 owned.isEmpty ||
+                (repository is ReminderOccurrenceReopeningIntent &&
+                    await (repository as ReminderOccurrenceReopeningIntent)
+                        .hasPendingReopening(rule.occurrenceId) &&
+                    owned.every(
+                      (item) => item.status == ReminderInstanceStatus.cancelled,
+                    )) ||
                 (owned.every(
                       (item) => item.scheduledAt != expected.scheduledAt,
                     ) &&
@@ -310,6 +327,12 @@ class ReminderService {
                 );
               }
             }
+          }
+        }
+        if (repository is ReminderOccurrenceReopeningIntent) {
+          for (final id in reopening) {
+            await (repository as ReminderOccurrenceReopeningIntent)
+                .finishReopening(id);
           }
         }
       });

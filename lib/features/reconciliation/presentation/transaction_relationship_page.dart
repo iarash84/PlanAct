@@ -1,4 +1,7 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/presentation/undo_feedback.dart';
+import 'package:planact/features/reconciliation/domain/reconciliation.dart';
+import 'package:planact/features/reconciliation/presentation/match_correction_sheet.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -151,6 +154,7 @@ class _TransactionRelationshipPageState
           available: previous.available,
           targets: previous.targets,
           review: review,
+          matches: previous.matches,
         );
       });
       ScaffoldMessenger.of(context)
@@ -184,6 +188,67 @@ class _TransactionRelationshipPageState
     setState(() => _leaving = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.of(context).pop(_dirty ? true : null);
+  }
+
+  Future<void> _removeMatch(TransactionMatch match) async {
+    if (_saving ||
+        !await confirmRecordedAction(
+          context,
+          planActL10n(context).matchRemoveMessage,
+        ) ||
+        !mounted) {
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.flow.removeMatch(match);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = planActL10n(context).undoConflict;
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      _dirty = true;
+    });
+    await _load();
+    if (mounted) {
+      showRecordedActionFeedback(context, planActL10n(context).undoStateSaved);
+    }
+  }
+
+  Future<void> _correctMatch(TransactionMatch match) async {
+    if (_saving || _context == null) return;
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (context) => MatchCorrectionSheet(
+        flow: widget.flow,
+        data: _context!,
+        original: match,
+      ),
+    );
+    if (saved == true && mounted) {
+      setState(() => _dirty = true);
+      await _load();
+      if (mounted) {
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).undoStateSaved,
+        );
+      }
+    }
   }
 
   String _date(RelationshipTarget target) {
@@ -281,6 +346,65 @@ class _TransactionRelationshipPageState
                           ),
                     ),
                     const SizedBox(height: PlanActSpacing.lg),
+                    if (data.matches.isNotEmpty) ...[
+                      ExpansionTile(
+                        title: Text(planActL10n(context).matchHistoryTitle),
+                        children: [
+                          for (final match in data.matches)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(
+                                  PlanActSpacing.md,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (final allocation in match.allocations)
+                                      Text(
+                                        '${data.targets.where((t) => t.occurrence.id == allocation.occurrenceId).firstOrNull?.commitment.title ?? ''} · ${PersianMoneyText.money(allocation.amount, unit: MoneyUnitScope.of(context))}',
+                                      ),
+                                    if (match.status == MatchStatus.active)
+                                      Wrap(
+                                        spacing: PlanActSpacing.sm,
+                                        children: [
+                                          TextButton(
+                                            onPressed: _saving
+                                                ? null
+                                                : () => _removeMatch(match),
+                                            child: Text(
+                                              planActL10n(context)
+                                                  .matchRemoveAction,
+                                            ),
+                                          ),
+                                          if (match.allocations.every(
+                                            (a) =>
+                                                a.type ==
+                                                AllocationType.payment,
+                                          ))
+                                            TextButton(
+                                              onPressed: _saving
+                                                  ? null
+                                                  : () => _correctMatch(match),
+                                              child: Text(
+                                                planActL10n(context)
+                                                    .matchCorrectAction,
+                                              ),
+                                            ),
+                                        ],
+                                      )
+                                    else
+                                      Text(
+                                        planActL10n(context)
+                                            .matchHistoryResolved,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                     if (data.review?.isIndependent == true) ...[
                       Text(
                         planActL10n(context)

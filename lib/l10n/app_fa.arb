@@ -6777,5 +6777,159 @@
   "todayPageBuildLabel": "ثبت تعهد جدید",
   "@todayPageBuildLabel": {
     "description": "Application copy. Original usage: lib/features/today/presentation/today_page.dart:310."
+  },
+  "commitmentHistoryTitle": "تاریخچه و بایگانی تعهدها",
+  "@commitmentHistoryTitle": {
+    "description": "Persistent entry route for resolved and archived commitment actions.",
+    "x-planact-introduced": "undo-2026-10-14"
+  },
+  "undoAction": "بازگردانی",
+  "@undoAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoStatusAction": "بازگردانی آخرین تغییر وضعیت",
+  "@undoStatusAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoScheduleAction": "بازگردانی آخرین تغییر زمان‌بندی",
+  "@undoScheduleAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoConfirmTitle": "تأیید بازگردانی",
+  "@undoConfirmTitle": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoConfirmMessage": "آخرین تغییر ثبت‌شده بازگردانی می‌شود؛ سابقه محفوظ می‌ماند. اگر تغییر جدیدتری ثبت شده باشد، بازگردانی انجام نمی‌شود.",
+  "@undoConfirmMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoSuccess": "تغییر بازگردانی شد؛ سابقه محفوظ است.",
+  "@undoSuccess": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoConflict": "عملیات انجام نشد؛ ممکن است داده یا سابقه تغییر کرده باشد. بازخوانی کنید و دوباره تلاش کنید.",
+  "@undoConflict": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoStateSaved": "تغییر ثبت شد.",
+  "@undoStateSaved": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "undoRefreshPending": "تغییر ثبت شد؛ بازخوانی صفحه انجام نشد. دوباره بازخوانی کنید.",
+  "@undoRefreshPending": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeCorrectAction": "اصلاح تراکنش",
+  "@financeCorrectAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeCancelTransferMessage": "دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟",
+  "@financeCancelTransferMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeCorrectMessage": "تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.",
+  "@financeCorrectMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeArchivedAccountAction": "بایگانی حساب",
+  "@financeArchivedAccountAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeRestoreAccountAction": "بازگردانی حساب",
+  "@financeRestoreAccountAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "financeArchiveAccountMessage": "حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.",
+  "@financeArchiveAccountMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchHistoryTitle": "ارتباط‌های ثبت‌شده",
+  "@matchHistoryTitle": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchRemoveAction": "قطع ارتباط",
+  "@matchRemoveAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchCorrectAction": "اصلاح ارتباط",
+  "@matchCorrectAction": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchRemoveMessage": "این ارتباط قطع می‌شود و مبلغ آن دوباره قابل بررسی خواهد بود. موجودی حساب تغییر نمی‌کند و سابقه محفوظ می‌ماند.",
+  "@matchRemoveMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchHistoryResolved": "سابقهٔ ارتباط قطع‌شده یا اصلاح‌شده",
+  "@matchHistoryResolved": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchTargetLabel": "نوبت مرتبط",
+  "@matchTargetLabel": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchAmountLabel": "مبلغ تخصیص",
+  "@matchAmountLabel": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "matchCorrectMessage": "مبلغ و مقصد تخصیص را اصلاح کنید؛ ارتباط قبلی در سابقه می‌ماند و موجودی حساب تغییر نمی‌کند.",
+  "@matchCorrectMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
+  },
+  "legacyArchiveRestoreMessage": "اگر وضعیت پیش از بایگانی ثبت شده باشد، همان وضعیت بازمی‌گردد. تعهدهای قدیمی بدون این سابقه به «فعال» بازگردانی می‌شوند. ادامه می‌دهید؟",
+  "@legacyArchiveRestoreMessage": {
+    "description": "Explicit archive restore disclosure for legacy history absence.",
+    "x-planact-introduced": "undo-2026-10-14"
+  },
+  "actualReopenMessage": "نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.",
+  "@actualReopenMessage": {
+    "description": "Undo repair: explicit operation feedback and confirmation.",
+    "x-planact-introduced": "undo-2026-10-14",
+    "x-planact-default": true
   }
 }

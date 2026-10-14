@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/core/database/undo_journal.dart';
+import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/features/finance/domain/account_identifiers.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
@@ -18,12 +20,86 @@ class DriftFinanceRepository
         FinanceRepository,
         AtomicAccountEditing,
         AtomicFinanceCorrection,
+        AtomicFinanceReversal,
+        AccountStatusUndoRepository,
         TaggedFinanceCreation {
   DriftFinanceRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<UndoToken?> accountStatusUndo(StableId id) =>
+      CommandGate.runFor(this, () async {
+        final event = await UndoJournal(database).latest('account:${id.value}');
+        return event != null && event['undoOf'] == null
+            ? UndoToken(event['id'] as String)
+            : null;
+      });
+
+  @override
+  Future<void> undoAccountStatus(StableId id, UndoToken expected) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final row = await (database.select(
+            database.financialAccounts,
+          )..where((t) => t.id.equals(id.value))).getSingle();
+          final event = await journal.latest('account:${id.value}');
+          journal.requireCurrent(event, expected.id, row.status);
+          await (database.update(
+            database.financialAccounts,
+          )..where((t) => t.id.equals(id.value))).write(
+            db.FinancialAccountsCompanion(
+              status: Value(event!['before'] as int),
+            ),
+          );
+          await journal.append(
+            owner: 'account:${id.value}',
+            before: row.status,
+            after: event['before'] as int,
+            undoOf: expected.id,
+          );
+        }),
+      );
+
+  @override
+  Future<AccountEntry> reverseEntry({
+    required AccountEntry expected,
+    required StableId accountId,
+    required DateTime occurredAt,
+    AccountEntry? corrected,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final journal = UndoJournal(database);
+      await journal.admitWriter();
+      final reversals = prepareFinanceReversal(
+        expected: expected,
+        accountId: accountId,
+        entries: await listEntries(),
+        accounts: await listAccounts(),
+        occurredAt: occurredAt,
+        corrected: corrected,
+      );
+      for (final reversal in reversals) {
+        await saveEntry(reversal);
+      }
+      if (corrected != null) await saveEntry(corrected);
+      await journal.append(
+        owner: 'finance:${expected.id.value}',
+        before: [for (final e in reversals) e.referenceId],
+        after: [
+          for (final e in reversals) e.id.value,
+          if (corrected != null) corrected.id.value,
+        ],
+      );
+      return reversals.firstWhere((e) => e.referenceId == expected.id.value);
+    }),
+  );
 
   @override
   Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags) =>
@@ -147,6 +223,14 @@ class DriftFinanceRepository
       CommandGate.runFor(
         this,
         () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final fresh = await (database.select(
+            database.financialAccounts,
+          )..where((t) => t.id.equals(id.value))).getSingleOrNull();
+          if (fresh == null || fresh.status == status.index) {
+            throw const ValidationError('Account status changed; reload first');
+          }
           final count =
               await (database.update(
                 database.financialAccounts,
@@ -154,6 +238,11 @@ class DriftFinanceRepository
                 db.FinancialAccountsCompanion(status: Value(status.index)),
               );
           if (count != 1) throw const ValidationError('Account missing');
+          await journal.append(
+            owner: 'account:${id.value}',
+            before: fresh.status,
+            after: status.index,
+          );
         }),
       );
 

@@ -81,17 +81,25 @@ class CashFlowSummary {
 
 CashFlowSummary cashFlowSummary(
   Iterable<AccountEntry> entries,
-  String currency,
-) {
+  String currency, {
+  Iterable<AccountEntry>? sourceEntries,
+}) {
+  final byId = {for (final e in sourceEntries ?? entries) e.id.value: e};
   var incoming = 0;
   var outgoing = 0;
   for (final entry in entries) {
     if (entry.amount.currency != currency) continue;
-    if (entry.type == AccountEntryType.income ||
-        entry.type == AccountEntryType.refund) {
-      incoming += entry.amount.minorUnits;
-    } else if (entry.type == AccountEntryType.expense) {
-      outgoing += entry.amount.minorUnits;
+    final original = entry.type == AccountEntryType.reversal
+        ? byId[entry.referenceId]
+        : null;
+    final type = original?.type ?? entry.type;
+    final amount = original == null
+        ? entry.amount.minorUnits
+        : -original.amount.minorUnits;
+    if (type == AccountEntryType.income || type == AccountEntryType.refund) {
+      incoming += amount;
+    } else if (type == AccountEntryType.expense) {
+      outgoing += amount;
     }
   }
   return CashFlowSummary(
@@ -105,27 +113,28 @@ List<GroupedTotal> groupFinancialEntries(
   Iterable<AccountEntry> entries, {
   required String currency,
   String? Function(AccountEntry entry)? keyOf,
+  Iterable<AccountEntry>? sourceEntries,
 }) {
+  final byId = {for (final e in sourceEntries ?? entries) e.id.value: e};
   final totals = <String, int>{};
   for (final entry in entries) {
     if (entry.amount.currency != currency) continue;
+    final original = entry.type == AccountEntryType.reversal
+        ? byId[entry.referenceId]
+        : null;
+    final classification = original ?? entry;
+    final units = original == null
+        ? entry.amount.minorUnits
+        : -original.amount.minorUnits;
     final key =
-        keyOf?.call(entry) ??
-        entry.category ??
+        keyOf?.call(classification) ??
+        classification.category ??
         PersianCopy.financeReportsKeyMessage;
-    if (entry.type == AccountEntryType.income ||
-        entry.type == AccountEntryType.refund) {
-      totals.update(
-        key,
-        (value) => value + entry.amount.minorUnits,
-        ifAbsent: () => entry.amount.minorUnits,
-      );
-    } else if (entry.type == AccountEntryType.expense) {
-      totals.update(
-        key,
-        (value) => value - entry.amount.minorUnits,
-        ifAbsent: () => -entry.amount.minorUnits,
-      );
+    if (classification.type == AccountEntryType.income ||
+        classification.type == AccountEntryType.refund) {
+      totals.update(key, (value) => value + units, ifAbsent: () => units);
+    } else if (classification.type == AccountEntryType.expense) {
+      totals.update(key, (value) => value - units, ifAbsent: () => -units);
     }
   }
   return totals.entries

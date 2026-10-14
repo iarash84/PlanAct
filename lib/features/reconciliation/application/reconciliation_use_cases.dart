@@ -21,6 +21,10 @@ abstract interface class AtomicMatchCorrection {
   });
 }
 
+abstract interface class AtomicMatchRemoval {
+  Future<void> removeMatch(TransactionMatch expected);
+}
+
 class ReconciliationEngine {
   const ReconciliationEngine({this.scorer = const ReconciliationScorer()});
 
@@ -275,6 +279,21 @@ class ReconciliationUseCases {
 
   Future<void> reject(TransactionMatch match) =>
       CommandGate.runFor(repository, () async {
+        if (match.status != MatchStatus.active) {
+          throw const ValidationError('Only an active match can be removed');
+        }
+        if (repository case AtomicMatchRemoval atomic) {
+          await atomic.removeMatch(match);
+          return;
+        }
+        final current = (await repository.list())
+            .where((m) => m.id == match.id)
+            .firstOrNull;
+        if (current == null ||
+            allocationFingerprintFor([current]) !=
+                allocationFingerprintFor([match])) {
+          throw const ValidationError('Match changed; reload first');
+        }
         await repository.save(
           TransactionMatch(
             id: match.id,
@@ -296,6 +315,9 @@ class ReconciliationUseCases {
     required List<Money> allocations,
   }) => CommandGate.runFor(repository, () async {
     if (repository case AtomicMatchCorrection atomic) {
+      if (original.status != MatchStatus.active) {
+        throw const ValidationError('Only active matches can be corrected');
+      }
       // Validate and build without persisting an active replacement first.
       if (occurrenceIds.length != allocations.length || occurrenceIds.isEmpty) {
         throw const ValidationError('Occurrences and allocations must align');

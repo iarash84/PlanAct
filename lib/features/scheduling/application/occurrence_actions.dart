@@ -99,6 +99,18 @@ List<OccurrenceAction> availableOccurrenceActions(
               .occurrenceActionsAvailableOccurrenceActionsConsequence6,
         ),
       );
+      if (occurrence.status == OccurrenceStatus.pendingDecision &&
+          occurrence.resultRevision > 0) {
+        actions.add(
+          const OccurrenceAction(
+            type: OccurrenceActionType.restore,
+            label:
+                PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel7,
+            consequence: PersianCopy
+                .occurrenceActionsAvailableOccurrenceActionsConsequence9,
+          ),
+        );
+      }
     case OccurrenceStatus.cancelled:
     case OccurrenceStatus.skipped:
       actions.add(

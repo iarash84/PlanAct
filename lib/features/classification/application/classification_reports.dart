@@ -73,8 +73,12 @@ class ClassificationReports {
     );
     return FinancialActivityReport(
       entries: entries,
-      summary: cashFlowSummary(entries, currency),
-      byCategory: groupFinancialEntries(entries, currency: currency),
+      summary: cashFlowSummary(entries, currency, sourceEntries: records),
+      byCategory: groupFinancialEntries(
+        entries,
+        currency: currency,
+        sourceEntries: records,
+      ),
     );
   }
 }

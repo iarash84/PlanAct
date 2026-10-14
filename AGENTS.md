@@ -164,6 +164,7 @@ Financial accounts include bank accounts, cash wallets, digital wallets, and pot
 - Account balance must be rebuildable from account entries.
 - A transfer between the user’s own accounts is **not** income and **not** expense.
 - A correction/reversal must leave an audit trail; do not erase history.
+- User-approved Undo repair (2026-10-14): new financial reversals use the stable reversal enum and exactly negate the original signed integer effect. Transactional fresh writer admission rejects repeated cancellation; transfer cancellation covers both legs and recorded fees with explicit disclosure. Versioned append-only Undo evidence in the existing metadata extension store must survive restart and backup, with durable per-owner heads rejecting superseded operations. Known legacy compensation cannot be silently rewritten or cancelled twice. Lifecycle Undo restores recorded prior status; legacy archive restoration to active must be disclosed. Schedule Undo retains every definition and uses forward versioning for series restoration. See ADR 0007 and SCHEDULE_ACTUAL_VERIFICATION.md; unchanged schema does not establish older-writer safety or release acceptance.
 - Accounts with history should be archived, not hard-deleted.
 
 ## 7. Scheduling rules

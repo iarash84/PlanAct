@@ -25,6 +25,7 @@ class Occurrence {
     required this.currentScheduledAt,
     this.status = OccurrenceStatus.scheduled,
     this.isManualOverride = false,
+    this.resultRevision = 0,
   }) {
     if (occurrenceKey.trim().isEmpty) {
       throw const ValidationError('Occurrence key cannot be empty');
@@ -39,6 +40,9 @@ class Occurrence {
   final Object currentScheduledAt;
   final OccurrenceStatus status;
   final bool isManualOverride;
+
+  /// Rebuildable append count of durable Actual history, for stale/ABA admission.
+  final int resultRevision;
 
   Occurrence reschedule(Object newScheduledAt) {
     if (status == OccurrenceStatus.completed) {
@@ -55,6 +59,7 @@ class Occurrence {
       currentScheduledAt: newScheduledAt,
       status: OccurrenceStatus.rescheduled,
       isManualOverride: true,
+      resultRevision: resultRevision,
     );
   }
 
@@ -88,6 +93,7 @@ class Occurrence {
       currentScheduledAt: currentScheduledAt,
       status: nextStatus,
       isManualOverride: isManualOverride,
+      resultRevision: resultRevision,
     );
   }
 }

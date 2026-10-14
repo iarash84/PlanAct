@@ -2,6 +2,8 @@
 
 Date: 2026-10-07. Status: implemented for the bounded local review journey; not a native release sign-off.
 
+2026-10-14 follow-up: the user-approved Undo repair adds active real payment-match correction/removal and visible retained allocation history to transaction detail. Explicit confirmation and fresh writer admission preserve balances and protect stale/resolved matches; allocation rows are no longer deleted/reinserted during status changes. Relationship-review Undo remains a distinct decision-only command. Evidence and remaining acceptance gates are recorded in [Undo verification](SCHEDULE_ACTUAL_VERIFICATION.md#undo-follow-up-implementation-and-evidence--2026-10-14); this does not claim native release acceptance or an overpayment/refund-editing policy.
+
 ## Product path and decisions
 
 - [Domain projection](../lib/features/reconciliation/domain/relationship_review.dart:38) separates independent-remainder disposition from actual financial matches, category and tags. Partial matches leave only their outstanding remainder in Today. A new amount/allocation history invalidates an old independent approval without deleting it.

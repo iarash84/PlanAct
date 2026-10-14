@@ -1,4 +1,5 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/core/database/undo_journal.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
@@ -16,12 +17,40 @@ class DriftReconciliationRepository
         CommandGateProvider,
         ReconciliationRepository,
         AtomicMatchCorrection,
+        AtomicMatchRemoval,
         RelationshipReviewRepository {
   DriftReconciliationRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<void> removeMatch(TransactionMatch expected) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
+      final current = (await list())
+          .where((m) => m.id == expected.id)
+          .firstOrNull;
+      if (current == null ||
+          current.status != MatchStatus.active ||
+          allocationFingerprintFor([current]) !=
+              allocationFingerprintFor([expected])) {
+        throw const ValidationError('Match changed; reload first');
+      }
+      await save(
+        TransactionMatch(
+          id: current.id,
+          transactionId: current.transactionId,
+          transactionAmount: current.transactionAmount,
+          createdAt: current.createdAt,
+          allocations: current.allocations,
+          status: MatchStatus.reversed,
+        ),
+      );
+    }),
+  );
 
   @override
   Future<List<TransactionMatch>> list() =>
@@ -104,6 +133,7 @@ class DriftReconciliationRepository
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
       final current = await _loadReview(expected.transactionId);
       current.requireExpected(expected);
       final entry = current.append(decision, recordedAt);
@@ -134,6 +164,7 @@ class DriftReconciliationRepository
   ) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
       final current = await _loadReview(match.transactionId);
       current.requireExpected(expected);
       await save(match);
@@ -209,49 +240,75 @@ class DriftReconciliationRepository
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
+      final current = (await list())
+          .where((m) => m.id == original.id)
+          .firstOrNull;
+      if (current == null || current.status != MatchStatus.active) {
+        throw const ValidationError('Match already resolved; reload first');
+      }
       await save(original);
       await save(corrected);
     }),
   );
 
   @override
-  Future<void> save(TransactionMatch match) =>
-      CommandGate.runFor(this, () async {
-        await CommandGate.runFor(
-          this,
-          () => database.transaction(() async {
-            await _validateSave(match);
+  Future<void> save(TransactionMatch match) => CommandGate.runFor(
+    this,
+    () async {
+      await CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final currentMatches = await list();
+          final before = allocationFingerprintFor(
+            currentMatches.where((m) => m.transactionId == match.transactionId),
+          );
+          final existing = currentMatches
+              .where((m) => m.id == match.id)
+              .firstOrNull;
+          await _validateSave(match);
+          await database
+              .into(database.transactionMatches)
+              .insertOnConflictUpdate(
+                db.TransactionMatchesCompanion(
+                  id: Value(match.id.value),
+                  transactionId: Value(match.transactionId.value),
+                  minorUnits: Value(match.transactionAmount.minorUnits),
+                  currency: Value(match.transactionAmount.currency),
+                  createdAt: Value(match.createdAt.toUtc()),
+                  status: Value(match.status.index),
+                  correctedMatchId: Value(match.correctedMatchId?.value),
+                ),
+              );
+          for (final allocation
+              in existing == null ? match.allocations : <MatchAllocation>[]) {
             await database
-                .into(database.transactionMatches)
-                .insertOnConflictUpdate(
-                  db.TransactionMatchesCompanion(
-                    id: Value(match.id.value),
-                    transactionId: Value(match.transactionId.value),
-                    minorUnits: Value(match.transactionAmount.minorUnits),
-                    currency: Value(match.transactionAmount.currency),
-                    createdAt: Value(match.createdAt.toUtc()),
-                    status: Value(match.status.index),
-                    correctedMatchId: Value(match.correctedMatchId?.value),
+                .into(database.matchAllocations)
+                .insert(
+                  db.MatchAllocationsCompanion(
+                    id: Value(allocation.id.value),
+                    matchId: Value(allocation.matchId.value),
+                    occurrenceId: Value(allocation.occurrenceId.value),
+                    minorUnits: Value(allocation.amount.minorUnits),
+                    currency: Value(allocation.amount.currency),
+                    type: Value(allocation.type.index),
                   ),
                 );
-            await (database.delete(
-              database.matchAllocations,
-            )..where((table) => table.matchId.equals(match.id.value))).go();
-            for (final allocation in match.allocations) {
-              await database
-                  .into(database.matchAllocations)
-                  .insert(
-                    db.MatchAllocationsCompanion(
-                      id: Value(allocation.id.value),
-                      matchId: Value(allocation.matchId.value),
-                      occurrenceId: Value(allocation.occurrenceId.value),
-                      minorUnits: Value(allocation.amount.minorUnits),
-                      currency: Value(allocation.amount.currency),
-                      type: Value(allocation.type.index),
-                    ),
-                  );
-            }
-          }),
-        );
-      });
+          }
+          final after = allocationFingerprintFor(
+            (await list()).where((m) => m.transactionId == match.transactionId),
+          );
+          if (before != after) {
+            await journal.append(
+              owner: 'matches:${match.transactionId.value}',
+              before: before,
+              after: after,
+            );
+          }
+        }),
+      );
+    },
+  );
 }

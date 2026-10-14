@@ -5,6 +5,8 @@ import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 
 class DriftReminderRepository
     implements
@@ -12,6 +14,7 @@ class DriftReminderRepository
         ReminderRepository,
         ReminderOccurrenceEligibility,
         ReminderOccurrenceSchedule,
+        ReminderOccurrenceReopeningIntent,
         ReminderIntentTransaction {
   DriftReminderRepository(this.database);
 
@@ -20,8 +23,33 @@ class DriftReminderRepository
   final db.AppDatabase database;
 
   @override
+  Future<bool> hasPendingReopening(StableId occurrenceId) => CommandGate.runFor(
+    this,
+    () async =>
+        await database.readMetadata(
+          'reminder_reopen_v1:${occurrenceId.value}',
+        ) ==
+        '1',
+  );
+  @override
+  Future<void> finishReopening(StableId occurrenceId) => CommandGate.runFor(
+    this,
+    () =>
+        database.writeMetadata('reminder_reopen_v1:${occurrenceId.value}', '0'),
+  );
+
+  @override
   Future<T> runReminderTransaction<T>(Future<T> Function() action) =>
-      CommandGate.runFor(this, () => database.transaction(action));
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          await database.customStatement(
+            'UPDATE schema_metadata SET value = value WHERE key = ?',
+            ['schema_version'],
+          );
+          return action();
+        }),
+      );
 
   @override
   Future<DateTime?> occurrenceStart(StableId occurrenceId) =>
@@ -51,17 +79,31 @@ class DriftReminderRepository
       });
 
   @override
-  Future<bool> canRemind(StableId occurrenceId) =>
-      CommandGate.runFor(this, () async {
-        final occurrence = await (database.select(
-          database.occurrences,
-        )..where((row) => row.id.equals(occurrenceId.value))).getSingleOrNull();
-        if (occurrence == null) return false;
-        final status = OccurrenceStatus.values[occurrence.status];
-        return status != OccurrenceStatus.completed &&
-            status != OccurrenceStatus.skipped &&
-            status != OccurrenceStatus.cancelled;
-      });
+  Future<bool> canRemind(StableId occurrenceId) => CommandGate.runFor(
+    this,
+    () async {
+      final occurrence = await (database.select(
+        database.occurrences,
+      )..where((row) => row.id.equals(occurrenceId.value))).getSingleOrNull();
+      if (occurrence == null) return false;
+      final status = OccurrenceStatus.values[occurrence.status];
+      final cycle = await (database.select(
+        database.commitmentCycles,
+      )..where((t) => t.id.equals(occurrence.cycleId))).getSingleOrNull();
+      if (cycle == null || cycle.status != CommitmentCycleStatus.active.index) {
+        return false;
+      }
+      final owner = await (database.select(
+        database.commitments,
+      )..where((t) => t.id.equals(cycle.commitmentId))).getSingleOrNull();
+      if (owner == null || owner.status != CommitmentStatus.active.index) {
+        return false;
+      }
+      return status != OccurrenceStatus.completed &&
+          status != OccurrenceStatus.skipped &&
+          status != OccurrenceStatus.cancelled;
+    },
+  );
 
   @override
   Future<List<ReminderRule>> listRules() => CommandGate.runFor(this, () async {

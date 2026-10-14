@@ -1,5 +1,7 @@
 # Localization resource migration
 
+2026-10-14 Undo follow-up: new approved operation/confirmation/error/history copy is added with `x-planact-introduced: undo-2026-10-14`. The frozen original-template checksum is retained and excludes only that explicitly marked introduction; all catalog descriptions/placeholders and generated resources remain checked. No original Persian template is changed. This is the bounded Undo behavior change recorded in SCHEDULE_ACTUAL_VERIFICATION.md, not a new language or a localization-foundation waiver.
+
 ## Acceptance contract — 2026-10-13
 
 User request: collect application-owned Persian copy into a structured resource

@@ -22,7 +22,8 @@ OccurrenceStatus statusForActual(Occurrence occurrence, ActualOutcome outcome) {
     OccurrenceStatus.cancelled,
     OccurrenceStatus.skipped,
   }.contains(occurrence.status);
-  if ((outcome == ActualOutcome.reopened) != resolved) {
+  final partial = occurrence.status == OccurrenceStatus.pendingDecision;
+  if (outcome == ActualOutcome.reopened ? !resolved && !partial : resolved) {
     throw const ValidationError('Explicit reopening is required for history.');
   }
   return switch (outcome) {

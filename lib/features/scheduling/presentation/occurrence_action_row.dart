@@ -83,9 +83,11 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
         child: AlertDialog(
           title: Text(action.label),
           content: Text(
-            PersianCopy.occurrenceActionRowConfirmedContent(
-              (action.consequence).toString(),
-            ),
+            action.type == OccurrenceActionType.restore
+                ? planActL10n(context).actualReopenMessage
+                : PersianCopy.occurrenceActionRowConfirmedContent(
+                    (action.consequence).toString(),
+                  ),
           ),
           actions: [
             TextButton(
@@ -128,6 +130,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
                 ? OccurrenceStatus.rescheduled
                 : OccurrenceStatus.scheduled,
             isManualOverride: occurrence.isManualOverride,
+            resultRevision: occurrence.resultRevision + 1,
           );
         default:
           return;

@@ -1,4 +1,8 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/application/undo_token.dart';
+import 'package:planact/core/presentation/undo_feedback.dart';
+import 'package:planact/features/scheduling/application/schedule_undo.dart';
+import 'package:planact/features/scheduling/presentation/schedule_undo_button.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/commitments/data/drift_commitment_correction_repository.dart';
 import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
@@ -781,6 +785,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
+    final lifecycle = _repository;
+    final undo = lifecycle is CommitmentLifecycleRepository
+        ? await (lifecycle as CommitmentLifecycleRepository).statusUndo(
+            commitment.id,
+          )
+        : null;
+    if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -865,6 +876,15 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       _restoreCommitment(commitment);
                     },
                   ),
+                if (undo != null)
+                  ListTile(
+                    leading: const Icon(Icons.undo),
+                    title: Text(planActL10n(sheetContext).undoStatusAction),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _undoCommitmentStatus(commitment, undo);
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text(
@@ -896,7 +916,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       final id = commitment.id;
       switch (status) {
         case CommitmentStatus.active:
-          await ResumeCommitment(_repository)(id);
+          if (commitment.status == CommitmentStatus.archived) {
+            await RestoreCommitment(_repository)(id);
+          } else {
+            await ResumeCommitment(_repository)(id);
+          }
         case CommitmentStatus.paused:
           await PauseCommitment(_repository)(id);
         case CommitmentStatus.completed:
@@ -906,43 +930,121 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         case CommitmentStatus.archived:
           await ArchiveCommitment(_repository)(id);
       }
-      await _refresh();
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(PersianCopy.planactAppApplyStatusContent)),
+      if (mounted) {
+        showRecordedActionFeedback(context, planActL10n(context).undoConflict);
+      }
+      return;
+    }
+    UndoToken? token;
+    final lifecycle = _repository;
+    if (lifecycle is CommitmentLifecycleRepository) {
+      token = await (lifecycle as CommitmentLifecycleRepository).statusUndo(
+        commitment.id,
       );
+    }
+    final pending = await _reconcileStatusReminders();
+    try {
+      await _refresh(throwOnFailure: true);
+    } catch (_) {
+      if (mounted) {
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).undoRefreshPending,
+        );
+      }
+      return;
+    }
+    if (mounted) {
+      showRecordedActionFeedback(
+        context,
+        pending
+            ? planActL10n(context).planactAppBuildContent
+            : planActL10n(context).undoStateSaved,
+        onUndo: token == null
+            ? null
+            : () => _undoCommitmentStatus(commitment, token!),
+      );
+    }
+  }
+
+  Future<bool> _reconcileStatusReminders() async {
+    try {
+      await _createCommitmentPlan.reminderService?.reconcile(
+        now: DateTime.now(),
+      );
+      return false;
+    } catch (_) {
+      return true;
     }
   }
 
   Future<void> _restoreCommitment(Commitment commitment) async {
+    if (!await confirmRecordedAction(
+          context,
+          planActL10n(context).legacyArchiveRestoreMessage,
+        ) ||
+        !mounted) {
+      return;
+    }
+    await _applyStatus(commitment, CommitmentStatus.active);
+  }
+
+  Future<void> _undoCommitmentStatus(
+    Commitment commitment,
+    UndoToken token,
+  ) async {
+    final lifecycle = _repository;
+    if (lifecycle is! CommitmentLifecycleRepository) return;
+    if (!await confirmRecordedAction(
+          context,
+          planActL10n(context).undoConfirmMessage,
+        ) ||
+        !mounted) {
+      return;
+    }
     try {
-      await RestoreCommitment(_repository)(commitment.id);
-      await _refresh();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(PersianCopy.planactAppRestoreCommitmentContent),
-        ),
+      await (lifecycle as CommitmentLifecycleRepository).undoStatus(
+        commitment.id,
+        token,
       );
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(PersianCopy.planactAppRestoreCommitmentContent2),
-        ),
+      if (mounted) {
+        showRecordedActionFeedback(context, planActL10n(context).undoConflict);
+      }
+      return;
+    }
+    final pending = await _reconcileStatusReminders();
+    try {
+      await _refresh(throwOnFailure: true);
+    } catch (_) {
+      if (mounted) {
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).undoRefreshPending,
+        );
+      }
+      return;
+    }
+    if (mounted) {
+      showRecordedActionFeedback(
+        context,
+        pending
+            ? planActL10n(context).planactAppBuildContent
+            : planActL10n(context).undoSuccess,
       );
     }
   }
 
-  Future<void> _showTimeline() async {
+  Future<void> _showTimeline({bool includeHistory = false}) async {
     final items =
         _commitments
             .where(
               (item) =>
-                  item.status != CommitmentStatus.completed &&
-                  item.status != CommitmentStatus.cancelled &&
-                  item.status != CommitmentStatus.archived,
+                  includeHistory ||
+                  (item.status != CommitmentStatus.completed &&
+                      item.status != CommitmentStatus.cancelled &&
+                      item.status != CommitmentStatus.archived),
             )
             .toList()
           ..sort((a, b) {
@@ -961,7 +1063,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text(PersianCopy.planactAppShowTimelineTitle),
+          title: Text(
+            includeHistory
+                ? planActL10n(context).commitmentHistoryTitle
+                : PersianCopy.planactAppShowTimelineTitle,
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: items.isEmpty
@@ -1073,25 +1179,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   Future<void> _archiveCommitment(Commitment commitment) async {
     if (commitment.status == CommitmentStatus.archived) return;
-    try {
-      await ArchiveCommitment(_repository)(commitment.id);
-      await _refresh();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text(PersianCopy.planactAppArchiveCommitmentContent),
-          ),
-        );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(PersianCopy.planactAppArchiveCommitmentContent2),
-        ),
-      );
-    }
+    await _applyStatus(commitment, CommitmentStatus.archived);
   }
 
   @override
@@ -1222,6 +1310,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 _showCapture();
               } else if (action == _AppMenuAction.timeline) {
                 _showTimeline();
+              } else if (action == _AppMenuAction.history) {
+                _showTimeline(includeHistory: true);
               } else if (action == _AppMenuAction.reports) {
                 _openReports();
               } else if (action == _AppMenuAction.inbox) {
@@ -1246,6 +1336,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 ),
               ),
               PopupMenuDivider(),
+              PopupMenuItem(
+                value: _AppMenuAction.history,
+                child: ListTile(
+                  leading: const Icon(Icons.history),
+                  title: Text(planActL10n(context).commitmentHistoryTitle),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               PopupMenuItem(
                 value: _AppMenuAction.reports,
                 child: ListTile(
@@ -1356,7 +1454,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 }
 
-enum _AppMenuAction { addCommitment, timeline, reports, inbox }
+enum _AppMenuAction { addCommitment, timeline, history, reports, inbox }
 
 class CommitmentDetailsPage extends StatefulWidget {
   const CommitmentDetailsPage({
@@ -1535,6 +1633,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           else
             TagLabels(labels: widget.commitment.tags),
           const SizedBox(height: PlanActSpacing.lg),
+          if (widget.planRepository case final ScheduleUndoRepository undo)
+            ScheduleUndoButton(
+              repository: undo,
+              commitmentId: widget.commitment.id,
+              reminders:
+                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
+                  ? (widget.occurrenceExecutor
+                            as PersistedOccurrenceActionExecutor)
+                        .reminders
+                  : null,
+              onChanged: () async {
+                await widget.onSaved();
+                if (mounted) setState(() {});
+              },
+            ),
           if (widget.planRepository
               case final DriftCommitmentPlanRepository plans)
             CommitmentCorrectionCard(
@@ -1575,7 +1688,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
                       key: ValueKey(
-                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}',
+                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
                       onChanged: () async {
                         await widget.onSaved();

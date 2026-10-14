@@ -4344,4 +4344,92 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get todayPageBuildLabel => 'ثبت تعهد جدید';
+
+  @override
+  String get commitmentHistoryTitle => 'تاریخچه و بایگانی تعهدها';
+
+  @override
+  String get undoAction => 'بازگردانی';
+
+  @override
+  String get undoStatusAction => 'بازگردانی آخرین تغییر وضعیت';
+
+  @override
+  String get undoScheduleAction => 'بازگردانی آخرین تغییر زمان‌بندی';
+
+  @override
+  String get undoConfirmTitle => 'تأیید بازگردانی';
+
+  @override
+  String get undoConfirmMessage =>
+      'آخرین تغییر ثبت‌شده بازگردانی می‌شود؛ سابقه محفوظ می‌ماند. اگر تغییر جدیدتری ثبت شده باشد، بازگردانی انجام نمی‌شود.';
+
+  @override
+  String get undoSuccess => 'تغییر بازگردانی شد؛ سابقه محفوظ است.';
+
+  @override
+  String get undoConflict =>
+      'عملیات انجام نشد؛ ممکن است داده یا سابقه تغییر کرده باشد. بازخوانی کنید و دوباره تلاش کنید.';
+
+  @override
+  String get undoStateSaved => 'تغییر ثبت شد.';
+
+  @override
+  String get undoRefreshPending =>
+      'تغییر ثبت شد؛ بازخوانی صفحه انجام نشد. دوباره بازخوانی کنید.';
+
+  @override
+  String get financeCorrectAction => 'اصلاح تراکنش';
+
+  @override
+  String get financeCancelTransferMessage =>
+      'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟';
+
+  @override
+  String get financeCorrectMessage =>
+      'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.';
+
+  @override
+  String get financeArchivedAccountAction => 'بایگانی حساب';
+
+  @override
+  String get financeRestoreAccountAction => 'بازگردانی حساب';
+
+  @override
+  String get financeArchiveAccountMessage =>
+      'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.';
+
+  @override
+  String get matchHistoryTitle => 'ارتباط‌های ثبت‌شده';
+
+  @override
+  String get matchRemoveAction => 'قطع ارتباط';
+
+  @override
+  String get matchCorrectAction => 'اصلاح ارتباط';
+
+  @override
+  String get matchRemoveMessage =>
+      'این ارتباط قطع می‌شود و مبلغ آن دوباره قابل بررسی خواهد بود. موجودی حساب تغییر نمی‌کند و سابقه محفوظ می‌ماند.';
+
+  @override
+  String get matchHistoryResolved => 'سابقهٔ ارتباط قطع‌شده یا اصلاح‌شده';
+
+  @override
+  String get matchTargetLabel => 'نوبت مرتبط';
+
+  @override
+  String get matchAmountLabel => 'مبلغ تخصیص';
+
+  @override
+  String get matchCorrectMessage =>
+      'مبلغ و مقصد تخصیص را اصلاح کنید؛ ارتباط قبلی در سابقه می‌ماند و موجودی حساب تغییر نمی‌کند.';
+
+  @override
+  String get legacyArchiveRestoreMessage =>
+      'اگر وضعیت پیش از بایگانی ثبت شده باشد، همان وضعیت بازمی‌گردد. تعهدهای قدیمی بدون این سابقه به «فعال» بازگردانی می‌شوند. ادامه می‌دهید؟';
+
+  @override
+  String get actualReopenMessage =>
+      'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.';
 }

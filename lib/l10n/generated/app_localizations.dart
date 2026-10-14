@@ -7264,6 +7264,162 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'ثبت تعهد جدید'**
   String get todayPageBuildLabel;
+
+  /// Persistent entry route for resolved and archived commitment actions.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخچه و بایگانی تعهدها'**
+  String get commitmentHistoryTitle;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگردانی'**
+  String get undoAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگردانی آخرین تغییر وضعیت'**
+  String get undoStatusAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگردانی آخرین تغییر زمان‌بندی'**
+  String get undoScheduleAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید بازگردانی'**
+  String get undoConfirmTitle;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'آخرین تغییر ثبت‌شده بازگردانی می‌شود؛ سابقه محفوظ می‌ماند. اگر تغییر جدیدتری ثبت شده باشد، بازگردانی انجام نمی‌شود.'**
+  String get undoConfirmMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر بازگردانی شد؛ سابقه محفوظ است.'**
+  String get undoSuccess;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'عملیات انجام نشد؛ ممکن است داده یا سابقه تغییر کرده باشد. بازخوانی کنید و دوباره تلاش کنید.'**
+  String get undoConflict;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ثبت شد.'**
+  String get undoStateSaved;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ثبت شد؛ بازخوانی صفحه انجام نشد. دوباره بازخوانی کنید.'**
+  String get undoRefreshPending;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'اصلاح تراکنش'**
+  String get financeCorrectAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟'**
+  String get financeCancelTransferMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.'**
+  String get financeCorrectMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بایگانی حساب'**
+  String get financeArchivedAccountAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگردانی حساب'**
+  String get financeRestoreAccountAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.'**
+  String get financeArchiveAccountMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط‌های ثبت‌شده'**
+  String get matchHistoryTitle;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'قطع ارتباط'**
+  String get matchRemoveAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'اصلاح ارتباط'**
+  String get matchCorrectAction;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ارتباط قطع می‌شود و مبلغ آن دوباره قابل بررسی خواهد بود. موجودی حساب تغییر نمی‌کند و سابقه محفوظ می‌ماند.'**
+  String get matchRemoveMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'سابقهٔ ارتباط قطع‌شده یا اصلاح‌شده'**
+  String get matchHistoryResolved;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'نوبت مرتبط'**
+  String get matchTargetLabel;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ تخصیص'**
+  String get matchAmountLabel;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ و مقصد تخصیص را اصلاح کنید؛ ارتباط قبلی در سابقه می‌ماند و موجودی حساب تغییر نمی‌کند.'**
+  String get matchCorrectMessage;
+
+  /// Explicit archive restore disclosure for legacy history absence.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر وضعیت پیش از بایگانی ثبت شده باشد، همان وضعیت بازمی‌گردد. تعهدهای قدیمی بدون این سابقه به «فعال» بازگردانی می‌شوند. ادامه می‌دهید؟'**
+  String get legacyArchiveRestoreMessage;
+
+  /// Undo repair: explicit operation feedback and confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.'**
+  String get actualReopenMessage;
 }
 
 class _AppLocalizationsDelegate

@@ -25,12 +25,14 @@ class TransactionRelationshipContext {
     required this.available,
     required this.targets,
     this.review,
+    this.matches = const [],
   });
   final AccountEntry transaction;
   final FinancialAccount? account;
   final Money available;
   final List<RelationshipTarget> targets;
   final RelationshipReview? review;
+  final List<TransactionMatch> matches;
 }
 
 /// Reloads the durable transaction by identity; navigation never creates a ledger
@@ -98,6 +100,9 @@ class ContextualReconciliation {
             review?.transactionAmount.currency ?? transaction.amount.currency,
       ),
       targets: List.unmodifiable(targets),
+      matches: List.unmodifiable(
+        matches.where((m) => m.transactionId == transactionId),
+      ),
     );
   }
 
@@ -105,6 +110,28 @@ class ContextualReconciliation {
     required RelationshipReview expected,
     DateTime? recordedAt,
   }) => _decide(expected, RelationshipReviewDecision.independent, recordedAt);
+
+  Future<void> removeMatch(TransactionMatch expected) =>
+      reconciliation.unmatch(expected);
+
+  Future<void> correctMatch({
+    required TransactionMatch original,
+    required List<StableId> occurrenceIds,
+    required List<Money> allocations,
+  }) async {
+    final current = await load(original.transactionId);
+    if (!occurrenceIds.every(
+      (id) => current.targets.any((t) => t.occurrence.id == id),
+    )) {
+      throw const ValidationError('Occurrence no longer available');
+    }
+    await reconciliation.correct(
+      original: original,
+      createdAt: DateTime.now().toUtc(),
+      occurrenceIds: occurrenceIds,
+      allocations: allocations,
+    );
+  }
 
   Future<RelationshipReview> reopen({
     required RelationshipReview expected,

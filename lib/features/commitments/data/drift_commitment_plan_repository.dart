@@ -1,4 +1,5 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/features/scheduling/data/drift_schedule_undo.dart';
 
 import 'dart:convert';
 
@@ -23,6 +24,7 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 
 class DriftCommitmentPlanRepository
+    with ScheduleUndoPersistence
     implements
         CommandGateProvider,
         CommitmentPlanRepository,
@@ -34,11 +36,21 @@ class DriftCommitmentPlanRepository
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
+  @override
   final db.AppDatabase database;
 
   @override
   Future<T> runTransaction<T>(Future<T> Function() action) =>
-      CommandGate.runFor(this, () async => database.transaction(action));
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          await database.customStatement(
+            'UPDATE schema_metadata SET value = value WHERE key = ?',
+            ['schema_version'],
+          );
+          return action();
+        }),
+      );
 
   @override
   Future<void> save(CommitmentPlan plan) => CommandGate.runFor(this, () async {
@@ -177,11 +189,26 @@ class DriftCommitmentPlanRepository
         if (commitment == null) return null;
         final rules = await DriftReminderRepository(database).listRules();
         final occurrenceIds = rows.map((row) => row.id).toSet();
+        final revisions = await database
+            .customSelect(
+              'SELECT a.occurrence_id, COUNT(*) AS revision FROM actuals a JOIN occurrences o ON o.id = a.occurrence_id WHERE o.cycle_id = ? GROUP BY a.occurrence_id',
+              variables: [Variable(cycle.id)],
+              readsFrom: {database.actuals, database.occurrences},
+            )
+            .get();
+        final revisionById = {
+          for (final r in revisions)
+            r.read<String>('occurrence_id'): r.read<int>('revision'),
+        };
         return CommitmentPlan(
           commitment: commitment,
           cycle: _cycle(cycle),
           schedule: _schedule(schedule),
-          occurrences: rows.map(_occurrence).toList(growable: false),
+          occurrences: rows
+              .map(
+                (r) => _occurrence(r, resultRevision: revisionById[r.id] ?? 0),
+              )
+              .toList(growable: false),
           reminders: rules
               .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
               .toList(growable: false),
@@ -731,16 +758,23 @@ class DriftCommitmentPlanRepository
     );
     final rows = await database
         .customSelect(
-          'SELECT o.*, c.commitment_id AS owner_id FROM occurrences o '
+          'SELECT o.*, (SELECT COUNT(*) FROM actuals a WHERE a.occurrence_id = o.id) AS result_revision, c.commitment_id AS owner_id FROM occurrences o '
           'JOIN commitment_cycles c ON c.id = o.cycle_id '
           'WHERE ${predicates.join(' OR ')}',
           variables: variables,
-          readsFrom: {database.occurrences, database.commitmentCycles},
+          readsFrom: {
+            database.occurrences,
+            database.commitmentCycles,
+            database.actuals,
+          },
         )
         .get();
     final result = <String, List<Occurrence>>{};
     for (final row in rows) {
-      final occurrence = _occurrence(database.occurrences.map(row.data));
+      final occurrence = _occurrence(
+        database.occurrences.map(row.data),
+        resultRevision: row.read<int>('result_revision'),
+      );
       result
           .putIfAbsent(row.read<String>('owner_id'), () => [])
           .add(occurrence);
@@ -896,14 +930,16 @@ class DriftCommitmentPlanRepository
               .map((m) => Duration(minutes: m as int))
               .toList(),
   );
-  Occurrence _occurrence(db.Occurrence r) => Occurrence(
-    id: StableId.parse(r.id),
-    cycleId: StableId.parse(r.cycleId),
-    scheduleDefinitionId: StableId.parse(r.scheduleDefinitionId),
-    occurrenceKey: r.occurrenceKey,
-    originalScheduledAt: _parseValue(r.originalScheduledValue),
-    currentScheduledAt: _parseValue(r.currentScheduledValue),
-    status: OccurrenceStatus.values[r.status],
-    isManualOverride: r.isManualOverride,
-  );
+  Occurrence _occurrence(db.Occurrence r, {int resultRevision = 0}) =>
+      Occurrence(
+        resultRevision: resultRevision,
+        id: StableId.parse(r.id),
+        cycleId: StableId.parse(r.cycleId),
+        scheduleDefinitionId: StableId.parse(r.scheduleDefinitionId),
+        occurrenceKey: r.occurrenceKey,
+        originalScheduledAt: _parseValue(r.originalScheduledValue),
+        currentScheduledAt: _parseValue(r.currentScheduledValue),
+        status: OccurrenceStatus.values[r.status],
+        isManualOverride: r.isManualOverride,
+      );
 }
