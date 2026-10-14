@@ -135,7 +135,7 @@ void main() {
             find.byKey(ValueKey('week-card-${occurrences.first.id.value}')),
             findsOneWidget,
           );
-          await tester.tap(find.text('بازگشت به امروز'));
+          await tester.tap(find.byKey(const ValueKey('calendar-return-today')));
           await tester.pumpAndSettle();
           await tester.pump(const Duration(minutes: 2));
           expect(tester.takeException(), isNull);
@@ -396,7 +396,7 @@ void main() {
     final initialOffset = before.offset;
     before.jumpTo(initialOffset + 120);
     await tester.pump();
-    await tester.tap(find.text('بازگشت به امروز'));
+    await tester.tap(find.byKey(const ValueKey('calendar-return-today')));
     await tester.pumpAndSettle();
     final after = tester
         .widget<CustomScrollView>(

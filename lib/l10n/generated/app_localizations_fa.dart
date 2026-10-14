@@ -795,7 +795,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get calendarPageDateButtonLabel => 'رفتن به تاریخ';
 
   @override
-  String get calendarPageTodayButtonLabel => 'بازگشت به امروز';
+  String get calendarPageTodayButtonLabel => 'امروز';
 
   @override
   String get calendarPageBuildTooltip => 'هفته قبل';

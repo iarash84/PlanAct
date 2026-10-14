@@ -1168,9 +1168,9 @@
   "@calendarPageDateButtonLabel": {
     "description": "Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:214."
   },
-  "calendarPageTodayButtonLabel": "بازگشت به امروز",
+  "calendarPageTodayButtonLabel": "امروز",
   "@calendarPageTodayButtonLabel": {
-    "description": "Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:238."
+    "description": "Calendar action returning to the current local date while preserving Month/Week mode. Short label approved 2026-10-14."
   },
   "calendarPageBuildTooltip": "هفته قبل",
   "@calendarPageBuildTooltip": {

@@ -31,6 +31,7 @@ void main() {
     );
     expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
     expect(copy.occurrenceCancelled, 'لغوشده');
+    expect(copy.calendarPageTodayButtonLabel, 'امروز');
   });
 
   test(
@@ -99,7 +100,8 @@ void main() {
           ..sort();
     expect(
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
-      'b04b4a228fd63f3ee19492423d368c56b5510970a67bb85c6f0b4667da577140',
+      // User-approved 2026-10-14: Calendar's Today label is shortened to «امروز».
+      '8e9d76ff582480663f279adc62c8c24bf82bb06ecd32f731e8612675c1f25d13',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;

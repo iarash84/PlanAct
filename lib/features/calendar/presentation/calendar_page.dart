@@ -70,7 +70,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Map<JalaliDate, List<Commitment>> _monthItems = {};
   Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
   Map<String, List<PlannedOccurrenceSlot>> _monthPreviews = {};
-  final _dayHeadingKey = GlobalKey();
   final _monthScroll = ScrollController();
   double _swipeDistance = 0;
 
@@ -169,11 +168,6 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  void _showDayList() {
-    final heading = _dayHeadingKey.currentContext;
-    if (heading != null) Scrollable.ensureVisible(heading);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -217,10 +211,8 @@ class _CalendarPageState extends State<CalendarPage> {
         }),
       ),
     );
-    final dateButton = TextButton.icon(
+    final dateButton = TextButton(
       key: const ValueKey('calendar-pick-date'),
-      icon: const Icon(Icons.calendar_month_outlined),
-      label: Text(planActL10n(context).calendarPageDateButtonLabel),
       onPressed: () async {
         final date = await pickPlannedDate(context, _selectedDay);
         if (date == null || !mounted) return;
@@ -231,21 +223,18 @@ class _CalendarPageState extends State<CalendarPage> {
           if (!_week) _loadMonth();
         });
       },
+      child: Text(planActL10n(context).calendarPageDateButtonLabel),
     );
-    final todayButton = Align(
-      alignment: AlignmentDirectional.centerEnd,
-      child: TextButton.icon(
-        key: const ValueKey('calendar-return-today'),
-        onPressed: () => setState(() {
-          final current = JalaliDate.now();
-          _weekPositionRevision++;
-          _selectedDay = current;
-          _month = JalaliDate(current.year, current.month, 1);
-          if (!_week) _loadMonth();
-        }),
-        icon: const Icon(Icons.today_outlined),
-        label: Text(planActL10n(context).calendarPageTodayButtonLabel),
-      ),
+    final todayButton = TextButton(
+      key: const ValueKey('calendar-return-today'),
+      onPressed: () => setState(() {
+        final current = JalaliDate.now();
+        _weekPositionRevision++;
+        _selectedDay = current;
+        _month = JalaliDate(current.year, current.month, 1);
+        if (!_week) _loadMonth();
+      }),
+      child: Text(planActL10n(context).calendarPageTodayButtonLabel),
     );
     if (_week) {
       final dates = WeekTimeline.dates(_selectedDay);
@@ -260,9 +249,15 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
-            child: todayButton,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: PlanActSpacing.sm,
+                children: [todayButton, dateButton],
+              ),
+            ),
           ),
-          dateButton,
           Row(
             children: [
               IconButton(
@@ -311,8 +306,7 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       children: [
         toggle,
-        todayButton,
-        dateButton,
+        Align(alignment: AlignmentDirectional.centerEnd, child: todayButton),
         _CalendarHeader(
           month: _month,
           onPrevious: () => _moveMonth(-1),
@@ -345,12 +339,6 @@ class _CalendarPageState extends State<CalendarPage> {
         if (!_monthLoading && !_monthError && _monthItems.isEmpty)
           Text(planActL10n(context).calendarPageBuildChildren4),
         const SizedBox(height: PlanActSpacing.md),
-        TextButton.icon(
-          key: const ValueKey('calendar-show-day-list'),
-          onPressed: _showDayList,
-          icon: const Icon(Icons.list_alt),
-          label: Text(planActL10n(context).calendarPageBuildLabel),
-        ),
         LayoutBuilder(
           builder: (context, constraints) {
             final scaler = MediaQuery.textScalerOf(context);
@@ -521,7 +509,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: Text(
-                    key: _dayHeadingKey,
                     PersianDateFormatter.relative(_selectedDay),
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,

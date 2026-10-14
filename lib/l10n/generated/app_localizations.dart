@@ -1451,10 +1451,10 @@ abstract class AppLocalizations {
   /// **'رفتن به تاریخ'**
   String get calendarPageDateButtonLabel;
 
-  /// Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:238.
+  /// Calendar action returning to the current local date while preserving Month/Week mode. Short label approved 2026-10-14.
   ///
   /// In fa, this message translates to:
-  /// **'بازگشت به امروز'**
+  /// **'امروز'**
   String get calendarPageTodayButtonLabel;
 
   /// Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:260.
