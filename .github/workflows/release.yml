@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version matching pubspec.yaml, without the v prefix (for example 0.1.15)'
+        description: 'Release version matching pubspec.yaml, without the v prefix (for example 0.1.16)'
         required: true
         type: string
 
@@ -62,6 +62,11 @@ jobs:
           pubspec_version="$(sed -nE 's/^version: ([0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+$/\1/p' pubspec.yaml)"
           if [[ "$pubspec_version" != "$RELEASE_VERSION" ]]; then
             echo "Requested version $RELEASE_VERSION does not match pubspec.yaml version $pubspec_version" >&2
+            exit 1
+          fi
+          release_notes="docs/releases/$RELEASE_VERSION.md"
+          if [[ ! -s "$release_notes" ]] || ! grep -Fxq "# PlanAct $RELEASE_VERSION release candidate" "$release_notes"; then
+            echo "Missing or mismatched release record: $release_notes" >&2
             exit 1
           fi
           tag="v$RELEASE_VERSION"
@@ -199,6 +204,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cp "docs/releases/$RELEASE_VERSION.md" release-assets/RELEASE-NOTES.md
+          (cd release-assets && sha256sum RELEASE-NOTES.md > RELEASE-NOTES-SHA256.txt)
           printf 'commit=%s\nrun_id=%s\nversion=%s\nversion_code=%s\n' \
             "$GITHUB_SHA" "$GITHUB_RUN_ID" "$RELEASE_VERSION" "$RELEASE_BUILD_NUMBER" > release-assets/BUILD-IDENTITY.txt
           {
@@ -247,13 +254,16 @@ jobs:
           grep -Fx "version=$RELEASE_VERSION" BUILD-IDENTITY.txt
           grep -Fx "version_code=$GITHUB_RUN_NUMBER" BUILD-IDENTITY.txt
           sha256sum -c SHA256SUMS.txt
+          sha256sum -c RELEASE-NOTES-SHA256.txt
+          grep -Fxq "# PlanAct $RELEASE_VERSION release candidate" RELEASE-NOTES.md
+          printf '\n## Published build identity\n\nCommit: %s; Actions run: %s; Android versionCode: %s. APKs are signed and technically verified; this is not independent product acceptance. See SHA256SUMS.txt and BUILD-IDENTITY.txt.\n' \
+            "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_NUMBER" >> RELEASE-NOTES.md
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo 'Release tag already exists; refusing to overwrite.' >&2
             exit 1
           fi
           gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --generate-notes \
             --title "PlanAct $RELEASE_TAG" \
-            --notes "Android APKs are signed and technically verified. Published files are the exact candidate from commit $GITHUB_SHA, Actions run $GITHUB_RUN_ID. Publication follows manual maintainer dispatch and automated checks, not independent product acceptance. See SHA256SUMS.txt and BUILD-IDENTITY.txt." \
+            --notes-file RELEASE-NOTES.md \
             ./*.apk SHA256SUMS.txt SIGNING-CERTIFICATE-SHA256.txt BUILD-IDENTITY.txt
