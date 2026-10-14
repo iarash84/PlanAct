@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'planact_colors.dart';
+import 'planact_page_transitions.dart';
 import 'planact_radius.dart';
 import 'planact_spacing.dart';
 import 'planact_typography.dart';
@@ -156,9 +157,7 @@ abstract final class PlanActTheme {
         ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-        },
+        builders: {TargetPlatform.android: PlanActPageTransitionsBuilder()},
       ),
     );
   }

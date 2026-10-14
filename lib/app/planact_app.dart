@@ -1429,9 +1429,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) {
               setState(() => _selectedIndex = index);
+              final duration = PlanActMotion.duration(context);
+              if (duration == Duration.zero) {
+                _pageController.jumpToPage(index);
+                return;
+              }
               _pageController.animateToPage(
                 index,
-                duration: PlanActMotion.duration(context),
+                duration: duration,
                 curve: PlanActMotion.curve,
               );
             },
