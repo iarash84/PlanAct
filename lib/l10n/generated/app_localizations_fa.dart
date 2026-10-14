@@ -4682,6 +4682,75 @@ class AppLocalizationsFa extends AppLocalizations {
       'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.';
 
   @override
+  String get progressOutcomesTitle => 'پیشرفت انجام نوبت‌ها';
+
+  @override
+  String get progressPaymentsTitle => 'پیشرفت پرداخت‌ها';
+
+  @override
+  String progressTotal(String count) {
+    return 'از مجموع $count نوبت';
+  }
+
+  @override
+  String progressPaymentSummary(String paid, String unsettled) {
+    return '$paid٪ تسویه‌شده، $unsettled٪ بدون تسویهٔ تأییدشده';
+  }
+
+  @override
+  String get progressCompleted => 'انجام‌شده';
+
+  @override
+  String get progressPaid => 'پرداخت‌شده';
+
+  @override
+  String get progressPartPaid => 'پرداخت جزئی';
+
+  @override
+  String get progressCancelled => 'لغوشده';
+
+  @override
+  String get progressSkipped => 'انجام‌نشده';
+
+  @override
+  String get progressRemaining => 'باقی‌مانده';
+
+  @override
+  String get progressUnpaid => 'پرداخت‌نشده';
+
+  @override
+  String get progressUnknownPayment => 'وضعیت پرداخت نامشخص';
+
+  @override
+  String progressLegend(String label, String count, String percent) {
+    return '$label: $count نوبت ($percent٪)';
+  }
+
+  @override
+  String get progressCountBasis =>
+      'مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.';
+
+  @override
+  String get progressPaymentBasis =>
+      'مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.';
+
+  @override
+  String get progressLoading => 'در حال خواندن پیشرفت تعهد';
+
+  @override
+  String get progressReadError =>
+      'پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.';
+
+  @override
+  String get progressAmbiguous =>
+      'تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.';
+
+  @override
+  String progressExcludedCancellations(String count) {
+    return '$count لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.';
+  }
+
+  @override
   String calendarNoteDaySummary(String count, String titles) {
     return '$count یادداشت: $titles';
   }

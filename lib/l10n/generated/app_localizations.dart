@@ -7841,6 +7841,120 @@ abstract class AppLocalizations {
   /// **'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.'**
   String get searchFinancialReadOnly;
 
+  /// Count-based occurrence outcome chart in Commitment Details.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت انجام نوبت‌ها'**
+  String get progressOutcomesTitle;
+
+  /// Separate count-based financial settlement chart; never inferred from completion.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت پرداخت‌ها'**
+  String get progressPaymentsTitle;
+
+  /// Explicit schedule target, independent of materialization horizon; Persian formatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'از مجموع {count} نوبت'**
+  String progressTotal(String count);
+
+  /// Fully paid count versus all other slots; preformatted integer percentages, not money ratios.
+  ///
+  /// In fa, this message translates to:
+  /// **'{paid}٪ تسویه‌شده، {unsettled}٪ بدون تسویهٔ تأییدشده'**
+  String progressPaymentSummary(String paid, String unsettled);
+
+  /// Recorded completed occurrence progress segment.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌شده'**
+  String get progressCompleted;
+
+  /// Fully settled outgoing expectation count.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت‌شده'**
+  String get progressPaid;
+
+  /// Partially settled count, never counted as fully paid.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت جزئی'**
+  String get progressPartPaid;
+
+  /// Cancelled progress segment, separate from completion.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغوشده'**
+  String get progressCancelled;
+
+  /// Resolved skipped occurrence progress segment.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌نشده'**
+  String get progressSkipped;
+
+  /// Unresolved or unprepared schedule slots, not remaining entitlement.
+  ///
+  /// In fa, this message translates to:
+  /// **'باقی‌مانده'**
+  String get progressRemaining;
+
+  /// Outgoing slots without allocated payment, excluding partial payments; cancellation of attendance does not waive payment.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت‌نشده'**
+  String get progressUnpaid;
+
+  /// Missing or ambiguous financial expectation evidence; never inferred paid or unpaid.
+  ///
+  /// In fa, this message translates to:
+  /// **'وضعیت پرداخت نامشخص'**
+  String get progressUnknownPayment;
+
+  /// Full text alternative for a chart segment, with Persian formatted count and integer percentage.
+  ///
+  /// In fa, this message translates to:
+  /// **'{label}: {count} نوبت ({percent}٪)'**
+  String progressLegend(String label, String count, String percent);
+
+  /// Discloses schedule count versus entitlement and operational generation horizon.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.'**
+  String get progressCountBasis;
+
+  /// Financial progress evidence and count-based percentage scope.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.'**
+  String get progressPaymentBasis;
+
+  /// Accessible label for progress snapshot loading.
+  ///
+  /// In fa, this message translates to:
+  /// **'در حال خواندن پیشرفت تعهد'**
+  String get progressLoading;
+
+  /// Progress read failure and stale-content disclosure, paired with retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.'**
+  String get progressReadError;
+
+  /// Suppresses misleading percentages for ambiguous duplicate or over-target history without rewriting it.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.'**
+  String get progressAmbiguous;
+
+  /// Count reduction cancellations outside current recurrence prefix, with preformatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.'**
+  String progressExcludedCancellations(String count);
+
   /// Accessible month day note summary, separate from commitment counts.
   ///
   /// In fa, this message translates to:

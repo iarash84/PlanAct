@@ -1,4 +1,7 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/commitments/application/commitment_progress_reader.dart';
+import 'package:planact/features/commitments/data/drift_commitment_progress_reader.dart';
+import 'package:planact/features/commitments/presentation/commitment_progress_section.dart';
 import 'package:planact/features/search/application/search_reader.dart';
 import 'package:planact/features/search/data/drift_search_reader.dart';
 import 'package:planact/features/search/presentation/search_page.dart';
@@ -1556,6 +1559,43 @@ class CommitmentDetailsPage extends StatefulWidget {
 }
 
 class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
+  int _progressRevision = 0;
+  late CommitmentProgressReader _progressReader = _createProgressReader();
+
+  CommitmentProgressReader _createProgressReader() =>
+      widget.planRepository is DriftCommitmentPlanRepository &&
+          widget.expectationRepository is DriftFinancialExpectationRepository &&
+          identical(
+            (widget.planRepository as DriftCommitmentPlanRepository).database,
+            (widget.expectationRepository
+                    as DriftFinancialExpectationRepository)
+                .database,
+          )
+      ? DriftCommitmentProgressReader(
+          (widget.planRepository as DriftCommitmentPlanRepository).database,
+        )
+      : RepositoryCommitmentProgressReader(
+          widget.planRepository,
+          widget.expectationRepository,
+        );
+
+  @override
+  void didUpdateWidget(CommitmentDetailsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.planRepository != widget.planRepository ||
+        oldWidget.expectationRepository != widget.expectationRepository) {
+      _progressReader = _createProgressReader();
+    }
+  }
+
+  Future<void> _refreshDetails() async {
+    try {
+      await widget.onSaved();
+    } finally {
+      if (mounted) setState(() => _progressRevision++);
+    }
+  }
+
   late final _title = TextEditingController(text: widget.commitment.title);
   late final _description = TextEditingController(
     text: widget.commitment.description ?? '',
@@ -1643,6 +1683,11 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          CommitmentProgressSection(
+            reader: _progressReader,
+            commitmentId: widget.commitment.id,
+            revision: _progressRevision,
+          ),
           Text(
             planActL10n(context).planactAppBuildChildren(
               (_statusLabel(widget.commitment.status)).toString(),
@@ -1703,8 +1748,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               onChanged: () async {
                 // Re-read durable state before any later metadata/status command.
                 await widget.repository.findById(widget.commitment.id);
-                await widget.onSaved();
-                if (mounted) setState(() {});
+                await _refreshDetails();
               },
             )
           else
@@ -1720,10 +1764,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             as PersistedOccurrenceActionExecutor)
                         .reminders
                   : null,
-              onChanged: () async {
-                await widget.onSaved();
-                if (mounted) setState(() {});
-              },
+              onChanged: _refreshDetails,
             ),
           if (widget.planRepository
               case final DriftCommitmentPlanRepository plans)
@@ -1736,15 +1777,12 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             as PersistedOccurrenceActionExecutor)
                         .reminders
                   : null,
-              onSaved: () async {
-                await widget.onSaved();
-                if (mounted) setState(() {});
-              },
+              onSaved: _refreshDetails,
             ),
           PlannedDetailsRange(
             commitment: widget.commitment,
             repository: widget.planRepository,
-            onSaved: widget.onSaved,
+            onSaved: _refreshDetails,
             synchronizeReminders:
                 widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
                 ? () async =>
@@ -1767,10 +1805,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       key: ValueKey(
                         '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
-                      onChanged: () async {
-                        await widget.onSaved();
-                        if (mounted) setState(() {});
-                      },
+                      onChanged: _refreshDetails,
                       onEdit: widget.planRepository is CommitmentPlanTransaction
                           ? (selected) async {
                               final selection =
@@ -1801,7 +1836,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                       scope: selection.scope,
                                       now: DateTime.now(),
                                     );
-                                await widget.onSaved();
+                                await _refreshDetails();
                                 if (!context.mounted) return;
                                 setState(() {});
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1849,6 +1884,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       for (final occurrence in occurrences)
                         _FinancialExpectationOccurrenceRow(
                           occurrence: occurrence,
+                          onSaved: () => setState(() => _progressRevision++),
                           useCases: FinancialExpectationUseCases(
                             widget.expectationRepository,
                           ),
@@ -1876,10 +1912,12 @@ class _FinancialExpectationOccurrenceRow extends StatefulWidget {
   const _FinancialExpectationOccurrenceRow({
     required this.occurrence,
     required this.useCases,
+    required this.onSaved,
   });
 
   final Occurrence occurrence;
   final FinancialExpectationUseCases useCases;
+  final VoidCallback onSaved;
 
   @override
   State<_FinancialExpectationOccurrenceRow> createState() =>
@@ -1926,6 +1964,7 @@ class _FinancialExpectationOccurrenceRowState
                       occurrenceId: widget.occurrence.id,
                       useCases: widget.useCases,
                       accounts: _accounts,
+                      onSaved: widget.onSaved,
                     ),
             ),
         ],

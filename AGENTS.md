@@ -138,6 +138,8 @@ Completed/cancelled/skipped occurrences are historical records. Do not hard-dele
 
 ### 6.3 Schedule is not entitlement
 
+User-approved 2026-10-14 counted progress: Details charts use the explicit durable schedule count, never the generated horizon or entitlement balance. Keep completed, cancelled, skipped and unresolved counts distinct. Financial progress uses active confirmed settlement allocations, excludes reversed transactions and keeps partial payments separate; occurrence completion never proves payment. Read one coherent gated production snapshot, retain unknown/ambiguous history visibly and never mutate data while projecting progress. See docs/UI_MIGRATION_VERIFICATION.md.
+
 This is a core invariant:
 
 - **Schedule** answers: “When should a session happen?”

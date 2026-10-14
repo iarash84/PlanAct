@@ -114,6 +114,7 @@ void main() {
                     'holiday-data-2026-10-14',
                     'calendar-note-2026-10-14',
                     'search-2026-10-14',
+                    'counted-progress-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
