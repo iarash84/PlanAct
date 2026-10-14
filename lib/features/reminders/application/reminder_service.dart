@@ -19,7 +19,7 @@ abstract interface class ReminderIntentTransaction {
   Future<T> runReminderTransaction<T>(Future<T> Function() action);
 }
 
-/// Persistent adapters can reject reminders whose occurrence is resolved.
+/// Persistent adapters reject resolved occurrences and inactive owners/cycles.
 abstract interface class ReminderOccurrenceEligibility {
   Future<bool> canRemind(StableId occurrenceId);
 }
@@ -64,6 +64,23 @@ class ReminderService {
     required ReminderRule rule,
     required DateTime occurrenceStart,
   }) => CommandGate.runFor(repository, () async {
+    final intent = await _persistIntent(
+      () => _prepareSchedulingIntent(rule, occurrenceStart),
+    );
+    await _deliverSchedulingIntent(intent);
+    return intent.instance;
+  });
+
+  Future<_ReminderSchedulingIntent> _prepareSchedulingIntent(
+    ReminderRule rule,
+    DateTime occurrenceStart,
+  ) async {
+    // Called inside writer admission, so eligibility uses fresh durable state.
+    final eligible =
+        repository is! ReminderOccurrenceEligibility ||
+        await (repository as ReminderOccurrenceEligibility).canRemind(
+          rule.occurrenceId,
+        );
     final existing = await repository.listInstances();
     final scheduled = ReminderInstance.fromRule(
       rule: rule,
@@ -75,7 +92,8 @@ class ReminderService {
               item.ruleId == rule.id &&
               item.status != ReminderInstanceStatus.delivered &&
               (item.scheduledAt.toUtc() != scheduled.scheduledAt.toUtc() ||
-                  !rule.enabled),
+                  !rule.enabled ||
+                  !eligible),
         )
         .toList();
     final duplicate = existing.where(
@@ -87,26 +105,38 @@ class ReminderService {
     final previous = duplicate.isEmpty ? scheduled : duplicate.first;
     final effective = previous.status == ReminderInstanceStatus.delivered
         ? previous
-        : !rule.enabled
+        : !rule.enabled || !eligible
         ? previous.cancel()
         : previous.status == ReminderInstanceStatus.cancelled
         ? previous.reschedule(previous.scheduledAt)
         : previous;
-    await _persistIntent(() async {
-      await repository.saveRule(rule);
-      for (final old in stale) {
-        await repository.saveInstance(old.cancel());
-      }
-      await repository.saveInstance(effective);
-    });
+    await repository.saveRule(rule);
     for (final old in stale) {
+      await repository.saveInstance(old.cancel());
+    }
+    // A cancelled replacement at the new time would suppress normal recovery
+    // when the owner is restored. Keep existing history and derive it on resume.
+    if (eligible || duplicate.isNotEmpty) {
+      await repository.saveInstance(effective);
+    }
+    return _ReminderSchedulingIntent(
+      instance: effective,
+      cancelled: stale,
+      enabled: rule.enabled && eligible,
+    );
+  }
+
+  Future<void> _deliverSchedulingIntent(
+    _ReminderSchedulingIntent intent,
+  ) async {
+    for (final old in intent.cancelled) {
       await platform.cancel(old);
     }
-    if (rule.enabled && effective.status != ReminderInstanceStatus.delivered) {
-      await platform.schedule(effective);
+    if (intent.enabled &&
+        intent.instance.status != ReminderInstanceStatus.delivered) {
+      await platform.schedule(intent.instance);
     }
-    return effective;
-  });
+  }
 
   Future<T> _persistIntent<T>(Future<T> Function() action) =>
       repository is ReminderIntentTransaction
@@ -220,11 +250,28 @@ class ReminderService {
       return;
     }
     if (occurrenceStart == null) return;
+    final intents = await _persistIntent(() async {
+      final prepared = <_ReminderSchedulingIntent>[];
+      for (final rule in await repository.listRules()) {
+        if (rule.occurrenceId != occurrenceId) continue;
+        prepared.add(await _prepareSchedulingIntent(rule, occurrenceStart));
+      }
+      // Consume recovery only with the complete durable replacement intent.
+      // Platform failure afterward retries these rows, not the reopening event.
+      if (repository case final ReminderOccurrenceReopeningIntent reopening) {
+        if (repository is! ReminderOccurrenceEligibility ||
+            await (repository as ReminderOccurrenceEligibility).canRemind(
+              occurrenceId,
+            )) {
+          await reopening.finishReopening(occurrenceId);
+        }
+      }
+      return prepared;
+    });
     var denied = false;
-    for (final rule in await repository.listRules()) {
-      if (rule.occurrenceId != occurrenceId) continue;
+    for (final intent in intents) {
       try {
-        await schedule(rule: rule, occurrenceStart: occurrenceStart);
+        await _deliverSchedulingIntent(intent);
       } on ReminderPermissionUnavailable {
         denied = true;
       }
@@ -383,4 +430,16 @@ class ReminderService {
       }
     },
   );
+}
+
+/// Durable work is prepared completely before any external platform operation.
+class _ReminderSchedulingIntent {
+  const _ReminderSchedulingIntent({
+    required this.instance,
+    required this.cancelled,
+    required this.enabled,
+  });
+  final ReminderInstance instance;
+  final List<ReminderInstance> cancelled;
+  final bool enabled;
 }

@@ -2,6 +2,103 @@
 
 Status: **Partial**, not release acceptance. Existing priorities 1–5 keep their independent unresolved gates. Priorities 8–10 were outside the original checkpoint; the user-approved Undo follow-up below includes a bounded real-match correction path.
 
+## Review regression fixes acceptance contract — 2026-10-14
+
+User-authorized scope, in review priority order: (1) Finance cancellation/correction
+of an allocated payment must restore its unpaid remainder consistently in Today,
+expectation settlement and Reports; (2) successful Actual/schedule reopening must
+consume its recovery intent without overriding a later explicit reminder-instance
+cancellation; (3) editing an archived/paused commitment through history/Details
+must not schedule notifications for an ineligible owner/cycle. Existing explicit
+confirmation, retry and committed-versus-platform-delivery feedback stay intact.
+
+Trace: Finance menu → atomic reversal/correction → retained ledger/matches → root
+refresh → read-only settlement/Today/report projections. Details reopening/edit →
+durable occurrence/result command → atomic reminder intent → post-commit platform
+delivery → Details/root refresh and startup/resume reconciliation. Keep existing
+history, matching, entitlement and recurrence semantics; no automatic unmatching,
+legacy repair, new permission, dependency, schema migration or UI redesign.
+
+Required evidence per fix before proceeding: failing regression followed by focused
+passing tests and analyzer; financial file-backed reopen/snapshot preservation and
+remaining live allocations; reminder interruption/rollback, multi-rule recovery,
+later cancellation, snooze and delivery failure; archived/paused owner and inactive
+cycle admission with active-owner scheduling retained. Finish with the full suite,
+scoped formatting and diff checks. Native delivery/reboot, device restore,
+older-writer compatibility and independent acceptance remain unexecuted release
+gates owned by release QA/product reviewer. Maintainer owns software fixes;
+exposure remains Partial until those gates are evidenced.
+
+## Review regression fixes implementation and evidence — 2026-10-14
+
+This checkpoint supersedes the earlier software-safety claims only for the three
+review findings. All unrelated limitations below remain open.
+
+1. Settlement reads expectations, match history and ledger evidence in one SQLite
+   read transaction. Reversed transaction allocations are excluded from current
+   settlement and Today totals, consistent with Reports. Matches and ledger rows
+   remain intact; a corrected transaction requires its own explicit allocation.
+2. Occurrence synchronization prepares every rule's intent and consumes reopening
+   recovery in one writer transaction, before external cancellation/scheduling.
+   Persistence failure rolls back the whole batch and retains recovery; delivery
+   failure retains complete committed intent. Later instance cancellation, snooze
+   and delivered history survive reconciliation and cold reopen. Schedule Undo
+   uses the same synchronization path.
+3. Shared scheduling checks fresh owner/cycle/occurrence eligibility inside writer
+   admission. Inactive history edits keep their approved durable schedule behavior
+   while cancelling stale delivery and avoiding a new cancelled replacement that
+   would suppress recovery on resume. Pending reopening is retained for inactive
+   owners until eligible restoration. No new notification is scheduled for them.
+
+Per-fix evidence before proceeding: the six new financial repository cases failed
+on the original settlement logic, then the focused eight-file suite passed **51**
+tests and the added root Finance → Today cancellation journey passed **1**. The
+four reopening regressions failed before repair; the focused eight-file reminder
+suite passed **42** tests afterward. Nine eligibility cases failed before repair;
+an additional archived-reopening counterexample drove preservation of pending
+intent. Final eligibility/reopening/real-route checks passed **22** tests. Each
+stage's analyzer passed. An incorrect new test expectation was corrected from
+15 minutes after to the approved 15 minutes before the occurrence; modal journey
+tests now pump dialog transitions without waiting on the underlying busy spinner.
+These were test corrections, not recurrence or reminder-policy changes.
+
+New regression sources: `reversal_settlement_regression_test.dart` covers both
+directions, correction, remaining valid partial payments, production file-backed
+reopen and redacted personal SQLite snapshot restoration without history mutation.
+`reminder_reopening_regression_test.dart` covers atomic multi-rule rollback,
+interrupted recovery, post-commit delivery failure and subsequent cancellation.
+`reminder_eligibility_regression_test.dart` covers archived/paused owner restoration,
+inactive cycles, resolved outcomes and deferred reopening. Added actual widget
+journeys exercise root Finance cancellation/Today refresh and the Details Jalali
+date editor for archived and paused owners with a fake platform adapter.
+
+Escape-process note: previous coverage tested reversals and matching separately,
+cancelled reminders after startup recovery rather than after successful reopening,
+and lifecycle eligibility only in reconcile. The added tests cross those boundaries
+and protect both direct scheduling and downstream financial projections.
+
+Implemented scope: all three reported software fixes; no schema/migration,
+dependency, user copy, persisted enum or history repair. Backup effect: existing
+reversal/reopening evidence is read or consumed through established durable stores;
+no new backup format. Acceptance comparison is self-review, not independent release
+sign-off. Native notification permission/delivery/reboot, isolated device restore,
+older-writer compatibility and independent acceptance remain unexecuted blockers.
+Maintainer owns software follow-up; release QA/product reviewer owns the remaining
+device/independent gates. Exposure remains **Partial**, with production release
+blocked by those gates.
+
+Final integration evidence (Windows host, working tree based on `5d9445a`):
+`flutter test --no-pub --reporter expanded` passed **888 tests, zero failures**
+in **4m36s**, including 23 new regression cases. The three original external
+review counterexamples also passed after all fixes. Final
+`flutter analyze --no-pub` reported **no issues** (5.8s); scoped
+`dart format --output=none --set-exit-if-changed` covered all eight changed/new
+Dart files with **zero changes**, and `git diff --check` passed. Raw full-suite
+output is an ignored local artifact at
+`build/verification/review-regression-full-tests.log`. A simultaneous external
+test attempt hit the shared native-assets DLL lock; after the full run completed,
+the external tests ran successfully. No build/device/native delivery was executed.
+
 ## Undo repair acceptance contract — 2026-10-14
 
 User-approved scope: Finance transaction cancellation/correction and account archive/restore; commitment lifecycle Undo; real-match removal/correction; partial-result reopening; audited date/time schedule Undo and consistent Persian feedback. Actual entry routes are Finance transaction/account menus, commitment action sheet and Details occurrence menus. Core paths are offline and require no new permission.

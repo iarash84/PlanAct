@@ -345,8 +345,13 @@ class AttentionEngine {
       }
     }
 
+    final reversedIds = entries
+        .where((entry) => entry.type == AccountEntryType.reversal)
+        .map((entry) => entry.referenceId)
+        .toSet();
     final allocatedByOccurrence = <StableId, int>{};
     for (final match in matches.where((m) => m.status == MatchStatus.active)) {
+      if (reversedIds.contains(match.transactionId.value)) continue;
       for (final allocation in match.allocations) {
         allocatedByOccurrence[allocation.occurrenceId] =
             (allocatedByOccurrence[allocation.occurrenceId] ?? 0) +
@@ -436,10 +441,6 @@ class AttentionEngine {
         latestReviews[review.transactionId] = review;
       }
     }
-    final reversedIds = entries
-        .where((entry) => entry.type == AccountEntryType.reversal)
-        .map((entry) => entry.referenceId)
-        .toSet();
     final unmatched = <AccountEntry>[];
     final reviews = <StableId, RelationshipReview>{};
     for (final entry in entries) {
