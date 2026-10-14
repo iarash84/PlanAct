@@ -1,5 +1,37 @@
 # Personal reports — acceptance contract
 
+Chart acceptance extension (2026-10-13): More → Reports presents labelled,
+accessible horizontal comparisons before detail rows: occurrence statuses,
+cash in/out/net and selected groups, planned/allocated/remaining settlement,
+ledger-backed package credit, recorded versus preview upcoming slots, attention
+counts and opening/movement/closing balances. Every chart uses the same filtered
+projection as details; currencies, directions and package units stay separate.
+Signed values use a zero baseline; empty data is not fabricated, missing Grant
+withholds the credit chart. Existing retry/refresh/navigation behavior applies.
+No writes, migration, backup change or dependency. Required evidence: populated
+RTL Light/Dark narrow/large-text charts, exact signed/zero values, filtered route
+refresh and existing report regressions. Device visual and independent acceptance
+remain release-maintainer gates, not established by widget tests.
+
+Chart path: More → Reports selection/date/filter → existing ReportsReader
+coherent snapshot → buildPersonalReport read-only projection → ReportBarChart
+and existing details. No durable write occurs. Refresh and return navigation
+rebuild both consumers together. Existing cash/settlement/ledger rules remain
+the source of values; floating point is confined to normalized drawing geometry.
+
+Chart verification checkpoint: `test/widget/report_bar_chart_test.dart` passes
+signed common-zero geometry, exact accessible labels, zero/empty data and populated
+360dp RTL Light/Dark at 1.8 text scale. Existing SQLite-backed report journeys now
+assert cash chart values before/after tag filtering and refresh (1000 → 100 → 150).
+The Details journey scrolls its target into the viewport before tapping; inserting
+the visible chart exposed an earlier test assumption about target position.
+Focused report domain/repository/widget run: **23 passed**. Final full application
+suite: **816 passed, 0 failed**, 4m31s. `flutter analyze`: no issues; Dart formatting
+and `git diff --check` passed. No new domain decisions, schema or dependencies.
+Native chart visual/accessibility review and realistic-volume performance remain
+unexecuted; release maintainer owns device review and independent acceptance.
+These automated checks do not change the existing Partial/release readiness gates.
+
 User-approved scope (2026-10-13): offline personal reports reached through More →
 Reports, using existing durable records without new permissions or accounts.
 Provide overview, performance, attention, cash flow, planned/settled payments,

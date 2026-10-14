@@ -14,6 +14,7 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/reports/application/reports_reader.dart';
 import 'package:planact/features/reports/domain/personal_reports.dart';
+import 'package:planact/features/reports/presentation/report_bar_chart.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
@@ -548,6 +549,26 @@ class _ReportsPageState extends State<ReportsPage> {
       );
       final resolved = report.occurrences.where((r) => r.resolved).length;
       widgets.add(
+        ReportBarChart(
+          title: 'توزیع وضعیت نوبت‌ها',
+          data: [
+            for (final status in OccurrenceStatus.values)
+              if (report.occurrences.any((r) => r.occurrence.status == status))
+                ReportBarDatum(
+                  occurrenceStatusLabel(status),
+                  report.occurrences
+                      .where((r) => r.occurrence.status == status)
+                      .length,
+                  PersianNumbers.format(
+                    report.occurrences
+                        .where((r) => r.occurrence.status == status)
+                        .length,
+                  ),
+                ),
+          ],
+        ),
+      );
+      widgets.add(
         Text(
           'نوبت‌های ثبت‌شده: ${PersianNumbers.format(report.occurrences.length)}؛ تعیین‌وضعیت‌شده: ${PersianNumbers.format(resolved)}',
         ),
@@ -598,6 +619,11 @@ class _ReportsPageState extends State<ReportsPage> {
             .toList();
         widgets.add(
           _section('جریان نقدی — ${total.key}', [
+            _moneyChart('مقایسهٔ دخل‌وخرج', total.key, {
+              'ورودی': total.value.incoming,
+              'خروجی': total.value.outgoing,
+              'خالص': total.value.net,
+            }),
             Text('ورودی: ${_money(total.value.incoming, total.key)}'),
             Text('خروجی: ${_money(total.value.outgoing, total.key)}'),
             Text('خالص: ${_money(total.value.net, total.key)}'),
@@ -639,6 +665,20 @@ class _ReportsPageState extends State<ReportsPage> {
         };
         (groups['$label — ${m.entry.amount.currency}'] ??= []).add(m);
       }
+      for (final currency in report.cashTotals.keys) {
+        final values = <String, int>{};
+        for (final group in groups.entries) {
+          if (group.value.first.entry.amount.currency != currency) continue;
+          final total = ReportCashTotal();
+          for (final movement in group.value) {
+            total.add(movement);
+          }
+          values[group.key] = total.net;
+        }
+        widgets.add(
+          _moneyChart('مقایسهٔ خالص گروه‌ها — $currency', currency, values),
+        );
+      }
       for (final group in groups.entries) {
         final total = ReportCashTotal();
         for (final m in group.value) {
@@ -647,7 +687,18 @@ class _ReportsPageState extends State<ReportsPage> {
         widgets.add(
           _section(
             '${group.key}؛ خالص: ${_money(total.net, group.value.first.entry.amount.currency)}',
-            group.value.map((m) => _movementTile(m, data)).toList(),
+            [
+              _moneyChart(
+                'مقایسهٔ گردش گروه',
+                group.value.first.entry.amount.currency,
+                {
+                  'ورودی': total.incoming,
+                  'خروجی': total.outgoing,
+                  'خالص': total.net,
+                },
+              ),
+              ...group.value.map((m) => _movementTile(m, data)),
+            ],
           ),
         );
       }
@@ -678,6 +729,11 @@ class _ReportsPageState extends State<ReportsPage> {
         final currency = group.value.first.expectation.currency;
         widgets.add(
           _section(group.key, [
+            _moneyChart('برنامه در برابر تسویه', currency, {
+              'برنامه': expected,
+              'تطبیق': allocated,
+              'باقی‌مانده': remaining,
+            }),
             Text(
               'برنامه: ${_money(expected, currency)}؛ تطبیق: ${_money(allocated, currency)}؛ باقی‌مانده: ${_money(remaining, currency)}',
             ),
@@ -712,6 +768,22 @@ class _ReportsPageState extends State<ReportsPage> {
       for (final p in report.packages) {
         widgets.add(
           _section('${p.commitment.title} — بسته از ${_date(p.plan.validFrom)}', [
+            if (p.hasRecordedGrant)
+              ReportBarChart(
+                title: 'مقایسهٔ اعتبار دفتر',
+                data: [
+                  for (final e in {
+                    'اعتبار': p.balance.granted,
+                    'کسر دفتر': p.balance.consumed,
+                    'باقی‌مانده': p.balance.remaining,
+                  }.entries)
+                    ReportBarDatum(
+                      e.key,
+                      e.value,
+                      '${PersianNumbers.format(e.value)} ${_unit(p.plan.unitType)}',
+                    ),
+                ],
+              ),
             Text(
               'اعتبار تنظیم‌شدهٔ بسته: ${PersianNumbers.format(p.plan.totalUnits)} ${_unit(p.plan.unitType)}',
             ),
@@ -754,6 +826,23 @@ class _ReportsPageState extends State<ReportsPage> {
     }
     if (_kind == PersonalReportKind.upcoming) {
       widgets.add(
+        ReportBarChart(
+          title: 'برنامهٔ ثبت‌شده و پیش‌نمایش',
+          data: [
+            ReportBarDatum(
+              'نوبت ثبت‌شده',
+              report.occurrences.length,
+              PersianNumbers.format(report.occurrences.length),
+            ),
+            ReportBarDatum(
+              'پیش‌نمایش ذخیره‌نشده',
+              report.previews.length,
+              PersianNumbers.format(report.previews.length),
+            ),
+          ],
+        ),
+      );
+      widgets.add(
         _section(
           'پیش‌نمایش ذخیره‌نشده: ${PersianNumbers.format(report.previews.length)}',
           [
@@ -784,6 +873,23 @@ class _ReportsPageState extends State<ReportsPage> {
     }
     if (_kind == PersonalReportKind.attention) {
       widgets.add(
+        ReportBarChart(
+          title: 'حجم موارد نیازمند پیگیری (گروه‌ها ممکن است هم‌پوشانی داشته باشند)',
+          data: [
+            ReportBarDatum(
+              'نوبت نیازمند پیگیری',
+              report.occurrences.length,
+              PersianNumbers.format(report.occurrences.length),
+            ),
+            ReportBarDatum(
+              'تراکنش نیازمند تعیین ارتباط',
+              report.unreviewed.length,
+              PersianNumbers.format(report.unreviewed.length),
+            ),
+          ],
+        ),
+      );
+      widgets.add(
         _section(
           'تراکنش‌های نیازمند تعیین ارتباط: ${PersianNumbers.format(report.unreviewed.length)}',
           [
@@ -813,6 +919,11 @@ class _ReportsPageState extends State<ReportsPage> {
       for (final a in report.accounts) {
         widgets.add(
           _section(a.account.name, [
+            _moneyChart('تغییر موجودی از کل دفتر حساب', a.account.currency, {
+              'ابتدای دوره': a.opening,
+              'خالص گردش کل دوره': a.movement,
+              'پایان دوره': a.closing,
+            }),
             Text('ابتدای دوره: ${_money(a.opening, a.account.currency)}'),
             Text(
               'خالص گردش کل دوره: ${_money(a.movement, a.account.currency)}',
@@ -831,6 +942,19 @@ class _ReportsPageState extends State<ReportsPage> {
     }
     return widgets;
   }
+
+  Widget _moneyChart(String title, String? currency, Map<String, int> values) =>
+      ReportBarChart(
+        title: title,
+        data: [
+          for (final entry in values.entries)
+            ReportBarDatum(
+              entry.key,
+              entry.value,
+              _money(entry.value, currency),
+            ),
+        ],
+      );
 
   Widget _section(
     String title,

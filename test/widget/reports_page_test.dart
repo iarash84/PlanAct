@@ -17,6 +17,7 @@ import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reports/application/reports_reader.dart';
 import 'package:planact/features/reports/domain/personal_reports.dart';
 import 'package:planact/features/reports/presentation/reports_page.dart';
+import 'package:planact/features/reports/presentation/report_bar_chart.dart';
 
 class _Reader implements ReportsReader {
   bool fail = true;
@@ -86,6 +87,11 @@ void main() {
         150,
         scrollable: scroll,
       );
+      await Scrollable.ensureVisible(
+        tester.element(find.text('برنامه‌ریزی‌شده: ۱')),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('برنامه‌ریزی‌شده: ۱'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
@@ -228,6 +234,10 @@ void main() {
           scrollable: scroll,
         );
         expect(find.text('خروجی: ۱,۰۰۰ ریال'), findsOneWidget);
+        ReportBarChart cashChart() => tester
+            .widgetList<ReportBarChart>(find.byType(ReportBarChart))
+            .firstWhere((chart) => chart.title == 'مقایسهٔ دخل‌وخرج');
+        expect(cashChart().data.map((d) => d.value), [0, 1000, -1000]);
         await tester.scrollUntilVisible(
           find.text('فیلترهای گزارش'),
           -180,
@@ -246,6 +256,7 @@ void main() {
           scrollable: scroll,
         );
         expect(find.text('خروجی: ۱۰۰ ریال'), findsOneWidget);
+        expect(cashChart().data.map((d) => d.value), [0, 100, -100]);
         expect(find.text('هزینهٔ دیگر'), findsNothing);
         expect(find.text('هزینهٔ ورزش'), findsWidgets);
         final extra = await add(50, 'ورزش دوم');
@@ -262,6 +273,7 @@ void main() {
           scrollable: scroll,
         );
         expect(find.text('خروجی: ۱۵۰ ریال'), findsOneWidget);
+        expect(cashChart().data.map((d) => d.value), [0, 150, -150]);
         expect((await finance.listEntries()).length, 3);
         await tester.pumpWidget(const SizedBox.shrink());
       },
