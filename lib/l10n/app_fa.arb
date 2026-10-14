@@ -7179,5 +7179,93 @@
         "x-planact-default": true,
         "x-planact-introduced": "alarm-2026-10-14",
         "x-planact-android-resource": "planact_alarm_retry"
+    },
+    "calendarNoteLabel": "یادداشت",
+    "calendarNoteColorLabel": "رنگ یادداشت",
+    "@calendarNoteColorLabel": {
+        "description": "Note identity color picker label.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteColorHint": "یادداشت در تقویم با این رنگ نمایش داده می‌شود.",
+    "@calendarNoteColorHint": {
+        "description": "Explains note identity color use.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "@calendarNoteLabel": {
+        "description": "Independent date-only calendar note action and type label.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteAddSubtitle": "عنوان و توضیحات روی تقویم، بدون اعلان",
+    "@calendarNoteAddSubtitle": {
+        "description": "Global Add note subtitle.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteCreateTitle": "افزودن یادداشت",
+    "@calendarNoteCreateTitle": {
+        "description": "Create note form title.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteEditTitle": "ویرایش یادداشت",
+    "@calendarNoteEditTitle": {
+        "description": "Edit note form title.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteTitleField": "عنوان",
+    "@calendarNoteTitleField": {
+        "description": "Required note title field label.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteDescriptionField": "توضیحات (اختیاری)",
+    "@calendarNoteDescriptionField": {
+        "description": "Optional note description label.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteChooseDate": "انتخاب تاریخ",
+    "@calendarNoteChooseDate": {
+        "description": "Explicit Jalali note date picker action.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteTitleRequired": "عنوان یادداشت را وارد کنید.",
+    "@calendarNoteTitleRequired": {
+        "description": "Empty note title validation error.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteDateRequired": "تاریخ یادداشت را انتخاب کنید.",
+    "@calendarNoteDateRequired": {
+        "description": "Missing note date validation error.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteSaveFailed": "یادداشت ذخیره نشد. دوباره تلاش کنید.",
+    "@calendarNoteSaveFailed": {
+        "description": "Save failed; input remains available for retry.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteStale": "این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.",
+    "@calendarNoteStale": {
+        "description": "Stale edit conflict; reopen to read fresh revision.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteNoDelivery": "این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.",
+    "@calendarNoteNoDelivery": {
+        "description": "Explanation of note delivery semantics.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteSaved": "یادداشت ذخیره شد.",
+    "@calendarNoteSaved": {
+        "description": "Successful durable note save.",
+        "x-planact-introduced": "calendar-note-2026-10-14"
+    },
+    "calendarNoteDaySummary": "{count} یادداشت: {titles}",
+    "@calendarNoteDaySummary": {
+        "description": "Accessible month day note summary, separate from commitment counts.",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            },
+            "titles": {
+                "type": "String"
+            }
+        },
+        "x-planact-introduced": "calendar-note-2026-10-14"
     }
 }

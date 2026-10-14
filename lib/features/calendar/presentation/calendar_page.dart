@@ -1,4 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/notes/domain/calendar_note.dart';
+import 'package:planact/features/notes/presentation/calendar_note_tile.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 
 import 'dart:math' as math;
@@ -38,10 +40,16 @@ class CalendarPage extends StatefulWidget {
     this.weekLoader,
     this.monthLoader,
     this.plannedLoader,
+    this.noteLoader,
+    this.notesRevision = 0,
+    this.onNoteTap,
     this.holidayProvider = const IranianHolidayProvider(),
   });
 
   final List<Commitment> commitments;
+  final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
+  final int notesRevision;
+  final ValueChanged<CalendarNote>? onNoteTap;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate, LocalDate)?
   monthLoader;
@@ -71,6 +79,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Map<JalaliDate, List<Commitment>> _monthItems = {};
   Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
   Map<String, List<PlannedOccurrenceSlot>> _monthPreviews = {};
+  Map<LocalDate, List<CalendarNote>> _monthNotes = {};
   final _monthScroll = ScrollController();
 
   @override
@@ -125,12 +134,15 @@ class _CalendarPageState extends State<CalendarPage> {
     final revision = ++_monthRevision;
     final loader = widget.monthLoader;
     final plannedLoader = widget.plannedLoader;
+    final noteLoader = widget.noteLoader;
+    _monthNotes = {};
     _monthPreviews = {};
     _monthItems = {};
     _monthOccurrences = {};
     _monthError = false;
-    _monthLoading = loader != null || plannedLoader != null;
-    if (loader == null && plannedLoader == null) {
+    _monthLoading =
+        loader != null || plannedLoader != null || noteLoader != null;
+    if (!_monthLoading) {
       _groupMonth(widget.occurrences);
       return;
     }
@@ -139,11 +151,21 @@ class _CalendarPageState extends State<CalendarPage> {
       JalaliDate(_month.year, _month.month, _month.monthLength).toDateTime(),
     );
     try {
+      final notes =
+          await noteLoader?.call(start, end.addDays(1)) ?? <CalendarNote>[];
       final planned = await plannedLoader?.call(start, end.addDays(1));
-      final result = planned?.recorded ?? await loader!(start, end.addDays(1));
+      final result =
+          planned?.recorded ??
+          (loader == null
+              ? widget.occurrences
+              : await loader(start, end.addDays(1)));
       if (!mounted || revision != _monthRevision) return;
       setState(() {
         _monthPreviews = planned?.preview ?? {};
+        _monthNotes = {};
+        for (final note in notes) {
+          (_monthNotes[note.date] ??= []).add(note);
+        }
         _groupMonth(result);
         _monthLoading = false;
       });
@@ -188,6 +210,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final leading = _month.weekDay - 1;
     final cellCount = ((leading + _month.monthLength + 6) ~/ 7) * 7;
     final selectedItems = _commitmentsFor(_selectedDay);
+    final selectedNotes = _notesFor(_selectedDay);
 
     final toggle = SizedBox(
       width: double.infinity,
@@ -289,6 +312,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   plannedLoader: widget.plannedLoader,
                   onTap: widget.onCommitmentTap,
                   onAdd: widget.onAdd,
+                  noteLoader: widget.noteLoader,
+                  notesRevision: widget.notesRevision,
+                  onNoteTap: widget.onNoteTap,
                 )
               : ListView(
                   controller: _monthScroll,
@@ -329,7 +355,10 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         ],
                       ),
-                    if (!_monthLoading && !_monthError && _monthItems.isEmpty)
+                    if (!_monthLoading &&
+                        !_monthError &&
+                        _monthItems.isEmpty &&
+                        _monthNotes.isEmpty)
                       Text(planActL10n(context).calendarPageBuildChildren4),
                     const SizedBox(height: PlanActSpacing.md),
                     LayoutBuilder(
@@ -402,12 +431,14 @@ class _CalendarPageState extends State<CalendarPage> {
                               day,
                             );
                             final items = _commitmentsFor(date);
+                            final itemCount =
+                                items.length + _notesFor(date).length;
                             final hasHoliday = holidays.any(
                               (holiday) => holiday.date == date,
                             );
-                            final overflowHeight = items.length > 2
+                            final overflowHeight = itemCount > 2
                                 ? textHeight(
-                                    '+${PersianNumbers.format(items.length - 2)}',
+                                    '+${PersianNumbers.format(itemCount - 2)}',
                                     theme.textTheme.labelSmall,
                                   )
                                 : 0.0;
@@ -415,8 +446,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               height,
                               numberHeight +
                                   (hasHoliday ? holidayHeight : 0) +
-                                  math.min(items.length, 2) *
-                                      (markerHeight + 2) +
+                                  math.min(itemCount, 2) * (markerHeight + 2) +
                                   overflowHeight +
                                   PlanActSpacing.sm +
                                   (date == today ? 4 : 0),
@@ -496,6 +526,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                                 )
                                                 .toList(),
                                             commitments: items,
+                                            notes: _notesFor(date),
                                             markerHeight: markerHeight,
                                             onTap: () => setState(
                                               () => _selectedDay = date,
@@ -539,7 +570,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       ),
                     if (_monthLoading || _monthError)
                       Text(planActL10n(context).calendarPageBuildChildren5)
-                    else if (selectedItems.isEmpty)
+                    else if (selectedItems.isEmpty && selectedNotes.isEmpty)
                       Text(planActL10n(context).calendarPageBuildChildren6)
                     else
                       ...selectedItems.map(
@@ -563,6 +594,14 @@ class _CalendarPageState extends State<CalendarPage> {
                               : () => widget.onCommitmentTap!(item),
                         ),
                       ),
+                    if (!_monthLoading && !_monthError)
+                      for (final note in selectedNotes)
+                        CalendarNoteTile(
+                          note: note,
+                          onTap: widget.onNoteTap == null
+                              ? null
+                              : () => widget.onNoteTap!(note),
+                        ),
                   ],
                 ),
         ),
@@ -581,6 +620,9 @@ class _CalendarPageState extends State<CalendarPage> {
 
   List<Commitment> _commitmentsFor(JalaliDate date) =>
       _monthItems[date] ?? const [];
+
+  List<CalendarNote> _notesFor(JalaliDate date) =>
+      _monthNotes[LocalDate.fromDateTime(date.toDateTime())] ?? const [];
 }
 
 String _holidayLabel(CalendarHoliday holiday) => switch (holiday.kind) {
@@ -645,6 +687,7 @@ class _CalendarDay extends StatelessWidget {
     required this.isToday,
     required this.holidays,
     required this.commitments,
+    required this.notes,
     required this.markerHeight,
     required this.onTap,
   });
@@ -654,6 +697,7 @@ class _CalendarDay extends StatelessWidget {
   final bool isToday;
   final List<CalendarHoliday> holidays;
   final List<Commitment> commitments;
+  final List<CalendarNote> notes;
   final double markerHeight;
   final VoidCallback onTap;
 
@@ -682,21 +726,30 @@ class _CalendarDay extends StatelessWidget {
         ? planActL10n(context).calendarPageCountLabelMessage
         : planActL10n(context)
               .calendarPageCountLabelMessage2((count).toString());
+    final noteLabel = notes.isEmpty
+        ? ''
+        : planActL10n(context).calendarNoteDaySummary(
+            PersianNumbers.format(notes.length),
+            notes
+                .map((note) => note.title)
+                .join(planActL10n(context).commonListSeparator),
+          );
+    final markers = [
+      for (final item in commitments)
+        (
+          id: item.id.value,
+          title: item.title,
+          color: CommitmentIdentityPalette.resolve(item.color, item.id),
+        ),
+      for (final note in notes)
+        (id: note.id.value, title: note.title, color: note.color),
+    ];
     return Semantics(
       key: ValueKey('calendar-day-${date.day}'),
       button: true,
       selected: selected,
-      label: planActL10n(context).calendarPageBuildLabel2(
-        (dateLabel).toString(),
-        (selectionLabel).toString(),
-        (todayLabel).toString(),
-        (holidayLabel).toString(),
-        (countLabel).toString(),
-        (commitments
-                .map((item) => item.title)
-                .join(planActL10n(context).commonListSeparator))
-            .toString(),
-      ),
+      label:
+          '${planActL10n(context).calendarPageBuildLabel2((dateLabel).toString(), (selectionLabel).toString(), (todayLabel).toString(), (holidayLabel).toString(), (countLabel).toString(), (commitments.map((item) => item.title).join(planActL10n(context).commonListSeparator)).toString())} $noteLabel',
       onTap: onTap,
       child: ExcludeSemantics(
         child: Material(
@@ -742,19 +795,16 @@ class _CalendarDay extends StatelessWidget {
                         color: PlanActStatusColors.of(context).holiday,
                       ),
                     ),
-                  for (final item in commitments.take(2))
+                  for (final item in markers.take(2))
                     Container(
-                      key: ValueKey('month-title-${date.day}-${item.id.value}'),
+                      key: ValueKey('month-title-${date.day}-${item.id}'),
                       height: markerHeight,
                       margin: const EdgeInsets.only(top: 2),
                       padding: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         borderRadius: PlanActRadius.chip,
                         color: CommitmentIdentityPalette.background(
-                          CommitmentIdentityPalette.resolve(
-                            item.color,
-                            item.id,
-                          ),
+                          item.color,
                           theme.brightness,
                         ),
                       ),
@@ -765,18 +815,15 @@ class _CalendarDay extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: CommitmentIdentityPalette.foreground(
-                            CommitmentIdentityPalette.resolve(
-                              item.color,
-                              item.id,
-                            ),
+                            item.color,
                             theme.brightness,
                           ),
                         ),
                       ),
                     ),
-                  if (commitments.length > 2)
+                  if (markers.length > 2)
                     Text(
-                      '+${PersianNumbers.format(commitments.length - 2)}',
+                      '+${PersianNumbers.format(markers.length - 2)}',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: selected

@@ -4577,4 +4577,57 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get reminderAlarmRetry =>
       'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.';
+
+  @override
+  String get calendarNoteLabel => 'یادداشت';
+
+  @override
+  String get calendarNoteColorLabel => 'رنگ یادداشت';
+
+  @override
+  String get calendarNoteColorHint =>
+      'یادداشت در تقویم با این رنگ نمایش داده می‌شود.';
+
+  @override
+  String get calendarNoteAddSubtitle => 'عنوان و توضیحات روی تقویم، بدون اعلان';
+
+  @override
+  String get calendarNoteCreateTitle => 'افزودن یادداشت';
+
+  @override
+  String get calendarNoteEditTitle => 'ویرایش یادداشت';
+
+  @override
+  String get calendarNoteTitleField => 'عنوان';
+
+  @override
+  String get calendarNoteDescriptionField => 'توضیحات (اختیاری)';
+
+  @override
+  String get calendarNoteChooseDate => 'انتخاب تاریخ';
+
+  @override
+  String get calendarNoteTitleRequired => 'عنوان یادداشت را وارد کنید.';
+
+  @override
+  String get calendarNoteDateRequired => 'تاریخ یادداشت را انتخاب کنید.';
+
+  @override
+  String get calendarNoteSaveFailed => 'یادداشت ذخیره نشد. دوباره تلاش کنید.';
+
+  @override
+  String get calendarNoteStale =>
+      'این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.';
+
+  @override
+  String get calendarNoteNoDelivery =>
+      'این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.';
+
+  @override
+  String get calendarNoteSaved => 'یادداشت ذخیره شد.';
+
+  @override
+  String calendarNoteDaySummary(String count, String titles) {
+    return '$count یادداشت: $titles';
+  }
 }

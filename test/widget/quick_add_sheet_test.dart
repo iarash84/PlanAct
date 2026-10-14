@@ -25,7 +25,7 @@ void main() {
     expect(find.text('درآمد'), findsOneWidget);
     expect(find.text('انتقال'), findsOneWidget);
     expect(find.text('تعهد'), findsOneWidget);
-    expect(find.text('یادداشت'), findsNothing);
+    expect(find.text('یادداشت'), findsOneWidget);
   });
 
   testWidgets('quick expense validates and preserves input on failure', (

@@ -252,6 +252,13 @@ see [ADR 0022](docs/adr/0022-optional-native-alarm-reminders.md) and
 
 ## 10. Actual, history, and reconciliation
 
+User-approved 2026-10-14 calendar notes: Global Add offers independent notes with
+title, optional description, explicit Jalali local date and shared identity color.
+Notes appear in Month and Week and may be explicitly edited with revision checks
+and retained snapshots. They must never create commitments, occurrences, overdue
+attention, reminders/notifications/alarms, money or entitlement effects. Preserve
+notes in personal backup; see ADR 0023 and docs/CALENDAR_NOTES_VERIFICATION.md.
+
 Actual/Evidence may represent:
 
 - Completion.

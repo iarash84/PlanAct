@@ -7654,6 +7654,102 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.'**
   String get reminderAlarmRetry;
+
+  /// Independent date-only calendar note action and type label.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت'**
+  String get calendarNoteLabel;
+
+  /// Note identity color picker label.
+  ///
+  /// In fa, this message translates to:
+  /// **'رنگ یادداشت'**
+  String get calendarNoteColorLabel;
+
+  /// Explains note identity color use.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت در تقویم با این رنگ نمایش داده می‌شود.'**
+  String get calendarNoteColorHint;
+
+  /// Global Add note subtitle.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان و توضیحات روی تقویم، بدون اعلان'**
+  String get calendarNoteAddSubtitle;
+
+  /// Create note form title.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن یادداشت'**
+  String get calendarNoteCreateTitle;
+
+  /// Edit note form title.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش یادداشت'**
+  String get calendarNoteEditTitle;
+
+  /// Required note title field label.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان'**
+  String get calendarNoteTitleField;
+
+  /// Optional note description label.
+  ///
+  /// In fa, this message translates to:
+  /// **'توضیحات (اختیاری)'**
+  String get calendarNoteDescriptionField;
+
+  /// Explicit Jalali note date picker action.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب تاریخ'**
+  String get calendarNoteChooseDate;
+
+  /// Empty note title validation error.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان یادداشت را وارد کنید.'**
+  String get calendarNoteTitleRequired;
+
+  /// Missing note date validation error.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ یادداشت را انتخاب کنید.'**
+  String get calendarNoteDateRequired;
+
+  /// Save failed; input remains available for retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت ذخیره نشد. دوباره تلاش کنید.'**
+  String get calendarNoteSaveFailed;
+
+  /// Stale edit conflict; reopen to read fresh revision.
+  ///
+  /// In fa, this message translates to:
+  /// **'این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.'**
+  String get calendarNoteStale;
+
+  /// Explanation of note delivery semantics.
+  ///
+  /// In fa, this message translates to:
+  /// **'این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.'**
+  String get calendarNoteNoDelivery;
+
+  /// Successful durable note save.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت ذخیره شد.'**
+  String get calendarNoteSaved;
+
+  /// Accessible month day note summary, separate from commitment counts.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} یادداشت: {titles}'**
+  String calendarNoteDaySummary(String count, String titles);
 }
 
 class _AppLocalizationsDelegate

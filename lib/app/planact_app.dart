@@ -1,4 +1,8 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/notes/application/calendar_note_repository.dart';
+import 'package:planact/features/notes/data/drift_calendar_note_repository.dart';
+import 'package:planact/features/notes/domain/calendar_note.dart';
+import 'package:planact/features/notes/presentation/calendar_note_editor.dart';
 import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/features/scheduling/application/schedule_undo.dart';
@@ -324,6 +328,11 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
+  late final CalendarNoteRepository _noteRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftCalendarNoteRepository(_repository.database)
+      : InMemoryCalendarNoteRepository();
+  int _notesRevision = 0;
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
@@ -704,6 +713,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final action = await QuickAddSheet.show(context);
     if (!mounted || action == null) return;
     switch (action) {
+      case QuickAddAction.note:
+        await _showNote();
       case QuickAddAction.commitment:
         await _showCapture();
       case QuickAddAction.expense:
@@ -712,6 +723,17 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       case QuickAddAction.transfer:
         await _showQuickTransfer();
     }
+  }
+
+  Future<void> _showNote([CalendarNote? note]) async {
+    final result = await CalendarNoteEditor.show(
+      context,
+      _noteRepository,
+      note: note,
+    );
+    if (!mounted) return;
+    setState(() => _notesRevision++);
+    if (result != null) _showMessage(planActL10n(context).calendarNoteSaved);
   }
 
   Future<void> _showQuickFinancialEntry({required bool income}) async {
@@ -1250,6 +1272,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         },
       ),
       CalendarPage(
+        noteLoader: _noteRepository.loadRange,
+        notesRevision: _notesRevision,
+        onNoteTap: _showNote,
         holidayProvider:
             widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,

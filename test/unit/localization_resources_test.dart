@@ -97,7 +97,7 @@ void main() {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
     // must update this baseline with explicit review, not regenerate it in CI.
-    // New user-approved Undo/Inbox/SMS/browse messages are separately marked and are not part
+    // New user-approved Undo/Inbox/SMS/browse/note messages are separately marked and are not part
     // of the frozen pre-migration source. All catalog metadata is still checked.
     final templates =
         catalog.entries
@@ -112,6 +112,7 @@ void main() {
                     'interaction-2026-10-14',
                     'alarm-2026-10-14',
                     'holiday-data-2026-10-14',
+                    'calendar-note-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
