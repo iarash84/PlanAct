@@ -173,6 +173,12 @@ RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/en
 
 ## Brand exceptions
 
+Finance account cards and account selectors show bundled bank symbols from
+`assets/banks/` at 32dp with contained proportions and Persian semantic labels.
+The original white artwork field is retained in Light/Dark to preserve external
+brand readability; it is an entity-only exception, not a new surface token.
+Names remain wrapping text; missing identity/artwork uses the generic account icon.
+
 Official bank/provider colors may appear only when needed to identify that external entity. Keep them scoped to the entity representation; they must not become PlanAct theme colors, general action colors, or status semantics. Logo use is similarly limited to appropriate brand moments. Any other exception must be necessary, small in scope, consistent with product behavior and accessibility, and documented with the affected surface and reason.
 
 ## Change and review policy

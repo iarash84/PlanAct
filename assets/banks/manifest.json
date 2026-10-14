@@ -1,0 +1,134 @@
+{
+  "melli": {
+    "source": "bmi-300-wc.png",
+    "sha256": "cca50875cfaf2d28e6e914659067ba7578a544df1f71fcfdbbface14947ad0cc"
+  },
+  "mellat": {
+    "source": "mellat-300-wc.png",
+    "sha256": "b566f3b7c1e58c4f8a69109e5a230ee4d47f025b7902c2726e9f06c56b814f30"
+  },
+  "saderat": {
+    "source": "bsi-300-wc.png",
+    "sha256": "09234f5cef04cc680e537ae0b2bd8935fb8c9acbcd5089b49e9e66f1a0ec9212"
+  },
+  "tejarat": {
+    "source": "tejarat-300-wc.png",
+    "sha256": "138aa5f69821b9058ae4ceffa58834479bb71bca06d4398f3e6407638fb97c9d"
+  },
+  "refah": {
+    "source": "rb-300-wc.png",
+    "sha256": "a955a65472824a5dd3eb3bb1f211d37d835ea69fbf8532f1904abf2b2a49d878"
+  },
+  "maskan": {
+    "source": "maskan-300-wc.png",
+    "sha256": "6d74e0fc059f9c50ebbfb7101e660d9508d97423d52573f9bf1c920265709dc8"
+  },
+  "sepah": {
+    "source": "sepah-300-wc.png",
+    "sha256": "73ed867c4c1cd6143d63afe5742ba096696a8f64c0416bc8fe36eb0c61a729c2"
+  },
+  "keshavarzi": {
+    "source": "bki-300-wc.png",
+    "sha256": "b2668334e1fcacafd55081a759ee4afde6c3a403fe100d543ce391761913284e"
+  },
+  "pasargad": {
+    "source": "bpi-300-wc.png",
+    "sha256": "5af3d2074fd698f871c34f2ad8599f790bdc5e64f29bca912f384bf31bc7f284"
+  },
+  "saman": {
+    "source": "sb-300-wc.png",
+    "sha256": "04fac33e03229faed61b4099bd664a3384800770b978e9e7415943e4a09789f2"
+  },
+  "parsian": {
+    "source": "parsian-300-wc.png",
+    "sha256": "189385f38a139050431d659eef473fef25ea2b73dde4ea8bb393fd69eb555abe"
+  },
+  "shahr": {
+    "source": "shahr-300-wc.png",
+    "sha256": "442a4d3e4cfebe5ee47a677d9adeb5af0edaf85ba5d2a1f68613f3ed07848d30"
+  },
+  "ayandeh": {
+    "source": "ba-300-wc.png",
+    "sha256": "f86d3ca5d1b9bdfbe254a7e1c3c4a8c11e639f9f20717400ea5d256b586393d2"
+  },
+  "eghtesad_novin": {
+    "source": "en-300-wc.png",
+    "sha256": "7942a988b21af3c0fe770af1f9a7a6bef7bc34685fde701196947c1a165d4f5e"
+  },
+  "day": {
+    "source": "day-300-wc.png",
+    "sha256": "4ef0798f5fe7ffdd2fb45fec6793e7e026521ed3ef503d7d2c999a0e500d8255"
+  },
+  "gardeshgari": {
+    "source": "tourism-300-wc.png",
+    "sha256": "4529414d0549bec38ca9edcab1260f43a03cf412d6d44d3bcb2d434959154756"
+  },
+  "iran_zamin": {
+    "source": "iz-300-wc.png",
+    "sha256": "2f4fb3aaa8b9943e828830ae92c8331a1b94af1db253a9fc690f00a64ea10b61"
+  },
+  "karafarin": {
+    "source": "kar-300-wc.png",
+    "sha256": "12db1c8c620a9a3037b3d235236b8411fe1eb46211564fc316cfb01bb9ae55ad"
+  },
+  "sina": {
+    "source": "sina-300-wc.png",
+    "sha256": "c2032ee86df80319c5cbd1ff3433c448cb19dda0c625ba9772d5e974de8ebfec"
+  },
+  "ghavamin": {
+    "source": "ghbi-300-wc.png",
+    "sha256": "dd9a2416e8b0403fed6ef3a9fb7bcef4b6febea39822c0881454842062ebd503"
+  },
+  "ansar": {
+    "source": "ansar-300-wc.png",
+    "sha256": "eccdc08dd43fb2c34778868b1d178a0221c84bc883c181361f7485d00151c4cc"
+  },
+  "mehr_iran": {
+    "source": "mehriran-300-wc.png",
+    "sha256": "cc4301d08d4023e7de8d0b0c63136530d437ce120de15edbddd2b806ab6c635b"
+  },
+  "tosee_taavon": {
+    "source": "tt-300-wc.png",
+    "sha256": "fd69e65c9125fcdf7ff71250bf8d7f3dd8d75b4750273c04887a05c2a067c5bf"
+  },
+  "sarmayeh": {
+    "source": "sarmayeh-300-wc.png",
+    "sha256": "67dcab07fb8fdc8d8187f6a8ce1602fac7ca56100c52bf1f2a54174ac05dfade"
+  },
+  "tosee_saderat": {
+    "source": "edbi-300-wc.png",
+    "sha256": "f495dc327a4974fe15f54228cd66578425231c5863075ae5c28992a1234c17d9"
+  },
+  "post_bank": {
+    "source": "post-300-wc.png",
+    "sha256": "53e5240301bf882b823da0424996fbbc5c3e15562f020dafad88f6ef741908c6"
+  },
+  "khavarmianeh": {
+    "source": "me-300-wc.png",
+    "sha256": "92741a36fa4687ab2f74714cf4af021a0e3bcfc849985fb94936dba7901eefdc"
+  },
+  "hekmat": {
+    "source": "hi-300-wc.png",
+    "sha256": "5fa7ecc7760e02e5653d2e5b95855dcc37e1f56f8008341e9ddd70785104d5b7"
+  },
+  "iran_venezuela": {
+    "source": "ivbb-300-wc.png",
+    "sha256": "1cafcc7fc6ce1d60a3134659ff8afe962529a8aada375230a72aba3e0517da18"
+  },
+  "resalat": {
+    "source": "resalat-300-wc.png",
+    "sha256": "efa09a2581cff2f7124b256b3100daf5187844ddf670e08f9f2f94e1ce504bfb"
+  },
+  "melal": {
+    "source": "melal-300-wc.png",
+    "sha256": "3b2453744168b53507a177c39fdd3acc9e1125c244e1833aa7ac61c452b29a03"
+  },
+  "sanat_madan": {
+    "source": "bim-300-wc.png",
+    "sha256": "a6b4d419063998106c4030736d88b3b0b0a0b0482afd13ac1a94c48fd27f4902"
+  },
+  "refah_legacy": {
+    "source": "rb2-300-wc.png",
+    "sha256": "f8efba233d7a840821da7a30e56815972723d5e76139c464d833a2b0b76bcf34"
+  }
+}

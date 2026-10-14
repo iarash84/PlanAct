@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 
 /// Reads durable accounts without choosing one on the user's behalf.
 class FinancialAccountPicker extends StatefulWidget {
@@ -95,8 +96,10 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
           ),
           items: _accounts
               .map(
-                (account) =>
-                    DropdownMenuItem(value: account, child: Text(account.name)),
+                (account) => DropdownMenuItem(
+                  value: account,
+                  child: AccountIdentityLabel(account: account),
+                ),
               )
               .toList(),
           onChanged: widget.enabled

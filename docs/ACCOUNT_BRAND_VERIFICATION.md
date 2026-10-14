@@ -1,5 +1,50 @@
 # Account and brand verification
 
+## Bank logo acceptance contract — 2026-10-13
+
+Correction contract: replace all guessed sprite crops with complete color
+300×300 files from the user-provided IranianBankLogos/resources/images directory.
+Visually inspect the named source gallery and explicitly map the 20 domain bank
+codes to source filenames. Preserve every pixel including bottom captions;
+lossless compression only. Regression evidence must cover source mapping,
+dimensions, complete pixel preservation and existing card/selector journeys.
+Prior sprite mapping/cropping evidence below is superseded by this correction.
+
+Correction evidence: all 33 shipped images are complete 300×300 color originals,
+losslessly re-encoded (641,355 bytes total). Import compared every decoded RGB
+pixel with its named local source, with equality for all files. Source gallery
+was visually inspected; manifest records source filenames and shipped hashes.
+Incorrect Refah/Karafarin and unused sprite identities were corrected without
+changing bank codes or durable data. The prior check proved only file decoding,
+not actual bank identity or absence of clipping; reviewed source mapping and
+full-pixel checks now cover that missing criterion. 15 selected widget tests
+passed; targeted analyzer and diff checks passed. No runtime code, schema or
+dependency changes in this correction. Maintainer owns independent device
+appearance/accessibility review; that existing acceptance gate remains open.
+
+Entry: Finance account creation/editing selects the existing optional bank; saved
+accounts show its bundled logo in Finance cards and account selectors. The path
+remains form → FinanceUseCases → durable bank code → refresh → presentation asset.
+No bank inference, new defaults, writes, schema/dependency or backup changes.
+Existing restart/restore reconstructs identity from the saved bank code. Unknown
+or absent banks retain the generic account icon; asset failures also fall back.
+Cancellation/retry, balance, history and archive behavior remain unchanged.
+Scope: lossless crops of user-supplied ibls64.png, original colors on a white
+logo field for Light/Dark readability, Persian semantics, RTL and wrapping labels.
+Evidence required: every supported bank asset decodes, representative mapping,
+fallback and narrow/large-text Light/Dark card checks plus existing account flows.
+Independent visual/device acceptance remains a maintainer review gate.
+
+Implemented: 33 losslessly compressed crops (54,788 bytes total), including all
+20 existing selectable bank codes. Shared identity widgets are used by Finance
+cards, FinancialAccountPicker and the financial expectation account dropdown.
+No migrations, dependencies or financial/domain changes. Automated evidence:
+14 selected tests passed (logo bundle decoding/mapping/no inference, account
+flows and Inbox selection); full flutter analyze found no issues. Existing card
+tests include RTL 320dp/2x Light/Dark. Agent self-verification only; maintainer
+must review actual logo appearance and screen-reader presentation before
+independent visual acceptance. No device or licensing sign-off is claimed.
+
 ## Brand acceptance contract — recorded before implementation, 2026-10-12
 
 This record covers BRAND only. Account requirements, implementation and evidence belong to the parent mission and are not claimed here.

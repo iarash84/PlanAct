@@ -5,6 +5,7 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 
 class FinancialExpectationEditor extends StatefulWidget {
   const FinancialExpectationEditor({
@@ -181,7 +182,7 @@ class _FinancialExpectationEditorState
                           ...widget.accounts.map(
                             (account) => DropdownMenuItem<FinancialAccount?>(
                               value: account,
-                              child: Text(account.name),
+                              child: AccountIdentityLabel(account: account),
                             ),
                           ),
                         ],

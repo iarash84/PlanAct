@@ -8,6 +8,7 @@ import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/features/finance/domain/account_identifiers.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 
 /// A ledger account summary, deliberately not a payment-card representation.
 class AccountInformationCard extends StatefulWidget {
@@ -108,11 +109,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  account.type == FinancialAccountType.bank
-                      ? Icons.account_balance
-                      : Icons.account_balance_wallet,
-                ),
+                AccountIdentityIcon(account: account),
                 const SizedBox(width: PlanActSpacing.sm),
                 Expanded(
                   child: Text(
