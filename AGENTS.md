@@ -231,6 +231,16 @@ Required reference scenarios:
 
 ## 9. Reminder rules
 
+User-approved 2026-10-14: optional Android alarm delivery is separate from ordinary
+notifications and occurrence completion. Legacy reminders stay notifications.
+The native adapter must use OS scheduling without a continuously running Flutter
+process, fresh transactional SQLite admission, bounded playback and durable explicit
+snooze. Stop/snooze must not write occurrence, money or session outcomes. Backup/restore
+must suspend native DB access and rebuild intent after replacement. Native schema,
+enum and time coupling and older-writer limitations require independent acceptance;
+see [ADR 0022](docs/adr/0022-optional-native-alarm-reminders.md) and
+[alarm verification](docs/ALARM_REMINDER_VERIFICATION.md).
+
 - `ReminderRule` defines the relative/absolute rule.
 - `ReminderInstance` is the concrete scheduled notification.
 - Rescheduling an occurrence must cancel/recompute future reminder instances.

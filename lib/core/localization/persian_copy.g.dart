@@ -776,4 +776,15 @@ abstract final class PersianCopy {
   static const smsAutomaticPermissionRequired = "برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.";
   static const smsAutomaticSettingFailed = "تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.";
   static const inboxCurrencyRevisionRequired = "برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.";
+  static const reminderDeliveryLabel = "روش یادآوری";
+  static const reminderDeliveryNotification = "اعلان";
+  static const reminderDeliveryAlarm = "آلارم";
+  static const reminderAlarmHelp = "آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.";
+  static const reminderAlarmTitle = "آلارم پلن‌اکت";
+  static const reminderAlarmBody = "زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.";
+  static const reminderAlarmStop = "قطع";
+  static const reminderAlarmSnooze = "تعویق ۱۰ دقیقه";
+  static const reminderAlarmChannel = "آلارم‌های تعهد";
+  static const reminderAlarmChannelDescription = "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.";
+  static const reminderAlarmRetry = "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.";
 }

@@ -1,3 +1,4 @@
+import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
@@ -28,6 +29,7 @@ class CommitmentDraft {
     this.priority = CommitmentPriority.normal,
     this.tags = const {},
     this.reminderOffsets = const [],
+    this.reminderDelivery = ReminderDelivery.notification,
     this.attachmentIds = const [],
   });
 
@@ -52,6 +54,7 @@ class CommitmentDraft {
   final CommitmentPriority priority;
   final Set<String> tags;
   final List<Duration> reminderOffsets;
+  final ReminderDelivery reminderDelivery;
   final List<String> attachmentIds;
 
   bool get isRecurring => kind == CommitmentKind.recurring;
@@ -84,6 +87,7 @@ class CommitmentDraft {
     CommitmentPriority? priority,
     Set<String>? tags,
     List<Duration>? reminderOffsets,
+    ReminderDelivery? reminderDelivery,
     List<String>? attachmentIds,
   }) => CommitmentDraft(
     category: category ?? this.category,
@@ -113,6 +117,7 @@ class CommitmentDraft {
     priority: priority ?? this.priority,
     tags: tags ?? this.tags,
     reminderOffsets: reminderOffsets ?? this.reminderOffsets,
+    reminderDelivery: reminderDelivery ?? this.reminderDelivery,
     attachmentIds: attachmentIds ?? this.attachmentIds,
   );
 

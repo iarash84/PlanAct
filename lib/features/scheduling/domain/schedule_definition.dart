@@ -1,3 +1,4 @@
+import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
@@ -126,6 +127,7 @@ class ScheduleDefinition {
     this.endDate,
     this.occurrenceCount,
     this.generationReminderOffsets = const [],
+    this.generationReminderDelivery = ReminderDelivery.notification,
     this.generationFinancialExpectation,
   }) {
     _validate();
@@ -144,6 +146,7 @@ class ScheduleDefinition {
     int? occurrenceCount,
     int generationHorizonDays = 90,
     List<Duration> generationReminderOffsets = const [],
+    ReminderDelivery generationReminderDelivery = ReminderDelivery.notification,
     FinancialExpectationTemplate? generationFinancialExpectation,
   }) => ScheduleDefinition(
     id: StableId.generate(),
@@ -161,6 +164,7 @@ class ScheduleDefinition {
     effectiveFrom: startDate,
     generationHorizonDays: generationHorizonDays,
     generationReminderOffsets: List.unmodifiable(generationReminderOffsets),
+    generationReminderDelivery: generationReminderDelivery,
     generationFinancialExpectation: generationFinancialExpectation,
   );
 
@@ -179,6 +183,7 @@ class ScheduleDefinition {
   final LocalDate effectiveFrom;
   final int generationHorizonDays;
   final List<Duration> generationReminderOffsets;
+  final ReminderDelivery generationReminderDelivery;
   final FinancialExpectationTemplate? generationFinancialExpectation;
 
   ScheduleDefinition nextVersion({
@@ -207,6 +212,7 @@ class ScheduleDefinition {
       effectiveFrom: effectiveFrom,
       generationHorizonDays: generationHorizonDays,
       generationReminderOffsets: generationReminderOffsets,
+      generationReminderDelivery: generationReminderDelivery,
       generationFinancialExpectation: generationFinancialExpectation,
     );
   }

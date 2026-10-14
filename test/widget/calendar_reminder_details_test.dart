@@ -176,6 +176,8 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(TextField), '۴۵');
+      await tester.ensureVisible(find.text('افزودن یادآوری'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('افزودن یادآوری'));
       await tester.pump();
       expect(find.text('۴۵ دقیقه قبل از شروع'), findsOneWidget);

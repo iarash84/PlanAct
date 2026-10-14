@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED from lib/l10n/app_fa.arb. Do not edit. -->
+<resources>
+    <string name="planact_alarm_title">آلارم پلن‌اکت</string>
+    <string name="planact_alarm_body">زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.</string>
+    <string name="planact_alarm_stop">قطع</string>
+    <string name="planact_alarm_snooze">تعویق ۱۰ دقیقه</string>
+    <string name="planact_alarm_channel">آلارم‌های تعهد</string>
+    <string name="planact_alarm_channel_description">زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.</string>
+    <string name="planact_alarm_retry">اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.</string>
+</resources>

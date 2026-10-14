@@ -89,6 +89,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(edit);
       await _settle(tester);
+      await tester.ensureVisible(find.widgetWithText(ChoiceChip, 'آلارم'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'آلارم'));
+      await tester.pumpAndSettle();
       for (final label in ['۳ روز قبل', '۱۰ روز قبل']) {
         final chip = find.widgetWithText(ActionChip, label);
         await tester.ensureVisible(chip);
@@ -110,6 +113,12 @@ void main() {
             const Duration(days: -3),
             const Duration(days: -10),
           ]),
+        );
+        expect(
+          (await repository.listRules())
+              .where((r) => r.enabled)
+              .every((r) => r.delivery == ReminderDelivery.alarm),
+          isTrue,
         );
       });
       expect(tester.takeException(), isNull);

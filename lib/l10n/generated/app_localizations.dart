@@ -7546,6 +7546,72 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.'**
   String get inboxCurrencyRevisionRequired;
+
+  /// Label for notification/alarm selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'روش یادآوری'**
+  String get reminderDeliveryLabel;
+
+  /// Standard notification delivery choice.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان'**
+  String get reminderDeliveryNotification;
+
+  /// Audible alarm delivery choice.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم'**
+  String get reminderDeliveryAlarm;
+
+  /// Alarm behavior and permission disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.'**
+  String get reminderAlarmHelp;
+
+  /// Private native alarm notification title.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم پلن‌اکت'**
+  String get reminderAlarmTitle;
+
+  /// Private native alarm notification body without personal data.
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.'**
+  String get reminderAlarmBody;
+
+  /// Native alarm dismiss action.
+  ///
+  /// In fa, this message translates to:
+  /// **'قطع'**
+  String get reminderAlarmStop;
+
+  /// Native alarm action with fixed ten-minute snooze.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعویق ۱۰ دقیقه'**
+  String get reminderAlarmSnooze;
+
+  /// Native alarm channel name.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم‌های تعهد'**
+  String get reminderAlarmChannel;
+
+  /// Alarm channel description.
+  ///
+  /// In fa, this message translates to:
+  /// **'زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.'**
+  String get reminderAlarmChannelDescription;
+
+  /// Native scheduling/playback failure notification.
+  ///
+  /// In fa, this message translates to:
+  /// **'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.'**
+  String get reminderAlarmRetry;
 }
 
 class _AppLocalizationsDelegate

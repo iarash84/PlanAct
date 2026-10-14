@@ -16,6 +16,8 @@ import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/reminders/presentation/reminder_options.dart';
+import 'package:planact/features/reminders/presentation/reminder_delivery_picker.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
   const QuickCaptureSheet({super.key, this.onSave, this.tagRepository});
@@ -550,6 +552,11 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       const SizedBox(height: PlanActSpacing.xs),
       const Text(PersianCopy.quickCaptureSheetReminderPickerChildren2),
       const SizedBox(height: PlanActSpacing.sm),
+      ReminderDeliveryPicker(
+        value: _draft.reminderDelivery,
+        onChanged: (value) =>
+            setState(() => _draft = _draft.copyWith(reminderDelivery: value)),
+      ),
       Wrap(
         spacing: PlanActSpacing.sm,
         runSpacing: PlanActSpacing.sm,
@@ -729,9 +736,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       if (_draft.reminderOffsets.isNotEmpty)
         Text(
           PersianCopy.quickCaptureSheetSummaryChildren6(
-            (_draft.reminderOffsets
-                    .map((offset) => _reminderLabel(offset.inMinutes))
-                    .join(PersianCopy.commonListSeparator))
+            ('${_draft.reminderDelivery == ReminderDelivery.alarm ? planActL10n(context).reminderDeliveryAlarm : planActL10n(context).reminderDeliveryNotification}: ${_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join(PersianCopy.commonListSeparator)}')
                 .toString(),
           ),
         ),

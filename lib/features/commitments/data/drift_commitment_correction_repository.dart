@@ -247,6 +247,7 @@ class DriftCommitmentCorrectionRepository
         effectiveFrom: effective,
         generationHorizonDays: old.generationHorizonDays,
         generationReminderOffsets: old.generationReminderOffsets,
+        generationReminderDelivery: old.generationReminderDelivery,
         generationFinancialExpectation: old.generationFinancialExpectation,
       );
       // Full logical prefix is independently bounded. Reject schedules whose

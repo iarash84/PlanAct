@@ -7049,5 +7049,78 @@
     "description": "Durable confirmation requires a reviewed revision before accepting a proposed unit.",
     "x-planact-introduced": "inbox-default-2026-10-14",
     "x-planact-default": true
-  }
+  },
+    "reminderDeliveryLabel": "روش یادآوری",
+    "@reminderDeliveryLabel": {
+        "description": "Label for notification/alarm selection.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14"
+    },
+    "reminderDeliveryNotification": "اعلان",
+    "@reminderDeliveryNotification": {
+        "description": "Standard notification delivery choice.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14"
+    },
+    "reminderDeliveryAlarm": "آلارم",
+    "@reminderDeliveryAlarm": {
+        "description": "Audible alarm delivery choice.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14"
+    },
+    "reminderAlarmHelp": "آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.",
+    "@reminderAlarmHelp": {
+        "description": "Alarm behavior and permission disclosure.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14"
+    },
+    "reminderAlarmTitle": "آلارم پلن‌اکت",
+    "@reminderAlarmTitle": {
+        "description": "Private native alarm notification title.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_title"
+    },
+    "reminderAlarmBody": "زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.",
+    "@reminderAlarmBody": {
+        "description": "Private native alarm notification body without personal data.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_body"
+    },
+    "reminderAlarmStop": "قطع",
+    "@reminderAlarmStop": {
+        "description": "Native alarm dismiss action.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_stop"
+    },
+    "reminderAlarmSnooze": "تعویق ۱۰ دقیقه",
+    "@reminderAlarmSnooze": {
+        "description": "Native alarm action with fixed ten-minute snooze.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_snooze"
+    },
+    "reminderAlarmChannel": "آلارم‌های تعهد",
+    "@reminderAlarmChannel": {
+        "description": "Native alarm channel name.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_channel"
+    },
+    "reminderAlarmChannelDescription": "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.",
+    "@reminderAlarmChannelDescription": {
+        "description": "Alarm channel description.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_channel_description"
+    },
+    "reminderAlarmRetry": "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.",
+    "@reminderAlarmRetry": {
+        "description": "Native scheduling/playback failure notification.",
+        "x-planact-default": true,
+        "x-planact-introduced": "alarm-2026-10-14",
+        "x-planact-android-resource": "planact_alarm_retry"
+    }
 }

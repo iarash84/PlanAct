@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
 
 void main() {
   Widget host() => const MaterialApp(
@@ -88,7 +89,56 @@ void main() {
       unorderedEquals([const Duration(days: 3), const Duration(days: 10)]),
     );
     expect(tester.takeException(), isNull);
+    expect(submitted!.reminderDelivery, ReminderDelivery.notification);
   });
+
+  testWidgets(
+    'alarm choice survives section collapse, validation and submission',
+    (tester) async {
+      CommitmentDraft? submitted;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: QuickCaptureSheet(
+                onSave: (draft) async {
+                  submitted = draft;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('commitment-title-field')),
+        'قرار',
+      );
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.widgetWithText(ChoiceChip, 'آلارم'));
+      await _tap(tester, find.widgetWithText(FilterChip, '۱۵ دقیقه قبل'));
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted, isNull);
+      await _tap(tester, find.text('یادآور'));
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'آلارم'))
+            .selected,
+        isTrue,
+      );
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.text('انتخاب تاریخ'));
+      await _tap(tester, find.byKey(const ValueKey('capture-date-1')));
+      await _tap(tester, find.text('تأیید تاریخ'));
+      await _tap(tester, find.text('انتخاب زمان'));
+      await _tap(tester, find.byType(TextButton).last);
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted!.reminderDelivery, ReminderDelivery.alarm);
+      expect(submitted!.reminderOffsets, [const Duration(minutes: 15)]);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'single page validates and retains input across optional sections',

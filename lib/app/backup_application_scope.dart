@@ -86,9 +86,14 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
     }
   }
 
-  Future<void> _clearNotifications() =>
-      widget.clearNotifications?.call() ??
-      FlutterLocalNotificationsPlugin().cancelAll();
+  Future<void> _clearNotifications() async {
+    if (widget.clearNotifications case final clear?) {
+      await clear();
+      return;
+    }
+    await AndroidReminderPlatformAdapter().suspendAlarms();
+    await FlutterLocalNotificationsPlugin().cancelAll();
+  }
 
   Future<void> _start() async {
     setState(() {
@@ -189,6 +194,10 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       return;
     }
     final platform = AndroidReminderPlatformAdapter();
+    await platform.configureAlarms(
+      databasePath: _live.path,
+      schemaVersion: _owner!.database.schemaVersion,
+    );
     await platform.initialize();
     await ReminderService(
       repository: DriftReminderRepository(_owner!.database),
@@ -219,6 +228,9 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
     try {
       await WidgetsBinding.instance.endOfFrame;
       await drained;
+      if (widget.synchronizeReminders == null) {
+        await AndroidReminderPlatformAdapter().suspendAlarms();
+      }
       final success = await operation();
       _message = success
           ? PersianCopy.backupApplicationScopeExclusiveMessage
@@ -239,6 +251,11 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         try {
           await _close();
           await _open();
+          try {
+            await _synchronizeReminders();
+          } on ReminderPermissionUnavailable {
+            _message = PersianCopy.backupApplicationScopeStartMessage2;
+          }
         } catch (_) {
           await _close();
         }

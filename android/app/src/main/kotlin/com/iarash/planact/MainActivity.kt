@@ -13,6 +13,8 @@ class MainActivity : FlutterFragmentActivity() {
     private val notificationSettingsRequestCode = 4102
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planact/alarms")
+            .setMethodCallHandler { call, result -> AlarmBridge.handle(applicationContext, call, result) }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planact/reminder-settings")
             .setMethodCallHandler { call, result ->
                 if (call.method != "openNotificationSettings") {

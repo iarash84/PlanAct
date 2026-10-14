@@ -4512,4 +4512,41 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get inboxCurrencyRevisionRequired =>
       'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.';
+
+  @override
+  String get reminderDeliveryLabel => 'روش یادآوری';
+
+  @override
+  String get reminderDeliveryNotification => 'اعلان';
+
+  @override
+  String get reminderDeliveryAlarm => 'آلارم';
+
+  @override
+  String get reminderAlarmHelp =>
+      'آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.';
+
+  @override
+  String get reminderAlarmTitle => 'آلارم پلن‌اکت';
+
+  @override
+  String get reminderAlarmBody =>
+      'زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.';
+
+  @override
+  String get reminderAlarmStop => 'قطع';
+
+  @override
+  String get reminderAlarmSnooze => 'تعویق ۱۰ دقیقه';
+
+  @override
+  String get reminderAlarmChannel => 'آلارم‌های تعهد';
+
+  @override
+  String get reminderAlarmChannelDescription =>
+      'زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.';
+
+  @override
+  String get reminderAlarmRetry =>
+      'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.';
 }

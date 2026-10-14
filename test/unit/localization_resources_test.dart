@@ -51,6 +51,11 @@ void main() {
         expected,
       );
       expect(expected, isNot(contains('import ')));
+      final native = File(
+        'android/app/src/main/res/values/planact_alarm_strings.xml',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+      expect(native, generator.renderAndroid(catalog));
+      expect(native, contains('تعویق ۱۰ دقیقه'));
       expect(PersianCopy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
       expect(PersianDateFormatter.monthNames, [
         'فروردین',
@@ -96,6 +101,7 @@ void main() {
                     'sms-sync-2026-10-14',
                     'sms-permission-2026-10-14',
                     'interaction-2026-10-14',
+                    'alarm-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

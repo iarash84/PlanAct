@@ -348,6 +348,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     return CommandGate.runFor(repository, () async {
       if (!await platform.requestPermission()) return false;
       if (!await platform.requestExactAlarmPermission()) return false;
+      final rules = await DriftReminderRepository(repository.database)
+          .listRules();
+      if (rules.any((r) => r.enabled && r.delivery == ReminderDelivery.alarm) &&
+          !await platform.requestAlarmChannelPermission()) {
+        return false;
+      }
       await ReminderService(
         repository: DriftReminderRepository(repository.database),
         platform: platform,
@@ -670,6 +676,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           ? draft.endDate
           : null,
       reminderOffsets: draft.reminderOffsets,
+      reminderDelivery: draft.reminderDelivery,
       entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
           ? draft.entitlementUnits
           : null,

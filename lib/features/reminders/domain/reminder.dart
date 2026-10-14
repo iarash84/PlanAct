@@ -4,6 +4,8 @@ import 'package:planact/core/ids/stable_id.dart';
 /// The reference point used to calculate a reminder's delivery time.
 enum ReminderAnchor { occurrenceStart, absolute }
 
+enum ReminderDelivery { notification, alarm }
+
 enum ReminderInstanceStatus { scheduled, cancelled, delivered, snoozed }
 
 class ReminderRule {
@@ -16,6 +18,7 @@ class ReminderRule {
     this.title,
     this.body,
     this.enabled = true,
+    this.delivery = ReminderDelivery.notification,
   }) {
     if (anchor == ReminderAnchor.absolute && absoluteAt == null) {
       throw const ValidationError('Absolute reminders require a delivery time');
@@ -35,6 +38,7 @@ class ReminderRule {
     required Duration offset,
     String? title,
     String? body,
+    ReminderDelivery delivery = ReminderDelivery.notification,
   }) => ReminderRule(
     id: StableId.generate(),
     occurrenceId: occurrenceId,
@@ -42,18 +46,21 @@ class ReminderRule {
     offset: -offset.abs(),
     title: title,
     body: body,
+    delivery: delivery,
   );
 
   factory ReminderRule.atOccurrence({
     required StableId occurrenceId,
     String? title,
     String? body,
+    ReminderDelivery delivery = ReminderDelivery.notification,
   }) => ReminderRule(
     id: StableId.generate(),
     occurrenceId: occurrenceId,
     anchor: ReminderAnchor.occurrenceStart,
     title: title,
     body: body,
+    delivery: delivery,
   );
 
   final StableId id;
@@ -64,6 +71,7 @@ class ReminderRule {
   final String? title;
   final String? body;
   final bool enabled;
+  final ReminderDelivery delivery;
 
   ReminderRule disable() => _copyWith(enabled: false);
   ReminderRule enable() => _copyWith(enabled: true);
@@ -77,6 +85,7 @@ class ReminderRule {
     title: title,
     body: body,
     enabled: enabled,
+    delivery: delivery,
   );
 }
 
@@ -89,6 +98,7 @@ class ReminderInstance {
     this.status = ReminderInstanceStatus.scheduled,
     this.snoozedUntil,
     this.platformNotificationId,
+    this.delivery = ReminderDelivery.notification,
   }) {
     if (snoozedUntil != null && status != ReminderInstanceStatus.snoozed) {
       throw const ValidationError(
@@ -109,6 +119,7 @@ class ReminderInstance {
       ruleId: rule.id,
       occurrenceId: rule.occurrenceId,
       scheduledAt: scheduledAt.toUtc(),
+      delivery: rule.delivery,
     );
   }
 
@@ -118,6 +129,7 @@ class ReminderInstance {
   final DateTime scheduledAt;
   final ReminderInstanceStatus status;
   final DateTime? snoozedUntil;
+  final ReminderDelivery delivery;
 
   /// Platform-specific and not portable backup data.
   final String? platformNotificationId;
@@ -139,6 +151,7 @@ class ReminderInstance {
     occurrenceId: occurrenceId,
     scheduledAt: instant.toUtc(),
     platformNotificationId: null,
+    delivery: delivery,
   );
 
   ReminderInstance _copyWith({
@@ -152,6 +165,7 @@ class ReminderInstance {
     status: status,
     snoozedUntil: snoozedUntil,
     platformNotificationId: platformNotificationId,
+    delivery: delivery,
   );
 }
 
