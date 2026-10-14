@@ -7,6 +7,7 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/presentation/reminder_options.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
@@ -272,17 +273,12 @@ class _EditOccurrenceRemindersDialogState
           if (widget.occurrence.currentScheduledAt is DateTime) ...[
             Wrap(
               spacing: PlanActSpacing.sm,
-              children: [0, 15, 30, 60, 1440]
+              runSpacing: PlanActSpacing.sm,
+              children: [0, 15, 30, 60, ...reminderDayPresetMinutes]
                   .map(
                     (minutes) => ActionChip(
                       label: Text(
-                        minutes == 0
-                            ? planActL10n(context)
-                                  .occurrenceRemindersReminderRuleLabelMessage2
-                            : planActL10n(context)
-                                  .quickCaptureSheetReminderLabelMessage3(
-                                    (PersianNumbers.format(minutes)).toString(),
-                                  ),
+                        reminderOffsetLabel(planActL10n(context), minutes),
                       ),
                       onPressed: () => _add(minutes),
                     ),

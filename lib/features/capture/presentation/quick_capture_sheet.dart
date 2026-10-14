@@ -1,7 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
-import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
@@ -16,6 +15,7 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/reminders/presentation/reminder_options.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
   const QuickCaptureSheet({super.key, this.onSave, this.tagRepository});
@@ -29,6 +29,13 @@ class QuickCaptureSheet extends StatefulWidget {
 }
 
 class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
+  static const _reminderPresetMinutes = [
+    5,
+    15,
+    30,
+    60,
+    ...reminderDayPresetMinutes,
+  ];
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _count = TextEditingController();
@@ -547,7 +554,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         spacing: PlanActSpacing.sm,
         runSpacing: PlanActSpacing.sm,
         children: [
-          for (final minutes in const [5, 15, 30, 60, 1440])
+          for (final minutes in _reminderPresetMinutes)
             FilterChip(
               label: Text(_reminderLabel(minutes)),
               selected: _draft.reminderOffsets.contains(
@@ -563,13 +570,11 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ],
       ),
       if (_draft.reminderOffsets
-          .where(
-            (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
-          )
+          .where((offset) => !_reminderPresetMinutes.contains(offset.inMinutes))
           .isNotEmpty) ...[
         const SizedBox(height: PlanActSpacing.sm),
         for (final offset in _draft.reminderOffsets.where(
-          (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
+          (offset) => !_reminderPresetMinutes.contains(offset.inMinutes),
         ))
           ListTile(
             dense: true,
@@ -614,22 +619,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     setState(() => _draft = _draft.copyWith(reminderOffsets: offsets));
   }
 
-  static String _reminderLabel(int minutes) {
-    if (minutes >= 1440 && minutes % 1440 == 0) {
-      final days = minutes ~/ 1440;
-      return PersianCopy.quickCaptureSheetReminderLabelMessage(
-        (PersianNumbers.format(days)).toString(),
-      );
-    }
-    if (minutes >= 60 && minutes % 60 == 0) {
-      return PersianCopy.quickCaptureSheetReminderLabelMessage2(
-        (PersianNumbers.format(minutes ~/ 60)).toString(),
-      );
-    }
-    return PersianCopy.quickCaptureSheetReminderLabelMessage3(
-      (PersianNumbers.format(minutes)).toString(),
-    );
-  }
+  String _reminderLabel(int minutes) =>
+      reminderOffsetLabel(planActL10n(context), minutes);
 
   Widget _financialFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,

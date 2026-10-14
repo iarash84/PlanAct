@@ -44,6 +44,52 @@ void main() {
     expect(find.text('یادآوری‌های این تعهد'), findsOneWidget);
   });
 
+  testWidgets('day presets are opt-in, toggleable and submitted together', (
+    tester,
+  ) async {
+    CommitmentDraft? submitted;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureSheet(
+              onSave: (draft) async {
+                submitted = draft;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('commitment-title-field')),
+      'تمدید بیمه',
+    );
+    await _tap(tester, find.text('انتخاب تاریخ'));
+    await _tap(tester, find.byKey(const ValueKey('capture-date-1')));
+    await _tap(tester, find.text('تأیید تاریخ'));
+    await _tap(tester, find.text('انتخاب زمان'));
+    await _tap(tester, find.byType(TextButton).last);
+    await _tap(tester, find.text('یادآور'));
+    final three = find.widgetWithText(FilterChip, '۳ روز قبل');
+    final ten = find.widgetWithText(FilterChip, '۱۰ روز قبل');
+    expect(tester.widget<FilterChip>(three).selected, isFalse);
+    expect(tester.widget<FilterChip>(ten).selected, isFalse);
+    await _tap(tester, three);
+    await _tap(tester, ten);
+    await _tap(tester, three);
+    expect(tester.widget<FilterChip>(three).selected, isFalse);
+    await _tap(tester, three);
+    await _tap(tester, find.text('یادآور'));
+    await _tap(tester, find.text('ثبت تعهد'));
+    expect(
+      submitted!.reminderOffsets,
+      unorderedEquals([const Duration(days: 3), const Duration(days: 10)]),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'single page validates and retains input across optional sections',
     (tester) async {
@@ -285,6 +331,10 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text(label));
         await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+      for (final label in ['۳ روز قبل', '۱۰ روز قبل']) {
+        await _tap(tester, find.widgetWithText(FilterChip, label));
         expect(tester.takeException(), isNull);
       }
     });
