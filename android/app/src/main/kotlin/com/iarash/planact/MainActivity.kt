@@ -58,6 +58,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onDestroy() {
+        SmsBridge.onActivityDestroyed(this)
         notificationSettingsResult?.error("activity_destroyed", "Activity was closed", null)
         notificationSettingsResult = null
         super.onDestroy()

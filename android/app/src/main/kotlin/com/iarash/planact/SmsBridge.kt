@@ -22,6 +22,14 @@ object SmsBridge {
     private val reader = Executors.newSingleThreadExecutor()
     private const val permissionRequestCode = 4101
     private const val permissionRequestedPreference = "sms_permission_requested"
+    private val smsPermissions = arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS)
+    private var permissionResult: MethodChannel.Result? = null
+    private var permissionActivity: Activity? = null
+    private val permissionTimeout = Runnable {
+        val activity = permissionActivity
+        if (activity != null && hasAccess(activity)) finishPermissionRequest(granted = true)
+        else finishPermissionRequest(error = "sms_permission_timeout")
+    }
     private val relevantMarkers = Regex(
         "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|کارت|بانک|\b(?:atm|pos|iban|شبا|رمز)\b|[۰-۹]{3,})"
     )
@@ -48,41 +56,62 @@ object SmsBridge {
     fun configureMethods(activity: Activity, call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "hasAccess" -> result.success(hasAccess(activity))
+            "openSettings" -> {
+                try {
+                    openApplicationSettings(activity)
+                    result.success(null)
+                } catch (_: Exception) {
+                    result.error("settings_unavailable", "App settings are unavailable", null)
+                }
+            }
             "requestAccess" -> {
                 if (hasAccess(activity)) {
                     result.success(true)
                 } else if (activity.isFinishing || activity.isDestroyed) {
                     result.error("activity_unavailable", "The activity is not available", null)
+                } else if (permissionResult != null) {
+                    result.error("permission_busy", "An SMS permission request is pending", null)
                 } else {
                     val preferences = activity.getPreferences(Context.MODE_PRIVATE)
                     val wasRequested = preferences.getBoolean(permissionRequestedPreference, false)
-                    val permanentlyDenied = wasRequested &&
-                        !activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_SMS) &&
-                        !activity.shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS)
-                    if (permanentlyDenied) {
-                        openApplicationSettings(activity)
+                    val missing = smsPermissions.filter {
+                        activity.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+                    }
+                    // Only denied permissions matter. A granted permission has no
+                    // rationale and must not hide another permission's blocked state.
+                    val settingsRequired = wasRequested && missing.any {
+                        !activity.shouldShowRequestPermissionRationale(it)
+                    }
+                    if (settingsRequired) {
+                        // This can mean permanent denial, installer/OEM restrictions
+                        // or device policy. It is not proof of Restricted Settings.
+                        // Flutter explains recovery before a separate settings action.
                         result.success(false)
                     } else {
                         preferences.edit().putBoolean(permissionRequestedPreference, true).apply()
+                        permissionResult = result
+                        permissionActivity = activity
+                        mainHandler.postDelayed(permissionTimeout, 45000)
                         // Keep the permission dialog in the activity's UI queue. This
                         // avoids racing Flutter's just-dismissed AlertDialog and
                         // guarantees requestPermissions runs on the main thread.
                         mainHandler.post {
-                            if (activity.isFinishing || activity.isDestroyed) return@post
+                            if (permissionActivity !== activity) return@post
+                            if (activity.isFinishing || activity.isDestroyed) {
+                                finishPermissionRequest(error = "activity_unavailable")
+                                return@post
+                            }
                             try {
                                 activity.requestPermissions(
-                                    arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS),
+                                    missing.toTypedArray(),
                                     permissionRequestCode
                                 )
                             } catch (_: Exception) {
-                                // The Dart side will report the unavailable request
-                                // after its bounded access poll completes.
+                                finishPermissionRequest(error = "sms_permission_unavailable")
                             }
                         }
-                        // Do not keep a MethodChannel result pending while Android
-                        // owns the permission dialog. Some OEMs do not deliver the
-                        // legacy callback back to FlutterActivity.
-                        result.success(true)
+                        // Complete from the actual callback, never from launching
+                        // the dialog. The timeout covers missing OEM callbacks.
                     }
                 }
             }
@@ -150,6 +179,22 @@ object SmsBridge {
     }
 
     fun onRequestPermissionsResult(activity: Activity, requestCode: Int): Boolean {
+        if (requestCode == permissionRequestCode && permissionActivity === activity) {
+            finishPermissionRequest(granted = hasAccess(activity))
+        }
         return requestCode == permissionRequestCode
+    }
+
+    fun onActivityDestroyed(activity: Activity) {
+        if (permissionActivity === activity) finishPermissionRequest(error = "activity_unavailable")
+    }
+
+    private fun finishPermissionRequest(granted: Boolean = false, error: String? = null) {
+        val result = permissionResult
+        permissionResult = null
+        permissionActivity = null
+        mainHandler.removeCallbacks(permissionTimeout)
+        if (error == null) result?.success(granted)
+        else result?.error(error, "SMS permission request did not complete", null)
     }
 }

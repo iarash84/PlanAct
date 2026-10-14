@@ -65,8 +65,10 @@ class AndroidSmsSource {
     : _channel = channel ?? const MethodChannel('planact/sms');
   final MethodChannel _channel;
 
+  /// True only when both SMS permissions are granted after the system response.
   Future<bool> requestAccess() async =>
       await _channel.invokeMethod<bool>('requestAccess') ?? false;
+  Future<void> openSettings() => _channel.invokeMethod<void>('openSettings');
   Future<bool> hasAccess() async =>
       await _channel.invokeMethod<bool>('hasAccess') ?? false;
   Future<SmsProviderPage> readPage({

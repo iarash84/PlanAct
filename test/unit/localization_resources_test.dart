@@ -87,6 +87,7 @@ void main() {
                     'undo-2026-10-14',
                     'inbox-default-2026-10-14',
                     'sms-sync-2026-10-14',
+                    'sms-permission-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

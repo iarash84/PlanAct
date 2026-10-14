@@ -79,6 +79,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   int _epoch = 0;
   bool? _smsAccess;
   String? _smsError;
+  bool _showSmsPermissionHelp = false;
+  bool _openingSmsSettings = false;
   String? _error;
   int _page = 0;
   final Map<StableId, InboxSuggestion> _selected = {};
@@ -235,6 +237,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         setState(() {
           _smsAccess = true;
           _smsError = null;
+          _showSmsPermissionHelp = false;
         });
       }
     } catch (error) {
@@ -256,6 +259,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final consent = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        scrollable: true,
         title: const Text(PersianCopy.inboxPageConsentTitle),
         content: const Text(PersianCopy.inboxPageConsentContent),
         actions: [
@@ -281,34 +285,19 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     if (!mounted) return;
     setState(() => _working = true);
     try {
-      final requestStarted = await source.requestAccess().timeout(
-        const Duration(seconds: 5),
+      final granted = await source.requestAccess().timeout(
+        const Duration(seconds: 50),
         onTimeout: () =>
             throw TimeoutException('SMS permission request timed out'),
       );
-      if (!requestStarted) {
-        if (mounted) {
-          setState(() {
-            _smsAccess = false;
-            _smsError = PersianCopy.inboxPageEnableSmsMessage;
-          });
-        }
-        return;
-      }
-
-      var granted = await source.hasAccess();
-      final deadline = DateTime.now().add(const Duration(seconds: 25));
-      while (!granted && DateTime.now().isBefore(deadline)) {
-        await Future<void>.delayed(const Duration(milliseconds: 500));
-        granted = await source.hasAccess();
-      }
       if (!mounted) return;
       if (granted) {
         await _refreshSms();
       } else {
         setState(() {
           _smsAccess = false;
-          _smsError = PersianCopy.inboxPageEnableSmsMessage2;
+          _smsError = planActL10n(context).smsPermissionNotGranted;
+          _showSmsPermissionHelp = true;
         });
       }
     } catch (error) {
@@ -317,14 +306,29 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         fields: {'errorType': error.runtimeType.toString()},
       );
       if (mounted) {
-        setState(
-          () => _smsError = error is TimeoutException
-              ? PersianCopy.inboxPageEnableSmsMessage3
-              : PersianCopy.inboxPageEnableSmsMessage4,
-        );
+        setState(() {
+          _smsError = planActL10n(context).smsPermissionRequestFailed;
+          _showSmsPermissionHelp = true;
+        });
       }
     } finally {
       if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _openSmsSettings() async {
+    if (_openingSmsSettings || widget.smsSource == null) return;
+    setState(() => _openingSmsSettings = true);
+    try {
+      await widget.smsSource!.openSettings();
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _smsError = planActL10n(context).smsPermissionSettingsFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _openingSmsSettings = false);
     }
   }
 
@@ -729,6 +733,35 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               ? _enableSms
               : null,
         ),
+        if (widget.smsSource != null && _smsAccess != true)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(PlanActSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextButton(
+                    onPressed: () => setState(
+                      () => _showSmsPermissionHelp = !_showSmsPermissionHelp,
+                    ),
+                    child: Text(planActL10n(context).smsPermissionHelpTitle),
+                  ),
+                  if (_showSmsPermissionHelp) ...[
+                    Text(planActL10n(context).smsPermissionHelpBody),
+                    const SizedBox(height: PlanActSpacing.sm),
+                    OutlinedButton(
+                      onPressed: _working || _openingSmsSettings
+                          ? null
+                          : _openSmsSettings,
+                      child: Text(
+                        planActL10n(context).smsPermissionOpenSettings,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         if (_smsSync != null) SmsAutomaticSyncCard(controller: _smsSync!),
         if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
           SmsScanCard(

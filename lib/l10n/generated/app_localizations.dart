@@ -7487,6 +7487,42 @@ abstract class AppLocalizations {
   /// **'تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.'**
   String get smsAutomaticSettingFailed;
 
+  /// Expandable optional SMS permission recovery help in Inbox.
+  ///
+  /// In fa, this message translates to:
+  /// **'راهنمای دسترسی پیامک در تنظیمات گوشی'**
+  String get smsPermissionHelpTitle;
+
+  /// Conditional guidance for restricted installations and ordinary denial. English strings are exact OS labels for identifying settings in supplied device screenshots; OEM placement is conditional. Permission is separate from import consent.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر گوشی پیام «دسترسی برنامه به پیامک رد شد» یا «تنظیمات محدودشده» نشان می‌دهد، ممکن است دسترسی به‌دلیل روش نصب یا سیاست امنیتی گوشی محدود شده باشد.\n\n۱. تنظیمات همین برنامه (App info) را باز کنید.\n۲. فقط اگر به برنامه و منبع نصب آن اعتماد دارید، گزینهٔ «اجازهٔ تنظیمات محدودشده» (Allow restricted settings) را فعال کنید. در بعضی گوشی‌ها این گزینه در منوی سه‌نقطه و در شیائومی/پوکو ممکن است در پایین صفحه باشد.\n۳. سپس در «مجوزها» (App permissions)، «پیامک» (SMS) را روی «مجاز» (Allow) بگذارید و به برنامه برگردید.\n\nاگر این گزینه وجود ندارد، مجوز پیامک را در همان بخش مجوزها بررسی کنید یا به برنامه برگردید و دوباره درخواست دهید. محدودیت سازمانی یا گوشی ممکن است مانع باشد؛ برنامه نمی‌تواند آن را خودکار بردارد. سایر بخش‌ها و ورود دستی بدون این مجوز در دسترس‌اند. فعال‌شدن مجوز به‌تنهایی تاریخچه را وارد یا دریافت خودکار را روشن نمی‌کند.'**
+  String get smsPermissionHelpBody;
+
+  /// Explicit action opens this package's App info, never changes a permission.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازکردن تنظیمات همین برنامه'**
+  String get smsPermissionOpenSettings;
+
+  /// Denial or cancelled request; does not assert the cause is Restricted Settings.
+  ///
+  /// In fa, this message translates to:
+  /// **'دسترسی پیامک فعال نشد. می‌توانید دوباره درخواست دهید یا راهنمای تنظیمات گوشی را دنبال کنید.'**
+  String get smsPermissionNotGranted;
+
+  /// Bounded permission request timeout or native failure with recovery actions.
+  ///
+  /// In fa, this message translates to:
+  /// **'درخواست دسترسی پیامک کامل نشد. وضعیت را تازه کنید، دوباره تلاش کنید یا تنظیمات همین برنامه را بررسی کنید.'**
+  String get smsPermissionRequestFailed;
+
+  /// Failed App info intent with retry and manual path.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیمات باز نشد؛ دوباره تلاش کنید یا از تنظیمات گوشی، برنامه‌ها، پلن‌اکت وارد شوید.'**
+  String get smsPermissionSettingsFailed;
+
   /// Durable confirmation requires a reviewed revision before accepting a proposed unit.
   ///
   /// In fa, this message translates to:
