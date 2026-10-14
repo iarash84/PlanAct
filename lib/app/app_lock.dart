@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
@@ -27,7 +29,7 @@ class LocalAppAuthenticator implements AppAuthenticator {
   Future<bool> authenticate() async {
     try {
       return await _authentication.authenticate(
-        localizedReason: 'برای ورود به پلن‌اکت هویت خود را تأیید کنید.',
+        localizedReason: PersianCopy.appLockAuthenticationReason,
         options: const AuthenticationOptions(
           biometricOnly: false,
           useErrorDialogs: true,
@@ -190,11 +192,10 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
     try {
       final success = await widget.controller.unlock();
       if (!success) {
-        _error = 'احراز هویت انجام نشد. برای تلاش دوباره دکمه را بزنید.';
+        _error = PersianCopy.appLockLockAndAuthenticateMessage;
       }
     } catch (_) {
-      _error =
-          'احراز هویت در دسترس نیست. قفل دستگاه را بررسی و دوباره تلاش کنید.';
+      _error = PersianCopy.appLockLockAndAuthenticateMessage2;
     } finally {
       _checking = false;
       if (mounted) setState(() {});
@@ -235,12 +236,12 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
                       Icon(Icons.lock_outline, size: 56, color: scheme.primary),
                       const SizedBox(height: 16),
                       Text(
-                        'پلن‌اکت قفل است',
+                        planActL10n(context).appLockLockedTitle,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _error ?? 'برای ادامه، هویت خود را تأیید کنید.',
+                        _error ?? planActL10n(context).appLockContinuePrompt,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -250,7 +251,9 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
                             : _lockAndAuthenticate,
                         icon: const Icon(Icons.fingerprint),
                         label: Text(
-                          _checking ? 'در حال بررسی…' : 'باز کردن قفل',
+                          _checking
+                              ? planActL10n(context).appLockChecking
+                              : planActL10n(context).appLockUnlock,
                         ),
                       ),
                     ],

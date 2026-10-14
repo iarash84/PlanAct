@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -190,27 +191,31 @@ class TransactionDraft {
 
   void validateConfirmation({SmsExtractionEvidence? extractedEvidence}) {
     if (extractedEvidence?.isTransfer == true || type == 'transfer') {
-      throw const ValidationError(
-        'ثبت انتقال از پیامک در این مسیر پشتیبانی نمی‌شود.',
-      );
+      throw const ValidationError(PersianCopy.inboxValidateConfirmationMessage);
     }
     if (type != 'income' && type != 'expense') {
-      throw const ValidationError('نوع تراکنش را صریحاً انتخاب کنید.');
+      throw const ValidationError(
+        PersianCopy.inboxValidateConfirmationMessage2,
+      );
     }
     if (amount.minorUnits <= 0 ||
         BigInt.from(amount.minorUnits) > BigInt.parse('9223372036854775807')) {
-      throw const ValidationError('مبلغ معتبر و مثبت وارد کنید.');
+      throw const ValidationError(
+        PersianCopy.inboxValidateConfirmationMessage3,
+      );
     }
     final evidence = currencyEvidence;
     if (evidence != null) {
       final unit = evidence.effectiveUnit;
       if (unit == null) {
-        throw const ValidationError('واحد مبلغ پیامک را صریحاً انتخاب کنید.');
+        throw const ValidationError(
+          PersianCopy.driftInboxRepositoryConfirmAtomicallyMessage2,
+        );
       }
       if (amount.currency != 'IRR' ||
           unit.canonicalIrr(evidence.sourceAmount) != amount.minorUnits) {
         throw const ValidationError(
-          'مبلغ و واحد بررسی‌شده با هم سازگار نیستند.',
+          PersianCopy.inboxValidateConfirmationMessage4,
         );
       }
     }
@@ -284,7 +289,7 @@ class SmsExtractionEvidence {
 
   factory SmsExtractionEvidence.fromJson(Map<String, dynamic> json) {
     if (json['version'] != 1) {
-      throw const ValidationError('نسخهٔ شواهد پیامک پشتیبانی نمی‌شود.');
+      throw const ValidationError(PersianCopy.inboxMessage);
     }
     return SmsExtractionEvidence(
       draft: TransactionDraft.fromReviewJson(

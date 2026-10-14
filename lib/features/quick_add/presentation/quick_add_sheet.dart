@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
@@ -29,34 +31,37 @@ class QuickAddSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('افزودن سریع', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              planActL10n(context).commonQuickAdd,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 12),
             _ActionTile(
               key: const ValueKey('quick-add-expense'),
               icon: Icons.remove_circle_outline,
-              title: 'هزینه',
-              subtitle: 'ثبت سریع برداشت از یک حساب',
+              title: planActL10n(context).inboxPageBuildTitle3,
+              subtitle: planActL10n(context).quickAddSheetBuildSubtitle,
               onTap: () => Navigator.pop(context, QuickAddAction.expense),
             ),
             _ActionTile(
               key: const ValueKey('quick-add-income'),
               icon: Icons.add_circle_outline,
-              title: 'درآمد',
-              subtitle: 'ثبت سریع واریز به یک حساب',
+              title: planActL10n(context).inboxPageBuildTitle4,
+              subtitle: planActL10n(context).quickAddSheetBuildSubtitle2,
               onTap: () => Navigator.pop(context, QuickAddAction.income),
             ),
             _ActionTile(
               key: const ValueKey('quick-add-transfer'),
               icon: Icons.swap_horiz,
-              title: 'انتقال',
-              subtitle: 'جابجایی بین حساب‌های خودتان',
+              title: planActL10n(context).smsReviewEditorBuildChildren5,
+              subtitle: planActL10n(context).quickAddSheetBuildSubtitle3,
               onTap: () => Navigator.pop(context, QuickAddAction.transfer),
             ),
             _ActionTile(
               key: const ValueKey('quick-add-commitment'),
               icon: Icons.add_task,
-              title: 'تعهد',
-              subtitle: 'ثبت عنوان، زمان‌بندی و گزینه‌های اختیاری',
+              title: planActL10n(context).calendarPageMarkerPainterText,
+              subtitle: planActL10n(context).quickAddSheetBuildSubtitle4,
               onTap: () => Navigator.pop(context, QuickAddAction.commitment),
             ),
           ],
@@ -134,7 +139,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
   Future<void> _submit() async {
     final amount = _moneyInput.parse(_amount.text, currency: _account.currency);
     if (amount == null || amount <= 0) {
-      setState(() => _error = 'مبلغ معتبر وارد کنید.');
+      setState(() => _error = PersianCopy.financePageResultOnPrimary2);
       return;
     }
     if (_saving) return;
@@ -156,7 +161,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'ثبت انجام نشد؛ اطلاعات و برچسب‌های شما حفظ شده است. دوباره تلاش کنید.';
+          _error = PersianCopy.quickAddSheetSubmitMessage;
         });
       }
     }
@@ -166,8 +171,10 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: PlanActFormSheet(
-      title: widget.income ? 'ثبت سریع درآمد' : 'ثبت سریع هزینه',
-      primaryLabel: 'ثبت',
+      title: widget.income
+          ? planActL10n(context).quickAddSheetBuildTitle
+          : planActL10n(context).quickAddSheetBuildTitle2,
+      primaryLabel: planActL10n(context).financePageResultPrimaryLabel,
       onPrimary: _submit,
       isLoading: _saving,
       error: _error,
@@ -183,13 +190,17 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
             inputFormatters: const [MoneyInputFormatter(decimal: true)],
 
             decoration: InputDecoration(
-              labelText: 'مبلغ به ${_moneyInput.label(_account.currency)}',
+              labelText: planActL10n(context).financePageResultLabelText(
+                (_moneyInput.label(_account.currency)).toString(),
+              ),
             ),
           ),
           DropdownButtonFormField<FinancialAccount>(
             key: const ValueKey('quick-financial-account'),
             initialValue: _account,
-            decoration: const InputDecoration(labelText: 'حساب'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).quickAddSheetBuildLabelText,
+            ),
             items: widget.accounts
                 .map(
                   (account) => DropdownMenuItem(
@@ -205,8 +216,8 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
             controller: _note,
             decoration: InputDecoration(
               labelText: widget.income
-                  ? 'شرح درآمد (اختیاری)'
-                  : 'یادداشت (اختیاری)',
+                  ? planActL10n(context).quickAddSheetBuildLabelText2
+                  : planActL10n(context).quickAddSheetBuildLabelText3,
             ),
           ),
           DraftTagPicker(
@@ -225,7 +236,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
                       context,
                       QuickFinancialEntry.moreOptions(tags: _tags),
                     ),
-              child: const Text('گزینه‌های بیشتر'),
+              child: Text(planActL10n(context).planactAppBuildTooltip),
             ),
           ),
         ],
@@ -291,11 +302,11 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
   void _submit() {
     final amount = _moneyInput.parse(_amount.text, currency: _from.currency);
     if (amount == null || amount <= 0) {
-      setState(() => _error = 'مبلغ معتبر وارد کنید.');
+      setState(() => _error = PersianCopy.financePageResultOnPrimary2);
       return;
     }
     if (_from.id == _to.id) {
-      setState(() => _error = 'حساب مبدأ و مقصد باید متفاوت باشند.');
+      setState(() => _error = PersianCopy.quickAddSheetSubmitMessage2);
       return;
     }
     if (_saving) return;
@@ -305,8 +316,8 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
 
   @override
   Widget build(BuildContext context) => PlanActFormSheet(
-    title: 'ثبت سریع انتقال',
-    primaryLabel: 'ثبت انتقال',
+    title: planActL10n(context).quickAddSheetBuildTitle3,
+    primaryLabel: planActL10n(context).quickAddSheetBuildPrimaryLabel,
     onPrimary: _submit,
     isLoading: _saving,
     error: _error,
@@ -321,12 +332,16 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
           inputFormatters: const [MoneyInputFormatter(decimal: true)],
 
           decoration: InputDecoration(
-            labelText: 'مبلغ به ${_moneyInput.label(_from.currency)}',
+            labelText: planActL10n(context).financePageResultLabelText(
+              (_moneyInput.label(_from.currency)).toString(),
+            ),
           ),
         ),
         DropdownButtonFormField<FinancialAccount>(
           initialValue: _from,
-          decoration: const InputDecoration(labelText: 'از حساب'),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).quickAddSheetBuildLabelText4,
+          ),
           items: widget.accounts
               .map((a) => DropdownMenuItem(value: a, child: Text(a.name)))
               .toList(),
@@ -334,7 +349,9 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
         ),
         DropdownButtonFormField<FinancialAccount>(
           initialValue: _to,
-          decoration: const InputDecoration(labelText: 'به حساب'),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).quickAddSheetBuildLabelText5,
+          ),
           items: widget.accounts
               .map((a) => DropdownMenuItem(value: a, child: Text(a.name)))
               .toList(),

@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -45,7 +47,7 @@ class SmsScan {
   factory SmsScan.decode(String text) {
     final m = jsonDecode(text) as Map<String, dynamic>;
     if (m['version'] != 1) {
-      throw const ValidationError('نسخهٔ ورود پیامک پشتیبانی نمی‌شود.');
+      throw const ValidationError(PersianCopy.smsIngestionMessage);
     }
     return SmsScan(
       from: m['from'] as int,
@@ -82,7 +84,7 @@ class SmsIngestion {
   }) => CommandGate.runFor(inbox.repository, () async {
     if (_active[inbox.repository] == true) throw StateError('Scan is active');
     if (from.isAfter(until)) {
-      throw const ValidationError('بازهٔ پیامک معتبر نیست.');
+      throw const ValidationError(PersianCopy.smsIngestionConsentMessage);
     }
     final old = await _store.readSmsScan();
     await _store.writeSmsScan(
@@ -104,11 +106,11 @@ class SmsIngestion {
     try {
       var saved = await _store.readSmsScan();
       if (saved == null) {
-        throw const ValidationError('ابتدا بازهٔ پیامک را انتخاب کنید.');
+        throw const ValidationError(PersianCopy.smsIngestionRunMessage);
       }
       final scan = SmsScan.decode(saved);
       if (!await source.hasAccess()) {
-        throw const ValidationError('مجوز پیامک فعال نیست.');
+        throw const ValidationError(PersianCopy.smsIngestionRunMessage2);
       }
       if (scan.complete && scan.newOnly) {
         scan.until = DateTime.now().millisecondsSinceEpoch;
@@ -136,7 +138,7 @@ class SmsIngestion {
               row.timestamp > scan.until ||
               row.timestamp < scan.timestamp ||
               (row.timestamp == scan.timestamp && row.id <= scan.id)) {
-            throw const ValidationError('ترتیب صفحهٔ پیامک معتبر نیست.');
+            throw const ValidationError(PersianCopy.smsIngestionRunMessage3);
           }
           if (row.message != null) {
             try {

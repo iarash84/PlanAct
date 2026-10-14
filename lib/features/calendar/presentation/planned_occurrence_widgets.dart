@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -48,21 +50,34 @@ class PlannedSlotTile extends StatelessWidget {
         ? PersianNumbers.format(
             '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}',
           )
-        : 'تمام‌روز (بدون ساعت)';
+        : planActL10n(context).calendarCommitmentCardBuildText2;
     return ListTile(
       key: ValueKey('planned-slot-${slot.occurrenceKey}'),
       onTap: onTap,
       leading: commitment == null
           ? const Icon(Icons.event_note_outlined)
           : CommitmentIdentityMarker(commitment: commitment!),
-      title: Text(commitment?.title ?? 'پیش‌نمایش برنامه'),
+      title: Text(
+        commitment?.title ??
+            planActL10n(context).plannedOccurrenceWidgetsBuildTitle,
+      ),
       subtitle: Text(
-        '${commitment == null ? '' : 'پیش‌نمایش برنامه · '}${PersianDateFormatter.date(JalaliDate.fromDateTime(slot.date.toUtcDateForCalculation()))} · $time',
+        planActL10n(context).plannedOccurrenceWidgetsBuildSubtitle2(
+          (commitment == null
+                  ? ''
+                  : planActL10n(context).plannedOccurrenceWidgetsBuildSubtitle)
+              .toString(),
+          (PersianDateFormatter.date(
+            JalaliDate.fromDateTime(slot.date.toUtcDateForCalculation()),
+          )).toString(),
+          (time).toString(),
+        ),
       ),
       trailing: onPrepare == null
           ? null
           : IconButton(
-              tooltip: 'ثبت نوبت',
+              tooltip: planActL10n(context)
+                  .plannedOccurrenceWidgetsBuildTooltip,
               onPressed: busy ? null : onPrepare,
               icon: busy
                   ? const CircularProgressIndicator()
@@ -154,18 +169,20 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('ثبت نوبت از پیش‌نمایش'),
+        title: const Text(PersianCopy.plannedOccurrenceWidgetsConfirmedTitle),
         content: const Text(
-          'این پیش‌نمایش هنوز نوبت ثبت‌شده نیست. با تأیید، نوبت و تنظیمات وابسته ثبت می‌شوند؛ نتیجه یا پرداختی ثبت نمی‌شود.',
+          PersianCopy.plannedOccurrenceWidgetsConfirmedContent,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('تأیید و ثبت نوبت'),
+            child: const Text(
+              PersianCopy.plannedOccurrenceWidgetsConfirmedActions,
+            ),
           ),
         ],
       ),
@@ -194,8 +211,8 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
           SnackBar(
             content: Text(
               committed
-                  ? 'نوبت ثبت شد؛ تازه‌سازی انجام نشد. دوباره فهرست را بارگذاری کنید.'
-                  : 'ثبت نوبت انجام نشد؛ برنامه ممکن است تغییر کرده باشد. فهرست را دوباره بررسی کنید.',
+                  ? PersianCopy.plannedOccurrenceWidgetsPrepareContent
+                  : PersianCopy.plannedOccurrenceWidgetsPrepareContent2,
             ),
           ),
         );
@@ -211,8 +228,8 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
         SnackBar(
           content: Text(
             pending
-                ? 'نوبت ثبت شد؛ هماهنگ‌سازی یادآوری در انتظار است.'
-                : 'نوبت ثبت شد.',
+                ? PersianCopy.plannedOccurrenceWidgetsPrepareContent3
+                : PersianCopy.plannedOccurrenceWidgetsPrepareContent4,
           ),
         ),
       );
@@ -228,23 +245,31 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
         if (plan != null) ...[
           Text(
             plan.schedule.occurrenceCount == null
-                ? 'تعداد نهایی: تعیین نشده'
-                : 'تعداد کل برنامه: ${PersianNumbers.format(plan.schedule.occurrenceCount!)} نوبت',
+                ? planActL10n(context).plannedOccurrenceWidgetsBuildChildren
+                : planActL10n(context).plannedOccurrenceWidgetsBuildChildren2(
+                    (PersianNumbers.format(plan.schedule.occurrenceCount!))
+                        .toString(),
+                  ),
           ),
           Text(
             plan.schedule.endDate == null
-                ? 'پایان برنامه: تاریخ پایان تعیین نشده'
-                : 'پایان برنامه: ${PersianDateFormatter.date(JalaliDate.fromDateTime(plan.schedule.endDate!.toUtcDateForCalculation()))}',
+                ? planActL10n(context).plannedOccurrenceWidgetsBuildChildren3
+                : planActL10n(context).plannedOccurrenceWidgetsBuildChildren4(
+                    (PersianDateFormatter.date(
+                      JalaliDate.fromDateTime(
+                        plan.schedule.endDate!.toUtcDateForCalculation(),
+                      ),
+                    )).toString(),
+                  ),
           ),
-          const Text(
-            'محدودهٔ نمایش، تعداد کل یا پایان برنامه را تغییر نمی‌دهد.',
-          ),
+          Text(planActL10n(context).plannedOccurrenceWidgetsBuildChildren5),
         ],
         if (_planned != null)
           Row(
             children: [
               IconButton(
-                tooltip: 'ماه قبل نوبت‌ها',
+                tooltip: planActL10n(context)
+                    .plannedOccurrenceWidgetsBuildTooltip2,
                 onPressed: _preparing
                     ? null
                     : () {
@@ -265,12 +290,15 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
                           }
                         },
                   child: Text(
-                    'محدودهٔ نوبت‌ها: ${PersianDateFormatter.month(_month)}',
+                    planActL10n(context).plannedOccurrenceWidgetsBuildChildren6(
+                      (PersianDateFormatter.month(_month)).toString(),
+                    ),
                   ),
                 ),
               ),
               IconButton(
-                tooltip: 'ماه بعد نوبت‌ها',
+                tooltip: planActL10n(context)
+                    .plannedOccurrenceWidgetsBuildTooltip3,
                 onPressed: _preparing
                     ? null
                     : () {
@@ -286,8 +314,11 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
         else if (_error)
           Column(
             children: [
-              const Text('بارگذاری نوبت‌ها انجام نشد.'),
-              TextButton(onPressed: _load, child: const Text('تلاش دوباره')),
+              Text(planActL10n(context).plannedOccurrenceWidgetsBuildChildren7),
+              TextButton(
+                onPressed: _load,
+                child: Text(planActL10n(context).commonRetry),
+              ),
             ],
           )
         else if (plan != null) ...[
@@ -308,7 +339,7 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
           if (_range != null &&
               (_range!.recorded[widget.commitment.id.value] ?? []).isEmpty &&
               (_range!.preview[widget.commitment.id.value] ?? []).isEmpty)
-            const Text('در این محدوده نوبتی وجود ندارد.'),
+            Text(planActL10n(context).plannedOccurrenceWidgetsBuildChildren8),
         ],
         const SizedBox(height: PlanActSpacing.sm),
       ],

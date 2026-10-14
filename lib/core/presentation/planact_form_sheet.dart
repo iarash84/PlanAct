@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 
@@ -9,8 +10,8 @@ class PlanActFormSheet extends StatelessWidget {
     required this.child,
     this.formKey,
     this.onPrimary,
-    this.primaryLabel = 'ذخیره',
-    this.secondaryLabel = 'انصراف',
+    this.primaryLabel = PersianCopy.commonSave,
+    this.secondaryLabel = PersianCopy.commonCancel,
     this.onSecondary,
     this.isLoading = false,
     this.error,
@@ -152,8 +153,8 @@ Future<T?> showPlanActFormSheet<T>({
   required WidgetBuilder builder,
   GlobalKey<FormState>? formKey,
   VoidCallback? onPrimary,
-  String primaryLabel = 'ذخیره',
-  String secondaryLabel = 'انصراف',
+  String primaryLabel = PersianCopy.commonSave,
+  String secondaryLabel = PersianCopy.commonCancel,
   VoidCallback? onSecondary,
   bool isLoading = false,
   String? error,

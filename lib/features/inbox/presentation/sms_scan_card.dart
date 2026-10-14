@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -42,7 +44,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
       if (mounted) setState(() => _scan = scan);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'بارگذاری وضعیت ورود پیامک انجام نشد.');
+        setState(() => _error = PersianCopy.smsScanCardLoadMessage);
       }
     }
   }
@@ -63,26 +65,24 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
     final days = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('انتخاب بازهٔ ورود پیامک'),
-        content: const Text(
-          'مجوز پیامک اجازهٔ خواندن تاریخچه نیست. بازه را انتخاب کنید؛ بررسی فقط روی دستگاه است و ثبت مالی نیاز به تأیید شما دارد.',
-        ),
+        title: const Text(PersianCopy.smsScanCardDaysTitle),
+        content: const Text(PersianCopy.smsScanCardDaysContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, 0),
-            child: const Text('فقط پیامک‌های جدید از این لحظه'),
+            child: const Text(PersianCopy.smsScanCardDaysActions),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, 7),
-            child: const Text('۷ روز گذشته'),
+            child: const Text(PersianCopy.smsScanCardDaysActions2),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, 30),
-            child: const Text('۳۰ روز گذشته'),
+            child: const Text(PersianCopy.smsScanCardDaysActions3),
           ),
         ],
       ),
@@ -98,7 +98,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
       if (mounted) await _run();
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'ذخیرهٔ انتخاب انجام نشد؛ دوباره تلاش کنید.');
+        setState(() => _error = PersianCopy.smsScanCardChooseMessage);
       }
     }
   }
@@ -117,9 +117,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
       );
     } catch (_) {
       if (mounted) {
-        setState(
-          () => _error = 'ورود متوقف شد؛ مجوز را بررسی و دوباره ادامه دهید. پیامک‌های ثبت‌شده حفظ شده‌اند.',
-        );
+        setState(() => _error = PersianCopy.smsScanCardRunMessage);
       }
     } finally {
       if (mounted) {
@@ -140,42 +138,47 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('ورود پیامک با انتخاب شما'),
+          Text(planActL10n(context).smsScanCardBuildChildren),
           if (_scan != null)
             Text(
               _scan!.newOnly
-                  ? 'فقط پیامک‌های جدید از ${_date(_scan!.from)}'
-                  : 'از ${_date(_scan!.from)} تا ${_date(_scan!.until)}',
+                  ? planActL10n(
+                      context,
+                    ).smsScanCardBuildChildren2((_date(_scan!.from)).toString())
+                  : planActL10n(context).smsScanCardBuildChildren3(
+                      (_date(_scan!.from)).toString(),
+                      (_date(_scan!.until)).toString(),
+                    ),
             ),
           if (_scan != null)
             Text(
-              'تعداد پیامک‌های بررسی‌شده: ${PersianNumbers.format(_scan!.inspected.toString())}',
+              planActL10n(context).smsScanCardBuildChildren4(
+                (PersianNumbers.format(_scan!.inspected.toString())).toString(),
+              ),
             ),
           if (_scan != null && _scan!.unsupported > 0)
-            const Text(
-              'برخی پیامک‌ها قابل تشخیص نبودند؛ تراکنشی از آن‌ها ثبت نشد.',
-            ),
+            Text(planActL10n(context).smsScanCardBuildChildren5),
           if (_error != null) Text(_error!),
           if (_busy) const LinearProgressIndicator(),
           if (!_busy && _scan?.complete == true)
-            const Text('بررسی بازه کامل شد.'),
+            Text(planActL10n(context).smsScanCardBuildChildren6),
           if (_busy)
             TextButton(
               onPressed: _command.cancel,
-              child: const Text('توقف ورود پیامک'),
+              child: Text(planActL10n(context).smsScanCardBuildChildren7),
             ),
           if (!_busy && _scan != null && (!_scan!.complete || _scan!.newOnly))
             TextButton(
               onPressed: widget.access ? _run : null,
               child: Text(
                 _scan!.complete
-                    ? 'بررسی پیامک‌های جدید'
-                    : 'ادامه / تلاش دوباره',
+                    ? planActL10n(context).smsScanCardBuildChildren8
+                    : planActL10n(context).smsScanCardBuildChildren9,
               ),
             ),
           TextButton(
             onPressed: !_busy && widget.access ? _choose : null,
-            child: const Text('انتخاب بازهٔ پیامک'),
+            child: Text(planActL10n(context).smsScanCardBuildChildren10),
           ),
         ],
       ),

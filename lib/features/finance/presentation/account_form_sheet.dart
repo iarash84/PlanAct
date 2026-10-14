@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -122,8 +124,8 @@ class _AccountFormSheetState extends State<AccountFormSheet>
         setState(() {
           _saving = false;
           _error = widget.account == null
-              ? 'افزودن حساب انجام نشد؛ ورودی‌ها حفظ شدند. دوباره تلاش کنید.'
-              : 'ویرایش انجام نشد؛ ممکن است حساب تغییر کرده باشد. دوباره تلاش کنید یا فرم را ببندید و از نو باز کنید.';
+              ? PersianCopy.accountFormSheetSaveMessage
+              : PersianCopy.accountFormSheetSaveMessage2;
         });
       }
     }
@@ -133,9 +135,13 @@ class _AccountFormSheetState extends State<AccountFormSheet>
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: PlanActFormSheet(
-      title: widget.account == null ? 'افزودن حساب' : 'ویرایش حساب',
+      title: widget.account == null
+          ? planActL10n(context).accountFormSheetBuildTitle
+          : planActL10n(context).accountFormSheetBuildTitle2,
       formKey: _form,
-      primaryLabel: widget.account == null ? 'افزودن' : 'ذخیره',
+      primaryLabel: widget.account == null
+          ? planActL10n(context).quickCaptureSheetBuildActions
+          : planActL10n(context).commonSave,
       isLoading: _saving,
       error: _error,
       onPrimary: _save,
@@ -146,15 +152,20 @@ class _AccountFormSheetState extends State<AccountFormSheet>
             controller: _name,
             enabled: !_saving,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'نام حساب'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'نام حساب را وارد کنید.' : null,
+            decoration: InputDecoration(
+              labelText: planActL10n(context).accountFormSheetBuildLabelText,
+            ),
+            validator: (v) => v == null || v.trim().isEmpty
+                ? planActL10n(context).accountFormSheetBuildValidator
+                : null,
           ),
           const SizedBox(height: PlanActSpacing.md),
           DropdownButtonFormField<FinancialAccountType>(
             initialValue: _type,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'نوع حساب'),
+            decoration: InputDecoration(
+              labelText: planActL10n(context).accountFormSheetBuildLabelText2,
+            ),
             items: FinancialAccountType.values
                 .map(
                   (type) => DropdownMenuItem(
@@ -178,31 +189,32 @@ class _AccountFormSheetState extends State<AccountFormSheet>
               ),
               inputFormatters: const [MoneyInputFormatter(decimal: true)],
               decoration: InputDecoration(
-                labelText: 'موجودی اولیه (اختیاری)',
+                labelText: planActL10n(context).accountFormSheetBuildLabelText3,
                 suffixText: _money!.unit.label,
               ),
               validator: (v) =>
                   (v ?? '').trim().isNotEmpty && _money!.parse(v!) == null
-                  ? 'موجودی اولیه معتبر نیست.'
+                  ? planActL10n(context).accountFormSheetBuildValidator2
                   : null,
             ),
           ],
           ExpansionTile(
-            title: const Text('جزئیات حساب (اختیاری)'),
+            title: Text(planActL10n(context).accountFormSheetBuildTitle3),
             initiallyExpanded: widget.account != null,
             children: [
-              const Text(
-                'این اطلاعات فقط برای شناسایی حساب است؛ رمز، PIN یا CVV وارد نکنید.',
-              ),
+              Text(planActL10n(context).accountFormSheetBuildChildren),
               const SizedBox(height: PlanActSpacing.md),
               DropdownButtonFormField<IranianBank>(
                 initialValue: _bank,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'بانک (اختیاری)'),
+                decoration: InputDecoration(
+                  labelText: planActL10n(context)
+                      .accountFormSheetBuildLabelText4,
+                ),
                 items: [
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: null,
-                    child: Text('بدون انتخاب'),
+                    child: Text(planActL10n(context).commonNoSelection),
                   ),
                   ...IranianBank.values.map(
                     (bank) =>
@@ -216,14 +228,14 @@ class _AccountFormSheetState extends State<AccountFormSheet>
               const SizedBox(height: PlanActSpacing.md),
               _identifier(
                 _card,
-                'شماره کارت (اختیاری)',
+                planActL10n(context).accountFormSheetBuildChildren2,
                 'account-card',
                 AccountIdentifiers.cardError,
               ),
               const SizedBox(height: PlanActSpacing.md),
               _identifier(
                 _iban,
-                'شماره شبا (اختیاری)',
+                planActL10n(context).accountFormSheetBuildChildren3,
                 'account-iban',
                 AccountIdentifiers.ibanError,
                 iban: true,
@@ -231,7 +243,7 @@ class _AccountFormSheetState extends State<AccountFormSheet>
               const SizedBox(height: PlanActSpacing.md),
               _identifier(
                 _number,
-                'شماره حساب (اختیاری)',
+                planActL10n(context).accountFormSheetBuildChildren4,
                 'account-number',
                 AccountIdentifiers.accountError,
               ),
@@ -260,7 +272,13 @@ class _AccountFormSheetState extends State<AccountFormSheet>
     decoration: InputDecoration(
       labelText: label,
       suffixIcon: IconButton(
-        tooltip: '${_revealed.contains(key) ? 'پنهان کردن' : 'نمایش'} $label',
+        tooltip: PersianCopy.accountFormSheetIdentifierTooltip3(
+          (_revealed.contains(key)
+                  ? PersianCopy.accountFormSheetIdentifierTooltip2
+                  : PersianCopy.accountFormSheetIdentifierTooltip)
+              .toString(),
+          (label).toString(),
+        ),
         onPressed: _saving
             ? null
             : () => setState(() {
@@ -278,8 +296,12 @@ class _AccountFormSheetState extends State<AccountFormSheet>
 }
 
 String accountTypeLabel(FinancialAccountType type) => switch (type) {
-  FinancialAccountType.bank => 'بانکی',
-  FinancialAccountType.cash => 'نقدی',
-  FinancialAccountType.digitalWallet => 'کیف پول',
-  FinancialAccountType.credit => 'اعتباری',
+  FinancialAccountType.bank =>
+    PersianCopy.accountFormSheetFinancialAccountTypeBank,
+  FinancialAccountType.cash =>
+    PersianCopy.accountFormSheetFinancialAccountTypeCash,
+  FinancialAccountType.digitalWallet =>
+    PersianCopy.accountFormSheetFinancialAccountTypeDigitalWallet,
+  FinancialAccountType.credit =>
+    PersianCopy.accountFormSheetFinancialAccountTypeCredit,
 };

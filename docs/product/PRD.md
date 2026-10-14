@@ -153,6 +153,15 @@ PlanAct باید تبدیل به یک **Personal Commitment Operating System** �
 
 ## 5.7 Persian First
 
+Localization foundation checkpoint (2026-10-14): application-owned Persian copy
+is centralized in an ARB resource catalog with generated widget resources and
+pure-Dart compatibility defaults. Persian remains the only enabled language;
+there is no new language preference or change to RTL, Jalali, recurrence, currency
+or stored user/source text. This is foundation, not multilingual readiness.
+Other-language activation requires verified projection/error/helper and native
+copy boundaries as well as direction/formatting decisions. See
+[localization verification](../LOCALIZATION_VERIFICATION.md).
+
 تجربه‌ی محصول باید از ابتدا برای:
 
 - زبان فارسی؛

@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -147,7 +149,7 @@ class HolidayDataPackage {
       );
     } catch (_) {
       throw const HolidayPackageException(
-        'بسته معتبر نیست؛ امضا، ساختار یا پوشش کامل سال را بررسی کنید.',
+        PersianCopy.holidayDataPackageVerifyMessage,
       );
     }
   }

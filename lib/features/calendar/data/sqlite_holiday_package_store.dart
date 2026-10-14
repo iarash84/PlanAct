@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:io';
 
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
@@ -60,7 +62,7 @@ class SqliteHolidayPackageStore implements HolidayPackageStore {
           (current.year == package.year &&
               current.revision >= package.revision)) {
         throw const HolidayPackageException(
-          'ناشر یا نسخهٔ بسته با دادهٔ ذخیره‌شده سازگار نیست.',
+          PersianCopy.sqliteHolidayPackageStoreSaveMessage,
         );
       }
     }
@@ -78,13 +80,15 @@ class SqliteHolidayPackageStore implements HolidayPackageStore {
             (i) => rows[i]['envelope'] == snapshot[i],
           ).contains(false)) {
         throw const HolidayPackageException(
-          'دادهٔ تعطیلات هم‌زمان تغییر کرده است؛ دوباره تلاش کنید.',
+          PersianCopy.sqliteHolidayPackageStoreSaveMessage2,
         );
       }
       for (var i = 0; i < rows.length; i++) {
         if (rows[i]['year'] != verified[i].year ||
             rows[i]['revision'] != verified[i].revision) {
-          throw const HolidayPackageException('دادهٔ ذخیره‌شده معتبر نیست.');
+          throw const HolidayPackageException(
+            PersianCopy.sqliteHolidayPackageStoreSaveMessage3,
+          );
         }
       }
       db.execute(

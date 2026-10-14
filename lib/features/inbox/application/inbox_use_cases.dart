@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/application/command_gate.dart';
 
 import 'dart:convert';
@@ -102,11 +103,11 @@ class InMemoryInboxRepository implements InboxRepository {
 }
 
 class UnsupportedSmsFormat extends ValidationError {
-  const UnsupportedSmsFormat() : super('قالب پیامک قابل تشخیص نیست.');
+  const UnsupportedSmsFormat() : super(PersianCopy.inboxUseCasesMessage);
 }
 
 class DuplicateSmsImport extends ValidationError {
-  const DuplicateSmsImport() : super('این پیامک قبلاً وارد شده است.');
+  const DuplicateSmsImport() : super(PersianCopy.inboxUseCasesMessage2);
 }
 
 class ParsedSms {
@@ -466,7 +467,7 @@ class InboxUseCases {
     if (normalized.isEmpty ||
         normalized.length > 100000 ||
         sourceKey.trim().isEmpty) {
-      throw const ValidationError('متن یا شناسهٔ پیامک معتبر نیست.');
+      throw const ValidationError(PersianCopy.inboxUseCasesStageSmsMessage);
     }
     final ParsedSms parsed;
     try {
@@ -557,16 +558,14 @@ class InboxUseCases {
     );
     if (stored.status == SuggestionStatus.confirmed ||
         stored.status == SuggestionStatus.rejected) {
-      throw const ValidationError('پیشنهاد بررسی‌شده قابل ویرایش نیست.');
+      throw const ValidationError(PersianCopy.inboxUseCasesEditMessage);
     }
     if (stored.draft.currencyEvidence != null &&
         draft.currencyEvidence == null) {
-      throw const ValidationError('شواهد واحد پیامک نباید حذف شود.');
+      throw const ValidationError(PersianCopy.inboxUseCasesEditMessage2);
     }
     if (stored.revision != suggestion.revision) {
-      throw const ValidationError(
-        'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
-      );
+      throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
     }
     final edited = stored.withDraft(draft);
     await repository.saveSuggestion(edited);
@@ -669,9 +668,7 @@ class InboxUseCases {
     }
     if (stored.revision != suggestion.revision ||
         stored.status == SuggestionStatus.rejected) {
-      throw const ValidationError(
-        'پیشنهاد تغییر کرده است؛ ابتدا بازخوانی کنید.',
-      );
+      throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
     }
     stored.draft.validateConfirmation(
       extractedEvidence: stored.extractedEvidence,

@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
@@ -64,7 +66,7 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'خواندن حساب‌ها انجام نشد؛ دوباره تلاش کنید.';
+        _error = PersianCopy.financialAccountPickerLoadMessage;
       });
       widget.onChanged(null);
     }
@@ -76,23 +78,24 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
     children: [
       if (_loading) ...[
         const LinearProgressIndicator(),
-        const Text('در حال بارگذاری حساب‌ها…'),
+        Text(planActL10n(context).financialAccountPickerBuildChildren),
       ] else if (_error != null) ...[
         Text(_error!),
         TextButton(
           onPressed: widget.enabled ? _load : null,
-          child: const Text('تلاش دوباره'),
+          child: Text(planActL10n(context).commonRetry),
         ),
       ] else if (_accounts.isEmpty)
-        const Text('حساب فعال سازگار پیدا نشد. برای ثبت، حساب بسازید.')
+        Text(planActL10n(context).financialAccountPickerBuildChildren2)
       else
         DropdownButtonFormField<FinancialAccount>(
           key: ValueKey(_selected?.id),
           initialValue: _selected,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'حساب مالی',
-            hintText: 'حساب را انتخاب کنید',
+          decoration: InputDecoration(
+            labelText: planActL10n(context)
+                .financialAccountPickerBuildLabelText,
+            hintText: planActL10n(context).financialAccountPickerBuildHintText,
           ),
           items: _accounts
               .map(
@@ -114,7 +117,7 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
         TextButton.icon(
           onPressed: widget.enabled ? _load : null,
           icon: const Icon(Icons.refresh),
-          label: const Text('تازه‌سازی حساب‌ها'),
+          label: Text(planActL10n(context).financialAccountPickerBuildLabel),
         ),
       TextButton.icon(
         onPressed: widget.enabled && !_loading
@@ -124,7 +127,7 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
               }
             : null,
         icon: const Icon(Icons.account_balance_wallet_outlined),
-        label: const Text('ساخت حساب'),
+        label: Text(planActL10n(context).financialAccountPickerBuildLabel2),
       ),
     ],
   );

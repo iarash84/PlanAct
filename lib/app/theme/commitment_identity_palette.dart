@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/domain/commitment_color.dart';
@@ -34,13 +35,21 @@ abstract final class CommitmentIdentityPalette {
       brightness == Brightness.dark ? const Color(0xff101a1e) : Colors.white;
 
   static String label(CommitmentColor color) => switch (color) {
-    CommitmentColor.teal => 'سبزآبی',
-    CommitmentColor.blue => 'آبی',
-    CommitmentColor.indigo => 'نیلی',
-    CommitmentColor.violet => 'بنفش',
-    CommitmentColor.rose => 'صورتی',
-    CommitmentColor.amber => 'کهربایی',
-    CommitmentColor.olive => 'زیتونی',
-    CommitmentColor.cyan => 'فیروزه‌ای',
+    CommitmentColor.teal =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorTeal,
+    CommitmentColor.blue =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorBlue,
+    CommitmentColor.indigo =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorIndigo,
+    CommitmentColor.violet =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorViolet,
+    CommitmentColor.rose =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorRose,
+    CommitmentColor.amber =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorAmber,
+    CommitmentColor.olive =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorOlive,
+    CommitmentColor.cyan =>
+      PersianCopy.commitmentIdentityPaletteCommitmentColorCyan,
   };
 }

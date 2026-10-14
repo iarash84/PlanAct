@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/features/actuals/application/actual_use_cases.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
@@ -52,46 +53,50 @@ List<OccurrenceAction> availableOccurrenceActions(
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.complete,
-          label: 'انجام شد / حضور داشت',
-          consequence: 'این نوبت به‌عنوان انجام‌شده ثبت می‌شود.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence,
         ),
       );
       actions.add(
         OccurrenceAction(
           type: OccurrenceActionType.providerCancelled,
-          label: 'لغو توسط ارائه‌دهنده',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel2,
           consequence:
               sessionPolicy
                   .resolve(outcome: SessionOutcome.providerCancelled)
                   .requiresMakeup
-              ? 'اعتبار طبق سیاست ثبت می‌شود و جلسهٔ جبرانی لازم است.'
-              : 'اعتبار طبق سیاست لغو ارائه‌دهنده ثبت می‌شود.',
+              ? PersianCopy
+                    .occurrenceActionsAvailableOccurrenceActionsConsequence2
+              : PersianCopy
+                    .occurrenceActionsAvailableOccurrenceActionsConsequence3,
           requiresReason: true,
         ),
       );
       actions.add(
         OccurrenceAction(
           type: OccurrenceActionType.userCancelled,
-          label: 'لغو توسط من',
-          consequence:
-              'اثر لغو بر اعتبار به زمان اعلام و سیاست جلسه بستگی دارد.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel3,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence4,
           requiresReason: true,
         ),
       );
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.noShow,
-          label: 'عدم حضور',
-          consequence: 'اثر عدم حضور بر اعتبار طبق سیاست جلسه ثبت می‌شود.',
+          label: PersianCopy.occurrenceSkipped,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence5,
           requiresReason: true,
         ),
       );
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.reschedule,
-          label: 'جابه‌جایی زمان',
-          consequence:
-              'زمان این نوبت تغییر می‌کند و یادآوری‌ها باید بازسازی شوند.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel4,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence6,
         ),
       );
     case OccurrenceStatus.cancelled:
@@ -99,23 +104,26 @@ List<OccurrenceAction> availableOccurrenceActions(
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.restore,
-          label: 'بازگردانی / بازگشایی',
-          consequence: 'این نوبت دوباره برای اقدام در دسترس قرار می‌گیرد.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel5,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence7,
         ),
       );
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.makeup,
-          label: 'ساخت جلسهٔ جبرانی',
-          consequence: 'جلسهٔ جبرانی بدون حذف سابقه ساخته می‌شود.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel6,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence8,
         ),
       );
     case OccurrenceStatus.completed:
       actions.add(
         const OccurrenceAction(
           type: OccurrenceActionType.restore,
-          label: 'بازگردانی نتیجه',
-          consequence: 'نتیجهٔ قبلی محفوظ می‌ماند و بازگشایی ثبت می‌شود. پرداخت و اعتبار جلسه تغییر نمی‌کند.',
+          label: PersianCopy.occurrenceActionsAvailableOccurrenceActionsLabel7,
+          consequence: PersianCopy
+              .occurrenceActionsAvailableOccurrenceActionsConsequence9,
         ),
       );
   }

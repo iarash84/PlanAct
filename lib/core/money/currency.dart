@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 /// Canonical identifiers used by the domain for monetary units.
 ///
 /// User-facing labels such as «تومان» are presentation concerns and must not
@@ -13,5 +15,5 @@ abstract final class CurrencyCodes {
       canonicalize(left) == canonicalize(right);
 
   static String label(String currency) =>
-      same(currency, irr) ? 'ریال' : currency;
+      same(currency, irr) ? PersianCopy.currencyRial : currency;
 }

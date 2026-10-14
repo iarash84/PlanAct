@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/app/theme/planact_radius.dart';
@@ -24,7 +25,9 @@ class CommitmentIdentityMarker extends StatelessWidget {
       commitment.id,
     );
     return Semantics(
-      label: 'رنگ تعهد: ${CommitmentIdentityPalette.label(identity)}',
+      label: planActL10n(context).commitmentIdentityMarkerBuildLabel(
+        (CommitmentIdentityPalette.label(identity)).toString(),
+      ),
       child: ExcludeSemantics(
         child: Container(
           padding: const EdgeInsets.all(PlanActSpacing.sm),

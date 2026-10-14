@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +79,7 @@ class _TransactionRelationshipPageState
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'بارگذاری تراکنش انجام نشد؛ دوباره تلاش کنید.';
+          _error = PersianCopy.transactionRelationshipPageLoadMessage;
         });
       }
     }
@@ -93,8 +95,7 @@ class _TransactionRelationshipPageState
         amount <= 0 ||
         amount > _context!.available.minorUnits) {
       setState(
-        () => _error =
-            'رخداد و مبلغ معتبر در محدودهٔ مبلغ باقی‌مانده را انتخاب کنید.',
+        () => _error = PersianCopy.transactionRelationshipPageSaveMessage,
       );
       return;
     }
@@ -118,7 +119,7 @@ class _TransactionRelationshipPageState
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'ثبت ارتباط انجام نشد؛ انتخاب و مبلغ شما حفظ شده است. مبلغ باقی‌مانده را بازخوانی کنید و دوباره تلاش کنید.';
+          _error = PersianCopy.transactionRelationshipPageSaveMessage2;
         });
       }
     }
@@ -158,11 +159,11 @@ class _TransactionRelationshipPageState
           SnackBar(
             content: Text(
               independent
-                  ? 'باقی‌ماندهٔ تراکنش مستقل ثبت شد؛ ارتباط‌های قبلی حفظ شدند.'
-                  : 'بررسی ارتباط دوباره باز شد؛ اکنون می‌توانید ارتباط ثبت کنید.',
+                  ? PersianCopy.transactionRelationshipPageDecideContent
+                  : PersianCopy.transactionRelationshipPageDecideContent2,
             ),
             action: SnackBarAction(
-              label: 'بازگردانی',
+              label: PersianCopy.inboxPageRejectLabel,
               onPressed: () =>
                   _decide(independent: !independent, expected: review),
             ),
@@ -172,7 +173,7 @@ class _TransactionRelationshipPageState
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = 'ثبت تصمیم انجام نشد؛ انتخاب و مبلغ شما حفظ شده است. اطلاعات را بازخوانی کنید و دوباره تلاش کنید.';
+        _error = PersianCopy.transactionRelationshipPageDecideMessage;
       });
     }
   }
@@ -192,7 +193,7 @@ class _TransactionRelationshipPageState
         : value is LocalDate
         ? DateTime(value.year, value.month, value.day)
         : null;
-    if (date == null) return 'بدون تاریخ';
+    if (date == null) return PersianCopy.transactionRelationshipPageDateMessage;
     final jalali = JalaliDate.fromDateTime(date);
     final label =
         '${PersianDateFormatter.date(jalali)} ${PersianNumbers.format(jalali.year)}';
@@ -216,7 +217,9 @@ class _TransactionRelationshipPageState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('تعیین ارتباط تراکنش'),
+          title: Text(
+            planActL10n(context).transactionRelationshipPageBuildTitle,
+          ),
           leading: Navigator.of(context).canPop()
               ? BackButton(onPressed: _saving ? null : _back)
               : null,
@@ -238,65 +241,110 @@ class _TransactionRelationshipPageState
                               }
                             },
                       icon: const Icon(Icons.playlist_add_check),
-                      label: const Text('صف بررسی ارتباط تراکنش‌ها'),
+                      label: Text(
+                        planActL10n(context).relationshipQueuePageBuildTitle,
+                      ),
                     ),
                   if (data != null) ...[
                     Text(
-                      data.transaction.note ?? 'تراکنش بدون شرح',
+                      data.transaction.note ??
+                          planActL10n(context)
+                              .relationshipQueuePageBuildSemanticLabel,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      'مبلغ تراکنش: ${PersianMoneyText.money(data.transaction.amount, unit: MoneyUnitScope.of(context))}',
+                      planActL10n(context)
+                          .transactionRelationshipPageBuildChildren(
+                            (PersianMoneyText.money(
+                              data.transaction.amount,
+                              unit: MoneyUnitScope.of(context),
+                            )).toString(),
+                          ),
                     ),
-                    Text('حساب: ${data.account?.name ?? 'حساب در دسترس نیست'}'),
                     Text(
-                      'باقی‌مانده برای ارتباط: ${PersianMoneyText.money(data.available, unit: MoneyUnitScope.of(context))}',
+                      planActL10n(
+                        context,
+                      ).transactionRelationshipPageBuildChildren3(
+                        (data.account?.name ??
+                                planActL10n(context)
+                                    .transactionRelationshipPageBuildChildren2)
+                            .toString(),
+                      ),
+                    ),
+                    Text(
+                      planActL10n(context)
+                          .transactionRelationshipPageBuildChildren4(
+                            (PersianMoneyText.money(
+                              data.available,
+                              unit: MoneyUnitScope.of(context),
+                            )).toString(),
+                          ),
                     ),
                     const SizedBox(height: PlanActSpacing.lg),
                     if (data.review?.isIndependent == true) ...[
-                      const Text(
-                        'بررسی‌شده: باقی‌ماندهٔ تراکنش به تعهدی مربوط نیست.',
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren5,
                       ),
-                      const Text(
-                        'برای ثبت ارتباط جدید، ابتدا بررسی را دوباره باز کنید. ارتباط‌های قبلی حفظ شده‌اند.',
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren6,
                       ),
                       OutlinedButton(
                         onPressed: _saving
                             ? null
                             : () => _decide(independent: false),
-                        child: const Text('بازگشایی بررسی ارتباط'),
+                        child: Text(
+                          planActL10n(context)
+                              .relationshipQueuePageBuildChildren11,
+                        ),
                       ),
                     ] else if (data.review != null &&
                         data.available.minorUnits > 0) ...[
-                      const Text(
-                        'اگر مبلغ باقی‌مانده مستقل است، آن را صریحاً تأیید کنید. این تصمیم ارتباط‌های قبلی، موجودی و تاریخچه را تغییر نمی‌دهد.',
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren7,
                       ),
                       OutlinedButton(
                         onPressed: _saving
                             ? null
                             : () => _decide(independent: true),
-                        child: const Text('به تعهدی مربوط نیست'),
+                        child: Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren8,
+                        ),
                       ),
                     ],
                     if (_saving) ...[
                       const LinearProgressIndicator(),
-                      const Text('در حال ثبت…'),
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren9,
+                      ),
                     ],
                     if (data.review?.isIndependent != true) ...[
-                      const Text(
-                        'تعهد و نوبت مربوط را انتخاب کنید؛ هیچ نتیجه یا مبلغ مورد انتظاری تغییر نمی‌کند.',
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren10,
                       ),
                       TextField(
-                        decoration: const InputDecoration(
-                          labelText: 'جستجوی تعهد',
+                        decoration: InputDecoration(
+                          labelText: planActL10n(context)
+                              .transactionRelationshipPageBuildLabelText,
                         ),
                         enabled: !_saving,
                         onChanged: (v) => setState(() => _query = v.trim()),
                       ),
                       if (data.targets.isEmpty)
-                        const Text('هنوز رخدادی برای انتخاب ثبت نشده است.'),
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren11,
+                        ),
                       if (data.targets.isNotEmpty && targets.isEmpty)
-                        const Text('تعهدی با این عبارت پیدا نشد.'),
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren12,
+                        ),
                       for (final target in targets)
                         ListTile(
                           selected: _selected == target.occurrence.id,
@@ -307,7 +355,18 @@ class _TransactionRelationshipPageState
                           ),
                           title: Text(target.commitment.title),
                           subtitle: Text(
-                            '${_date(target)}${target.commitment.status == CommitmentStatus.archived ? ' · بایگانی‌شده' : ''}',
+                            planActL10n(
+                              context,
+                            ).weekTimelineViewAgendaDelegate2(
+                              (_date(target)).toString(),
+                              (target.commitment.status ==
+                                          CommitmentStatus.archived
+                                      ? planActL10n(
+                                          context,
+                                        ).transactionRelationshipPageBuildSubtitle
+                                      : '')
+                                  .toString(),
+                            ),
                           ),
                           onTap: _saving || data.available.minorUnits == 0
                               ? null
@@ -325,8 +384,12 @@ class _TransactionRelationshipPageState
                           MoneyInputFormatter(decimal: true),
                         ],
                         decoration: InputDecoration(
-                          labelText:
-                              'مبلغ ارتباط به ${_moneyInput.label(data.transaction.amount.currency)}',
+                          labelText: planActL10n(context)
+                              .transactionRelationshipPageBuildLabelText2(
+                                (_moneyInput.label(
+                                  data.transaction.amount.currency,
+                                )).toString(),
+                              ),
                         ),
                       ),
                       const SizedBox(height: PlanActSpacing.md),
@@ -334,11 +397,20 @@ class _TransactionRelationshipPageState
                         onPressed: _saving || data.available.minorUnits == 0
                             ? null
                             : _save,
-                        child: Text(_saving ? 'در حال ثبت…' : 'تأیید ارتباط'),
+                        child: Text(
+                          _saving
+                              ? planActL10n(context)
+                                    .transactionRelationshipPageBuildChildren9
+                              : planActL10n(context)
+                                    .transactionRelationshipPageBuildChildren13,
+                        ),
                       ),
                     ],
                     if (data.available.minorUnits == 0)
-                      const Text('مبلغ این تراکنش به‌طور کامل مرتبط شده است.'),
+                      Text(
+                        planActL10n(context)
+                            .transactionRelationshipPageBuildChildren14,
+                      ),
                   ],
                   if (_error != null)
                     Semantics(
@@ -352,7 +424,7 @@ class _TransactionRelationshipPageState
                     ),
                   TextButton(
                     onPressed: _saving ? null : _load,
-                    child: const Text('بازخوانی'),
+                    child: Text(planActL10n(context).inboxPageBuildTooltip),
                   ),
                 ],
               ),

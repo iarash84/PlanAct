@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -76,7 +78,7 @@ class DriftCommitmentCorrectionRepository
       final prepared = await _prepare(expected.request, now);
       if (prepared.preview.fingerprint != expected.fingerprint) {
         throw const ValidationError(
-          'اطلاعات تغییر کرده است؛ پیش‌نمایش را دوباره بررسی کنید.',
+          PersianCopy.driftCommitmentCorrectionRepositoryConfirmMessage,
         );
       }
       final auditId = StableId.generate();
@@ -162,14 +164,18 @@ class DriftCommitmentCorrectionRepository
   ) async {
     if (request.reason.trim().isEmpty ||
         (request.scheduleCount == null) == (request.creditDelta == null)) {
-      throw const ValidationError('یک اصلاح مستقل و دلیل آن را وارد کنید.');
+      throw const ValidationError(
+        PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage,
+      );
     }
     final plan = await DriftCommitmentPlanRepository(database)
         .findByCommitmentId(request.commitmentId);
     if (plan == null ||
         plan.commitment.status != CommitmentStatus.active ||
         plan.cycle.status != CommitmentCycleStatus.active) {
-      throw const ValidationError('تعهد فعال و برنامهٔ ثبت‌شده لازم است.');
+      throw const ValidationError(
+        PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage2,
+      );
     }
     final today = LocalDate.fromDateTime(now);
     final effective = today.addDays(1);
@@ -188,7 +194,7 @@ class DriftCommitmentCorrectionRepository
     if (request.creditDelta case final delta?) {
       if (entitlement == null || delta == 0 || remaining! + delta < 0) {
         throw const ValidationError(
-          'اصلاح اعتبار معتبر نیست یا از اعتبار باقی‌مانده بیشتر است.',
+          PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage3,
         );
       }
     }
@@ -224,7 +230,7 @@ class DriftCommitmentCorrectionRepository
           count == old.occurrenceCount ||
           effective.compareTo(old.effectiveFrom) <= 0) {
         throw const ValidationError(
-          'فقط تعداد برنامهٔ شمارشی قابل اصلاح است؛ تعداد جدید باید متفاوت و بین ۱ تا ۱۰۰۰ باشد.',
+          PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage4,
         );
       }
       next = ScheduleDefinition(
@@ -265,7 +271,7 @@ class DriftCommitmentCorrectionRepository
       );
       if (prefix.length != count) {
         throw const ValidationError(
-          'این الگوی تکرار در اصلاح تعداد پشتیبانی نمی‌شود.',
+          PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage5,
         );
       }
       final wanted = prefix.map((o) => _date(o.originalScheduledAt)).toSet();
@@ -283,7 +289,7 @@ class DriftCommitmentCorrectionRepository
         if (!wanted.contains(date) && o.status != OccurrenceStatus.cancelled) {
           if (protected) {
             throw const ValidationError(
-              'کاهش تعداد با نوبت گذشته، دستی، پرداخت یا مصرف ثبت‌شده سازگار نیست.',
+              PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage6,
             );
           }
           cancelled.add(o);
@@ -293,7 +299,7 @@ class DriftCommitmentCorrectionRepository
             date.compareTo(today) > 0 &&
             count > old.occurrenceCount!) {
           throw const ValidationError(
-            'افزایش تعداد نباید نوبت لغوشده را بازنویسی کند.',
+            PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage7,
           );
         }
       }

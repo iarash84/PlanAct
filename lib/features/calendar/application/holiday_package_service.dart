@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/calendar/domain/holiday_data_package.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 
@@ -30,7 +31,7 @@ class HolidayPackageService {
       await _loadVerified();
       loadError = null;
     } catch (_) {
-      loadError = 'دادهٔ واردشدهٔ تعطیلات قابل بررسی نیست. دادهٔ قبلی حفظ شده است؛ برای بازیابی فایل با پشتیبانی تماس بگیرید.';
+      loadError = PersianCopy.holidayPackageServiceLoadMessage;
       rethrow;
     }
   }
@@ -43,7 +44,7 @@ class HolidayPackageService {
     if (verified.map((p) => p.year).toSet().length != verified.length ||
         verified.map((p) => p.publisherKey).toSet().length > 1) {
       throw const HolidayPackageException(
-        'دادهٔ ذخیره‌شدهٔ تعطیلات معتبر نیست. بسته‌ها را از منبع مورد اعتماد دوباره وارد کنید.',
+        PersianCopy.holidayPackageServiceLoadVerifiedMessage,
       );
     }
     _packages = List.unmodifiable(verified);
@@ -66,14 +67,14 @@ class HolidayPackageService {
     if (_packages.isNotEmpty &&
         _packages.first.publisherKey != package.publisherKey) {
       throw const HolidayPackageException(
-        'امضای این بسته با ناشر مورد اعتماد شما یکسان نیست.',
+        PersianCopy.holidayPackageServiceValidateReplacementMessage,
       );
     }
     for (final current in _packages) {
       if (current.year == package.year &&
           current.revision >= package.revision) {
         throw const HolidayPackageException(
-          'این نسخه یا نسخهٔ جدیدتر این سال قبلاً نصب شده است.',
+          PersianCopy.holidayPackageServiceValidateReplacementMessage2,
         );
       }
     }
@@ -84,11 +85,13 @@ class HolidayPackageService {
     required bool publisherApproved,
   }) async {
     if (_installing) {
-      throw const HolidayPackageException('ورود بستهٔ دیگری در حال انجام است.');
+      throw const HolidayPackageException(
+        PersianCopy.holidayPackageServiceInstallMessage,
+      );
     }
     if (needsPublisherApproval(package) && !publisherApproved) {
       throw const HolidayPackageException(
-        'اعتماد به ناشر باید به‌صورت صریح تأیید شود.',
+        PersianCopy.holidayPackageServiceInstallMessage2,
       );
     }
     _validateReplacement(package);

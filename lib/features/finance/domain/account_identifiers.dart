@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 
@@ -35,7 +36,7 @@ class AccountIdentifiers {
     final value = normalize(input);
     if (value == null) return null;
     if (!RegExp(r'^\d{16}$').hasMatch(value)) {
-      return 'شماره کارت باید ۱۶ رقم باشد.';
+      return PersianCopy.accountIdentifiersCardErrorMessage;
     }
     var sum = 0;
     for (var i = 0; i < value.length; i++) {
@@ -45,21 +46,23 @@ class AccountIdentifiers {
     }
     return sum % 10 == 0 && !RegExp(r'^0+$').hasMatch(value)
         ? null
-        : 'شماره کارت معتبر نیست.';
+        : PersianCopy.accountIdentifiersCardErrorMessage2;
   }
 
   static String? ibanError(String? input) {
     final value = normalize(input)?.toUpperCase();
     if (value == null) return null;
     if (!RegExp(r'^IR\d{24}$').hasMatch(value)) {
-      return 'شبا باید IR و ۲۴ رقم داشته باشد.';
+      return PersianCopy.accountIdentifiersIbanErrorMessage;
     }
     final digits = '${value.substring(4)}1827${value.substring(2, 4)}';
     var remainder = 0;
     for (final digit in digits.split('')) {
       remainder = (remainder * 10 + int.parse(digit)) % 97;
     }
-    return remainder == 1 ? null : 'شماره شبا معتبر نیست.';
+    return remainder == 1
+        ? null
+        : PersianCopy.accountIdentifiersIbanErrorMessage2;
   }
 
   static String? accountError(String? input) {
@@ -67,7 +70,7 @@ class AccountIdentifiers {
     if (value == null) return null;
     return RegExp(r'^\d{1,30}$').hasMatch(value)
         ? null
-        : 'شماره حساب باید بین ۱ تا ۳۰ رقم باشد.';
+        : PersianCopy.accountIdentifiersAccountErrorMessage;
   }
 
   static String masked(String value) =>

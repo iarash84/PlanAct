@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
@@ -56,7 +58,7 @@ class _AccountCreationRouteState extends State<_AccountCreationRoute> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('حساب‌های مالی')),
+    appBar: AppBar(title: Text(planActL10n(context).financePageBuildTitle)),
     body: FinancePage(key: _key, repository: widget.repository, embedded: true),
   );
 }
@@ -160,7 +162,7 @@ class FinancePageState extends State<FinancePage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _loadError = 'بارگذاری اطلاعات مالی انجام نشد. دوباره تلاش کنید.';
+          _loadError = PersianCopy.financePageRefreshMessage;
         });
       }
     }
@@ -183,7 +185,7 @@ class FinancePageState extends State<FinancePage> {
         });
       }
     } catch (_) {
-      if (mounted) _showMessage('فیلتر برچسب انجام نشد؛ دوباره تلاش کنید.');
+      if (mounted) _showMessage(PersianCopy.financePageFilterTagMessage);
     } finally {
       if (mounted) setState(() => _filterBusy = false);
     }
@@ -224,14 +226,16 @@ class FinancePageState extends State<FinancePage> {
     final saved = await showAccountForm(context, _finance, account: account);
     if (saved != true || !mounted) return;
     _showMessage(
-      account == null ? 'حساب افزوده شد.' : 'اطلاعات حساب ذخیره شد.',
+      account == null
+          ? PersianCopy.financePageAccountFormMessage
+          : PersianCopy.financePageAccountFormMessage2,
     );
     await _refresh();
     try {
       await widget.onDataChanged?.call();
     } catch (_) {
       if (mounted) {
-        _showMessage('حساب ذخیره شد؛ تازه‌سازی نمایش‌های مرتبط انجام نشد.');
+        _showMessage(PersianCopy.financePageAccountFormMessage3);
       }
     }
   }
@@ -264,15 +268,17 @@ class FinancePageState extends State<FinancePage> {
             builder: (context, setDialogState) => PopScope(
               canPop: !saving,
               child: PlanActFormSheet(
-                title: income ? 'ثبت درآمد / واریز' : 'ثبت هزینه',
-                primaryLabel: 'ثبت',
+                title: income
+                    ? PersianCopy.financePageResultTitle
+                    : PersianCopy.financePageResultTitle2,
+                primaryLabel: PersianCopy.financePageResultPrimaryLabel,
                 isLoading: saving,
                 onPrimary: () async {
                   if (saving) return;
                   final selectedAccount = account;
                   if (selectedAccount == null) {
                     setDialogState(
-                      () => formError = 'حساب مالی را انتخاب کنید.',
+                      () => formError = PersianCopy.financePageResultOnPrimary,
                     );
                     return;
                   }
@@ -281,7 +287,9 @@ class FinancePageState extends State<FinancePage> {
                     currency: account?.currency ?? CurrencyCodes.irr,
                   );
                   if (value == null || value <= 0) {
-                    setDialogState(() => formError = 'مبلغ معتبر وارد کنید.');
+                    setDialogState(
+                      () => formError = PersianCopy.financePageResultOnPrimary2,
+                    );
                     return;
                   }
                   setDialogState(() {
@@ -300,7 +308,9 @@ class FinancePageState extends State<FinancePage> {
                       ),
                       occurredAt: occurredAt,
                       note: note.text.trim().isEmpty ? null : note.text.trim(),
-                      category: income ? 'دریافت' : 'عمومی',
+                      category: income
+                          ? PersianCopy.financePageResultCategory
+                          : PersianCopy.commonGeneral,
                       tags: draftTags,
                     );
                     if (context.mounted) {
@@ -315,7 +325,7 @@ class FinancePageState extends State<FinancePage> {
                     if (context.mounted) {
                       setDialogState(() {
                         saving = false;
-                        formError = 'ثبت تراکنش انجام نشد؛ اطلاعات شما حفظ شده است. دوباره تلاش کنید.';
+                        formError = PersianCopy.financePageResultOnPrimary3;
                       });
                     }
                   }
@@ -343,14 +353,19 @@ class FinancePageState extends State<FinancePage> {
                         MoneyInputFormatter(decimal: true),
                       ],
                       decoration: InputDecoration(
-                        labelText:
-                            'مبلغ به ${moneyInput.label(account?.currency ?? CurrencyCodes.irr)}',
+                        labelText: PersianCopy.financePageResultLabelText(
+                          (moneyInput.label(
+                            account?.currency ?? CurrencyCodes.irr,
+                          )).toString(),
+                        ),
                       ),
                     ),
                     TextField(
                       controller: note,
                       decoration: InputDecoration(
-                        labelText: income ? 'شرح درآمد' : 'شرح هزینه',
+                        labelText: income
+                            ? PersianCopy.financePageResultLabelText2
+                            : PersianCopy.financePageResultLabelText3,
                       ),
                     ),
                     DraftTagPicker(
@@ -443,14 +458,18 @@ class FinancePageState extends State<FinancePage> {
       if (result == true) {
         await _refresh();
         await widget.onDataChanged?.call();
-        if (mounted && _loadError == null) _showMessage('تراکنش ثبت شد.');
+        if (mounted && _loadError == null) {
+          _showMessage(PersianCopy.financePageRecordTransactionMessage);
+        }
       }
     } catch (error) {
       _logger.error(
         'Finance transaction creation failed',
         fields: {'errorType': error.runtimeType.toString()},
       );
-      if (mounted) _showMessage('ثبت تراکنش انجام نشد؛ دوباره تلاش کنید.');
+      if (mounted) {
+        _showMessage(PersianCopy.financePageRecordTransactionMessage2);
+      }
     } finally {
       if (sheetRemoved != null) await sheetRemoved;
       amount.dispose();
@@ -466,18 +485,16 @@ class FinancePageState extends State<FinancePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف امن تراکنش'),
-        content: const Text(
-          'این تراکنش از تاریخچه حذف نمی‌شود و با یک ثبت جبرانی خنثی می‌شود.',
-        ),
+        title: const Text(PersianCopy.financePageConfirmedTitle),
+        content: const Text(PersianCopy.financePageConfirmedContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('تأیید'),
+            child: const Text(PersianCopy.financePageConfirmedActions),
           ),
         ],
       ),
@@ -487,9 +504,9 @@ class FinancePageState extends State<FinancePage> {
       await _finance.voidEntry(original: entry, account: account);
       await _refresh();
       await widget.onDataChanged?.call();
-      if (mounted) _showMessage('تراکنش با ثبت جبرانی خنثی شد.');
+      if (mounted) _showMessage(PersianCopy.financePageVoidEntryMessage);
     } catch (_) {
-      if (mounted) _showMessage('حذف امن تراکنش انجام نشد.');
+      if (mounted) _showMessage(PersianCopy.financePageVoidEntryMessage2);
     }
   }
 
@@ -533,27 +550,41 @@ class FinancePageState extends State<FinancePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'جریان نقدی این داده‌ها',
+              PersianCopy.financePageBuildSummaryChildren,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'ورودی: ${PersianMoneyText.amount(summary.incoming, currency, unit: MoneyUnitScope.of(context))}',
+              PersianCopy.financePageBuildSummaryChildren2(
+                (PersianMoneyText.amount(
+                  summary.incoming,
+                  currency,
+                  unit: MoneyUnitScope.of(context),
+                )).toString(),
+              ),
             ),
             Text(
-              'خروجی: ${PersianMoneyText.amount(summary.outgoing, currency, unit: MoneyUnitScope.of(context))}',
+              PersianCopy.financePageBuildSummaryChildren3(
+                (PersianMoneyText.amount(
+                  summary.outgoing,
+                  currency,
+                  unit: MoneyUnitScope.of(context),
+                )).toString(),
+              ),
             ),
             Text(
-              'خالص: ${PersianMoneyText.amount(summary.net, currency, unit: MoneyUnitScope.of(context))}',
+              PersianCopy.financePageBuildSummaryChildren4(
+                (PersianMoneyText.amount(
+                  summary.net,
+                  currency,
+                  unit: MoneyUnitScope.of(context),
+                )).toString(),
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'این گزارش فقط بر اساس تراکنش‌های ثبت‌شده روی دستگاه است.',
-            ),
+            const Text(PersianCopy.financePageBuildSummaryChildren5),
             if (_accounts.any((account) => account.currency != currency))
-              const Text(
-                'حساب‌هایی با واحد پول دیگر در این جمع لحاظ نشده‌اند.',
-              ),
+              const Text(PersianCopy.financePageBuildSummaryChildren6),
           ],
         ),
       ),
@@ -573,16 +604,19 @@ class FinancePageState extends State<FinancePage> {
           isExpanded: true,
           itemHeight: null,
           value: _typeFilter,
-          hint: const Text('نوع'),
+          hint: const Text(PersianCopy.financePageBuildFiltersHint),
           items: const [
-            DropdownMenuItem(value: null, child: Text('همه تراکنش‌ها')),
+            DropdownMenuItem(
+              value: null,
+              child: Text(PersianCopy.financePageBuildFiltersItems),
+            ),
             DropdownMenuItem(
               value: AccountEntryType.income,
-              child: Text('ورودی'),
+              child: Text(PersianCopy.financePageBuildFiltersItems2),
             ),
             DropdownMenuItem(
               value: AccountEntryType.expense,
-              child: Text('خروجی'),
+              child: Text(PersianCopy.financePageBuildFiltersItems3),
             ),
           ],
           onChanged: (value) => setState(() => _typeFilter = value),
@@ -591,9 +625,12 @@ class FinancePageState extends State<FinancePage> {
           isExpanded: true,
           itemHeight: null,
           value: _categoryFilter,
-          hint: const Text('دسته‌بندی'),
+          hint: const Text(PersianCopy.financePageBuildFiltersHint2),
           items: [
-            const DropdownMenuItem(value: null, child: Text('همه دسته‌ها')),
+            const DropdownMenuItem(
+              value: null,
+              child: Text(PersianCopy.financePageBuildFiltersItems4),
+            ),
             ...categories.map(
               (item) => DropdownMenuItem(value: item, child: Text(item)),
             ),
@@ -607,7 +644,9 @@ class FinancePageState extends State<FinancePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.embedded ? null : AppBar(title: const Text('مالی')),
+      appBar: widget.embedded
+          ? null
+          : AppBar(title: Text(planActL10n(context).navigationFinance)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : !_hasLoaded
@@ -615,10 +654,12 @@ class FinancePageState extends State<FinancePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(_loadError ?? 'اطلاعات مالی در دسترس نیست.'),
+                  Text(
+                    _loadError ?? planActL10n(context).financePageBuildChildren,
+                  ),
                   TextButton(
                     onPressed: _refresh,
-                    child: const Text('تلاش دوباره'),
+                    child: Text(planActL10n(context).commonRetry),
                   ),
                 ],
               ),
@@ -632,13 +673,13 @@ class FinancePageState extends State<FinancePage> {
                     Card(
                       child: ListTile(
                         leading: const Icon(Icons.warning_amber_outlined),
-                        title: const Text(
-                          'اطلاعات نمایش‌داده‌شده ممکن است قدیمی باشد.',
+                        title: Text(
+                          planActL10n(context).financePageBuildTitle2,
                         ),
                         subtitle: Text(_loadError!),
                         trailing: TextButton(
                           onPressed: _refresh,
-                          child: const Text('تلاش دوباره'),
+                          child: Text(planActL10n(context).commonRetry),
                         ),
                       ),
                     ),
@@ -659,7 +700,9 @@ class FinancePageState extends State<FinancePage> {
                         repository: widget.tagRepository!,
                         onChanged: _tagsChanged,
                       ),
-                      child: const Text('مدیریت برچسب‌ها'),
+                      child: Text(
+                        planActL10n(context).tagControlsContentChildren,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 12),
@@ -668,7 +711,7 @@ class FinancePageState extends State<FinancePage> {
                     children: [
                       Expanded(
                         child: Text(
-                          'حساب‌ها',
+                          planActL10n(context).financePageBuildChildren2,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
@@ -677,12 +720,14 @@ class FinancePageState extends State<FinancePage> {
                         children: [
                           IconButton(
                             onPressed: _addIncome,
-                            tooltip: 'ثبت درآمد یا واریز',
+                            tooltip: planActL10n(context)
+                                .financePageBuildTooltip,
                             icon: const Icon(Icons.add_circle_outline),
                           ),
                           IconButton(
                             onPressed: _addAccount,
-                            tooltip: 'افزودن حساب',
+                            tooltip: planActL10n(context)
+                                .accountFormSheetBuildTitle,
                             icon: const Icon(Icons.add_card),
                           ),
                         ],
@@ -690,8 +735,12 @@ class FinancePageState extends State<FinancePage> {
                     ],
                   ),
                   if (_accounts.isEmpty)
-                    const Card(
-                      child: ListTile(title: Text('هنوز حسابی ثبت نشده است.')),
+                    Card(
+                      child: ListTile(
+                        title: Text(
+                          planActL10n(context).financePageBuildTitle3,
+                        ),
+                      ),
                     ),
                   for (final account in _accounts)
                     AccountInformationCard(
@@ -699,20 +748,23 @@ class FinancePageState extends State<FinancePage> {
                       account: account,
                       balance: rebuildBalance(account, _entries),
                       operations: IconButton(
-                        tooltip: 'ویرایش حساب',
+                        tooltip: planActL10n(context)
+                            .accountFormSheetBuildTitle2,
                         onPressed: () => _editAccount(account),
                         icon: const Icon(Icons.edit_outlined),
                       ),
                     ),
                   const SizedBox(height: 20),
                   Text(
-                    'آخرین تراکنش‌ها',
+                    planActL10n(context).financePageBuildChildren3,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   if (_filteredEntries.isEmpty)
-                    const Card(
+                    Card(
                       child: ListTile(
-                        title: Text('تراکنشی با این فیلترها پیدا نشد.'),
+                        title: Text(
+                          planActL10n(context).financePageBuildTitle4,
+                        ),
                       ),
                     ),
                   for (final entry in _filteredEntries)
@@ -751,7 +803,9 @@ class FinancePageState extends State<FinancePage> {
                                       ),
                                       if (entry.category != null)
                                         entry.category!,
-                                      entry.note ?? 'بدون شرح',
+                                      entry.note ??
+                                          planActL10n(context)
+                                              .financePageBuildChildren4,
                                     ].join(' · '),
                                   ),
                                   TagLabels(
@@ -778,7 +832,7 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Widget _entryOperations(AccountEntry entry) => PopupMenuButton<String>(
-    tooltip: 'عملیات تراکنش',
+    tooltip: PersianCopy.financePageEntryOperationsTooltip,
     onSelected: (value) {
       if (value == 'void') _voidEntry(entry);
       if (value == 'tags') _editEntryTags(entry);
@@ -790,10 +844,19 @@ class FinancePageState extends State<FinancePage> {
       if (widget.onDetermineRelationship != null &&
           (entry.type == AccountEntryType.income ||
               entry.type == AccountEntryType.expense))
-        const PopupMenuItem(value: 'relationship', child: Text('تعیین ارتباط')),
+        const PopupMenuItem(
+          value: 'relationship',
+          child: Text(PersianCopy.financePageEntryOperationsItemBuilder),
+        ),
       if (widget.tagRepository != null)
-        const PopupMenuItem(value: 'tags', child: Text('برچسب‌های تراکنش')),
-      PopupMenuItem(value: 'void', child: Text('حذف امن تراکنش')),
+        const PopupMenuItem(
+          value: 'tags',
+          child: Text(PersianCopy.financePageEntryOperationsItemBuilder2),
+        ),
+      PopupMenuItem(
+        value: 'void',
+        child: Text(PersianCopy.financePageConfirmedTitle),
+      ),
     ],
   );
 }

@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/automation/domain/automation.dart';
 
@@ -107,7 +108,11 @@ class DeterministicForecastEngine implements ForecastEngine {
     required DateTime to,
   }) {
     if (to.isBefore(from)) {
-      throw ArgumentError.value(to, 'to', 'نباید پیش از ابتدای بازه باشد.');
+      throw ArgumentError.value(
+        to,
+        'to',
+        PersianCopy.predictiveForecastMessage,
+      );
     }
     final items = <ForecastItem>[];
     for (final pattern in patterns) {
@@ -125,8 +130,10 @@ class DeterministicForecastEngine implements ForecastEngine {
             confidence: pattern.occurrences.length >= 5
                 ? PredictiveConfidence.high
                 : PredictiveConfidence.medium,
-            explanation:
-                'برآورد قطعی‌پذیر بر پایه ${pattern.occurrences.length} پرداخت دوره‌ای با فاصله ${pattern.intervalDays} روز است.',
+            explanation: PersianCopy.predictiveForecastExplanation(
+              (pattern.occurrences.length).toString(),
+              (pattern.intervalDays).toString(),
+            ),
           ),
         );
         expectedAt = expectedAt.add(Duration(days: pattern.intervalDays));
@@ -162,23 +169,29 @@ class DeterministicRiskEngine implements RiskEngine {
       final reasons = <String>[];
       if (input.overdueOccurrences > 0) {
         score += (input.overdueOccurrences * 30).clamp(0, 60);
-        reasons.add('${input.overdueOccurrences} مورد عقب‌افتاده وجود دارد');
+        reasons.add(
+          PersianCopy.predictiveAssessMessage(
+            (input.overdueOccurrences).toString(),
+          ),
+        );
       }
       if (input.recentMissedOccurrences > 0) {
         score += (input.recentMissedOccurrences * 15).clamp(0, 30);
         reasons.add(
-          '${input.recentMissedOccurrences} مورد اخیر انجام نشده است',
+          PersianCopy.predictiveAssessMessage2(
+            (input.recentMissedOccurrences).toString(),
+          ),
         );
       }
       if (input.dueWithinDays != null &&
           input.dueWithinDays! >= 0 &&
           input.dueWithinDays! <= 3) {
         score += 15;
-        reasons.add('سررسید تا سه روز آینده است');
+        reasons.add(PersianCopy.predictiveAssessMessage3);
       }
       if (input.insufficientFunds) {
         score += 35;
-        reasons.add('موجودی قابل تخصیص کافی نیست');
+        reasons.add(PersianCopy.predictiveAssessMessage4);
       }
       score = score.clamp(0, 100);
       signals.add(
@@ -234,7 +247,7 @@ class DeterministicAnomalyEngine implements AnomalyEngine {
               transaction: transaction,
               kind: AnomalyKind.amountDeviation,
               score: score,
-              explanation: 'مبلغ با میانه پرداخت‌های قبلی همین پذیرنده تفاوت معنادار دارد؛ فقط نیازمند بررسی کاربر است.',
+              explanation: PersianCopy.predictiveDetectExplanation,
             ),
           );
         }

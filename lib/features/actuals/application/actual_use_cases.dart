@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
@@ -81,7 +82,7 @@ class HistoryProjection {
                 : actual?.outcome,
             recordedAt: actual?.recordedAt,
             explanation: actual == null
-                ? 'برای این برنامه هنوز نتیجه‌ای ثبت نشده است.'
+                ? PersianCopy.actualUseCasesBuildExplanation
                 : _explain(actual.outcome),
           );
         })
@@ -89,12 +90,12 @@ class HistoryProjection {
   }
 
   String _explain(ActualOutcome outcome) => switch (outcome) {
-    ActualOutcome.completed => 'برنامه انجام شد.',
-    ActualOutcome.attended => 'حضور ثبت شد.',
-    ActualOutcome.cancelled => 'برنامه لغو شد.',
-    ActualOutcome.missed => 'برنامه از دست رفت.',
-    ActualOutcome.noShow => 'عدم حضور ثبت شد.',
-    ActualOutcome.partial => 'برنامه به‌صورت ناقص انجام شد.',
-    ActualOutcome.reopened => 'نتیجه بازگردانی شد؛ سابقهٔ قبلی محفوظ است.',
+    ActualOutcome.completed => PersianCopy.actualUseCasesActualOutcomeCompleted,
+    ActualOutcome.attended => PersianCopy.actualUseCasesActualOutcomeAttended,
+    ActualOutcome.cancelled => PersianCopy.actualUseCasesActualOutcomeCancelled,
+    ActualOutcome.missed => PersianCopy.actualUseCasesActualOutcomeMissed,
+    ActualOutcome.noShow => PersianCopy.actualUseCasesActualOutcomeNoShow,
+    ActualOutcome.partial => PersianCopy.actualUseCasesActualOutcomePartial,
+    ActualOutcome.reopened => PersianCopy.actualUseCasesActualOutcomeReopened,
   };
 }

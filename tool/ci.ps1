@@ -20,6 +20,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
 
 Invoke-CheckedCommand -Name 'flutter' -Arguments @('pub', 'get', '--enforce-lockfile')
+Invoke-CheckedCommand -Name 'dart' -Arguments @('run', 'tool/generate_persian_copy.dart', '--check')
 Invoke-CheckedCommand -Name 'dart' -Arguments @('format', '--output=none', '--set-exit-if-changed', 'lib', 'test')
 Invoke-CheckedCommand -Name 'flutter' -Arguments @('analyze')
 Invoke-CheckedCommand -Name 'flutter' -Arguments @('test')

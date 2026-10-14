@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money.dart';
 
 /// A stable, deterministic representation of a merchant name.
@@ -114,8 +115,10 @@ class RecurringPatternDetector {
           ),
           intervalDays: interval,
           nextExpectedAt: next,
-          explanation:
-              'پرداخت‌های ${items.length}گانه با فاصله تقریبی $interval روز و مبلغ مشابه شناسایی شد.',
+          explanation: PersianCopy.automationDetectExplanation(
+            (items.length).toString(),
+            (interval).toString(),
+          ),
         ),
       );
     }
@@ -157,7 +160,7 @@ class SmartMatchScorer {
     final reasons = <String>[];
     if (transaction.amount.currency == candidate.amount.currency) {
       score += 20;
-      reasons.add('واحد پول یکسان است');
+      reasons.add(PersianCopy.automationScoreMessage);
     }
     final difference =
         (transaction.amount.minorUnits - candidate.amount.minorUnits).abs();
@@ -165,18 +168,18 @@ class SmartMatchScorer {
         (transaction.amount.minorUnits.abs() * amountTolerancePercent) ~/ 100;
     if (difference <= tolerance) {
       score += 45;
-      reasons.add('مبلغ در محدوده قابل قبول است');
+      reasons.add(PersianCopy.automationScoreMessage2);
     }
     if (normalizer.normalize(transaction.merchant) ==
             normalizer.normalize(candidate.merchant) &&
         normalizer.normalize(transaction.merchant).isNotEmpty) {
       score += 25;
-      reasons.add('نام پذیرنده یکسان است');
+      reasons.add(PersianCopy.automationScoreMessage3);
     }
     if (transaction.occurredAt.difference(candidate.occurredAt).inDays.abs() <=
         dateWindowDays) {
       score += 10;
-      reasons.add('تاریخ‌ها نزدیک هستند');
+      reasons.add(PersianCopy.automationScoreMessage4);
     }
     return MatchCandidate(
       id: id,
@@ -211,7 +214,7 @@ class CategorizationSuggester {
     return CategorySuggestion(
       category: category,
       confidence: AutomationConfidence.high,
-      explanation: 'دسته‌بندی بر اساس تطبیق دقیق نام پذیرنده پیشنهاد شد؛ تأیید کاربر لازم است.',
+      explanation: PersianCopy.automationSuggestExplanation,
     );
   }
 }

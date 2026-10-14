@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
@@ -114,7 +115,7 @@ Map<String, int> categoryShares(
   final totals = <String, int>{};
   for (final m in movements) {
     if (m.entry.amount.currency != currency || m.cashType != type) continue;
-    final key = m.category ?? 'بدون دسته‌بندی';
+    final key = m.category ?? PersianCopy.financeReportsKeyMessage;
     totals[key] = (totals[key] ?? 0) + m.minorUnits;
   }
   return totals;

@@ -1,3 +1,6 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
+
 import 'dart:math' as math;
 
 import 'package:planact/features/scheduling/application/planned_occurrences.dart';
@@ -196,9 +199,15 @@ class _CalendarPageState extends State<CalendarPage> {
       width: double.infinity,
       child: SegmentedButton<bool>(
         key: const ValueKey('calendar-mode-toggle'),
-        segments: const [
-          ButtonSegment(value: false, label: Text('ماه')),
-          ButtonSegment(value: true, label: Text('هفته')),
+        segments: [
+          ButtonSegment(
+            value: false,
+            label: Text(planActL10n(context).calendarPageToggleLabel),
+          ),
+          ButtonSegment(
+            value: true,
+            label: Text(planActL10n(context).calendarPageToggleLabel2),
+          ),
         ],
         selected: {_week},
         onSelectionChanged: (value) => setState(() {
@@ -211,7 +220,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final dateButton = TextButton.icon(
       key: const ValueKey('calendar-pick-date'),
       icon: const Icon(Icons.calendar_month_outlined),
-      label: const Text('رفتن به تاریخ'),
+      label: Text(planActL10n(context).calendarPageDateButtonLabel),
       onPressed: () async {
         final date = await pickPlannedDate(context, _selectedDay);
         if (date == null || !mounted) return;
@@ -235,7 +244,7 @@ class _CalendarPageState extends State<CalendarPage> {
           if (!_week) _loadMonth();
         }),
         icon: const Icon(Icons.today_outlined),
-        label: const Text('بازگشت به امروز'),
+        label: Text(planActL10n(context).calendarPageTodayButtonLabel),
       ),
     );
     if (_week) {
@@ -257,7 +266,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Row(
             children: [
               IconButton(
-                tooltip: 'هفته قبل',
+                tooltip: planActL10n(context).calendarPageBuildTooltip,
                 icon: const Icon(Icons.chevron_left),
                 onPressed: () =>
                     setState(() => _selectedDay = _selectedDay.addDays(-7)),
@@ -269,7 +278,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ),
               IconButton(
-                tooltip: 'هفته بعد',
+                tooltip: planActL10n(context).calendarPageBuildTooltip2,
                 icon: const Icon(Icons.chevron_right),
                 onPressed: () =>
                     setState(() => _selectedDay = _selectedDay.addDays(7)),
@@ -310,39 +319,37 @@ class _CalendarPageState extends State<CalendarPage> {
           onNext: () => _moveMonth(1),
         ),
         if (!_holidayProvider.hasCompleteOfficialCoverage(_month.year))
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: PlanActSpacing.sm),
-            child: Text(
-              'دادهٔ تعطیلات رسمی این سال کامل نیست؛ تعطیلات قمری نمایش داده نمی‌شوند. نبودن نشان تعطیلی به معنی روز کاری قطعی نیست.',
-            ),
+            child: Text(planActL10n(context).calendarPageBuildChildren),
           ),
         if (_monthLoading)
-          const Column(
+          Column(
             children: [
               LinearProgressIndicator(),
-              Text('در حال بارگذاری رخدادهای ماه…'),
+              Text(planActL10n(context).calendarPageBuildChildren2),
             ],
           )
         else if (_monthError)
           Column(
             children: [
-              const Text('بارگذاری رخدادهای ماه انجام نشد.'),
+              Text(planActL10n(context).calendarPageBuildChildren3),
               TextButton(
                 onPressed: () => setState(() {
                   _loadMonth();
                 }),
-                child: const Text('تلاش دوباره'),
+                child: Text(planActL10n(context).commonRetry),
               ),
             ],
           ),
         if (!_monthLoading && !_monthError && _monthItems.isEmpty)
-          const Text('برای این ماه تعهدی ثبت نشده است.'),
+          Text(planActL10n(context).calendarPageBuildChildren4),
         const SizedBox(height: PlanActSpacing.md),
         TextButton.icon(
           key: const ValueKey('calendar-show-day-list'),
           onPressed: _showDayList,
           icon: const Icon(Icons.list_alt),
-          label: const Text('نمایش فهرست روز انتخاب‌شده'),
+          label: Text(planActL10n(context).calendarPageBuildLabel),
         ),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -385,14 +392,17 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ).reduce(math.max);
             final markerPainter = TextPainter(
-              text: TextSpan(text: 'تعهد', style: theme.textTheme.labelSmall),
+              text: TextSpan(
+                text: planActL10n(context).calendarPageMarkerPainterText,
+                style: theme.textTheme.labelSmall,
+              ),
               textDirection: Directionality.of(context),
               textScaler: scaler,
             )..layout(maxWidth: cellWidth - 8);
             final markerHeight = markerPainter.preferredLineHeight * 2 + 4;
             markerPainter.dispose();
             final holidayHeight = textHeight(
-              'تعطیل',
+              planActL10n(context).calendarPageHolidayHeightMessage,
               theme.textTheme.labelSmall,
             );
             double weekHeight(int week) {
@@ -534,9 +544,9 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
         if (_monthLoading || _monthError)
-          const Text('فهرست رخدادها هنوز در دسترس نیست.')
+          Text(planActL10n(context).calendarPageBuildChildren5)
         else if (selectedItems.isEmpty)
-          const Text('برای این روز تعهدی ثبت نشده است.')
+          Text(planActL10n(context).calendarPageBuildChildren6)
         else
           ...selectedItems.map(
             (item) => CalendarCommitmentCard(
@@ -577,10 +587,13 @@ class _CalendarPageState extends State<CalendarPage> {
 
 String _holidayLabel(CalendarHoliday holiday) => switch (holiday.kind) {
   CalendarHolidayKind.weekend => holiday.title,
-  CalendarHolidayKind.officialFixed ||
-  CalendarHolidayKind.officialVariable => 'تعطیل رسمی: ${holiday.title}',
+  CalendarHolidayKind.officialFixed || CalendarHolidayKind.officialVariable =>
+    PersianCopy.calendarPageHolidayLabelMessage((holiday.title).toString()),
   CalendarHolidayKind.special =>
-    'تعطیلی موردی (${holiday.scope}): ${holiday.title}',
+    PersianCopy.calendarPageCalendarHolidayKindSpecial(
+      (holiday.scope).toString(),
+      (holiday.title).toString(),
+    ),
 };
 
 class _CalendarHeader extends StatelessWidget {
@@ -600,7 +613,7 @@ class _CalendarHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          tooltip: 'ماه قبل',
+          tooltip: planActL10n(context).planactJalaliDatePickerBuildTooltip,
           onPressed: onPrevious,
           icon: const Icon(Icons.chevron_left),
         ),
@@ -614,7 +627,7 @@ class _CalendarHeader extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'ماه بعد',
+          tooltip: planActL10n(context).planactJalaliDatePickerBuildTooltip2,
           onPressed: onNext,
           icon: const Icon(Icons.chevron_right),
         ),
@@ -648,20 +661,40 @@ class _CalendarDay extends StatelessWidget {
     final scheme = theme.colorScheme;
     final dateLabel = PersianDateFormatter.date(date);
     final count = PersianNumbers.format(commitments.length);
-    final selectionLabel = selected ? '، انتخاب‌شده' : '';
-    final todayLabel = isToday ? '، امروز' : '';
+    final selectionLabel = selected
+        ? planActL10n(context).calendarPageSelectionLabelMessage
+        : '';
+    final todayLabel = isToday
+        ? planActL10n(context).calendarPageTodayLabelMessage
+        : '';
     final holiday = holidays.isNotEmpty;
     final holidayLabel = holiday
-        ? '، ${holidays.map(_holidayLabel).join('، ')}'
+        ? planActL10n(context).calendarPageHolidayLabelMessage2(
+            (holidays
+                    .map(_holidayLabel)
+                    .join(planActL10n(context).commonListSeparator))
+                .toString(),
+          )
         : '';
-    final countLabel = commitments.isEmpty ? 'بدون تعهد' : '$count تعهد';
+    final countLabel = commitments.isEmpty
+        ? planActL10n(context).calendarPageCountLabelMessage
+        : planActL10n(context)
+              .calendarPageCountLabelMessage2((count).toString());
     return Semantics(
       key: ValueKey('calendar-day-${date.day}'),
       button: true,
       selected: selected,
-      label:
-          '$dateLabel$selectionLabel$todayLabel$holidayLabel، $countLabel، '
-          '${commitments.map((item) => item.title).join('، ')}، نمایش فهرست روز',
+      label: planActL10n(context).calendarPageBuildLabel2(
+        (dateLabel).toString(),
+        (selectionLabel).toString(),
+        (todayLabel).toString(),
+        (holidayLabel).toString(),
+        (countLabel).toString(),
+        (commitments
+                .map((item) => item.title)
+                .join(planActL10n(context).commonListSeparator))
+            .toString(),
+      ),
       onTap: onTap,
       child: ExcludeSemantics(
         child: Material(
@@ -701,7 +734,7 @@ class _CalendarDay extends StatelessWidget {
                   ),
                   if (holiday)
                     Text(
-                      'تعطیل',
+                      planActL10n(context).calendarPageHolidayHeightMessage,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: PlanActStatusColors.of(context).holiday,

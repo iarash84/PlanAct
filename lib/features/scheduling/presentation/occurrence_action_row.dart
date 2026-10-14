@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
@@ -51,14 +53,18 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       final selected = await showDialog<ActualOutcome>(
         context: context,
         builder: (context) => SimpleDialog(
-          title: const Text('ثبت نتیجهٔ نوبت'),
+          title: const Text(PersianCopy.occurrenceActionRowSelectedTitle),
           children: [
             for (final entry in {
-              ActualOutcome.completed: 'انجام شد',
-              ActualOutcome.attended: 'حضور داشتم',
-              ActualOutcome.cancelled: 'لغو شد',
-              ActualOutcome.noShow: 'عدم حضور',
-              ActualOutcome.partial: 'بخشی انجام شد',
+              ActualOutcome.completed:
+                  PersianCopy.planactAppShowCommitmentDetailsTitle,
+              ActualOutcome.attended:
+                  PersianCopy.occurrenceActionRowSelectedChildren,
+              ActualOutcome.cancelled:
+                  PersianCopy.occurrenceActionRowSelectedChildren2,
+              ActualOutcome.noShow: PersianCopy.occurrenceSkipped,
+              ActualOutcome.partial:
+                  PersianCopy.occurrenceActionRowSelectedChildren3,
             }.entries)
               SimpleDialogOption(
                 onPressed: () => Navigator.pop(context, entry.key),
@@ -77,16 +83,20 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
         child: AlertDialog(
           title: Text(action.label),
           content: Text(
-            '${action.consequence}\nپرداخت و اعتبار جلسه تغییر نمی‌کند.',
+            PersianCopy.occurrenceActionRowConfirmedContent(
+              (action.consequence).toString(),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('بازگشت'),
+              child: const Text(
+                PersianCopy.occurrenceActionRowConfirmedActions,
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('تأیید'),
+              child: const Text(PersianCopy.financePageConfirmedActions),
             ),
           ],
         ),
@@ -124,8 +134,11 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       }
       await widget.onChanged();
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('وضعیت نوبت ثبت شد.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(PersianCopy.occurrenceActionRowPerformContent),
+          ),
+        );
       }
     } on OccurrenceReminderDeliveryPending catch (pending) {
       _updated = pending.occurrence;
@@ -133,9 +146,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'وضعیت نوبت ثبت شد؛ هماهنگ‌سازی یادآوری هنوز انجام نشده است.',
-            ),
+            content: Text(PersianCopy.occurrenceActionRowPerformContent2),
           ),
         );
       }
@@ -143,7 +154,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('ثبت وضعیت نوبت انجام نشد؛ دوباره تلاش کنید.'),
+            content: Text(PersianCopy.occurrenceActionRowPerformContent3),
           ),
         );
       }
@@ -160,21 +171,25 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('سابقهٔ نتیجهٔ نوبت'),
+        title: const Text(PersianCopy.occurrenceActionRowShowHistoryTitle),
         content: SizedBox(
           width: double.maxFinite,
           child: FutureBuilder<List<Actual>>(
             future: (repository as ActualRepository).list(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return const Text('خواندن سابقه انجام نشد؛ دوباره باز کنید.');
+                return const Text(
+                  PersianCopy.occurrenceActionRowShowHistoryBuilder,
+                );
               }
               if (!snapshot.hasData) return const CircularProgressIndicator();
               final items = snapshot.data!
                   .where((item) => item.occurrenceId == widget.occurrence.id)
                   .toList();
               if (items.isEmpty) {
-                return const Text('هنوز نتیجه‌ای ثبت نشده است.');
+                return const Text(
+                  PersianCopy.occurrenceActionRowShowHistoryBuilder2,
+                );
               }
               return ListView(
                 shrinkWrap: true,
@@ -182,14 +197,19 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
                   for (final item in items)
                     ListTile(
                       title: Text(switch (item.outcome) {
-                        ActualOutcome.completed => 'انجام شد',
-                        ActualOutcome.attended => 'حضور ثبت شد',
-                        ActualOutcome.cancelled => 'لغو شد',
-                        ActualOutcome.missed => 'از دست رفت',
-                        ActualOutcome.noShow => 'عدم حضور',
-                        ActualOutcome.partial => 'بخشی انجام شد',
+                        ActualOutcome.completed =>
+                          PersianCopy.planactAppShowCommitmentDetailsTitle,
+                        ActualOutcome.attended =>
+                          PersianCopy.occurrenceActionRowActualOutcomeAttended,
+                        ActualOutcome.cancelled =>
+                          PersianCopy.occurrenceActionRowSelectedChildren2,
+                        ActualOutcome.missed =>
+                          PersianCopy.occurrenceActionRowActualOutcomeMissed,
+                        ActualOutcome.noShow => PersianCopy.occurrenceSkipped,
+                        ActualOutcome.partial =>
+                          PersianCopy.occurrenceActionRowSelectedChildren3,
                         ActualOutcome.reopened =>
-                          'بازگشایی؛ نتیجهٔ قبلی محفوظ است',
+                          PersianCopy.occurrenceActionRowActualOutcomeReopened,
                       }),
                       subtitle: Text(
                         [
@@ -208,7 +228,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('بستن'),
+            child: const Text(PersianCopy.commonClose),
           ),
         ],
       ),
@@ -227,7 +247,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
               DateTime(scheduled.year, scheduled.month, scheduled.day),
             ),
           )
-        : 'نوبت برنامه‌ریزی‌شده';
+        : planActL10n(context).occurrenceActionRowLabelMessage;
     final actions = availableOccurrenceActions(occurrence)
         .where(
           (action) =>
@@ -241,7 +261,9 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       child: ListTile(
         title: Text(label),
         subtitle: Text(
-          '${occurrenceStatusLabel(occurrence.status)} — مشاهدهٔ سابقه',
+          planActL10n(context).occurrenceActionRowBuildSubtitle(
+            (occurrenceStatusLabel(occurrence.status)).toString(),
+          ),
         ),
         onTap: _busy ? null : _showHistory,
         trailing: _busy
@@ -253,7 +275,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
             : actions.isEmpty
             ? null
             : PopupMenuButton<OccurrenceAction>(
-                tooltip: 'اقدامات نوبت',
+                tooltip: planActL10n(context).occurrenceActionRowBuildTooltip,
                 onSelected: _perform,
                 itemBuilder: (_) => [
                   for (final action in actions)

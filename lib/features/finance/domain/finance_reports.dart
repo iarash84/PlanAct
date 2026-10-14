@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/classification/domain/tag.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
@@ -108,7 +109,10 @@ List<GroupedTotal> groupFinancialEntries(
   final totals = <String, int>{};
   for (final entry in entries) {
     if (entry.amount.currency != currency) continue;
-    final key = keyOf?.call(entry) ?? entry.category ?? 'بدون دسته‌بندی';
+    final key =
+        keyOf?.call(entry) ??
+        entry.category ??
+        PersianCopy.financeReportsKeyMessage;
     if (entry.type == AccountEntryType.income ||
         entry.type == AccountEntryType.refund) {
       totals.update(

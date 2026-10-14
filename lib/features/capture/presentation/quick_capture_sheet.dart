@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -86,7 +88,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     final error =
         _draft.validateForStep(1) ??
         (!_dateSelected || !_timeSelected
-            ? 'تاریخ و زمان شروع را انتخاب کنید.'
+            ? PersianCopy.quickCaptureSheetErrorMessage
             : _draft.validateForStep(2)) ??
         _draft.validateForStep(3);
     if (error != null) {
@@ -115,8 +117,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error =
-              'ثبت تعهد انجام نشد؛ اطلاعات شما حفظ شده است. دوباره تلاش کنید.';
+          _error = PersianCopy.quickCaptureSheetSaveMessage;
         });
       }
     }
@@ -171,8 +172,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     return PopScope(
       canPop: !_saving,
       child: PlanActFormSheet(
-        title: 'افزودن تعهد',
-        primaryLabel: 'ثبت تعهد',
+        title: planActL10n(context).planactAppBuildTitle,
+        primaryLabel: planActL10n(context).quickCaptureSheetBuildPrimaryLabel,
         onPrimary: _save,
         isLoading: _saving,
         error: _error,
@@ -189,15 +190,17 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                   key: const ValueKey('commitment-title-field'),
                   controller: _title,
                   autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'عنوان تعهد',
-                    hintText: 'مثلاً کلاس زبان',
+                  decoration: InputDecoration(
+                    labelText: planActL10n(context)
+                        .quickCaptureSheetBuildLabelText,
+                    hintText: planActL10n(context)
+                        .quickCaptureSheetBuildHintText,
                   ),
                   onChanged: (_) => setState(_syncDraft),
                 ),
                 const SizedBox(height: PlanActSpacing.lg),
                 Text(
-                  'زمان‌بندی',
+                  planActL10n(context).quickCaptureSheetBuildChildren,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: PlanActSpacing.sm),
@@ -205,40 +208,48 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                 const SizedBox(height: PlanActSpacing.md),
                 _section(
                   key: 'commitment-reminders-section',
-                  title: 'یادآور',
+                  title: planActL10n(context).quickCaptureSheetBuildTitle,
                   subtitle: _draft.reminderOffsets.isEmpty
-                      ? 'بدون یادآور'
+                      ? planActL10n(context).quickCaptureSheetBuildSubtitle
                       : _draft.reminderOffsets
                             .map((offset) => _reminderLabel(offset.inMinutes))
-                            .join('، '),
+                            .join(planActL10n(context).commonListSeparator),
                   child: _reminderPicker(),
                 ),
                 _section(
                   key: 'commitment-credit-section',
-                  title: 'اعتبار جلسات',
+                  title: planActL10n(context).quickCaptureSheetBuildTitle2,
                   subtitle: _draft.entitlement == EntitlementDraft.none
-                      ? 'بدون بستهٔ جلسه'
-                      : '${PersianNumbers.format(_draft.entitlementUnits ?? 0)} جلسه اعتبار',
+                      ? planActL10n(context).quickCaptureSheetBuildSubtitle2
+                      : planActL10n(context).quickCaptureSheetBuildSubtitle3(
+                          (PersianNumbers.format(_draft.entitlementUnits ?? 0))
+                              .toString(),
+                        ),
                   controller: _creditController,
                   child: _entitlementFields(),
                 ),
                 _section(
                   key: 'commitment-finance-section',
-                  title: 'اطلاعات مالی',
+                  title: planActL10n(context).quickCaptureSheetBuildTitle3,
                   subtitle: switch (_draft.financialMeaning) {
-                    CommitmentFinancialMeaning.none => 'بدون انتظار مالی',
-                    CommitmentFinancialMeaning.paymentRequired =>
-                      'پرداخت مورد انتظار',
-                    CommitmentFinancialMeaning.receivable =>
-                      'دریافت مورد انتظار',
+                    CommitmentFinancialMeaning.none => planActL10n(
+                      context,
+                    ).quickCaptureSheetCommitmentFinancialMeaningNone,
+                    CommitmentFinancialMeaning.paymentRequired => planActL10n(
+                      context,
+                    ).quickCaptureSheetCommitmentFinancialMeaningPaymentRequired,
+                    CommitmentFinancialMeaning.receivable => planActL10n(
+                      context,
+                    ).quickCaptureSheetCommitmentFinancialMeaningReceivable,
                   },
                   controller: _financeController,
                   child: _financialFields(),
                 ),
                 _section(
                   key: 'commitment-details-section',
-                  title: 'جزئیات بیشتر',
-                  subtitle: 'توضیحات، اولویت، رنگ و برچسب‌ها',
+                  title: planActL10n(context).quickCaptureSheetBuildTitle4,
+                  subtitle: planActL10n(context)
+                      .quickCaptureSheetBuildSubtitle4,
                   child: _detailFields(),
                 ),
                 const SizedBox(height: PlanActSpacing.md),
@@ -283,24 +294,34 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         enabled: !_saving,
         controller: _description,
         maxLines: 2,
-        decoration: const InputDecoration(labelText: 'توضیحات (اختیاری)'),
+        decoration: const InputDecoration(
+          labelText: PersianCopy.quickCaptureSheetDetailFieldsLabelText,
+        ),
         onChanged: (_) => setState(_syncDraft),
       ),
       const SizedBox(height: PlanActSpacing.md),
       DropdownButtonFormField<CommitmentPriority>(
         isExpanded: true,
         initialValue: _draft.priority,
-        decoration: const InputDecoration(labelText: 'اولویت'),
+        decoration: const InputDecoration(
+          labelText: PersianCopy.planactAppBuildLabelText3,
+        ),
         items: const [
-          DropdownMenuItem(value: CommitmentPriority.low, child: Text('کم')),
+          DropdownMenuItem(
+            value: CommitmentPriority.low,
+            child: Text(PersianCopy.planactAppCommitmentPriorityLow),
+          ),
           DropdownMenuItem(
             value: CommitmentPriority.normal,
-            child: Text('عادی'),
+            child: Text(PersianCopy.planactAppCommitmentPriorityNormal),
           ),
-          DropdownMenuItem(value: CommitmentPriority.high, child: Text('زیاد')),
+          DropdownMenuItem(
+            value: CommitmentPriority.high,
+            child: Text(PersianCopy.planactAppCommitmentPriorityHigh),
+          ),
           DropdownMenuItem(
             value: CommitmentPriority.urgent,
-            child: Text('فوری'),
+            child: Text(PersianCopy.planactAppCommitmentPriorityUrgent),
           ),
         ],
         onChanged: (value) =>
@@ -348,15 +369,17 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         isExpanded: true,
         key: const ValueKey('commitment-kind-dropdown'),
         initialValue: _draft.kind,
-        decoration: const InputDecoration(labelText: 'نوع برنامه'),
+        decoration: const InputDecoration(
+          labelText: PersianCopy.quickCaptureSheetScheduleFieldsLabelText,
+        ),
         items: const [
           DropdownMenuItem(
             value: CommitmentKind.oneOff,
-            child: Text('یک‌باره'),
+            child: Text(PersianCopy.planactAppCommitmentKindOneOff),
           ),
           DropdownMenuItem(
             value: CommitmentKind.recurring,
-            child: Text('تکرارشونده'),
+            child: Text(PersianCopy.planactAppCommitmentKindRecurring),
           ),
         ],
         onChanged: (value) =>
@@ -371,7 +394,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             icon: const Icon(Icons.calendar_today_outlined),
             label: Text(
               !_dateSelected
-                  ? 'انتخاب تاریخ'
+                  ? PersianCopy.quickCaptureSheetScheduleFieldsLabel
                   : PersianDateFormatter.date(
                       JalaliDate.fromDateTime(_draft.startAt!),
                     ),
@@ -383,7 +406,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             icon: const Icon(Icons.schedule_outlined),
             label: Text(
               !_timeSelected
-                  ? 'انتخاب زمان'
+                  ? PersianCopy.quickCaptureSheetScheduleFieldsLabel2
                   : TimeOfDay.fromDateTime(_draft.startAt!).format(context),
             ),
           ),
@@ -394,23 +417,25 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         DropdownButtonFormField<RecurrenceFrequency>(
           isExpanded: true,
           initialValue: _draft.frequency,
-          decoration: const InputDecoration(labelText: 'تکرار'),
+          decoration: const InputDecoration(
+            labelText: PersianCopy.quickCaptureSheetScheduleFieldsLabelText2,
+          ),
           items: const [
             DropdownMenuItem(
               value: RecurrenceFrequency.daily,
-              child: Text('روزانه'),
+              child: Text(PersianCopy.recurrenceDaily),
             ),
             DropdownMenuItem(
               value: RecurrenceFrequency.weekly,
-              child: Text('هفتگی'),
+              child: Text(PersianCopy.recurrenceWeekly),
             ),
             DropdownMenuItem(
               value: RecurrenceFrequency.monthly,
-              child: Text('ماهانه'),
+              child: Text(PersianCopy.recurrenceMonthly),
             ),
             DropdownMenuItem(
               value: RecurrenceFrequency.yearly,
-              child: Text('سالانه'),
+              child: Text(PersianCopy.recurrenceYearly),
             ),
           ],
           onChanged: (value) =>
@@ -423,24 +448,24 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             key: const ValueKey('recurrence-calendar'),
             isExpanded: true,
             initialValue: _draft.recurrenceCalendar,
-            decoration: const InputDecoration(labelText: 'تقویم تکرار'),
+            decoration: const InputDecoration(
+              labelText: PersianCopy.quickCaptureSheetScheduleFieldsLabelText3,
+            ),
             items: const [
               DropdownMenuItem(
                 value: RecurrenceCalendar.jalali,
-                child: Text('شمسی'),
+                child: Text(PersianCopy.quickCaptureSheetScheduleFieldsItems),
               ),
               DropdownMenuItem(
                 value: RecurrenceCalendar.gregorian,
-                child: Text('میلادی'),
+                child: Text(PersianCopy.quickCaptureSheetScheduleFieldsItems2),
               ),
             ],
             onChanged: (value) => setState(
               () => _draft = _draft.copyWith(recurrenceCalendar: value),
             ),
           ),
-          const Text(
-            'روز و ماه از تاریخ شروع در تقویم تکرار گرفته می‌شود. اگر روز در ماه مقصد وجود نداشته باشد، آخرین روز همان ماه انتخاب می‌شود؛ روز اصلی برای نوبت‌های بعد حفظ می‌شود. نمایش تاریخ‌ها همیشه شمسی است.',
-          ),
+          const Text(PersianCopy.quickCaptureSheetScheduleFieldsChildren),
         ],
         if (_draft.frequency == RecurrenceFrequency.weekly) ...[
           const SizedBox(height: PlanActSpacing.sm),
@@ -448,13 +473,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             spacing: PlanActSpacing.sm,
             children: [
               for (final day in const [
-                ('ش', 6),
-                ('ی', 7),
-                ('د', 1),
-                ('س', 2),
-                ('چ', 3),
-                ('پ', 4),
-                ('ج', 5),
+                (PersianCopy.weekdayShortSaturday, 6),
+                (PersianCopy.weekdayShortSunday, 7),
+                (PersianCopy.weekdayShortMonday, 1),
+                (PersianCopy.weekdayShortTuesday, 2),
+                (PersianCopy.weekdayShortWednesday, 3),
+                (PersianCopy.weekdayShortThursday, 4),
+                (PersianCopy.weekdayShortFriday, 5),
               ])
                 FilterChip(
                   label: Text(day.$1),
@@ -473,28 +498,28 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           key: const ValueKey('recurrence-termination'),
           isExpanded: true,
           initialValue: _draft.termination,
-          decoration: const InputDecoration(labelText: 'پایان تکرار'),
+          decoration: const InputDecoration(
+            labelText: PersianCopy.quickCaptureSheetScheduleFieldsLabelText4,
+          ),
           items: const [
             DropdownMenuItem(
               value: RecurrenceTermination.open,
-              child: Text('بدون پایان'),
+              child: Text(PersianCopy.quickCaptureSheetScheduleFieldsItems3),
             ),
             DropdownMenuItem(
               value: RecurrenceTermination.endDate,
-              child: Text('تا تاریخ مشخص'),
+              child: Text(PersianCopy.quickCaptureSheetScheduleFieldsItems4),
             ),
             DropdownMenuItem(
               value: RecurrenceTermination.count,
-              child: Text('تعداد مشخص'),
+              child: Text(PersianCopy.quickCaptureSheetScheduleFieldsItems5),
             ),
           ],
           onChanged: (value) =>
               setState(() => _draft = _draft.copyWith(termination: value)),
         ),
         if (_draft.termination == RecurrenceTermination.open)
-          const Text(
-            'نوبت‌های آینده در بازهٔ محدود ساخته می‌شوند و با بازکردن یا بازگشت به برنامه ادامه می‌یابند؛ تعداد ساخته‌شده به معنی پایان تکرار نیست.',
-          ),
+          const Text(PersianCopy.quickCaptureSheetScheduleFieldsChildren2),
         if (_draft.termination == RecurrenceTermination.count)
           TextField(
             enabled: !_saving,
@@ -502,7 +527,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             controller: _count,
             keyboardType: TextInputType.number,
             inputFormatters: const [MoneyInputFormatter()],
-            decoration: const InputDecoration(labelText: 'تعداد نوبت‌ها'),
+            decoration: const InputDecoration(
+              labelText: PersianCopy.quickCaptureSheetScheduleFieldsLabelText5,
+            ),
             onChanged: (_) => setState(_syncDraft),
           ),
         if (_draft.termination == RecurrenceTermination.endDate)
@@ -523,7 +550,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             icon: const Icon(Icons.event_outlined),
             label: Text(
               _draft.endDate == null
-                  ? 'انتخاب تاریخ پایان'
+                  ? PersianCopy.quickCaptureSheetScheduleFieldsLabel3
                   : PersianDateFormatter.date(
                       JalaliDate.fromDateTime(_draft.endDate!),
                     ),
@@ -536,9 +563,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   Widget _reminderPicker() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const Text('یادآوری‌های این تعهد'),
+      const Text(PersianCopy.quickCaptureSheetReminderPickerChildren),
       const SizedBox(height: PlanActSpacing.xs),
-      const Text('می‌توانید چند یادآوری، پیش از زمان هر نوبت ثبت کنید.'),
+      const Text(PersianCopy.quickCaptureSheetReminderPickerChildren2),
       const SizedBox(height: PlanActSpacing.sm),
       Wrap(
         spacing: PlanActSpacing.sm,
@@ -554,7 +581,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             ),
           ActionChip(
             avatar: const Icon(Icons.add, size: 18),
-            label: const Text('زمان دلخواه'),
+            label: const Text(PersianCopy.quickCaptureSheetReminderPickerLabel),
             onPressed: _addCustomReminder,
           ),
         ],
@@ -574,7 +601,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             leading: const Icon(Icons.notifications_active_outlined),
             title: Text(_reminderLabel(offset.inMinutes)),
             trailing: IconButton(
-              tooltip: 'حذف یادآوری',
+              tooltip: PersianCopy.quickCaptureSheetReminderPickerTooltip,
               onPressed: () => setState(() {
                 final offsets = [..._draft.reminderOffsets]..remove(offset);
                 _draft = _draft.copyWith(reminderOffsets: offsets);
@@ -614,12 +641,18 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   static String _reminderLabel(int minutes) {
     if (minutes >= 1440 && minutes % 1440 == 0) {
       final days = minutes ~/ 1440;
-      return '${PersianNumbers.format(days)} روز قبل';
+      return PersianCopy.quickCaptureSheetReminderLabelMessage(
+        (PersianNumbers.format(days)).toString(),
+      );
     }
     if (minutes >= 60 && minutes % 60 == 0) {
-      return '${PersianNumbers.format(minutes ~/ 60)} ساعت قبل';
+      return PersianCopy.quickCaptureSheetReminderLabelMessage2(
+        (PersianNumbers.format(minutes ~/ 60)).toString(),
+      );
     }
-    return '${PersianNumbers.format(minutes)} دقیقه قبل';
+    return PersianCopy.quickCaptureSheetReminderLabelMessage3(
+      (PersianNumbers.format(minutes)).toString(),
+    );
   }
 
   Widget _entitlementFields() => Column(
@@ -628,15 +661,17 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       DropdownButtonFormField<EntitlementDraft>(
         isExpanded: true,
         initialValue: _draft.entitlement,
-        decoration: const InputDecoration(labelText: 'اعتبار جلسه'),
+        decoration: const InputDecoration(
+          labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText,
+        ),
         items: const [
           DropdownMenuItem(
             value: EntitlementDraft.none,
-            child: Text('بدون بسته'),
+            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems),
           ),
           DropdownMenuItem(
             value: EntitlementDraft.fixedUnits,
-            child: Text('تعداد ثابت جلسه'),
+            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems2),
           ),
         ],
         onChanged: (value) =>
@@ -649,12 +684,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           controller: _entitlementUnits,
           keyboardType: TextInputType.number,
           inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(labelText: 'تعداد جلسه'),
+          decoration: const InputDecoration(
+            labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText2,
+          ),
           onChanged: (_) => setState(_syncDraft),
         ),
       ],
       const SizedBox(height: PlanActSpacing.sm),
-      const Text('اعتبار جلسات مستقل از تعداد نوبت‌های زمان‌بندی‌شده است.'),
+      const Text(PersianCopy.quickCaptureSheetEntitlementFieldsChildren),
     ],
   );
 
@@ -669,27 +706,29 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: const [MoneyInputFormatter(decimal: true)],
           decoration: InputDecoration(
-            labelText: 'مبلغ مورد انتظار به ${_moneyInput.unit.label}',
+            labelText: PersianCopy.quickCaptureSheetFinancialFieldsLabelText(
+              (_moneyInput.unit.label).toString(),
+            ),
           ),
           onChanged: (_) => setState(_syncDraft),
         ),
       ],
       const SizedBox(height: PlanActSpacing.lg),
-      const Text('معنای مالی (فقط انتظار مالی، بدون ثبت خودکار تراکنش)'),
+      const Text(PersianCopy.quickCaptureSheetFinancialFieldsChildren),
       SegmentedButton<CommitmentFinancialMeaning>(
         direction: Axis.vertical,
         segments: const [
           ButtonSegment(
             value: CommitmentFinancialMeaning.none,
-            label: Text('ندارد'),
+            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel),
           ),
           ButtonSegment(
             value: CommitmentFinancialMeaning.paymentRequired,
-            label: Text('پرداختی'),
+            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel2),
           ),
           ButtonSegment(
             value: CommitmentFinancialMeaning.receivable,
-            label: Text('دریافتی'),
+            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel3),
           ),
         ],
         selected: {_draft.financialMeaning},
@@ -704,7 +743,10 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     key: const ValueKey('commitment-summary'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Text('خلاصهٔ تعهد', style: Theme.of(context).textTheme.titleMedium),
+      Text(
+        PersianCopy.quickCaptureSheetSummaryChildren,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
       const SizedBox(height: PlanActSpacing.sm),
       Text(
         _draft.reviewSummary(
@@ -717,39 +759,70 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       ),
       if (_dateSelected)
         Text(
-          'شروع: ${PersianDateFormatter.date(JalaliDate.fromDateTime(_draft.startAt!))}',
+          PersianCopy.quickCaptureSheetSummaryChildren2(
+            (PersianDateFormatter.date(
+              JalaliDate.fromDateTime(_draft.startAt!),
+            )).toString(),
+          ),
         ),
       if (_timeSelected)
         Text(
-          'ساعت: ${TimeOfDay.fromDateTime(_draft.startAt!).format(context)}',
+          PersianCopy.quickCaptureSheetSummaryChildren3(
+            (TimeOfDay.fromDateTime(_draft.startAt!).format(context))
+                .toString(),
+          ),
         ),
       if (_draft.isRecurring && _draft.frequency == RecurrenceFrequency.weekly)
         Text(
-          'روزها: ${[
-            for (final day in const [(6, 'شنبه'), (7, 'یکشنبه'), (1, 'دوشنبه'), (2, 'سه‌شنبه'), (3, 'چهارشنبه'), (4, 'پنجشنبه'), (5, 'جمعه')])
-              if (_draft.weekdays.contains(day.$1)) day.$2,
-          ].join('، ')}',
+          PersianCopy.quickCaptureSheetSummaryChildren4(
+            ([
+              for (final day in const [
+                (6, PersianCopy.weekdaySaturday),
+                (7, PersianCopy.weekdaySunday),
+                (1, PersianCopy.weekdayMonday),
+                (2, PersianCopy.weekdayTuesday),
+                (3, PersianCopy.weekdayWednesday),
+                (4, PersianCopy.weekdayThursday),
+                (5, PersianCopy.weekdayFriday),
+              ])
+                if (_draft.weekdays.contains(day.$1)) day.$2,
+            ].join(PersianCopy.commonListSeparator)).toString(),
+          ),
         ),
       if (_draft.isRecurring &&
           _draft.termination == RecurrenceTermination.endDate &&
           _draft.endDate != null)
         Text(
-          'پایان: ${PersianDateFormatter.date(JalaliDate.fromDateTime(_draft.endDate!))}',
+          PersianCopy.quickCaptureSheetSummaryChildren5(
+            (PersianDateFormatter.date(
+              JalaliDate.fromDateTime(_draft.endDate!),
+            )).toString(),
+          ),
         ),
       if (_draft.reminderOffsets.isNotEmpty)
         Text(
-          'یادآور: ${_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join('، ')}',
+          PersianCopy.quickCaptureSheetSummaryChildren6(
+            (_draft.reminderOffsets
+                    .map((offset) => _reminderLabel(offset.inMinutes))
+                    .join(PersianCopy.commonListSeparator))
+                .toString(),
+          ),
         ),
       if (_draft.tags.isNotEmpty) TagLabels(labels: _draft.tags),
     ],
   );
 
   String _categoryLabel(CommitmentCategory value) => switch (value) {
-    CommitmentCategory.classCourse => 'کلاس / دوره',
-    CommitmentCategory.appointment => 'قرار / جلسه',
-    CommitmentCategory.personalRecurring => 'فعالیت شخصی تکرارشونده',
-    CommitmentCategory.subscription => 'اشتراک / خدمت پولی',
-    CommitmentCategory.other => 'سایر',
+    CommitmentCategory.classCourse =>
+      PersianCopy.quickCaptureSheetCommitmentCategoryClassCourse,
+    CommitmentCategory.appointment =>
+      PersianCopy.quickCaptureSheetCommitmentCategoryAppointment,
+    CommitmentCategory.personalRecurring =>
+      PersianCopy.quickCaptureSheetCommitmentCategoryPersonalRecurring,
+    CommitmentCategory.subscription =>
+      PersianCopy.quickCaptureSheetCommitmentCategorySubscription,
+    CommitmentCategory.other =>
+      PersianCopy.quickCaptureSheetCommitmentCategoryOther,
   };
 }
 
@@ -771,22 +844,22 @@ class _CustomReminderDialogState extends State<_CustomReminderDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('یادآوری دلخواه'),
+    title: Text(planActL10n(context).quickCaptureSheetBuildTitle5),
     content: TextField(
       key: const ValueKey('custom-reminder-minutes-field'),
       controller: _controller,
       autofocus: true,
       keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'چند دقیقه قبل؟',
-        hintText: 'مثلاً ۹۰',
+      decoration: InputDecoration(
+        labelText: planActL10n(context).quickCaptureSheetBuildLabelText2,
+        hintText: planActL10n(context).quickCaptureSheetBuildHintText2,
       ),
     ),
     actions: [
       TextButton(
         key: const ValueKey('custom-reminder-cancel'),
         onPressed: () => Navigator.pop<int?>(context, null),
-        child: const Text('انصراف'),
+        child: Text(planActL10n(context).commonCancel),
       ),
       FilledButton(
         onPressed: () {
@@ -794,7 +867,7 @@ class _CustomReminderDialogState extends State<_CustomReminderDialog> {
           if (value == null || value <= 0) return;
           Navigator.pop<int?>(context, value);
         },
-        child: const Text('افزودن'),
+        child: Text(planActL10n(context).quickCaptureSheetBuildActions),
       ),
     ],
   );

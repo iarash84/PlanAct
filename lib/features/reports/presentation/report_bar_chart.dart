@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 
@@ -30,10 +31,7 @@ class ReportBarChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(title, style: Theme.of(context).textTheme.titleMedium),
-          if (signed)
-            const Text(
-              'مبدأ میله‌ها صفر است؛ مقدار منفی با علامت − مشخص شده است.',
-            ),
+          if (signed) Text(planActL10n(context).reportBarChartBuildChildren),
           for (final datum in data)
             Padding(
               padding: const EdgeInsets.only(top: PlanActSpacing.md),
@@ -92,7 +90,8 @@ class ReportBarChart extends StatelessWidget {
                 ),
               ),
             ),
-          if (maximum == 0) const Text('همهٔ مقادیر صفر هستند.'),
+          if (maximum == 0)
+            Text(planActL10n(context).financialReportChartBuildChildren6),
         ],
       ),
     );

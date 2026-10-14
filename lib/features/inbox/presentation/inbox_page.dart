@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -101,10 +103,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       },
       onError: (Object error) {
         if (mounted) {
-          setState(
-            () => _smsError =
-                'دریافت پیامک قطع شد؛ برای همگام‌سازی دوباره تلاش کنید.',
-          );
+          setState(() => _smsError = PersianCopy.inboxPageInitStateOnError);
         }
       },
     );
@@ -180,7 +179,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         return;
       }
       setState(() {
-        _error = 'بارگذاری صف بررسی انجام نشد.';
+        _error = PersianCopy.inboxPageReloadMessage;
         _loading = false;
       });
     } finally {
@@ -215,7 +214,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       );
       if (mounted) {
         setState(() {
-          _smsError = 'خواندن پیامک‌ها انجام نشد.';
+          _smsError = PersianCopy.inboxPageSyncSmsMessage;
         });
       }
     }
@@ -227,20 +226,18 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final consent = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('دسترسی به پیامک‌های بانکی'),
-        content: const Text(
-          'برای ورود پیامک‌های بانکی، دسترسی خواندن و دریافت پیامک لازم است. '
-          'پیامک‌های مرتبط فقط روی دستگاه بررسی و در صف بررسی ثبت می‌شوند؛ '
-          'تراکنش مالی بدون تأیید شما ثبت نمی‌شود. می‌توانید دسترسی را در تنظیمات دستگاه لغو کنید.',
-        ),
+        title: const Text(PersianCopy.inboxPageConsentTitle),
+        content: const Text(PersianCopy.inboxPageConsentContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('فعلاً نه'),
+            child: const Text(PersianCopy.inboxPageConsentActions),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('ادامه'),
+            child: const Text(
+              PersianCopy.planactAppShowCommitmentDetailsTitle3,
+            ),
           ),
         ],
       ),
@@ -263,7 +260,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         if (mounted) {
           setState(() {
             _smsAccess = false;
-            _smsError = 'مجوز پیامک فعال نیست؛ تنظیمات برنامه را بررسی کنید.';
+            _smsError = PersianCopy.inboxPageEnableSmsMessage;
           });
         }
         return;
@@ -281,7 +278,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       } else {
         setState(() {
           _smsAccess = false;
-          _smsError = 'دسترسی پیامک داده نشد. برای فعال‌سازی دوباره تلاش کنید یا مجوز را در تنظیمات برنامه فعال کنید.';
+          _smsError = PersianCopy.inboxPageEnableSmsMessage2;
         });
       }
     } catch (error) {
@@ -292,8 +289,8 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (mounted) {
         setState(
           () => _smsError = error is TimeoutException
-              ? 'درخواست مجوز پاسخ نداد. مجوز پیامک را از تنظیمات برنامه بررسی کنید.'
-              : 'درخواست دسترسی انجام نشد؛ دوباره تلاش کنید.',
+              ? PersianCopy.inboxPageEnableSmsMessage3
+              : PersianCopy.inboxPageEnableSmsMessage4,
         );
       }
     } finally {
@@ -372,13 +369,13 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         SnackBar(
           content: Text(
             refreshFailed
-                ? 'تراکنش ثبت شد؛ تازه‌سازی نمایش انجام نشد. دوباره تازه‌سازی کنید.'
-                : 'تراکنش ثبت شد.',
+                ? PersianCopy.inboxPageConfirmContent
+                : PersianCopy.financePageRecordTransactionMessage,
           ),
           action: widget.onDetermineRelationship == null
               ? null
               : SnackBarAction(
-                  label: 'تعیین ارتباط',
+                  label: PersianCopy.financePageEntryOperationsItemBuilder,
                   onPressed: () => widget.onDetermineRelationship!(id),
                 ),
         ),
@@ -407,13 +404,13 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         SnackBar(
           content: Text(
             recover
-                ? 'پیشنهاد به صف بررسی برگشت.'
-                : 'پیشنهاد رد شد؛ تراکنشی حذف یا ثبت نشد.',
+                ? PersianCopy.inboxPageRejectContent
+                : PersianCopy.inboxPageRejectContent2,
           ),
           action: recover
               ? null
               : SnackBarAction(
-                  label: 'بازگردانی',
+                  label: PersianCopy.inboxPageRejectLabel,
                   onPressed: () async {
                     final current =
                         (await widget.inbox.repository.listSuggestions())
@@ -437,11 +434,9 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
-              'ذخیره انجام نشد؛ پیشنهاد حفظ شد. دوباره تلاش کنید.',
-            ),
+            content: const Text(PersianCopy.inboxPageRejectContent3),
             action: SnackBarAction(
-              label: 'تلاش دوباره',
+              label: PersianCopy.commonRetry,
               onPressed: () => _reject(item, recover: recover),
             ),
           ),
@@ -470,11 +465,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         await _reload();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'ویرایش ذخیره شد؛ برای ثبت مالی تأیید نهایی لازم است.',
-              ),
-            ),
+            const SnackBar(content: Text(PersianCopy.inboxPageEditContent)),
           );
         }
       }
@@ -496,20 +487,20 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('رد کردن پیشنهادهای انتخاب‌شده؟'),
+        title: const Text(PersianCopy.inboxPageConfirmedTitle),
         content: Text(
-          '${PersianNumbers.format(snapshots.length)} پیشنهاد از همین صفحهٔ بارگذاری‌شده رد می‌شود؛ '
-          'این انتخاب شامل همهٔ نتایج فیلتر نیست. تراکنش یا موجودی تغییر نمی‌کند. '
-          'برای بازگردانی، از فیلتر «ردشده» هر پیشنهاد را بازگشایی کنید.',
+          PersianCopy.inboxPageConfirmedContent(
+            (PersianNumbers.format(snapshots.length)).toString(),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: const Text(PersianCopy.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('رد کردن انتخاب‌ها'),
+            child: const Text(PersianCopy.inboxPageConfirmedActions),
           ),
         ],
       ),
@@ -570,10 +561,14 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'انتخاب فقط در همین صفحهٔ بارگذاری‌شده · حداکثر ${PersianNumbers.format(BulkInboxReject.pageSize)} پیشنهاد',
+          PersianCopy.inboxPageBulkControlsChildren(
+            (PersianNumbers.format(BulkInboxReject.pageSize)).toString(),
+          ),
         ),
         Text(
-          'انتخاب‌شده: ${PersianNumbers.format(_selected.length)} · همهٔ نتایج فیلتر انتخاب نمی‌شوند.',
+          PersianCopy.inboxPageBulkControlsChildren2(
+            (PersianNumbers.format(_selected.length)).toString(),
+          ),
         ),
         Wrap(
           spacing: PlanActSpacing.sm,
@@ -586,19 +581,19 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _selected[item.suggestion.id] = item.suggestion;
                       }
                     }),
-              child: const Text('انتخاب موارد همین صفحه'),
+              child: const Text(PersianCopy.inboxPageBulkControlsChildren3),
             ),
             TextButton(
               onPressed: _selected.isEmpty
                   ? null
                   : () => setState(_selected.clear),
-              child: const Text('پاک کردن انتخاب'),
+              child: const Text(PersianCopy.inboxPageBulkControlsChildren4),
             ),
             OutlinedButton(
               onPressed: _bulk != null || _bulkConfirming || _selected.isEmpty
                   ? null
                   : _bulkReject,
-              child: const Text('رد کردن گروهی'),
+              child: const Text(PersianCopy.inboxPageBulkControlsChildren5),
             ),
           ],
         ),
@@ -606,7 +601,11 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           Wrap(
             spacing: PlanActSpacing.sm,
             children: [
-              Text('صفحهٔ ${PersianNumbers.format(_page + 1)}'),
+              Text(
+                PersianCopy.inboxPageBulkControlsChildren6(
+                  (PersianNumbers.format(_page + 1)).toString(),
+                ),
+              ),
               TextButton(
                 onPressed: _page == 0
                     ? null
@@ -614,7 +613,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page--;
                         _selected.clear();
                       }),
-                child: const Text('صفحهٔ قبل'),
+                child: const Text(PersianCopy.inboxPageBulkControlsChildren7),
               ),
               TextButton(
                 onPressed:
@@ -624,7 +623,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page++;
                         _selected.clear();
                       }),
-                child: const Text('صفحهٔ بعد'),
+                child: const Text(PersianCopy.inboxPageBulkControlsChildren8),
               ),
             ],
           ),
@@ -632,8 +631,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           Semantics(
             liveRegion: true,
             child: Text(
-              'بررسی‌شده: ${PersianNumbers.format(progress.attempted)} از ${PersianNumbers.format(_bulkTotal)} · '
-              'ردشده: ${PersianNumbers.format(progress.succeeded)} · ناموفق: ${PersianNumbers.format(progress.failures.length)}',
+              PersianCopy.inboxPageBulkControlsChildren9(
+                (PersianNumbers.format(progress.attempted)).toString(),
+                (PersianNumbers.format(_bulkTotal)).toString(),
+                (PersianNumbers.format(progress.succeeded)).toString(),
+                (PersianNumbers.format(progress.failures.length)).toString(),
+              ),
             ),
           ),
           if (_bulk != null)
@@ -641,23 +644,19 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               onPressed: () => setState(() => _bulk!.cancel()),
               child: Text(
                 _bulk!.cancelled
-                    ? 'در انتظار پایان مورد جاری'
-                    : 'توقف پس از مورد جاری',
+                    ? PersianCopy.inboxPageBulkControlsChildren10
+                    : PersianCopy.inboxPageBulkControlsChildren11,
               ),
             )
           else ...[
-            const Text(
-              'عملیات پایان یافت؛ موارد انجام‌نشده تغییر نکردند. بازگردانی از فیلتر «ردشده» انجام می‌شود.',
-            ),
+            const Text(PersianCopy.inboxPageBulkControlsChildren12),
             if (progress.failures.isNotEmpty) ...[
-              const Text(
-                'برخی موارد ذخیره نشدند یا تغییر جدیدتری دارند. تلاش دوباره تصمیم جدیدتر را بازنویسی نمی‌کند؛ برای انتخاب دوباره بازخوانی کنید.',
-              ),
+              const Text(PersianCopy.inboxPageBulkControlsChildren13),
               TextButton(
                 onPressed: _bulkConfirming
                     ? null
                     : () => _bulkReject(retry: true),
-                child: const Text('تلاش دوباره برای موارد ناموفق'),
+                child: const Text(PersianCopy.inboxPageBulkControlsChildren14),
               ),
             ],
           ],
@@ -679,9 +678,9 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               height: 320,
               child: _InboxStateCard(
                 icon: Icons.error_outline,
-                title: 'صف بررسی در دسترس نیست',
+                title: planActL10n(context).inboxPageBuildTitle,
                 message: _error!,
-                actionLabel: 'تلاش دوباره',
+                actionLabel: planActL10n(context).commonRetry,
                 onAction: _reload,
               ),
             ),
@@ -712,16 +711,21 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           isExpanded: true,
           itemHeight: null,
           initialValue: _status,
-          decoration: const InputDecoration(labelText: 'وضعیت بررسی'),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('نیازمند بررسی')),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).inboxPageHeaderLabelText,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text(planActL10n(context).inboxPageHeaderItems),
+            ),
             DropdownMenuItem(
               value: SuggestionStatus.rejected,
-              child: Text('ردشده'),
+              child: Text(planActL10n(context).inboxPageHeaderItems2),
             ),
             DropdownMenuItem(
               value: SuggestionStatus.confirmed,
-              child: Text('تأییدشده'),
+              child: Text(planActL10n(context).inboxPageHeaderItems3),
             ),
           ],
           onChanged: (value) {
@@ -737,13 +741,22 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           isExpanded: true,
           itemHeight: null,
           initialValue: _bank,
-          decoration: const InputDecoration(labelText: 'بانک'),
+          decoration: InputDecoration(
+            labelText: planActL10n(context).inboxPageHeaderLabelText2,
+          ),
           items: [
-            const DropdownMenuItem(value: null, child: Text('همهٔ بانک‌ها')),
+            DropdownMenuItem(
+              value: null,
+              child: Text(planActL10n(context).inboxPageHeaderItems4),
+            ),
             for (final bank in _banks)
               DropdownMenuItem(
                 value: bank,
-                child: Text(bank.isEmpty ? 'بانک نامشخص' : bank),
+                child: Text(
+                  bank.isEmpty
+                      ? planActL10n(context).inboxPageHeaderItems5
+                      : bank,
+                ),
               ),
           ],
           onChanged: (value) {
@@ -767,28 +780,35 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           icon: const Icon(Icons.sort),
           label: Text(
             _oldestFirst
-                ? 'قدیمی‌ترین دریافت / ورود ابتدا'
-                : 'جدیدترین دریافت / ورود ابتدا',
+                ? planActL10n(context).inboxPageHeaderLabel
+                : planActL10n(context).inboxPageHeaderLabel2,
           ),
         ),
         if (_error != null) Text(_error!),
         _bulkControls(),
         if (_items.isEmpty)
-          const SizedBox(
+          SizedBox(
             height: 300,
             child: _InboxStateCard(
               icon: Icons.inbox_outlined,
-              title: 'صف بررسی خالی است',
-              message: 'اطلاعات واردشده و پیشنهادهای مالی برای بررسی در اینجا نمایش داده می‌شوند.',
+              title: planActL10n(context).inboxPageHeaderTitle,
+              message: planActL10n(context).inboxPageHeaderMessage,
             ),
           )
         else
           Text(
-            '${switch (_status) {
-              SuggestionStatus.rejected => 'ردشده',
-              SuggestionStatus.confirmed => 'تأییدشده',
-              _ => 'نیازمند بررسی',
-            }} · ${PersianNumbers.format(_items.length)}',
+            planActL10n(context).planactAppShowTimelineSubtitle2(
+              (switch (_status) {
+                SuggestionStatus.rejected => planActL10n(
+                  context,
+                ).inboxPageHeaderItems2,
+                SuggestionStatus.confirmed => planActL10n(
+                  context,
+                ).inboxPageHeaderItems3,
+                _ => planActL10n(context).inboxPageHeaderItems,
+              }).toString(),
+              (PersianNumbers.format(_items.length)).toString(),
+            ),
             style: Theme.of(context).textTheme.titleMedium,
           ),
       ],
@@ -868,39 +888,31 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
     final draft = suggestion.draft;
     if (suggestion.extractedEvidence?.isTransfer == true ||
         draft.type == 'transfer') {
-      setState(
-        () => _error = 'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود. انتقال را در بخش مالی بین دو حساب ثبت کنید.',
-      );
+      setState(() => _error = PersianCopy.inboxPageSaveMessage);
       return;
     }
     if (draft.type != 'income' && draft.type != 'expense') {
-      setState(
-        () => _error = 'نوع تراکنش نامشخص است؛ در ویرایش پیشنهاد جهت را بررسی و انتخاب کنید.',
-      );
+      setState(() => _error = PersianCopy.inboxPageSaveMessage2);
       return;
     }
     if (!_classificationAcknowledged) {
-      setState(() => _error = 'طبقه‌بندی درآمد یا هزینه را صریحاً تأیید کنید.');
+      setState(() => _error = PersianCopy.inboxPageSaveMessage3);
       return;
     }
     if (draft.dateSource != TransactionDateSource.extracted &&
         draft.dateSource != TransactionDateSource.reviewer &&
         !_dateAcknowledged) {
-      setState(
-        () => _error = 'زمان پیشنهادی را صریحاً تأیید کنید یا برای انتخاب تاریخ و ساعت به ویرایش بروید.',
-      );
+      setState(() => _error = PersianCopy.inboxPageSaveMessage4);
       return;
     }
     if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
         true) {
-      setState(
-        () => _error = 'واحد مبلغ نامشخص است؛ به ویرایش پیشنهاد بروید و ریال یا تومان را انتخاب کنید.',
-      );
+      setState(() => _error = PersianCopy.inboxPageSaveMessage5);
       return;
     }
     final account = _account;
     if (account == null) {
-      setState(() => _error = 'حساب مالی را انتخاب کنید.');
+      setState(() => _error = PersianCopy.financePageResultOnPrimary);
       return;
     }
     setState(() {
@@ -921,7 +933,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = 'ثبت انجام نشد؛ پیشنهاد و انتخاب شما حفظ شده‌اند. اعتبار حساب را بررسی کنید و دوباره تلاش کنید.';
+          _error = PersianCopy.inboxPageSaveMessage6;
         });
       }
     }
@@ -931,8 +943,8 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_saving,
     child: PlanActFormSheet(
-      title: 'تأیید پیشنهاد تراکنش',
-      primaryLabel: 'تأیید نهایی',
+      title: planActL10n(context).inboxPageBuildTitle2,
+      primaryLabel: planActL10n(context).inboxPageBuildPrimaryLabel,
       isLoading: _saving,
       error: _error,
       onPrimary: _save,
@@ -946,9 +958,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                   .currencyEvidence
                   ?.requiresSelection ==
               true)
-            const Text(
-              'واحد مبلغ پیامک نامشخص است؛ ابتدا در ویرایش پیشنهاد واحد را انتخاب کنید.',
-            )
+            Text(planActL10n(context).inboxPageBuildChildren)
           else
             Text(
               PersianMoneyText.money(
@@ -959,18 +969,17 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
           SmsOriginalEvidence(suggestion: widget.item.suggestion),
           const SizedBox(height: PlanActSpacing.md),
           Text(
-            'زمان بررسی‌شده برای ثبت: ${smsReviewTimestamp(widget.item.suggestion.draft.occurredAt)}',
+            planActL10n(context).inboxPageBuildChildren2(
+              (smsReviewTimestamp(widget.item.suggestion.draft.occurredAt))
+                  .toString(),
+            ),
           ),
           if (widget.item.suggestion.extractedEvidence?.isTransfer == true ||
               widget.item.suggestion.draft.type == 'transfer')
-            const Text(
-              'این پیامک انتقال است؛ درآمد یا هزینه ثبت نمی‌شود. انتقال را در بخش مالی بین دو حساب ثبت کنید.',
-            )
+            Text(planActL10n(context).inboxPageSaveMessage)
           else if (widget.item.suggestion.draft.type != 'income' &&
               widget.item.suggestion.draft.type != 'expense')
-            const Text(
-              'نوع تراکنش نامشخص است؛ ابتدا در ویرایش پیشنهاد بررسی کنید.',
-            )
+            Text(planActL10n(context).inboxPageBuildChildren3)
           else
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
@@ -981,11 +990,14 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                       () => _classificationAcknowledged = value == true,
                     ),
               title: Text(
-                'ثبت مالی به‌عنوان ${widget.item.suggestion.draft.type == 'income' ? 'درآمد' : 'هزینه'} را تأیید می‌کنم.',
+                planActL10n(context).inboxPageBuildTitle5(
+                  (widget.item.suggestion.draft.type == 'income'
+                          ? planActL10n(context).inboxPageBuildTitle4
+                          : planActL10n(context).inboxPageBuildTitle3)
+                      .toString(),
+                ),
               ),
-              subtitle: const Text(
-                'واریز و برداشت به‌تنهایی طبقه‌بندی مالی نیستند؛ انتقال بین حساب‌های خودتان را اینجا ثبت نکنید.',
-              ),
+              subtitle: Text(planActL10n(context).inboxPageBuildSubtitle),
             ),
           if (widget.item.suggestion.draft.dateSource !=
                   TransactionDateSource.extracted &&
@@ -998,18 +1010,20 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                   ? null
                   : (value) =>
                         setState(() => _dateAcknowledged = value == true),
-              title: const Text(
-                'زمان پیشنهادی را برای ثبت تراکنش تأیید می‌کنم.',
-              ),
+              title: Text(planActL10n(context).inboxPageBuildTitle6),
               subtitle: Text(
                 widget.item.suggestion.draft.dateSource ==
                         TransactionDateSource.receipt
-                    ? 'این زمان دریافت پیامک است، نه زمان استخراج‌شدهٔ تراکنش. برای تغییر تاریخ یا ساعت، به ویرایش بروید.'
-                    : 'منشأ زمان ذخیره‌شده نامشخص است. برای تغییر تاریخ یا ساعت، به ویرایش بروید.',
+                    ? planActL10n(context).inboxPageBuildSubtitle2
+                    : planActL10n(context).inboxPageBuildSubtitle3,
               ),
             ),
           Text(
-            'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}؛ انتخاب نهایی با شماست.',
+            planActL10n(context).inboxPageBuildChildren5(
+              (widget.item.account?.name ??
+                      planActL10n(context).inboxPageBuildChildren4)
+                  .toString(),
+            ),
           ),
           FinancialAccountPicker(
             repository: widget.finance,
@@ -1043,23 +1057,25 @@ class _SmsStatusCard extends StatelessWidget {
       leading: Icon(
         access == true ? Icons.sms_outlined : Icons.sms_failed_outlined,
       ),
-      title: const Text('ورود پیامک بانکی'),
+      title: Text(planActL10n(context).inboxPageBuildTitle7),
       subtitle: Text(
         error ??
             switch (access) {
-              true =>
-                'مجوز فعال است؛ بازهٔ خواندن پیامک را جداگانه انتخاب کنید.',
-              false => 'دسترسی خواندن و دریافت پیامک فعال نیست؛ ورود خودکار انجام نمی‌شود.',
-              null => 'وضعیت مجوز پیامک هنوز بررسی نشده است.',
+              true => planActL10n(context).inboxPageBuildSubtitle4,
+              false => planActL10n(context).inboxPageBuildSubtitle5,
+              null => planActL10n(context).inboxPageBuildSubtitle6,
             },
       ),
       trailing: onEnable == null
           ? IconButton(
-              tooltip: 'بازخوانی',
+              tooltip: planActL10n(context).inboxPageBuildTooltip,
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh),
             )
-          : TextButton(onPressed: onEnable, child: const Text('فعال‌سازی')),
+          : TextButton(
+              onPressed: onEnable,
+              child: Text(planActL10n(context).inboxPageBuildTrailing),
+            ),
     ),
   );
 }
@@ -1095,7 +1111,13 @@ class _ReviewCardState extends State<_ReviewCard> {
   Widget build(BuildContext context) {
     final draft = widget.item.suggestion.draft;
     final amount = draft.currencyEvidence?.requiresSelection == true
-        ? '${PersianNumbers.format(MoneyInputFormatter.groupText(draft.currencyEvidence!.sourceAmount.toString()))} (واحد نامشخص)'
+        ? planActL10n(context).inboxPageAmountMessage(
+            (PersianNumbers.format(
+              MoneyInputFormatter.groupText(
+                draft.currencyEvidence!.sourceAmount.toString(),
+              ),
+            )).toString(),
+          )
         : PersianMoneyText.money(
             draft.amount,
             unit: MoneyUnitScope.of(context),
@@ -1116,7 +1138,7 @@ class _ReviewCardState extends State<_ReviewCard> {
             if (BulkInboxReject.eligible(widget.item.suggestion))
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('انتخاب برای رد گروهی'),
+                title: Text(planActL10n(context).inboxPageBuildTitle8),
                 value: widget.selected,
                 onChanged: widget.onSelection,
               ),
@@ -1125,33 +1147,58 @@ class _ReviewCardState extends State<_ReviewCard> {
             Text('${widget.item.sourceLabel} · ${_direction(draft.direction)}'),
             Text(
               draft.receivedAt == null
-                  ? 'تاریخ دریافت پیامک: نامشخص'
-                  : 'دریافت پیامک: ${PersianDateFormatter.date(JalaliDate.fromDateTime(draft.receivedAt!))}',
+                  ? planActL10n(context).inboxPageBuildChildren6
+                  : planActL10n(context).inboxPageBuildChildren7(
+                      (PersianDateFormatter.date(
+                        JalaliDate.fromDateTime(draft.receivedAt!),
+                      )).toString(),
+                    ),
             ),
             Text(
               draft.dateSource == TransactionDateSource.extracted
-                  ? 'تاریخ استخراج‌شدهٔ تراکنش: $date'
+                  ? planActL10n(context)
+                        .inboxPageBuildChildren8((date).toString())
                   : draft.dateSource == TransactionDateSource.receipt
-                  ? 'تاریخ تراکنش نامشخص؛ تاریخ دریافت برای ثبت پیشنهاد شده است.'
+                  ? planActL10n(context).inboxPageBuildChildren9
                   : draft.dateSource == TransactionDateSource.reviewer
-                  ? 'زمان انتخاب‌شدهٔ شما: ${smsReviewTimestamp(draft.occurredAt)}'
-                  : 'تاریخ تراکنش و منشأ تاریخ ذخیره‌شده نامشخص است.',
+                  ? planActL10n(context).inboxPageBuildChildren10(
+                      (smsReviewTimestamp(draft.occurredAt)).toString(),
+                    )
+                  : planActL10n(context).inboxPageBuildChildren11,
             ),
-            Text('بانک: ${draft.bank ?? 'نامشخص'}'),
+            Text(
+              planActL10n(context).inboxPageBuildChildren12(
+                (draft.bank ?? planActL10n(context).commonUnknown).toString(),
+              ),
+            ),
             Text(
               draft.currencyEvidence == null
-                  ? 'واحد پیامک قدیمی نامشخص؛ مبلغ ذخیره‌شده بدون تغییر حفظ شده است.'
+                  ? planActL10n(context).inboxPageBuildChildren13
                   : draft.currencyEvidence!.requiresSelection
-                  ? 'واحد مبلغ نامشخص است؛ در ویرایش، ریال یا تومان را انتخاب کنید.'
-                  : 'واحد مبلغ: ${draft.currencyEvidence!.effectiveUnit!.label}؛ ${draft.currencyEvidence!.selectedUnit == null ? 'شواهد پیامک' : 'انتخاب شما'}',
+                  ? planActL10n(context).inboxPageBuildChildren14
+                  : planActL10n(context).inboxPageBuildChildren17(
+                      (draft.currencyEvidence!.effectiveUnit!.label).toString(),
+                      (draft.currencyEvidence!.selectedUnit == null
+                              ? planActL10n(context).inboxPageBuildChildren16
+                              : planActL10n(context).inboxPageBuildChildren15)
+                          .toString(),
+                    ),
             ),
-            if (widget.busy) const Text('در حال ذخیره…'),
+            if (widget.busy)
+              Text(
+                planActL10n(context).financialExpectationEditorBuildChildren,
+              ),
             Text(
-              'حساب پیشنهادی: ${widget.item.account?.name ?? 'نیازمند انتخاب'}',
+              planActL10n(context).inboxPageBuildChildren18(
+                (widget.item.account?.name ??
+                        planActL10n(context).inboxPageBuildChildren4)
+                    .toString(),
+              ),
             ),
             for (final warning in widget.item.warnings)
               Text(
-                'هشدار: $warning',
+                planActL10n(context)
+                    .inboxPageBuildChildren19((warning).toString()),
                 style: TextStyle(
                   color: PlanActStatusColors.of(context).attention,
                 ),
@@ -1159,38 +1206,68 @@ class _ReviewCardState extends State<_ReviewCard> {
             TextButton.icon(
               onPressed: () => setState(() => _showDetails = !_showDetails),
               icon: Icon(_showDetails ? Icons.expand_less : Icons.expand_more),
-              label: Text(_showDetails ? 'بستن جزئیات' : 'جزئیات پیشنهاد'),
+              label: Text(
+                _showDetails
+                    ? planActL10n(context).inboxPageBuildLabel
+                    : planActL10n(context).inboxPageBuildLabel2,
+              ),
             ),
             if (_showDetails) ...[
               SmsOriginalEvidence(suggestion: widget.item.suggestion),
               const SizedBox(height: PlanActSpacing.md),
               Text(
-                'مقادیر فعلی بررسی',
+                planActL10n(context).inboxPageBuildChildren20,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              Text('بانک: ${draft.bank ?? 'نامشخص'}'),
-              Text('مبلغ بررسی‌شده: $amount'),
-              Text('جهت بررسی‌شده: ${_direction(draft.direction)}'),
-              Text('شرح بررسی‌شده: ${draft.merchant ?? 'نامشخص'}'),
-              Text('راهنمای حساب: ${maskedSmsEvidence(draft.accountHint)}'),
-              Text('شناسه پیگیری: ${maskedSmsEvidence(draft.reference)}'),
-              Text('زمان برای ثبت: ${smsReviewTimestamp(draft.occurredAt)}'),
               Text(
-                'چرا این پیشنهاد؟',
+                planActL10n(context).inboxPageBuildChildren12(
+                  (draft.bank ?? planActL10n(context).commonUnknown).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context)
+                    .inboxPageBuildChildren21((amount).toString()),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren22(
+                  (_direction(draft.direction)).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren23(
+                  (draft.merchant ?? planActL10n(context).commonUnknown)
+                      .toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren24(
+                  (maskedSmsEvidence(draft.accountHint)).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren25(
+                  (maskedSmsEvidence(draft.reference)).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren26(
+                  (smsReviewTimestamp(draft.occurredAt)).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageBuildChildren27,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
               for (final reason in widget.item.reasons) Text('• $reason'),
             ],
             const SizedBox(height: PlanActSpacing.sm),
             if (widget.item.suggestion.status == SuggestionStatus.confirmed)
-              const Text(
-                'تأییدشده؛ برای اصلاح یا برگشت تراکنش به بخش مالی بروید. حذف از صندوق ممکن نیست.',
-              )
+              Text(planActL10n(context).inboxPageBuildChildren28)
             else if (widget.item.suggestion.status == SuggestionStatus.rejected)
               TextButton.icon(
                 onPressed: widget.busy ? null : widget.onReject,
                 icon: const Icon(Icons.undo),
-                label: const Text('بازگردانی به صف بررسی'),
+                label: Text(planActL10n(context).inboxPageBuildLabel3),
               )
             else
               Wrap(
@@ -1200,17 +1277,17 @@ class _ReviewCardState extends State<_ReviewCard> {
                   FilledButton.icon(
                     onPressed: widget.busy ? null : widget.onConfirm,
                     icon: const Icon(Icons.check),
-                    label: const Text('تأیید و ثبت'),
+                    label: Text(planActL10n(context).inboxPageBuildLabel4),
                   ),
                   OutlinedButton.icon(
                     onPressed: widget.busy ? null : widget.onEdit,
                     icon: const Icon(Icons.edit_outlined),
-                    label: const Text('ویرایش'),
+                    label: Text(planActL10n(context).inboxPageBuildLabel5),
                   ),
                   TextButton.icon(
                     onPressed: widget.busy ? null : widget.onReject,
                     icon: const Icon(Icons.close),
-                    label: const Text('رد کردن'),
+                    label: Text(planActL10n(context).inboxPageBuildLabel6),
                   ),
                 ],
               ),
@@ -1221,9 +1298,12 @@ class _ReviewCardState extends State<_ReviewCard> {
   }
 
   String _direction(TransactionDirection direction) => switch (direction) {
-    TransactionDirection.incoming => 'واریز',
-    TransactionDirection.outgoing => 'برداشت',
-    TransactionDirection.unknown => 'نوع نامشخص',
+    TransactionDirection.incoming =>
+      PersianCopy.transactionDirectionAccountEntryTypeIncome,
+    TransactionDirection.outgoing =>
+      PersianCopy.transactionDirectionAccountEntryTypeExpense,
+    TransactionDirection.unknown =>
+      PersianCopy.inboxPageTransactionDirectionUnknown,
   };
 }
 

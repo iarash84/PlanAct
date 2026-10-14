@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/planact_app.dart';
+import 'package:planact/l10n/generated/app_localizations.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
@@ -140,6 +141,7 @@ void main() {
 
 void _expectPersian(BuildContext context, Brightness brightness) {
   expect(Localizations.localeOf(context), const Locale('fa'));
+  expect(AppLocalizations.of(context)?.commonSave, 'ذخیره');
   expect(Directionality.of(context), TextDirection.rtl);
   expect(WidgetsLocalizations.of(context).textDirection, TextDirection.rtl);
   expect(MaterialLocalizations.of(context).cancelButtonLabel, 'لغو');

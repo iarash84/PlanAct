@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -55,7 +57,11 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       final value = int.tryParse(
         PersianNumbers.normalizeDigits(_value.text.trim()),
       );
-      if (value == null) throw const ValidationError('عدد معتبر وارد کنید.');
+      if (value == null) {
+        throw const ValidationError(
+          PersianCopy.commitmentCorrectionCardPreviewMessage,
+        );
+      }
       final preview = await widget.repository.preview(
         CommitmentCorrectionRequest(
           commitmentId: widget.commitmentId,
@@ -69,33 +75,45 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('پیش‌نمایش اصلاح'),
+          title: const Text(PersianCopy.commitmentCorrectionCardConfirmedTitle),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   preview.hasHistory
-                      ? 'تعهد دارای سابقه است؛ سوابق محفوظ می‌مانند.'
-                      : 'تعهد ثبت‌شده بدون سابقهٔ نتیجه؛ این اصلاح ثبت می‌شود.',
+                      ? PersianCopy.commitmentCorrectionCardConfirmedChildren
+                      : PersianCopy.commitmentCorrectionCardConfirmedChildren2,
                 ),
                 Text(
-                  'تعداد برنامه: ${_number(preview.beforeCount)} ← ${_number(preview.afterCount)}',
+                  PersianCopy.commitmentCorrectionCardConfirmedChildren3(
+                    (_number(preview.beforeCount)).toString(),
+                    (_number(preview.afterCount)).toString(),
+                  ),
                 ),
                 Text(
-                  'نوبت آیندهٔ افزوده در بازهٔ تولید: ${_number(preview.futureAdded)}',
+                  PersianCopy.commitmentCorrectionCardConfirmedChildren4(
+                    (_number(preview.futureAdded)).toString(),
+                  ),
                 ),
-                Text('نوبت آیندهٔ لغوشده: ${_number(preview.futureCancelled)}'),
                 Text(
-                  'اعتبار باقی‌مانده: ${_number(preview.remainingBefore)} ← ${_number(preview.remainingAfter)}',
+                  PersianCopy.commitmentCorrectionCardConfirmedChildren5(
+                    (_number(preview.futureCancelled)).toString(),
+                  ),
+                ),
+                Text(
+                  PersianCopy.commitmentCorrectionCardConfirmedChildren6(
+                    (_number(preview.remainingBefore)).toString(),
+                    (_number(preview.remainingAfter)).toString(),
+                  ),
                 ),
                 Text(
                   _credit
-                      ? 'فقط اعتبار بسته اصلاح می‌شود؛ برنامه و مصرف قبلی تغییر نمی‌کنند.'
-                      : 'از فردا؛ الگوی تکرار و نوبت‌های محافظت‌شده تغییر نمی‌کنند. اعتبار بسته تغییر نمی‌کند.',
+                      ? PersianCopy.commitmentCorrectionCardConfirmedChildren7
+                      : PersianCopy.commitmentCorrectionCardConfirmedChildren8,
                 ),
                 const Text(
-                  'هیچ سابقه‌ای حذف نمی‌شود. اصلاح بعدی نیاز به تأیید جداگانه دارد.',
+                  PersianCopy.commitmentCorrectionCardConfirmedChildren9,
                 ),
               ],
             ),
@@ -103,11 +121,13 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('ادامهٔ ویرایش'),
+              child: const Text(PersianCopy.planactAppConfirmLeaveActions),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('تأیید اصلاح'),
+              child: const Text(
+                PersianCopy.commitmentCorrectionCardConfirmedActions,
+              ),
             ),
           ],
         ),
@@ -129,8 +149,8 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       if (mounted) {
         setState(
           () => _success = pending
-              ? 'اصلاح ثبت شد؛ هماهنگ‌سازی یا بازخوانی در انتظار است. صفحه را دوباره باز کنید.'
-              : 'اصلاح ثبت شد؛ سوابق قبلی محفوظ است.',
+              ? PersianCopy.commitmentCorrectionCardPreviewMessage2
+              : PersianCopy.commitmentCorrectionCardPreviewMessage3,
         );
       }
     } catch (error) {
@@ -138,7 +158,7 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
         setState(
           () => _error = error is ValidationError
               ? error.message
-              : 'اصلاح انجام نشد؛ ورودی‌ها محفوظ است. دوباره تلاش کنید.',
+              : PersianCopy.commitmentCorrectionCardPreviewMessage4,
         );
       }
     } finally {
@@ -151,9 +171,9 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
   @override
   Widget build(BuildContext context) => Card(
     child: ExpansionTile(
-      title: const Text('اصلاح تعداد برنامه یا اعتبار بسته'),
-      subtitle: const Text(
-        'آزمایشی: اصلاح تعداد فقط برای برنامهٔ شمارشی و از فردا؛ اعتبار بسته مستقل است.',
+      title: Text(planActL10n(context).commitmentCorrectionCardBuildTitle),
+      subtitle: Text(
+        planActL10n(context).commitmentCorrectionCardBuildSubtitle,
       ),
       children: [
         Padding(
@@ -163,15 +183,22 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
             children: [
               DropdownButtonFormField<bool>(
                 initialValue: _credit,
-                decoration: const InputDecoration(labelText: 'نوع اصلاح'),
-                items: const [
+                decoration: InputDecoration(
+                  labelText: planActL10n(context)
+                      .commitmentCorrectionCardBuildLabelText,
+                ),
+                items: [
                   DropdownMenuItem(
                     value: false,
-                    child: Text('تعداد نوبت‌های برنامه'),
+                    child: Text(
+                      planActL10n(context).commitmentCorrectionCardBuildItems,
+                    ),
                   ),
                   DropdownMenuItem(
                     value: true,
-                    child: Text('افزایش یا کاهش اعتبار بسته'),
+                    child: Text(
+                      planActL10n(context).commitmentCorrectionCardBuildItems2,
+                    ),
                   ),
                 ],
                 onChanged: _busy
@@ -190,14 +217,19 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
                 ),
                 decoration: InputDecoration(
                   labelText: _credit
-                      ? 'تغییر اعتبار (مثلاً ۲ یا ۲-)'
-                      : 'تعداد کل جدید برنامه',
+                      ? planActL10n(context)
+                            .commitmentCorrectionCardBuildLabelText2
+                      : planActL10n(context)
+                            .commitmentCorrectionCardBuildLabelText3,
                 ),
               ),
               TextField(
                 controller: _reason,
                 enabled: !_busy,
-                decoration: const InputDecoration(labelText: 'دلیل اصلاح'),
+                decoration: InputDecoration(
+                  labelText: planActL10n(context)
+                      .commitmentCorrectionCardBuildLabelText4,
+                ),
               ),
               if (_error != null)
                 Text(
@@ -215,23 +247,39 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
                           widget.commitmentId,
                         );
                       }),
-                      child: const Text('بازخوانی سوابق اصلاح'),
+                      child: Text(
+                        planActL10n(context)
+                            .commitmentCorrectionCardBuildBuilder,
+                      ),
                     );
                   }
                   if (!snapshot.hasData) return const LinearProgressIndicator();
                   if (snapshot.data!.isEmpty) {
-                    return const Text('اصلاح ثبت‌شده‌ای وجود ندارد.');
+                    return Text(
+                      planActL10n(context)
+                          .commitmentCorrectionCardBuildBuilder2,
+                    );
                   }
                   return ExpansionTile(
-                    title: const Text('سوابق اصلاح'),
+                    title: Text(
+                      planActL10n(context).commitmentCorrectionCardBuildTitle2,
+                    ),
                     children: [
                       for (final record in snapshot.data!)
                         ListTile(
                           title: Text(record.reason),
                           subtitle: Text(
-                            '${PersianDateFormatter.date(JalaliDate.fromDateTime(record.at.toLocal()))}\n'
-                            'تعداد: ${_number(record.beforeCount)} ← ${_number(record.afterCount)}\n'
-                            'اعتبار: ${_number(record.beforeRemaining)} ← ${_number(record.afterRemaining)}',
+                            planActL10n(
+                              context,
+                            ).commitmentCorrectionCardBuildSubtitle2(
+                              (PersianDateFormatter.date(
+                                JalaliDate.fromDateTime(record.at.toLocal()),
+                              )).toString(),
+                              (_number(record.beforeCount)).toString(),
+                              (_number(record.afterCount)).toString(),
+                              (_number(record.beforeRemaining)).toString(),
+                              (_number(record.afterRemaining)).toString(),
+                            ),
                           ),
                         ),
                     ],
@@ -241,7 +289,9 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
               if (_busy) const LinearProgressIndicator(),
               FilledButton(
                 onPressed: _busy ? null : _preview,
-                child: const Text('بررسی اثر اصلاح'),
+                child: Text(
+                  planActL10n(context).commitmentCorrectionCardBuildChildren,
+                ),
               ),
             ],
           ),

@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -12,20 +13,22 @@ Future<bool> confirmRecoveryKey(BuildContext context, String key) async {
         barrierDismissible: false,
         builder: (context) => StatefulBuilder(
           builder: (context, setState) => AlertDialog(
-            title: const Text('کلید بازیابی این نسخه'),
+            title: Text(
+              planActL10n(context).recoveryKeyDialogsConfirmRecoveryKeyTitle,
+            ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'این کلید را در محل امن و جدا از فایل پشتیبان نگه دارید. '
-                    'هر نسخه کلید تازه‌ای دارد. برای بازیابی روی نصب جدید فقط فایل و همین کلید لازم است. '
-                    'برنامه کلید را نگه نمی‌دارد.',
+                  Text(
+                    planActL10n(context)
+                        .recoveryKeyDialogsConfirmRecoveryKeyChildren,
                   ),
                   const SizedBox(height: PlanActSpacing.md),
                   Text(
-                    'اگر کلید گم شود، این نسخهٔ پشتیبان دیگر قابل بازیابی نیست.',
+                    planActL10n(context)
+                        .recoveryKeyDialogsConfirmRecoveryKeyChildren2,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: PlanActSpacing.md),
@@ -40,6 +43,7 @@ Future<bool> confirmRecoveryKey(BuildContext context, String key) async {
                             ? null
                             : () async {
                                 if (copying) return;
+                                final l10n = planActL10n(context);
                                 setState(() {
                                   copying = true;
                                   copyFeedback = null;
@@ -49,10 +53,11 @@ Future<bool> confirmRecoveryKey(BuildContext context, String key) async {
                                   await Clipboard.setData(
                                     ClipboardData(text: key),
                                   );
-                                  feedback = 'کلید کپی شد.';
+                                  feedback = l10n
+                                      .recoveryKeyDialogsConfirmRecoveryKeyOnPressed;
                                 } catch (_) {
-                                  feedback =
-                                      'کپی کلید انجام نشد. دوباره تلاش کنید.';
+                                  feedback = l10n
+                                      .recoveryKeyDialogsConfirmRecoveryKeyOnPressed2;
                                 }
                                 if (!context.mounted) return;
                                 setState(() {
@@ -61,25 +66,35 @@ Future<bool> confirmRecoveryKey(BuildContext context, String key) async {
                                 });
                               },
                         icon: const Icon(Icons.copy_outlined),
-                        label: const Text('کپی کلید'),
+                        label: Text(
+                          planActL10n(context)
+                              .recoveryKeyDialogsConfirmRecoveryKeyLabel,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: PlanActSpacing.sm),
-                  const Text(
-                    'کلید حساس است؛ برنامه‌های دیگر ممکن است به کلیپ‌بورد دسترسی داشته باشند.',
+                  Text(
+                    planActL10n(context)
+                        .recoveryKeyDialogsConfirmRecoveryKeyChildren3,
                   ),
                   if (copying || copyFeedback != null) ...[
                     const SizedBox(height: PlanActSpacing.sm),
                     Semantics(
                       liveRegion: true,
-                      child: Text(copying ? 'در حال کپی کلید…' : copyFeedback!),
+                      child: Text(
+                        copying
+                            ? planActL10n(context)
+                                  .recoveryKeyDialogsConfirmRecoveryKeyChildren4
+                            : copyFeedback!,
+                      ),
                     ),
                   ],
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text(
-                      'کلید را جدا و امن نگه داشتم و خطر گم‌شدن آن را می‌پذیرم.',
+                    title: Text(
+                      planActL10n(context)
+                          .recoveryKeyDialogsConfirmRecoveryKeyTitle2,
                     ),
                     value: acknowledged,
                     onChanged: (value) =>
@@ -91,13 +106,16 @@ Future<bool> confirmRecoveryKey(BuildContext context, String key) async {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('انصراف'),
+                child: Text(planActL10n(context).commonCancel),
               ),
               FilledButton(
                 onPressed: acknowledged
                     ? () => Navigator.pop(context, true)
                     : null,
-                child: const Text('ادامه و ذخیره فایل'),
+                child: Text(
+                  planActL10n(context)
+                      .recoveryKeyDialogsConfirmRecoveryKeyActions,
+                ),
               ),
             ],
           ),
@@ -114,13 +132,16 @@ Future<String?> requestRecoveryKey(BuildContext context) async {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('ورود کلید بازیابی'),
+          title: Text(
+            planActL10n(context).recoveryKeyDialogsRequestRecoveryKeyTitle,
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'کلید همین فایل را وارد کنید. بدون کلید درست، اطلاعات فعلی جایگزین نمی‌شود.',
+                Text(
+                  planActL10n(context)
+                      .recoveryKeyDialogsRequestRecoveryKeyChildren,
                 ),
                 const SizedBox(height: PlanActSpacing.md),
                 TextField(
@@ -130,7 +151,8 @@ Future<String?> requestRecoveryKey(BuildContext context) async {
                   enableSuggestions: false,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'کلید بازیابی',
+                    labelText: planActL10n(context)
+                        .recoveryKeyDialogsRequestRecoveryKeyLabelText,
                     errorText: error,
                   ),
                 ),
@@ -140,7 +162,7 @@ Future<String?> requestRecoveryKey(BuildContext context) async {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('انصراف'),
+              child: Text(planActL10n(context).commonCancel),
             ),
             FilledButton(
               onPressed: () {
@@ -149,10 +171,17 @@ Future<String?> requestRecoveryKey(BuildContext context) async {
                   key.dispose();
                   Navigator.pop(context, controller.text.trim());
                 } catch (_) {
-                  setState(() => error = 'کلید کامل و دقیق را وارد کنید.');
+                  setState(
+                    () =>
+                        error = planActL10n(context)
+                            .recoveryKeyDialogsRequestRecoveryKeyOnPressed,
+                  );
                 }
               },
-              child: const Text('بازیابی با این کلید'),
+              child: Text(
+                planActL10n(context)
+                    .recoveryKeyDialogsRequestRecoveryKeyActions,
+              ),
             ),
           ],
         ),
@@ -169,20 +198,22 @@ Future<bool> confirmLegacyBackup(BuildContext context) async =>
     await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('نسخه قدیمی وابسته به نصب'),
-        content: const Text(
-          'این فایل قالب ۱ است و فقط با کلید نصب اصلی بازیابی می‌شود. '
-          'کلید بازیابی جدید برای آن کار نمی‌کند. پس از حذف نصب یا از دست رفتن دستگاه ممکن است قابل بازیابی نباشد. '
-          'فایل قدیمی بازنویسی نمی‌شود.',
+        title: Text(
+          planActL10n(context).recoveryKeyDialogsConfirmLegacyBackupTitle,
+        ),
+        content: Text(
+          planActL10n(context).recoveryKeyDialogsConfirmLegacyBackupContent,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('انصراف'),
+            child: Text(planActL10n(context).commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('ادامه با کلید نصب اصلی'),
+            child: Text(
+              planActL10n(context).recoveryKeyDialogsConfirmLegacyBackupActions,
+            ),
           ),
         ],
       ),

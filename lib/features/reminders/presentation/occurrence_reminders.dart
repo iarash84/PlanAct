@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -11,18 +13,37 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 String reminderRuleLabel(ReminderRule rule) {
   if (rule.anchor == ReminderAnchor.absolute) {
     final date = rule.absoluteAt!.toLocal();
-    return '${PersianDateFormatter.date(JalaliDate.fromDateTime(date))}، ${reminderTimeLabel(date)}';
+    return PersianCopy.occurrenceRemindersReminderRuleLabelMessage(
+      (PersianDateFormatter.date(JalaliDate.fromDateTime(date))).toString(),
+      (reminderTimeLabel(date)).toString(),
+    );
   }
-  if (rule.offset == Duration.zero) return 'هنگام شروع';
+  if (rule.offset == Duration.zero) {
+    return PersianCopy.occurrenceRemindersReminderRuleLabelMessage2;
+  }
   final seconds = rule.offset.inSeconds.abs();
   final value = seconds % 86400 == 0
-      ? '${PersianNumbers.format(seconds ~/ 86400)} روز'
+      ? PersianCopy.occurrenceRemindersValueMessage(
+          (PersianNumbers.format(seconds ~/ 86400)).toString(),
+        )
       : seconds % 3600 == 0
-      ? '${PersianNumbers.format(seconds ~/ 3600)} ساعت'
+      ? PersianCopy.occurrenceRemindersValueMessage2(
+          (PersianNumbers.format(seconds ~/ 3600)).toString(),
+        )
       : seconds % 60 == 0
-      ? '${PersianNumbers.format(seconds ~/ 60)} دقیقه'
-      : '${PersianNumbers.format(seconds)} ثانیه';
-  return '$value ${rule.offset.isNegative ? 'قبل' : 'بعد'} از شروع';
+      ? PersianCopy.occurrenceRemindersValueMessage3(
+          (PersianNumbers.format(seconds ~/ 60)).toString(),
+        )
+      : PersianCopy.occurrenceRemindersValueMessage4(
+          (PersianNumbers.format(seconds)).toString(),
+        );
+  return PersianCopy.occurrenceRemindersReminderRuleLabelMessage5(
+    (value).toString(),
+    (rule.offset.isNegative
+            ? PersianCopy.occurrenceRemindersReminderRuleLabelMessage4
+            : PersianCopy.occurrenceRemindersReminderRuleLabelMessage3)
+        .toString(),
+  );
 }
 
 String reminderTimeLabel(DateTime value) {
@@ -63,8 +84,13 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
         : DateTime((value as LocalDate).year, value.month, value.day);
     final label = PersianDateFormatter.date(JalaliDate.fromDateTime(date));
     return value is DateTime
-        ? '$label، ساعت ${reminderTimeLabel(value)}'
-        : '$label (بدون ساعت)';
+        ? PersianCopy.occurrenceRemindersOccurrenceLabelMessage(
+            (label).toString(),
+            (reminderTimeLabel(value)).toString(),
+          )
+        : PersianCopy.occurrenceRemindersOccurrenceLabelMessage2(
+            (label).toString(),
+          );
   }
 
   Future<void> _edit(List<ReminderRule> current) async {
@@ -93,9 +119,7 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'یادآوری‌ها ذخیره نشدند؛ وضعیت نوبت را بررسی و دوباره تلاش کنید.',
-            ),
+            content: Text(PersianCopy.occurrenceRemindersEditContent),
           ),
         );
       }
@@ -110,8 +134,8 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
       SnackBar(
         content: Text(
           pending
-              ? 'یادآوری‌ها ذخیره شدند؛ هماهنگ‌سازی اعلان‌ها در انتظار است.'
-              : 'یادآوری‌ها ذخیره شدند.',
+              ? PersianCopy.occurrenceRemindersEditContent2
+              : PersianCopy.occurrenceRemindersEditContent3,
         ),
       ),
     );
@@ -122,9 +146,7 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'یادآوری‌ها ذخیره شدند؛ برای تازه‌سازی نمایش دوباره وارد صفحه شوید.',
-            ),
+            content: Text(PersianCopy.occurrenceRemindersEditContent4),
           ),
         );
       }
@@ -139,7 +161,7 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
         return TextButton.icon(
           onPressed: () => setState(() => _rules = _load()),
           icon: const Icon(Icons.refresh),
-          label: const Text('بارگذاری یادآوری‌ها انجام نشد؛ تلاش دوباره'),
+          label: Text(planActL10n(context).occurrenceRemindersBuildLabel),
         );
       }
       if (!snapshot.hasData) return const LinearProgressIndicator();
@@ -151,18 +173,23 @@ class _OccurrenceRemindersState extends State<OccurrenceReminders> {
       }.contains(widget.occurrence.status);
       return ListTile(
         leading: const Icon(Icons.notifications_outlined),
-        title: Text('یادآوری‌های ${_occurrenceLabel()}'),
+        title: Text(
+          planActL10n(context)
+              .occurrenceRemindersBuildTitle((_occurrenceLabel()).toString()),
+        ),
         subtitle: Text(
           rules.isEmpty
-              ? 'بدون یادآوری'
-              : rules.map(reminderRuleLabel).join('، '),
+              ? planActL10n(context).calendarCommitmentCardRemindersMessage
+              : rules
+                    .map(reminderRuleLabel)
+                    .join(planActL10n(context).commonListSeparator),
         ),
         trailing: _busy
             ? const CircularProgressIndicator()
             : IconButton(
                 tooltip: resolved
-                    ? 'برای ویرایش، ابتدا نتیجهٔ نوبت را بازگردانید'
-                    : 'ویرایش یادآوری‌ها',
+                    ? planActL10n(context).occurrenceRemindersBuildTooltip
+                    : planActL10n(context).occurrenceRemindersBuildTooltip2,
                 onPressed: resolved ? null : () => _edit(rules),
                 icon: const Icon(Icons.edit_outlined),
               ),
@@ -216,30 +243,31 @@ class _EditOccurrenceRemindersDialogState
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('ویرایش یادآوری‌های این نوبت'),
+    title: Text(planActL10n(context).occurrenceRemindersBuildTitle2),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'تغییر فقط برای این نوبت ذخیره می‌شود؛ سابقهٔ اعلان‌ها محفوظ می‌ماند.',
-          ),
+          Text(planActL10n(context).occurrenceRemindersBuildChildren),
           const SizedBox(height: PlanActSpacing.md),
           for (final rule in _selected)
             ListTile(
               title: Text(reminderRuleLabel(rule)),
               trailing: IconButton(
-                tooltip: 'حذف این یادآوری',
+                tooltip: planActL10n(context).occurrenceRemindersBuildTooltip3,
                 icon: const Icon(Icons.close),
                 onPressed: () => setState(() => _selected.remove(rule)),
               ),
             ),
-          if (_selected.isEmpty) const Text('بدون یادآوری'),
+          if (_selected.isEmpty)
+            Text(planActL10n(context).calendarCommitmentCardRemindersMessage),
           if (_selected.isNotEmpty)
             TextButton(
               onPressed: () => setState(() => _selected.clear()),
-              child: const Text('حذف همهٔ یادآوری‌های این نوبت'),
+              child: Text(
+                planActL10n(context).occurrenceRemindersBuildChildren2,
+              ),
             ),
           if (widget.occurrence.currentScheduledAt is DateTime) ...[
             Wrap(
@@ -249,8 +277,12 @@ class _EditOccurrenceRemindersDialogState
                     (minutes) => ActionChip(
                       label: Text(
                         minutes == 0
-                            ? 'هنگام شروع'
-                            : '${PersianNumbers.format(minutes)} دقیقه قبل',
+                            ? planActL10n(context)
+                                  .occurrenceRemindersReminderRuleLabelMessage2
+                            : planActL10n(context)
+                                  .quickCaptureSheetReminderLabelMessage3(
+                                    (PersianNumbers.format(minutes)).toString(),
+                                  ),
                       ),
                       onPressed: () => _add(minutes),
                     ),
@@ -261,7 +293,8 @@ class _EditOccurrenceRemindersDialogState
               controller: _minutes,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'دقایق قبل از شروع (دلخواه)',
+                labelText: planActL10n(context)
+                    .occurrenceRemindersBuildLabelText,
                 errorText: _error,
               ),
             ),
@@ -272,30 +305,32 @@ class _EditOccurrenceRemindersDialogState
                 );
                 if (minutes == null || minutes < 0) {
                   setState(
-                    () => _error = 'تعداد دقیقه را صفر یا بیشتر وارد کنید.',
+                    () =>
+                        _error = planActL10n(context)
+                            .occurrenceRemindersBuildOnPressed,
                   );
                 } else {
                   _add(minutes);
                   _minutes.clear();
                 }
               },
-              child: const Text('افزودن یادآوری'),
+              child: Text(
+                planActL10n(context).occurrenceRemindersBuildChildren3,
+              ),
             ),
           ] else
-            const Text(
-              'این نوبت ساعت ندارد؛ افزودن یادآوری نسبی نیازمند انتخاب صریح ساعت است.',
-            ),
+            Text(planActL10n(context).occurrenceRemindersBuildChildren4),
         ],
       ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('انصراف'),
+        child: Text(planActL10n(context).commonCancel),
       ),
       FilledButton(
         onPressed: () => Navigator.pop(context, _selected),
-        child: const Text('ذخیرهٔ یادآوری‌ها'),
+        child: Text(planActL10n(context).occurrenceRemindersBuildActions),
       ),
     ],
   );

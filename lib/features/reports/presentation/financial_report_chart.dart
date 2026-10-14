@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -56,20 +58,26 @@ class FinancialReportChart extends StatelessWidget {
             Text('${labels.first} ← ${labels.last}'),
           if (style != FinancialChartStyle.donut)
             Text(
-              'کمینه: ${format(values.fold<int>(0, math.min))}؛ بیشینه: ${format(values.fold<int>(0, math.max))}؛ خط مبنا صفر است.',
+              planActL10n(context).financialReportChartBuildChildren(
+                (format(values.fold<int>(0, math.min))).toString(),
+                (format(values.fold<int>(0, math.max))).toString(),
+              ),
             ),
           if (style == FinancialChartStyle.grouped)
-            Text('گروه‌ها از راست به چپ: ${labels.join('، ')}'),
-          if (style == FinancialChartStyle.line)
-            const Text('زمان از راست به چپ؛ مقدار هر نقطه در جزئیات آمده است.'),
-          if (style == FinancialChartStyle.donut && values.any((v) => v < 0))
-            const Text(
-              'جمع منفی ناشی از اصلاح در سهم دایره لحاظ نمی‌شود؛ مقدار دقیق در جزئیات است.',
+            Text(
+              planActL10n(context).financialReportChartBuildChildren2(
+                (labels.join(planActL10n(context).commonListSeparator))
+                    .toString(),
+              ),
             ),
+          if (style == FinancialChartStyle.line)
+            Text(planActL10n(context).financialReportChartBuildChildren3),
+          if (style == FinancialChartStyle.donut && values.any((v) => v < 0))
+            Text(planActL10n(context).financialReportChartBuildChildren4),
           if (style == FinancialChartStyle.donut && positive == 0)
-            const Text('سهم مثبت برای نمایش دایره وجود ندارد.'),
+            Text(planActL10n(context).financialReportChartBuildChildren5),
           if (values.every((v) => v == 0))
-            const Text('همهٔ مقادیر صفر هستند.')
+            Text(planActL10n(context).financialReportChartBuildChildren6)
           else
             ExcludeSemantics(
               child: SizedBox(
@@ -97,17 +105,56 @@ class FinancialReportChart extends StatelessWidget {
             for (var i = 0; i < labels.length; i++)
               _legend(
                 colors[i % colors.length],
-                '${PersianNumbers.format(i + 1)} · ${labels[i]}: ${format(series.first.values[i])}${positive > 0 && series.first.values[i] > 0 ? '؛ ${PersianNumbers.format((series.first.values[i] * 100 / positive).toStringAsFixed(1))}٪' : ''}',
+                planActL10n(context).financialReportChartBuildChildren8(
+                  (PersianNumbers.format(i + 1)).toString(),
+                  (labels[i]).toString(),
+                  (format(series.first.values[i])).toString(),
+                  (positive > 0 && series.first.values[i] > 0
+                          ? planActL10n(context)
+                                .financialReportChartBuildChildren7(
+                                  (PersianNumbers.format(
+                                    (series.first.values[i] * 100 / positive)
+                                        .toStringAsFixed(1),
+                                  )).toString(),
+                                )
+                          : '')
+                      .toString(),
+                ),
               ),
           ExpansionTile(
             key: PageStorageKey('financial-chart-details:$title'),
-            title: const Text('مقادیر دقیق نمودار'),
+            title: Text(planActL10n(context).financialReportChartBuildTitle),
             children: [
               for (var i = 0; i < labels.length; i++)
                 Padding(
                   padding: const EdgeInsets.all(PlanActSpacing.sm),
                   child: Text(
-                    '${labels[i]}: ${[for (final s in series) '${s.label} ${format(s.values[i])}${style == FinancialChartStyle.donut && positive > 0 && s.values[i] > 0 ? '؛ ${PersianNumbers.format((s.values[i] * 100 / positive).toStringAsFixed(1))}٪' : ''}'].join('؛ ')}',
+                    planActL10n(context).financialReportChartBuildChildren10(
+                      (labels[i]).toString(),
+                      ([
+                            for (final s in series)
+                              planActL10n(
+                                context,
+                              ).financialReportChartBuildChildren9(
+                                (s.label).toString(),
+                                (format(s.values[i])).toString(),
+                                (style == FinancialChartStyle.donut &&
+                                            positive > 0 &&
+                                            s.values[i] > 0
+                                        ? planActL10n(
+                                            context,
+                                          ).financialReportChartBuildChildren7(
+                                            (PersianNumbers.format(
+                                              (s.values[i] * 100 / positive)
+                                                  .toStringAsFixed(1),
+                                            )).toString(),
+                                          )
+                                        : '')
+                                    .toString(),
+                              ),
+                          ].join(planActL10n(context).commonClauseSeparator))
+                          .toString(),
+                    ),
                   ),
                 ),
             ],

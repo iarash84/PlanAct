@@ -1,3 +1,5 @@
+import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -75,7 +77,7 @@ class _FinancialExpectationEditorState
     final value = _moneyInput.parse(_amount.text, currency: _currency.text);
     final currency = _currency.text.trim();
     if (value == null || value <= 0) {
-      _message('مبلغ مثبت را وارد کنید.');
+      _message(PersianCopy.financialExpectationEditorSaveMessage);
       return;
     }
     setState(() => _saving = true);
@@ -97,9 +99,9 @@ class _FinancialExpectationEditorState
           accountId: _account?.id,
         );
       }
-      if (mounted) _message('انتظار مالی ذخیره شد.');
+      if (mounted) _message(PersianCopy.financialExpectationEditorSaveMessage2);
     } catch (_) {
-      if (mounted) _message('ذخیرهٔ انتظار مالی انجام نشد.');
+      if (mounted) _message(PersianCopy.financialExpectationEditorSaveMessage3);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -126,8 +128,12 @@ class _FinancialExpectationEditorState
           children: [
             ExpansionTile(
               initiallyExpanded: _existing != null,
-              title: const Text('انتظار مالی این نوبت'),
-              subtitle: const Text('اختیاری؛ مستقل از انجام تعهد'),
+              title: Text(
+                planActL10n(context).financialExpectationEditorBuildTitle,
+              ),
+              subtitle: Text(
+                planActL10n(context).financialExpectationEditorBuildSubtitle,
+              ),
               children: [
                 Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
@@ -135,14 +141,20 @@ class _FinancialExpectationEditorState
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SegmentedButton<FinancialExpectationDirection>(
-                        segments: const [
+                        segments: [
                           ButtonSegment(
                             value: FinancialExpectationDirection.outgoing,
-                            label: Text('پرداختی'),
+                            label: Text(
+                              planActL10n(context)
+                                  .quickCaptureSheetFinancialFieldsLabel2,
+                            ),
                           ),
                           ButtonSegment(
                             value: FinancialExpectationDirection.incoming,
-                            label: Text('دریافتی'),
+                            label: Text(
+                              planActL10n(context)
+                                  .quickCaptureSheetFinancialFieldsLabel3,
+                            ),
                           ),
                         ],
                         selected: {_direction},
@@ -158,26 +170,33 @@ class _FinancialExpectationEditorState
                           MoneyInputFormatter(decimal: true),
                         ],
                         decoration: InputDecoration(
-                          labelText:
-                              'مبلغ به ${_moneyInput.label(_currency.text)}',
+                          labelText: planActL10n(context)
+                              .financePageResultLabelText(
+                                (_moneyInput.label(_currency.text)).toString(),
+                              ),
                         ),
                       ),
                       TextField(
                         controller: _currency,
                         onChanged: (_) => setState(() {}),
-                        decoration: const InputDecoration(
-                          labelText: 'ارز، مانند IRR',
+                        decoration: InputDecoration(
+                          labelText: planActL10n(context)
+                              .financialExpectationEditorBuildLabelText,
                         ),
                       ),
                       DropdownButtonFormField<FinancialAccount?>(
                         initialValue: _account,
-                        decoration: const InputDecoration(
-                          labelText: 'حساب (اختیاری)',
+                        decoration: InputDecoration(
+                          labelText: planActL10n(context)
+                              .financialExpectationEditorBuildLabelText2,
                         ),
                         items: [
-                          const DropdownMenuItem<FinancialAccount?>(
+                          DropdownMenuItem<FinancialAccount?>(
                             value: null,
-                            child: Text('بدون حساب'),
+                            child: Text(
+                              planActL10n(context)
+                                  .financialExpectationEditorBuildItems,
+                            ),
                           ),
                           ...widget.accounts.map(
                             (account) => DropdownMenuItem<FinancialAccount?>(
@@ -192,7 +211,11 @@ class _FinancialExpectationEditorState
                       FilledButton(
                         onPressed: _saving ? null : _save,
                         child: Text(
-                          _saving ? 'در حال ذخیره…' : 'ذخیرهٔ انتظار',
+                          _saving
+                              ? planActL10n(context)
+                                    .financialExpectationEditorBuildChildren
+                              : planActL10n(context)
+                                    .financialExpectationEditorBuildChildren2,
                         ),
                       ),
                     ],

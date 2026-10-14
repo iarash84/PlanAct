@@ -1,3 +1,4 @@
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -22,7 +23,8 @@ class AccountIdentityIcon extends StatelessWidget {
       width: 32,
       height: 32,
       fit: BoxFit.contain,
-      semanticLabel: 'نشان بانک ${bank.label}',
+      semanticLabel: planActL10n(context)
+          .accountIdentityIconBuildSemanticLabel((bank.label).toString()),
       errorBuilder: (context, error, stackTrace) => fallback,
     );
   }
