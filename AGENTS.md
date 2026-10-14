@@ -276,6 +276,8 @@ Transaction relationship review is separate from real matches, categories and ta
 
 ## 11. Persistence and migration rules
 
+Global search (user-requested 2026-10-14) is a read-only local projection of current durable commitments, financial entries, calendar-note heads and accounts, including clearly labeled history/archive. Search normalization must never rewrite stored text. Keep query/index state transient, read production data through application contracts and a coherent gated SQLite snapshot, and preserve existing confirmation/revision rules when opening editable results. See docs/SEARCH_VERIFICATION.md.
+
 Reporting checkpoint (2026-10-13): personal reports are read-only projections of
 coherent durable snapshots. Use occurrence dates for performance/settlement,
 transaction dates for cash, and ledger entries through the selected end day for

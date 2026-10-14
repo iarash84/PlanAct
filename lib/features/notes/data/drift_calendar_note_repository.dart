@@ -25,6 +25,20 @@ final class DriftCalendarNoteRepository
       '$_day${_dateKey(note.date)}:${note.id.value}';
 
   @override
+  Future<List<CalendarNote>> list() => CommandGate.runFor(this, () async {
+    final rows =
+        await (database.select(database.schemaMetadata)
+              ..where(
+                (t) =>
+                    t.key.isBiggerOrEqualValue(_head) &
+                    t.key.isSmallerThanValue('calendar_note_head_v1;'),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.key)]))
+            .get();
+    return rows.map((row) => _decode(row.value)).toList();
+  });
+
+  @override
   Future<List<CalendarNote>> loadRange(
     LocalDate start,
     LocalDate endExclusive,

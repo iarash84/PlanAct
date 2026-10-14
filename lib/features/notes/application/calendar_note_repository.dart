@@ -5,6 +5,9 @@ import 'package:planact/features/notes/domain/calendar_note.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 abstract interface class CalendarNoteRepository {
+  /// Current snapshots only, for read-only discovery across every date.
+  Future<List<CalendarNote>> list();
+
   Future<List<CalendarNote>> loadRange(LocalDate start, LocalDate endExclusive);
 
   /// Atomically compare the current revision and append the new snapshot.
@@ -38,6 +41,9 @@ final class SaveCalendarNote {
 
 final class InMemoryCalendarNoteRepository implements CalendarNoteRepository {
   final _notes = <StableId, CalendarNote>{};
+  @override
+  Future<List<CalendarNote>> list() async => _notes.values.toList();
+
   @override
   Future<List<CalendarNote>> loadRange(
     LocalDate start,

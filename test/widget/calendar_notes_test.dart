@@ -335,6 +335,9 @@ void main() {
 }
 
 class ControlledNotes implements CalendarNoteRepository {
+  @override
+  Future<List<CalendarNote>> list() async => [];
+
   int calls = 0;
   Completer<void> pending = Completer<void>();
   @override

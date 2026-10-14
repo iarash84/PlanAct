@@ -7745,6 +7745,102 @@ abstract class AppLocalizations {
   /// **'یادداشت ذخیره شد.'**
   String get calendarNoteSaved;
 
+  /// Global search page title and shell accessibility label.
+  ///
+  /// In fa, this message translates to:
+  /// **'جست‌وجو'**
+  String get searchTitle;
+
+  /// Accessible label for the global text query.
+  ///
+  /// In fa, this message translates to:
+  /// **'عبارت جست‌وجو'**
+  String get searchFieldLabel;
+
+  /// Search all supported record types.
+  ///
+  /// In fa, this message translates to:
+  /// **'همه'**
+  String get searchAll;
+
+  /// Commitment search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدات'**
+  String get searchCommitments;
+
+  /// Financial entry search filter and result type, including transfers and corrections.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش‌ها'**
+  String get searchTransactions;
+
+  /// Independent calendar note search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت‌ها'**
+  String get searchNotes;
+
+  /// Financial account search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌ها'**
+  String get searchAccounts;
+
+  /// Clear only the transient query, never records.
+  ///
+  /// In fa, this message translates to:
+  /// **'پاک‌کردن عبارت جست‌وجو'**
+  String get searchClear;
+
+  /// Reload search data from durable local records.
+  ///
+  /// In fa, this message translates to:
+  /// **'تازه‌سازی نتایج'**
+  String get searchRefresh;
+
+  /// Empty query guidance disclosing supported fields and historical coverage.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.'**
+  String get searchGuidance;
+
+  /// No text matches, with query/filter recovery guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.'**
+  String get searchNoResults;
+
+  /// Search snapshot read failure; paired with retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.'**
+  String get searchReadError;
+
+  /// Search result opening failure with recovery guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.'**
+  String get searchOpenError;
+
+  /// Historical cancelled commitment search status.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغوشده'**
+  String get searchCancelled;
+
+  /// Matching result count; count is a Persian-formatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} نتیجه'**
+  String searchResultCount(String count);
+
+  /// Read-only financial search detail scope and existing management route.
+  ///
+  /// In fa, this message translates to:
+  /// **'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.'**
+  String get searchFinancialReadOnly;
+
   /// Accessible month day note summary, separate from commitment counts.
   ///
   /// In fa, this message translates to:

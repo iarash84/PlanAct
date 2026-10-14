@@ -1,4 +1,7 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/search/application/search_reader.dart';
+import 'package:planact/features/search/data/drift_search_reader.dart';
+import 'package:planact/features/search/presentation/search_page.dart';
 import 'package:planact/features/notes/application/calendar_note_repository.dart';
 import 'package:planact/features/notes/data/drift_calendar_note_repository.dart';
 import 'package:planact/features/notes/domain/calendar_note.dart';
@@ -1200,6 +1203,28 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onSaved: _tagsChanged,
       );
 
+  Future<void> _openSearch() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => SearchPage(
+          reader: _repository is DriftCommitmentRepository
+              ? DriftSearchReader(_repository.database)
+              : RepositorySearchReader(
+                  commitments: _repository,
+                  finance: _financeRepository,
+                  notes: _noteRepository,
+                  tags: _tagRepository,
+                ),
+          onOpenCommitment: _openReportCommitment,
+          onOpenNote: _showNote,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _refresh();
+    await _financePageKey.currentState?.refreshData();
+  }
+
   Future<void> _openReportCommitment(Commitment commitment) async {
     await Navigator.of(
       context,
@@ -1349,6 +1374,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           child: Text(titles[_selectedIndex], key: ValueKey(_selectedIndex)),
         ),
         actions: [
+          IconButton(
+            key: const ValueKey('shell-search'),
+            tooltip: planActL10n(context).searchTitle,
+            onPressed: _openSearch,
+            icon: const Icon(Icons.search),
+          ),
           PopupMenuButton<_AppMenuAction>(
             tooltip: planActL10n(context).planactAppBuildTooltip,
             icon: const Icon(Icons.more_horiz),

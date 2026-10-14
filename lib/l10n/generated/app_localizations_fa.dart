@@ -4627,6 +4627,61 @@ class AppLocalizationsFa extends AppLocalizations {
   String get calendarNoteSaved => 'یادداشت ذخیره شد.';
 
   @override
+  String get searchTitle => 'جست‌وجو';
+
+  @override
+  String get searchFieldLabel => 'عبارت جست‌وجو';
+
+  @override
+  String get searchAll => 'همه';
+
+  @override
+  String get searchCommitments => 'تعهدات';
+
+  @override
+  String get searchTransactions => 'تراکنش‌ها';
+
+  @override
+  String get searchNotes => 'یادداشت‌ها';
+
+  @override
+  String get searchAccounts => 'حساب‌ها';
+
+  @override
+  String get searchClear => 'پاک‌کردن عبارت جست‌وجو';
+
+  @override
+  String get searchRefresh => 'تازه‌سازی نتایج';
+
+  @override
+  String get searchGuidance =>
+      'برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.';
+
+  @override
+  String get searchNoResults =>
+      'موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.';
+
+  @override
+  String get searchReadError =>
+      'خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.';
+
+  @override
+  String get searchOpenError =>
+      'بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.';
+
+  @override
+  String get searchCancelled => 'لغوشده';
+
+  @override
+  String searchResultCount(String count) {
+    return '$count نتیجه';
+  }
+
+  @override
+  String get searchFinancialReadOnly =>
+      'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.';
+
+  @override
   String calendarNoteDaySummary(String count, String titles) {
     return '$count یادداشت: $titles';
   }
