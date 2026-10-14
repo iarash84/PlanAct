@@ -1,18 +1,17 @@
-# Android security and release verification
+# بررسی امنیت Android و انتشار
 
-## Policy
+## سیاست جاری
 
-- `android:allowBackup="false"` is explicit because the database contains financial and SMS-derived data. `data_extraction_rules.xml` also excludes cloud/device-transfer extraction.
-- `android:usesCleartextTraffic="false"` and `network_security_config.xml` deny HTTP cleartext. PlanAct core remains local-first; any future network adapter must use TLS.
-- `MainActivity` is the launcher and is intentionally `exported="true"`. `BankSmsReceiver` is the only public receiver and is restricted by `android.permission.BROADCAST_SMS`. Notification and boot receivers are explicitly `exported="false"`.
-- `READ_SMS` and `RECEIVE_SMS` are requested only by the explicit SMS import flow. Denial returns no SMS data and must not block planning, finance, backup, or reminders.
-- `POST_NOTIFICATIONS` is needed only for reminder delivery. Denial is non-blocking; persisted reminders remain in the domain and can be reconciled if access is later granted.
-- `SCHEDULE_EXACT_ALARM` is retained because the Android adapter schedules `exactAllowWhileIdle` reminders. If the user revokes exact-alarm access, scheduling must fail gracefully while persisted reminders remain intact.
-- `RECEIVE_BOOT_COMPLETED` is retained for rebuilding durable reminder notifications after reboot/update.
+- `android:allowBackup="false"` و قواعد استخراج، انتقال ابری/دستگاهی سیستم‌عامل را محدود می‌کنند؛ پشتیبان خود برنامه مسیر جداست.
+- `usesCleartextTraffic="false"` و `network_security_config.xml` ترافیک HTTP روشن را رد می‌کنند؛ آداپتور شبکهٔ آینده TLS می‌خواهد و هسته محلی است.
+- `MainActivity` برای راه‌انداز صادرشده است. گیرندهٔ عمومی پیامک با `BROADCAST_SMS` محافظت می‌شود؛ گیرندهٔ اعلان/راه‌اندازی دستگاه خصوصی است. گیرندهٔ وابستگی باید خصوصی یا با دسترسی سیستمی/امضایی محافظت شود؛ Profile Installer از `DUMP` استفاده می‌کند.
+- `READ_SMS/RECEIVE_SMS` فقط برای مسیر اختیاری پیامک‌اند؛ ردشان برنامه‌ریزی، مالی یا پشتیبان را مسدود نمی‌کند. رضایت بازه و اقدام واردسازی جدا لازم است؛ دریافت broadcast به‌تنهایی اسکن یا ثبت مالی نیست.
+- `POST_NOTIFICATIONS` و `SCHEDULE_EXACT_ALARM` برای تحویل یادآورند؛ رد/لغو باید قصد پایدار را حفظ و محدودیت را نمایان کند.
+- `RECEIVE_BOOT_COMPLETED` برای بازسازی اعلان است؛ وجود receiver، تحویل پس از راه‌اندازی دوبارهٔ دستگاه را ثابت نمی‌کند. `VIBRATE` وابستگی اعلان مورد انتظار است.
 
-## Local verification
+## بررسی محلی
 
-From the repository root, with Android SDK tools and a release keystore configured through environment variables or ignored `android/key.properties`:
+با SDK و مخزن کلید معتبر از ریشه:
 
 ```powershell
 flutter analyze
@@ -23,36 +22,16 @@ cd android
 cd ..
 ```
 
-Inspect the merged manifest at `build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml` and verify:
+فهرست پیکربندی ادغام‌شدهٔ انتشار را در `build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml` بررسی کنید: عدم پشتیبان سیستمی، منع متن بدون رمز، قواعد استخراج، صادرات محدود و دسترسی گیرندهٔ پیامک. مجوز غیرمنتظرهٔ ادغام‌شده پذیرفته نشود. APK با `aapt dump permissions`، `aapt dump xmltree` و `apksigner verify --verbose --print-certs` بررسی شود؛ آزمایشی مسیر جایگزین مجاز نیست. [راهنمای انتشار](ANDROID_RELEASE.md)
 
-- application has `allowBackup="false"`, `usesCleartextTraffic="false"`, `networkSecurityConfig`, and data extraction rules;
-- no component with an intent-filter is accidentally exported;
-- PlanAct exports only `MainActivity` and the SMS receiver;
-- the SMS receiver has `android.permission.BROADCAST_SMS`;
-- dependency receivers are either non-exported or protected by a system/signature permission (AndroidX profile installer uses `android.permission.DUMP`);
-- no unexpected permission was introduced by dependency merge (`VIBRATE` is expected from local notifications).
+## ماتریس دستگاه؛ هنوز لازم
 
-Use Android build tools against the release artifact:
+روی Android 13+ و یک نسخهٔ قبل از ۱۳، هویت ساخت/نسخه، API و وضعیت مجوز را ثبت کنید:
+1. رد/اعطای پیامک، بدون لاگ متن یا خواندن تاریخچهٔ فاقد رضایت.
+2. رد/اعطای اعلان، بدون فقدان قصد پایدار یا توقف غیرعادی.
+3. لغو هشدار دقیق، با پیام محدودیت و حفظ داده.
+4. راه‌اندازی دوبارهٔ دستگاه، با اعلان فعال آینده و بدون اعلان حل‌شده/بایگانی.
+5. پیامک ساختگی، با مرز منبع امن و تأیید صریح؛ مجوز به‌تنهایی ثبت یا اسکن نمی‌کند.
+6. رد HTTP روشن از محیط آزمون صرفاً آزمایشی و نبود استثنا در انتشار.
 
-```powershell
-$apk = "build\app\outputs\flutter-apk\app-release.apk"
-$buildTools = Get-ChildItem "$env:ANDROID_SDK_ROOT\build-tools" | Sort-Object Name -Descending | Select-Object -First 1
-& "$($buildTools.FullName)\aapt.exe" dump permissions $apk
-& "$($buildTools.FullName)\aapt.exe" dump xmltree $apk AndroidManifest.xml
-& "$($buildTools.FullName)\apksigner.bat" verify --verbose --print-certs $apk
-```
-
-The release must not be signed with the Android debug certificate. CI additionally checks package/version/ABI, alignment, ZIP integrity, certificate fingerprint, and checksums through `validate_android_release.sh`.
-
-## Device/emulator matrix
-
-On Android 13+ and one pre-13 API level, install the release APK and verify:
-
-1. Deny SMS permissions: the app remains usable; import shows an understandable Persian denial state; no SMS body is logged or imported; granting later enables import.
-2. Deny notifications: planning and reminder persistence still work; no crash occurs; granting later and reconciliation restores upcoming notifications.
-3. Revoke exact-alarm access (where supported): reminder creation remains persisted and the app reports delivery limitation without deleting the reminder.
-4. Schedule a reminder, reboot the device, and verify the boot receiver rebuilds only active upcoming notifications; completed/cancelled reminders are not active.
-5. Send a test SMS while SMS capability is granted and verify the restricted receiver stages only a relevant message; with access denied, no data crosses the bridge.
-6. Attempt cleartext HTTP from a debug-only test harness and verify it is rejected; release contains no cleartext exception.
-
-Record device API level, install/build version, granted permissions, and pass/fail results with each release candidate. Do not include raw SMS text, sender identifiers, financial values, or backup contents in the record.
+در گزارش، متن پیامک، فرستنده، شناسه، مبلغ حساس یا محتوای پشتیبان قرار نگیرد. این فهرست دستور بررسی است، نه نتیجهٔ اجرای دستگاه یا گواهی امنیت.

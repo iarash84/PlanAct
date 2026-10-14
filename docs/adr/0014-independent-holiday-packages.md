@@ -1,30 +1,31 @@
-# ADR 0014 — Independently updateable offline holiday packages
+# تصمیم معماری ۰۰۱۴: بستهٔ مستقل تعطیلات آفلاین
 
-Date: 2026-10-06
-Status: Accepted implementation decision for the approved independent file-import feature
+تاریخ: ۲۰۲۶-۱۰-۰۶؛ وضعیت: پذیرفته‌شده برای واردسازی صریح فایل سالانه.
 
-## Decision
+دادهٔ همراه ۱۴۰۰ تا ۱۴۰۵ حفظ می‌شود. مسیر فعلی «بیشتر» بستهٔ امضاشدهٔ کامل یک سال را بدون شبکه/API یا انتشار برنامه وارد می‌کند؛ تنظیمات محل اولیهٔ این ابزار بود. بستهٔ نصب‌شده دلیل رسمی آن سال را جایگزین می‌کند؛ جمعه و لایهٔ تعطیلی ویژه حفظ می‌شوند. فرمانی به زمان‌بندی، یادآور، اعتبار، نتیجه یا مالی ارسال نمی‌شود.
 
-Retain the bundled 1400–1405 baseline. Settings explicitly imports signed complete annual reference-data packages, without network access, runtime APIs or app releases. Each installed year replaces all official reasons for that year, preserving Friday weekends and scoped special-closure overlays. No command to scheduling, reminders, entitlement, actuals or finance is called.
+Ed25519 با وابستگی موجود، بایت دقیق UTF-8 را امضا می‌کند. کلید داخل بسته خودبه‌خود معتبر نیست. نخستین نصب به تأیید صریحِ اثرانگشت SHA-256 از کانال مستقل و معتبر ناشر نیاز دارد. واردسازی بعدی به همان ناشر و بازبینی افزایشی هر سال مقید است. امضا سلامت و پیوستگی امضاکننده را ثابت می‌کند، نه رسمیت یا کامل‌بودن تقویم. کلید خصوصی یا ناشر ازقبل‌مورداعتماد در برنامه قرار نمی‌گیرد.
 
-Use existing crypto/cryptography dependencies: Ed25519 signs the exact UTF-8 payload bytes. A self-contained public key is NOT inherently trusted. First installation requires explicit user approval after comparing the SHA-256 public-key fingerprint through an independent trusted publisher channel. Later imports are pinned to that publisher and require a strictly increasing revision for an already installed year. Signature validity proves integrity and signer continuity, not official-calendar authority or factual completeness. No production publisher private key or pretrusted publisher is shipped.
+محتوا همهٔ ۱۲ ماه جلالی به‌ترتیب، شمار صحیح روز، نشانگر رسمی یکتا و دلیل `officialFixed/officialVariable` دارد. تاریخ، اندازه، تکرار دلیل، فراداده و توافق نشانگر/دلیل بررسی می‌شوند؛ حذف عمدی یک روز از هر دو فهرست با بررسی ساختار قابل کشف نیست. ناشر باید هر ماه را با منبع منتشرشده مقایسه و شاهد نگه دارد؛ تبدیل تقریبی قمری مجاز نیست.
 
-An annual payload declares all twelve ordered Jalali months, correct day counts, unique official-day markers, and explicit officialFixed/officialVariable reasons. Validation checks marker/reason agreement, dates, bounded sizes, duplicate reasons and metadata. It cannot detect a publisher deliberately omitting the same date from both lists. The publisher must review every month against the published source and retain traceable review evidence. Never use approximate lunar conversion to manufacture future-year data.
+## دوام و شکست
 
-## Persistence and failure
+بستهٔ عمومی در `holiday-packages.sqlite` با `user_version=1` جدا ذخیره می‌شود؛ ایجاد از نسخهٔ خالی ۰ مهاجرت رو‌به‌جلو است و نسخهٔ ناشناخته بسته رد می‌شود. تعویض سال اتمیک است. پوشش پیش از قفل نوشتن بررسی و تصویر داده در تراکنش دوباره مقایسه می‌شود؛ تغییر هم‌زمان رد می‌شود. ستون‌های سال/بازبینی باید با محتوای امضاشده برابر باشند.
 
-Store public packages separately in `holiday-packages.sqlite`, explicit schema/user_version 1. Creation is the forward migration from an empty version-0 store; unknown versions fail closed. Transactions atomically replace a year. Verify the existing envelopes before taking the synchronous SQLite write lock, then compare the snapshot inside the transaction; changed snapshots reject rather than overwriting concurrent work. Indexed year/revision columns must agree with signed content. No personal database schema change is required.
+شروع برنامه همهٔ پوشش‌ها و پیوستگی ناشر را دوباره بررسی می‌کند. ذخیرهٔ خراب حذف نمی‌شود؛ دادهٔ همراه قابل استفاده و خطا در ابزار تعطیلات نمایان است و واردسازی تا اثبات اعتماد متوقف می‌ماند. بازنشانی اعتماد، حذف ردیف خراب، چرخش کلید یا مسیر دورزدن خودکار وجود ندارد.
 
-Startup revalidates every envelope and signer consistency. Corrupt reference storage is retained, the bundled baseline remains usable and Settings exposes an error. Imports are blocked while trust cannot be established. There is deliberately no silent trust reset, corrupt-row deletion, key rotation or recovery bypass; a future explicit recovery/rotation flow requires its own decision.
+این پایگاه عمومی در پشتیبان شخصی نیست؛ بازیابی آن یا اعتماد را عوض نمی‌کند. کاربر باید بستهٔ اصلی را حفظ کند و در نصب تازه دوباره وارد و ناشر را تأیید کند. وابستگی، دسترسی اینترنت، دورسنجی یا لاگ حساس تازه ندارد.
 
-The public package database is NOT in personal backups. Restore does not replace it or change trust; users are told to retain the original package. A new installation requires importing that package and approving the publisher again. This is reference data, not user history. No new dependencies, internet permission, telemetry or sensitive logging are added.
+## کار ناشر
 
-## Publisher workflow
+```sh
+dart run tool/holiday_package.dart keygen SEED_FILE
+dart run tool/holiday_package.dart sign SEED_FILE REVIEWED_JSON OUTPUT
+dart run tool/holiday_package.dart verify PACKAGE
+```
 
-Use `dart run tool/holiday_package.dart keygen SEED_FILE` once with a protected offline path outside the repository. Restrict file permissions and back up the private seed securely. The seed must never be published or embedded in the application. Use `sign SEED_FILE REVIEWED_JSON OUTPUT` to sign a reviewed annual payload; the tool self-verifies and refuses to overwrite existing keys/packages. Use `verify PACKAGE` for signature/structure checks. Publish the printed fingerprint through a separate authenticated channel.
+بذر خصوصی در مسیر آفلاینِ محافظت‌شده خارج مخزن نگهداری و جدا پشتیبان شود؛ منتشر یا داخل برنامه قرار نگیرد. ابزار خروجی را خودبررسی و بازنویسی کلید/بستهٔ موجود را رد می‌کند. اثرانگشت از کانال احرازشدهٔ جدا منتشر شود.
 
-Payload fields: year (1400–1600), revision (positive integer), source (absolute HTTP(S) source URL), months (twelve objects: month, dayCount, officialDays), holidays (objects: month, day, Persian title, kind officialFixed or officialVariable). Empty months must be included explicitly; overlapping reasons use multiple rows on the same date. Envelope format is `planact-holidays-v1`, with base64 payload/publicKey/signature. Format changes may require a future app update; adding supported annual data does not.
+فیلدها: `year` از ۱۴۰۰ تا ۱۶۰۰، `revision` صحیح مثبت، `source` URL مطلق HTTP(S)، `months` با `month/dayCount/officialDays` و `holidays` با `month/day/title/kind`. ماه خالی باید صریح باشد؛ دلایل هم‌پوشان ردیف جدا دارند. پوشش با قالب `planact-holidays-v1` و `payload/publicKey/signature` در base64 است.
 
-## Scope and remaining gates
-
-No real future-year calendar or official signing authority is fabricated. Downloading, special closures, key rotation, recovery UI and automatic scheduling changes are out of scope. Flutter tests establish application and real-file repository behavior; native file-picker/content-provider behavior still requires isolated device verification before release. Source accuracy is a separate annual review responsibility.
+تقویم سال آینده یا مرجع رسمی امضا ساخته نمی‌شود. دانلود، دادهٔ تعطیلی ویژه، چرخش/بازیابی کلید و تغییر خودکار برنامه خارج دامنه‌اند. بررسی صحت منبع سالانه و انتخابگر بومی مستقل از تست Flutter لازم‌اند. [شواهد](../IRANIAN_HOLIDAYS_VERIFICATION.md)

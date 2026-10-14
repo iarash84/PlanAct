@@ -1,29 +1,14 @@
-# PlanAct localization resources
+# منابع متن فارسی پلن‌اکت
 
-`app_fa.arb` is the single editable catalog of application-owned Persian copy.
-Persian remains the only enabled/default language. Resource extraction does not
-add a language setting or change RTL, Jalali recurrence/display, currency or
-persisted user data.
+`app_fa.arb` تنها فهرست قابل ویرایش متن فارسی متعلق به برنامه است. فارسی تنها زبان فعال و پیش‌فرض است؛ استخراج منابع، زبان جدید یا تغییر راست‌به‌چپ، تقویم، تکرار، پول و دادهٔ ذخیره‌شده ایجاد نمی‌کند.
 
-## Editing copy
+## ویرایش متن
 
-- Use stable, semantic camelCase keys. Shared actions use `common…`; settings,
-  occurrence states and calendar names have their own prefixes. Existing migrated
-  feature keys also retain the originating helper/field in their names.
-- Keep each `@key.description`. It records the original source location so a
-  translator can find the context. Locations describe the migration baseline,
-  not current line numbers. Do not rename keys just because a widget moved.
-- Translate a complete sentence/template, rather than concatenating translated
-  fragments. Keep placeholders and their metadata. Existing `value1`, `value2`,
-  etc. are positional arguments; their descriptions identify the original
-  expressions and the order is part of the generated method contract. Prefer
-  descriptive names for new placeholders.
-- Existing numeric/date/money placeholders are **preformatted String values**.
-  Do not reinterpret stored integer money, convert units or replace the existing
-  Persian formatter with floating-point formatting. A new plural message should
-  receive a separate integer count for ICU selection and a formatted display
-  value where needed; do not infer a count from Persian text.
-- Do not edit generated Dart files. Run from the repository root:
+- کلید معنایی پایدار با قالب camelCase انتخاب کنید. اقدام مشترک از `common…` استفاده می‌کند؛ جابه‌جایی ویجت دلیل تغییر کلید نیست.
+- توضیح `@key.description` را حفظ کنید. محل منبعِ متن منتقل‌شده مربوط به مبنای انتقال است، نه شمارهٔ خط فعلی.
+- جمله یا قالب کامل را ترجمه کنید. پارامتر جایگزین و قرارداد آن حفظ شود؛ ترتیب `value1` و `value2` بخشی از امضای متد است. برای موارد جدید نام توصیفی بهتر است.
+- پارامتر جایگزین مبلغ، عدد و تاریخ موجود، رشتهٔ ازپیش‌قالب‌بندی‌شده است. مبلغ صحیح ذخیره‌شده را تغییر واحد ندهید یا با عدد اعشاری محاسبه نکنید. انتخاب جمع ICU به شمار صحیح جداگانه و مقدار نمایشی مناسب نیاز دارد؛ شمار را از متن فارسی حدس نزنید.
+- خروجی Dart را دستی ویرایش نکنید. از ریشه اجرا کنید:
 
 ```sh
 flutter gen-l10n
@@ -31,47 +16,25 @@ dart run tool/generate_persian_copy.dart
 dart run tool/generate_persian_copy.dart --check
 ```
 
-`pub get`/Flutter builds generate the standard `generated/app_localizations…`
-files. CI separately verifies that the pure-Dart companion is current. A catalog
-baseline test deliberately freezes the pre-migration Persian templates; an
-intentional copy change needs a reviewed baseline update.
+دریافت وابستگی یا ساخت Flutter منابع `generated/app_localizations…` را تولید می‌کند؛ بررسی مشترک، تولید منابع Flutter و همراه مستقل Dart را هم کنترل می‌کند. تست مبنا قالب فارسی پیش از انتقال را ثابت نگه می‌دارد؛ تغییر عمدی به بازبینی و به‌روزرسانی مبنای مرتبط نیاز دارد.
 
-## Consumers and safe boundaries
+## مرزهای مصرف
 
-Widgets use `planActL10n(context)` and the root registers `AppLocalizations` beside
-the existing Material/Cupertino delegates. The helper has an immutable Persian
-fallback for isolated existing widget tests/embeddings; it does not maintain a
-global mutable locale.
+ویجت از `planActL10n(context)` استفاده می‌کند و ریشه `AppLocalizations` را کنار منابع Material/Cupertino ثبت می‌کند. جایگزین ثابت فارسی برای تست منفرد و تعبیهٔ موجود است؛ زبان سراسری قابل تغییر ایجاد نمی‌کند.
 
-Messages marked `x-planact-default` generate `PersianCopy` in
-`core/localization/persian_copy.g.dart`. That companion contains only Dart
-constants/template functions: no Flutter, database, platform dependencies or
-second editable source. It preserves existing domain validation, application
-projections, context-free presentation helpers, calendar-name tables and native
-adapter messages without changing their signatures/const semantics. It remains
-Persian regardless of the widget locale. This is an explicit compatibility seam,
-not a complete multilingual application.
+متن دارای `x-planact-default`، کلاس `PersianCopy` در `core/localization/persian_copy.g.dart` را تولید می‌کند. همراه فقط ثابت و تابع قالب Dart دارد و به Flutter، پایگاه داده یا پلتفرم وابسته نیست. منبع قابل ویرایش دوم وجود ندارد؛ امضا و رفتار ثابت اعتبارسنجی دامنه، محاسبات کاربرد، نام تقویم و پیام آداپتور حفظ می‌شود. همراه مستقل فارغ از زبان ویجت فارسی می‌ماند؛ این مرز سازگاری است، نه آمادگی چندزبانه.
 
-Before enabling another language, add its ARB, localize context-free helpers and
-projection/error/platform boundaries through explicit inputs or typed
-presentation mappings, and verify the real routes. A translated ARB alone is not
-the acceptance gate. Keep language, calendar/recurrence, numeric formatting and
-money unit as separate decisions; changing UI language must never rewrite saved
-dates, notes, categories, ledger values, matches or entitlement.
+فعال‌سازی زبان دیگر به ARB، ورودی یا نگاشت نمایشی صریح برای خطا، محاسبه، توابع بدون بافت و پیام بومی، و آزمون مسیر واقعی نیاز دارد. زبان، تقویم تکرار، قالب عدد و واحد پول مستقل‌اند؛ ترجمه نباید تاریخ، یادداشت، دسته، دفتر مالی، ارتباط یا اعتبار را بازنویسی کند.
 
-## Strings that are data
+## متن‌هایی که داده‌اند
 
-These intentionally remain outside translation substitution:
-
-| Source | Reason |
+| منبع | دلیل حفظ متن اصلی |
 | --- | --- |
-| `real_bank_sms_parser.dart`, `GenericBankSmsParser`, SMS unit regexes | Exact source recognition/evidence; translating tokens would change parsing. |
-| `iranian_holiday_data.dart` | Versioned source dataset, not UI copy; source titles are retained. |
-| `IranianBank` names/detection | Entity/recognition data; translation must use a separate display mapping. |
-| `MerchantNormalizer` suffixes | Deterministic matching input vocabulary. |
-| Financial creation/correction notes and default categories | Existing persisted defaults/history semantics. |
-| Currency identity, digits, numeric separators and normalization | Currency/storage and exact presentation/parser contracts; retain dedicated formatting policy. |
-| User titles, descriptions, tags, notes, imported messages and evidence | User/source data must never be translated or overwritten automatically. |
+| تجزیه‌گر پیامک و الگوهای واحد | واژگان تشخیص و شاهد منبع؛ ترجمه رفتار تجزیه را عوض می‌کند. |
+| `iranian_holiday_data.dart` | دادهٔ نسخه‌دار و عنوان منبع. |
+| `IranianBank` و `MerchantNormalizer` | هویت و واژگان تشخیص؛ نمایش ترجمه‌شده باید نگاشت جدا داشته باشد. |
+| یادداشت و دستهٔ پیش‌فرض ثبت/اصلاح مالی | دادهٔ ماندگار و معنای تاریخی. |
+| شناسهٔ ارز، ارقام، جداکننده و نرمال‌سازی | قرارداد دقیق ذخیره، ورود و تجزیه. |
+| عنوان، توضیح، برچسب، یادداشت، پیام و شاهد کاربر | دادهٔ کاربر/منبع؛ خودکار ترجمه نمی‌شود. |
 
-See [verification](../../docs/LOCALIZATION_VERIFICATION.md) for evidence and the
-separate product/native/independent acceptance status.
+[شواهد و موانع پذیرش](../../docs/LOCALIZATION_VERIFICATION.md)

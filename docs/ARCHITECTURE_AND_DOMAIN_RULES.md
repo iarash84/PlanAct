@@ -1,280 +1,68 @@
-# معماری و قواعد دامنه — Personal Commitment Manager
+# معماری و قواعد دامنه
 
-این فایل نسخه‌ی repo-friendly از قواعد اصلی نقشه‌ی راه محصول است. هدف آن این است که قبل از توسعه هر Feature، مرزهای دامنه و تصمیمات غیرقابل شکستن مشخص باشند.
+این راهنمای توسعه، جزئیات دامنه را توضیح می‌دهد. ترتیب مرجع: تصمیم مصوب جدیدتر → [PRD](product/PRD.md) برای رفتار → [AGENTS](../AGENTS.md) برای محدودیت اجرا → این سند. دستورهای مخصوص عامل در AGENTS انگلیسی‌اند.
 
-> برای قوانین اجرایی AI و توسعه روزانه، `AGENTS.md` مرجع اول است.
-
-## 1. مدل ذهنی محصول
-
-سؤال مرکزی سیستم:
-
-> «قرار بود چه اتفاقی بیفتد، واقعاً چه اتفاقی افتاد، و الان چه چیزی نیاز به توجه دارد؟»
-
-چرخه اصلی:
-
-`Plan → Schedule → Remind → Action → Actual → Reconcile → Done`
-
-## 2. مدل دامنه اصلی
+## مدل و لایه‌ها
 
 ```text
 Commitment
-  └── CommitmentCycle
-        ├── ScheduleDefinition
-        ├── SessionPolicy / EntitlementPlan (optional)
-        ├── Occurrence*
-        │     ├── ReminderInstance*
-        │     └── Actual / Evidence*
-        └── ReminderRule*
-
-FinancialAccount ── AccountEntry ── FinancialTransaction
-FinancialTransaction ── TransactionMatch ── Occurrence
+  └─ CommitmentCycle
+       ├─ ScheduleDefinition
+       ├─ SessionPolicy / EntitlementPlan
+       ├─ Occurrence*
+       │    ├─ ReminderInstance*
+       │    └─ Actual / Evidence*
+       └─ ReminderRule*
+FinancialAccount → AccountEntry
+Transaction → TransactionMatch → MatchAllocation → Occurrence
 ```
 
-### Commitment
-مفهوم پایدار قابل پیگیری؛ مثال: «کلاس موسیقی»، «قبض اینترنت»، «تمدید بیمه».
+تعهد مفهوم پایدار و دوره، ثبت‌نام/ترم/بسته است؛ خرید تازه دورهٔ تازه می‌سازد، نه بازنویسی گذشته. پایان برنامه‌ریزی‌شده/واقعی مستقل‌اند. برنامه نسخه‌دار و رخداد دارای هویت و زمان اصلی/فعلی است. نتیجه آنچه رخ داده و شاهد پشتیبان آن است. قراردادهای ذخیره‌سازی در کاربرد/دامنه و پیاده‌سازی Drift در داده‌اند؛ رابط فرمان کاربرد می‌زند، نه جدول.
 
-### CommitmentCycle
-یک دوره/ترم/پکیج/بازه فعال از Commitment. خرید ۴ جلسه جدید یا شروع ترم جدید، Cycle جدید می‌سازد و تاریخچه Cycle قبلی را بازنویسی نمی‌کند.
+وضعیت تعهد از دوره و رخداد جداست. دامنهٔ جاری فعال، متوقف، انجام‌شده، لغوشده و بایگانی دارد؛ رخداد برنامه‌ریزی‌شده/سررسیدشده/تکمیل‌شده/صرف‌نظرشده/لغوشده/جابه‌جاشده/عقب‌افتاده/به‌تعویق‌افتاده/در انتظار تصمیم دارد. گذار نامعتبر رد و سابقهٔ حل‌شده حفظ می‌شود. تکمیل رخداد، تکمیل خودکار والد نیست. بایگانی حذف نیست؛ بازگردانی و واگرد تابع سابقهٔ مصوب‌اند. [تصمیم‌های وضعیت](adr/0005-commitment-lifecycle.md)
 
-حداقل مفاهیم:
+## زمان‌بندی
 
-- `cycleType`: OpenEnded / FixedDateRange / FixedCount / ManualPackage / Hybrid
-- `startDate`
-- `plannedEndDate`
-- `actualEndDate`
-- `targetUnits`
-- `completionRule`: ByDate / ByUnits / WhicheverFirst / WhicheverLast / Manual
-- `status`: Draft / Active / Completed / Cancelled / Archived
+«فقط این»، «این و بعدی» و «دورهٔ فعال وقتی امن باشد» دامنهٔ ویرایش‌اند. نسخهٔ تازه برای مجموعه، مرز مؤثر و گذشته/ویرایش دستی را حفظ می‌کند. تولید با افق محدود و تکرار بی‌اثر است؛ ردیف تاریخی، دستی یا اشغال‌شده بازتولید نمی‌شود.
 
-### ScheduleDefinition
-تعریف زمان‌بندی با نسخه‌بندی. حداقل باید mode، زمان محلی، timezone semantics، recurrence rule، generation horizon و version را نگه دارد.
+زمان محلی شناور، لحظهٔ ثابت و تاریخ تمام‌روز مستقل‌اند؛ تاریخ بدون ساعت نیمه‌شب UTC نمی‌شود. تقویم نمایش و تقویم محاسبهٔ تکرار مستقل‌اند. تکرار ماهانه/سالانه، تقویم مرجع و لنگر اصلی را پایدار نگه می‌دارد؛ تصمیم مصوبِ روز ناموجود به آخر همان ماه محدود می‌کند و لنگر تغییر نمی‌کند. تکرار سالانه جمع تعداد ثابت روز نیست. دادهٔ قدیمی فاقد فراداده معنای میلادی را حفظ می‌کند.
 
-### Occurrence
-یک نمونه زمان‌بندی‌شده از Cycle. تاریخ اولیه و تاریخ فعلی باید برای Reschedule قابل تفکیک باشند.
+شروع/ادامهٔ برنامه، نگهداری محدود را صریح اجرا می‌کند؛ خواندن اثر جانبی ندارد. پیش‌نمایشِ [ترکیبی](adr/0019-long-term-hybrid-commitments.md) شناسه یا اثر مالی/یادآور/اعتبار ندارد و فقط آماده‌سازیِ صریح با بازخوانی تازهٔ تراکنشی، رخداد واقعی می‌سازد. تعداد، جایگاه منطقی است نه شمار ردیف. پرکردن گذشته و ترمیم خودکار مجاز نیستند.
 
-### Actual / Evidence
-آنچه واقعاً اتفاق افتاده: تکمیل، حضور، outcome، note، transaction link و در آینده سند/فایل.
+مرزها: روز ۲۹/۳۰/۳۱، کبیسه، DST، منطقهٔ زمانی، تعطیلی، توقف، تعارض و تغییر نسخه باید صریح و تست‌پذیر باشند.
 
-## 3. State machine
+## فارسی و نمایش
 
-### Commitment
-`Active | Paused | Archived`
+زبان/معنای دسترس‌پذیری فارسی، جهت از Flutter و آغاز/پایان جهت‌آگاه و تقویم کاربر جلالی است. متن آمیخته، عدد، پول و نام روز/ماه از قالب مرکزی می‌آیند؛ رشته/فهرست دستی معکوس نمی‌شود. دامنه به ویجت یا قالب‌نمایش وابسته نیست، اما مرجع تقویم تکرار قاعدهٔ دامنه است. متن متعلق به برنامه از ARB و همراه مستقل Dart تولید می‌شود؛ دادهٔ کاربر/منبع ترجمه نمی‌شود. [منابع فارسی](../lib/l10n/README.md) و [سیستم طراحی](DESIGN_SYSTEM.md)
 
-### Occurrence
-`Scheduled | Due | Completed | Skipped | Cancelled | Rescheduled | Overdue`
+## جلسه و اعتبار
 
-قواعد:
+زمان‌بندی زمان جلسه و اعتبار حق مصرف را مشخص می‌کند؛ یکی نیستند. باقی‌مانده از دفتر `Grant | Consume | Restore | Adjustment | Expire | Refund` بازسازی می‌شود. `Adjustment` علامت‌دار، اعتبار اعطایی را اصلاح می‌کند، نه مصرف؛ سایر ورودی‌ها مثبت و شاخص شمارش نوع‌دار پایدارند.
 
-- Transition نامعتبر در Domain رد شود.
-- Reschedule تاریخ گذشته را پاک نکند؛ history/replacement حفظ شود.
-- Completed بودن Occurrence به معنی Completed بودن Commitment نیست.
-- Cancelled/Skipped/Completed داده تاریخی هستند.
+سیاست صریح شامل لغو ارائه‌دهنده، آستانهٔ اطلاع کاربر، لغو دیرهنگام، عدم حضور، سهمیهٔ غیبت، تعطیلی، جبرانی، تمدید تا مصرف، سقف تمدید و مصرف جزئیِ آینده است. لغو مدرس بی‌صدا مصرف نمی‌کند. زبان ترمی، موسیقی چهار جلسه بدون سوختن لغو مدرس، شنا ده جلسه با دو غیبت مجاز، توقف و جبرانیِ دوباره‌لغوشده سناریوی مرجع‌اند. مدل وجود دارد؛ همهٔ تعریف و فرمان‌های مصرف در رابط تکمیل نشده‌اند.
 
-## 4. Recurrence و تغییر سری
+## یادآور، امروز و ثبت
 
-UI و Application باید scope تغییر را صریح کنند:
+قانون قصد و نمونه تحویل واقعی است. جابه‌جایی، تکمیل/لغو، راه‌اندازی مجدد و بازگردانی پشتیبان باید قصد مناسب را حفظ/لغو/بازسازی کنند، بدون حذف سابقهٔ تحویل یا تعویق. مالک/دورهٔ غیرفعال و رخداد حل‌شده اعلان فعال نمی‌گیرند. ثبت دامنه و شکست تحویل دو نتیجه‌اند؛ تلاش مجدد از دادهٔ پایدار است. [شواهد تراکنش/پلتفرم](TRANSACTIONAL_PLATFORM_VERIFICATION.md)
 
-1. Only this occurrence
-2. This and following
-3. Entire active cycle، فقط وقتی تاریخچه تخریب نمی‌شود
+امروز موارد توجه، امروز و آینده را از دامنه می‌خواند؛ داشبورد آماری شلوغ هدف نیست. تقویم نمایش است، نه مرجع داده؛ ویرایش همان فرمان عادی را می‌زند. صندوق برای پیشنهاد نیازمند تأیید است؛ ورودی خام → تحلیلگر → پیش‌نویس → اعتبارسنجی → تأیید → فرمان. تحلیلگر مستقیم دادهٔ نهایی نمی‌نویسد. دریافت زبان طبیعی و پیشنهاد خودکارِ کامل مسیر عمومیِ تکمیل‌شده نیست.
 
-`This and following` با `ScheduleDefinition` نسخه جدید پیاده‌سازی شود.
+## مالی و ارتباط
 
-Occurrence generation باید:
+پول عدد صحیح با ارز صریح است. حساب بانکی، نقدی و دیجیتال از دفتر حساب موجودی می‌گیرند؛ حساب اعتباریِ کامل آینده است. انتقال دو سمت با کارمزد ثبت‌شده دارد و درآمد/هزینه نیست. اصلاح، استرداد و برگشت مرجع/ممیزی دارند؛ حساب دارای سابقه بایگانی می‌شود.
 
-- bounded horizon داشته باشد،
-- idempotent باشد،
-- duplicate نسازد،
-- past/manual overrides را بازتولید نکند،
-- history را پس از تغییر schedule بازنویسی نکند.
+ارتباط چندبه‌چند، جزئی/چندپرداخت و اصلاح است؛ جمع تخصیص تولیدی از مبلغ مجاز بیشتر نمی‌شود و سیاست اضافه‌پرداخت هنوز تصمیم جداست. تصمیم مستقلِ باقی‌مانده، ارتباط یا تسویه نیست. تاریخچهٔ بررسی/اصلاح الحاقی، بازبینی و اثرانگشت تازه لازم‌اند. برگشت مالی دقیق، تکرار را رد و تخصیص اصل را از محاسبهٔ جاری کنار می‌گذارد؛ ارتباط/دفتر تاریخی حذف نمی‌شود. [واگرد و تسویه](SCHEDULE_ACTUAL_VERIFICATION.md)
 
-## 5. Time semantics
+## دوام، پشتیبان و امنیت
 
-سه نوع زمان باید از هم جدا باشند:
+Flutter/Drift/SQLite با FK، شاخص، تراکنش، مهاجرت صریح، UUIDv7 و دادهٔ آزمایشی تاریخی است؛ تاریخچه حذف فیزیکی معمول ندارد. حالت تولیدیِ لازم پس از راه‌اندازی مجدد باید مرجع پایدار داشته باشد؛ حافظه فقط تست/پیش‌نمایش است.
 
-- **Floating Local Time:** کلاس شنبه ساعت ۱۸؛ با DST همچنان ۱۸ محلی.
-- **Fixed Instant:** زمان جهانی ثابت؛ نمایش محلی ممکن است عوض شود.
-- **All-Day Local Date:** سررسید یک تاریخ بدون مفهوم ساعت.
+پشتیبان فراداده/نسخه/هش کنترلی/رمزنگاری دارد؛ اعتبارسنجی جدا، تصویر ایمنی و تعویض اتمیک پیش از بازسازی لازم است. قالب ۲ کلید مستقل کاربر و قالب ۱ کلید نصب اصلی دارد؛ خطا نباید دادهٔ زنده را خراب کند. [پشتیبان](BACKUP_VERIFICATION.md)
 
-Edge caseهای اجباری:
+مجوز پیامک رضایت تاریخچه نیست؛ رضایت محدود، مرحلهٔ ثبت‌شده و ادامهٔ صریح لازم‌اند. متن/شناسه/مبلغ حساس لاگ نمی‌شود. قفل ریشه، فرم مودال و احراز درحال‌اجرا را پوشش می‌دهد و راه دورزدن تازه ندارد. این تضمین‌ها جای آزمون بومی و پذیرش مستقل نیستند.
 
-- روزهای 29/30/31 ماه و policy ماه کوتاه.
-- 29 فوریه.
-- DST gap/overlap.
-- تغییر timezone.
-- تعطیلی.
-- تغییر روز/ساعت وسط دوره.
-- pause/freeze.
-- overlap/conflict.
+## سناریو و وضعیت پذیرش
 
-## 6. زبان، تقویم و جهت نمایش
+صورتحساب با برنامهٔ ۵۰۰۰۰۰ و واقعیت ۴۹۸۰۰۰، کلاس ترمی/تعطیلی/ویرایش منفرد، موسیقی و شنا/توقف، ساعت هفتگی ثابت در DST، انتقال بانک↔کیف با درآمد/هزینهٔ صفر، هزینه و موجودی صحیح، پرداخت ۶+۴ برای انتظار ۱۰ و بازیابی با حالت منطقی برابر تست شوند.
 
-- زبان پیش‌فرض و اصلی رابط کاربری فارسی است؛ تمام متن‌های قابل مشاهده برای کاربر، خطاها، وضعیت‌ها، راهنماها، accessibility labels و حالت‌های خالی باید فارسی باشند.
-- جهت پیش‌فرض رابط کاربری `RTL` است و باید با `Directionality`/locale پیاده‌سازی شود؛ چیدمان، آیکون‌های جهت‌دار، فاصله‌ها و ترتیب محتوا نباید با ترفندهای دستی و شکننده معکوس شوند.
-- تقویم قابل مشاهده برای کاربر تقویم جلالی/شمسی است؛ date picker، Calendar، Today، فرم‌های زمان‌بندی، recurrence و گزارش‌های تاریخ‌محور باید تاریخ شمسی و نام‌های فارسی را نمایش دهند.
-- تاریخ و زمان ذخیره‌شده باید semantics دامنه خود را حفظ کند؛ تبدیل میلادی/شمسی فقط در مرز presentation انجام شود و تاریخ محلیِ بدون ساعت به midnight UTC تبدیل نشود.
-- قالب‌بندی اعداد، ارقام فارسی، واحد پول، روز هفته، نام ماه و pluralization باید locale-aware و متمرکز باشد.
-- منطق دامنه نباید به ویجت‌های Flutter یا کتابخانه نمایش تقویم وابسته شود؛ تقویم شمسی یک concern در presentation/adapter است و باید با تست تبدیل تاریخ و edge caseهای leap year، ماه‌های ۲۹/۳۰/۳۱ روزه و timezone پوشش داده شود.
-
-## 7. Session packages و کلاس‌ها
-
-### اصل اصلی
-
-`Schedule != Entitlement`
-
-Schedule زمان را مشخص می‌کند؛ Entitlement حق استفاده را.
-
-### EntitlementPlan
-نمونه فیلدها:
-
-- `totalUnits`
-- `unitType`: Session / Hour / Visit / Credit
-- `validFrom`
-- `plannedExpiry`
-- `completionMode`
-- `autoExtend`
-
-### EntitlementLedger
-Source of Truth مصرف اعتبار:
-
-`Grant | Consume | Restore | Adjustment | Expire | Refund`
-
-Remaining units با fold کردن Ledger محاسبه شود.
-
-### SessionPolicy
-حداقل قابلیت مدل‌سازی:
-
-- providerCancellationConsumes
-- userCancellationNoticeHours
-- lateCancellationConsumes
-- noShowConsumes
-- freeAbsenceQuota
-- holidayConsumes
-- makeupRequired
-- autoExtendUntilUnitsConsumed
-- maxExtensionDate
-- partialUnitAllowed
-
-### سناریوهای مرجع
-
-**کلاس زبان ترمی:** FixedRangeRecurring؛ ابتدا و انتهای برنامه‌ریزی‌شده روشن است.
-
-**موسیقی ۴ جلسه‌ای:** FixedCount/Hybrid؛ کنسلی مدرس اعتبار را نمی‌سوزاند؛ Replacement می‌تواند پایان واقعی را جلو ببرد.
-
-**شنا ۱۰ جلسه‌ای با دو غیبت مجاز:** Hybrid + Entitlement Policy؛ دو غیبت اول طبق policy بدون مصرف، جلسات جبرانی در انتها اضافه می‌شوند؛ غیبت بعدی طبق policy ممکن است بسوزد.
-
-**Freeze:** cycle موقتاً pause می‌شود؛ shift future sessions یا extend end date باید policy صریح داشته باشد.
-
-`plannedEndDate` و `actualEndDate` همیشه مفاهیم جدا هستند.
-
-## 7. Reminder Engine
-
-```text
-Occurrence
-  ├─ ReminderRule
-  └─ ReminderInstance
-```
-
-- Rule تعریف منطقی است؛ Instance schedule واقعی platform.
-- Reschedule باید instanceهای قبلی آینده را cancel/recreate کند.
-- completion/cancel/skip notificationهای غیرضروری را حذف کند.
-- reboot/restart باید reconcile کند.
-- restore باید reminderها را از DB بازسازی کند.
-
-## 8. Today / Calendar / Inbox / Capture
-
-### Today
-Home اصلی و پاسخ به `What needs my attention now?`
-
-حداقل grouping:
-
-- Needs Attention
-- Today
-- Upcoming
-
-Dashboard آماری شلوغ هدف نیست.
-
-### Calendar
-Projection از Domain است؛ source of truth نیست. Edit از Calendar همان Domain Commandهای عادی را فراخوانی می‌کند.
-
-### Inbox
-فقط برای مواردی که نیاز به تأیید کاربر دارند: suggested match، parsed SMS، suggested commitment/category/tag/pattern.
-
-### Capture
-ابتدا Structured Capture پایدار؛ سپس Natural Language.
-
-NLP flow:
-
-`Raw Input → Parser → Draft → Validation → User Confirmation → Domain Command`
-
-Parser مستقیماً Entity نهایی را persist نمی‌کند.
-
-## 9. مالی
-
-### FinancialAccount
-حداقل انواع مورد نظر:
-
-- Bank Account
-- Cash Wallet
-- Digital Wallet
-- Credit-style account later
-
-### FinancialTransaction + AccountEntry
-Balance از AccountEntryها بازسازی می‌شود.
-
-قواعد:
-
-- Money = integer minor units.
-- Transfer bank→wallet = کاهش یک حساب + افزایش حساب دیگر، expense=0 و income=0.
-- Opening balance correction بعد از history = Adjustment auditable.
-- Refund و reversal باید link/audit داشته باشند.
-- Account با history archive می‌شود.
-- مدل باید راه multi-currency آینده را نبندد، ولی MVP می‌تواند single-currency باشد.
-
-### TransactionMatch
-many-to-many بین Transaction و Occurrence.
-
-باید full / partial / multiple / overpayment / correction را پشتیبانی کند.
-
-## 10. Persistence
-
-Flutter + Drift + SQLite.
-
-الزام‌ها:
-
-- Foreign keys
-- Indexes
-- Transactional writes
-- Explicit migrations
-- Stable IDs
-- Migration fixtures
-- No historical hard-delete
-
-## 11. Backup/Restore
-
-Backup package فقط copy database نیست و metadata/version/checksum دارد.
-
-Restore ابتدا validate، سپس atomic replace؛ در شکست، DB فعلی سالم می‌ماند. پس از restore، reminderها و derived cacheها rebuild می‌شوند.
-
-## 12. Automation
-
-ترتیب ترجیحی:
-
-`Rules → Parsers → Pattern Detection → Heuristics → Local ML → Optional Local AI`
-
-Suggestion باید type، confidence، source و payload داشته باشد و Accept/Edit/Reject را ثبت کند.
-
-Automation در فازهای اولیه حق hidden mutation روی history/finance/matching را ندارد.
-
-## 13. Regression scenarios اجباری
-
-- Monthly bill: plan 500k، actual 498k، difference صحیح.
-- Language class: fixed term + holiday + one-occurrence time edit.
-- Music: 4 sessions، provider cancellation، no consumption، replacement، actual end extends.
-- Swimming: 10 sessions، 2 free absences، third absence follows policy.
-- Freeze: history unchanged, future schedule policy-applied.
-- DST: weekly 18:00 stays 18:00 local.
-- Bank→Wallet transfer: expense=0.
-- Wallet expense: balance and expense correct.
-- Partial payment: 6M + 4M matches 10M plan.
-- Restore: logical state and balances identical; reminders rebuilt.
+محاسبه از تست دامنه، دوام از مخزن تولیدی/بازگشایی، مسیر از ویجت و رفتار بومی از دستگاه اثبات می‌شود. «پیاده»، «شاهد خودکار»، «اجرا‌نشده» و «مانع انتشار» جدا گزارش شوند؛ موفقیت تست یا ساخت به معنی آمادگی همهٔ قابلیت‌ها نیست.

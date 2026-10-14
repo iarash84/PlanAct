@@ -1,18 +1,9 @@
-# ADR 0008: Financial expectations
+# تصمیم معماری ۰۰۰۸: مبلغ مالی مورد انتظار
 
-## Decision
+انتظار مالی رکورد اختیاریِ هر رخداد با مبلغ صحیح، ارز و حساب اختیاری، جهت و وضعیت بایگانی است؛ تراکنش یا مدل مالی موازی نمی‌سازد. طرحوارهٔ ۱۱ جدول را با مهاجرت افزایشی از ۱۰ اضافه کرد و گذشته حفظ شد.
 
-Financial expectations are optional, per-occurrence records. They store integer minor units, an optional currency, an optional durable account reference, direction, and archive status. They do not create a second transaction model.
+مبلغ یا ارز فقط با انتخاب صریح کاربر تعیین می‌شود. تولید تکرار از الگوی پایدارِ صریح استفاده می‌کند و مقدار پنهان نمی‌سازد. تسویه از تکمیل فعالیت مستقل است و از تخصیص فعال مشتق می‌شود؛ ارتباط اصلاح‌شده/برگشت‌خورده و تخصیص تراکنش باطل‌شده تسویه ایجاد نمی‌کنند. اصل دفتر حساب و تاریخچهٔ ارتباط می‌مانند. اصلاح تراکنش، انتظار مالی را بازنویسی نمی‌کند.
 
-A bounded recurring schedule creates one expectation only when the user explicitly assigns it; recurrence generation does not fabricate amounts or currencies. Schema 11 adds the table through an additive migration from schema 10, leaving all historical records unchanged.
+بایگانی حالت تاریخچه‌پذیر است، نه حذف؛ انتظار بایگانی از پرس‌وجوی جاری کنار می‌رود و در تاریخچه/پشتیبان می‌ماند. ارز ناموجود همچنان ناموجود است و تسویه از آن حدس زده نمی‌شود. پشتیبان باید رکورد و فیلد تهی‌پذیر را حفظ کند؛ شناسهٔ بومی اعلان دادهٔ قابل انتقال نیست.
 
-Settlement is independent of activity completion. It is derived from active `MatchAllocation` records targeting the occurrence; corrected or reversed matches do not settle an expectation. Account entries and transaction matches remain the sources of financial history.
-
-Archiving is reversible history-preserving state, not deletion. Archived expectations are excluded from active outstanding/settled queries but remain in backups and history.
-
-## Consequences
-
-- Missing currency remains missing and cannot be used to infer settlement.
-- A later transaction correction changes settlement without mutating the expectation.
-- Backup/restore must carry expectation rows and nullable fields; platform notification identifiers are unrelated and omitted.
-- The UI must ask for amount explicitly and must not assign a hidden default.
+[شواهد اصلاح تسویه](../SCHEDULE_ACTUAL_VERIFICATION.md)

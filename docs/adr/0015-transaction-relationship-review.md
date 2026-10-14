@@ -1,31 +1,28 @@
-# ADR 0015 — Explicit transaction relationship review
+# تصمیم معماری ۰۰۱۵: بررسی صریح ارتباط تراکنش
 
-Date: 2026-10-07
+تاریخ: ۲۰۲۶-۱۰-۰۷؛ وضعیت: پذیرفته‌شده برای مسیر محلیِ محدود.
 
-Status: Accepted for the user-approved bounded local relationship flow.
+نبود ارتباط واقعی، تراکنش بررسی‌نشده را از تراکنش مستقل جدا نمی‌کند؛ حذف هر تراکنش دارای ارتباط نیز باقی‌ماندهٔ تخصیص جزئی را پنهان می‌کند. دسته و برچسب جای بررسی ارتباط نیستند.
 
-## Context
+## تصمیم
 
-Absence of a real financial match does not distinguish an unreviewed transaction from a transaction deliberately unrelated to commitments. Suppressing any transaction with an active match also hides partially allocated remainders. Neither categories nor tags express relationship review.
+سابقهٔ بررسی جدا و الحاقی است. «به تعهدی مربوط نیست» فقط باقی‌ماندهٔ جاری را پوشش می‌دهد؛ ارتباط، ثبت مالی، نتیجه، انتظار یا تغییر برچسب/دسته نمی‌سازد. رفت‌وبرگشت و انصراف چیزی ثبت نمی‌کنند.
 
-## Decision
+[نمای دامنه](../../lib/features/reconciliation/domain/relationship_review.dart) هویت، مبلغ/ارز، اثرانگشت تخصیص فعال و تاریخچهٔ حفظ‌شده، باقی‌مانده و بازبینی بررسی را دارد. اثرانگشت شامل شناسه، مقصد، مقدار و وضعیت حل‌شده است، نه فقط جمع. تغییر مبلغ یا سابقه، تأیید قبلی را بدون حذف آن نامعتبر می‌کند؛ بازگشت جمع برابر، تأیید قدیمی را زنده نمی‌کند.
 
-Use a separate append-only review history. The explicit Persian action «به تعهدی مربوط نیست» covers only the current unmatched remainder. It does not create a match, financial entry, occurrence result, expectation or tag/category change. Navigation and cancellation append nothing.
+واگرد/بازگشایی تصمیم جدید الحاق می‌کند و ارتباط یا پول را برنمی‌گرداند. اقدام مالی برای مورد مستقل باقی است؛ بازگشایی اتصال بعدی را ممکن می‌کند. امروز باقی‌ماندهٔ هزینه/درآمد خنثی‌نشده را از همین نما می‌خواند.
 
-The domain [review projection](../../lib/features/reconciliation/domain/relationship_review.dart:38) captures transaction identity, amount/currency, active allocation fingerprint, retained allocation-history fingerprint, remainder and latest review revision. Canonical allocation fingerprints include stable identities, targets, values and resolved states, not only totals. A changed amount or allocation history invalidates an earlier independent decision without deleting it; resolved allocation history prevents an equal-total restoration from reviving old approval.
+[پذیرش تولیدی](../../lib/features/reconciliation/data/drift_reconciliation_repository.dart) حالت تازه را در تراکنش می‌خواند. بازبینی هر تراکنش یکتا است؛ توکن فرم کهنه رد می‌شود. ثبت ارتباط عادی هم جمع تخصیص، مبلغ پایدار، صلاحیت و بررسی مؤثر را کنترل می‌کند. CommandGate به‌تنهایی سری‌سازی نیست. شکست، حالت قبلی و امکان تلاش مجدد فارسی را حفظ می‌کند؛ تلاش مجدد خودکار تأیید تازهٔ کاربر محسوب نمی‌شود.
 
-Undo and explicit reopening append a new decision. They do not remove matches or reverse money. Finance retains its relationship action for independently reviewed transactions; reopening enables later real linking. Today uses the domain projection for eligible unreversed income/expense remainders.
+مهاجرت ۱۶ → ۱۷ جدول بررسی با FK، قید مقدار، شاخص بازبینی و منع به‌روزرسانی/حذف اضافه کرد. تراکنش قدیمی بررسی‌نشده شروع می‌شود؛ تصمیم مستقل ساخته نمی‌شود. وابستگی تازه ندارد.
 
-Production [review compare-and-append and allocation admission](../../lib/features/reconciliation/data/drift_reconciliation_repository.dart:133) reload durable state inside a database transaction. Review revisions are unique per transaction. Loaded form tokens reject stale confirmation; ordinary match writes also validate cumulative allocation against the durable amount, eligibility and effective review. Database serialization/transaction failure, not CommandGate alone, protects concurrent admission. Failed writes retain previous durable state and surface Persian retry feedback. No automatic retry can turn an old form into fresh user approval.
+## دوام و دامنه
 
-Schema 16 → 17 adds [review history](../../lib/core/database/app_database.dart:252), with transaction FK, value constraints, per-transaction revision index and append-only update/delete guards. Existing transactions start unreviewed; migration does not invent independent decisions. No dependency is added.
+پشتیبان شخصی سابقه را حفظ می‌کند. امضاهای کامل طرحوارهٔ مهاجرت‌شده و اعتبارسنجی در پایگاه جداگانه لازم‌اند؛ سازگاری ساختار همهٔ نسخه‌ها را مجاز نمی‌کند. ارتقای نصب پیش از خروجی پشتیبان پشتیبانی می‌شود؛ واردسازی مستقیم هر پشتیبانِ نسخهٔ قدیمی سیاست جدا می‌خواهد. محدودیت تاریخیِ کلید نصب برای خروجی جدید با [تصمیم ۰۰۱۸](0018-independent-recovery-key-backups.md) جایگزین شده است.
 
-Personal snapshots preserve review history. [Backup compatibility](../../lib/features/backup/data/sqlite_backup_storage.dart:42) pins complete actual historical schema migrations to v17 and validates logical rows against the isolated current schema; it does not broadly waive constraints. Older-version exports remain incompatible with the current-version restore gate until an explicit tested restore migration policy exists; upgrading an installed database before export is supported. Encryption remains installation-bound.
+باقی‌ماندهٔ مستقل تسویهٔ تعهد نیست. تخصیص بیش از مبلغ، تا تصمیم صریح اضافه‌پرداخت مجاز نیست. مسیر اصلاح/قطع ارتباط بعداً در تصمیم ۰۰۰۷ و [شواهد](../RELATIONSHIP_REVIEW_VERIFICATION.md) اضافه شد؛ پیاده‌سازی دسته‌ای نیز دامنهٔ محدود جدا دارد. دسترس‌پذیری بومی، انتخابگر، مخزن کلید امن و توقف پردازش هنوز پذیرش دستگاه می‌خواهند. حافظهٔ تست مرجع تولیدی نیست.
 
-## Consequences and scope
+## مراجع کد و شواهد
 
-Independent remainder is review disposition, not full allocation or commitment settlement. Existing matches, balances and history are preserved. Repository admission disallows cumulative over-allocation until an explicit overpayment policy authorizes it; the pure-domain overpayment projection is not such authorization.
-
-This does not add a review-history browser, match-correction UI, commitment-only targets, bulk allocation or overpayment authoring. Native accessibility, picker/Keystore and crash certification remain release gates. The test-only in-memory adapter is not a production durable source.
-
-See [verification](../RELATIONSHIP_REVIEW_VERIFICATION.md) for tested scope and limitations.
+- [app_database.dart](../../lib/core/database/app_database.dart)
+- [sqlite_backup_storage.dart](../../lib/features/backup/data/sqlite_backup_storage.dart)

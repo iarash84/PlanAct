@@ -1,198 +1,67 @@
-# Localization resource migration
+# ارزیابی منابع بومی‌سازی
 
-2026-10-14 Undo follow-up: new approved operation/confirmation/error/history copy is added with `x-planact-introduced: undo-2026-10-14`. The frozen original-template checksum is retained and excludes only that explicitly marked introduction; all catalog descriptions/placeholders and generated resources remain checked. No original Persian template is changed. This is the bounded Undo behavior change recorded in SCHEDULE_ACTUAL_VERIFICATION.md, not a new language or a localization-foundation waiver.
+## قرارداد؛ ۲۰۲۶-۱۰-۱۳
 
-## Acceptance contract — 2026-10-13
+محدوده، گردآوری متن فارسی متعلق به برنامه در فهرست ساخت‌یافته و آماده‌سازی ترجمهٔ آینده است؛ زبان دوم، انتخاب زبان و تغییر تقویم/ارز خارج کارند. مسیرهای اصلی، ساخت/ویرایش، تنظیمات/قفل، امروز، تقویم، مالی، ورودی، ارتباط پرداخت، گزارش و پشتیبان باید رفتار، پیش‌نیاز، تأیید/لغو/تلاش مجدد و بازگردانی قبلی را حفظ کنند.
 
-User request: collect application-owned Persian copy into a structured resource
-catalog, safely preparing later translations. This is localization foundation;
-adding another language, language settings or changing calendar/currency policy
-is outside scope.
+متن، نشانه‌گذاری، پارامترها، دسترس‌پذیری، RTL، نمایش/تکرار جلالی، قالب مبلغ صحیح و منابع فارسی Material/Cupertino حفظ می‌شوند. `app_fa.arb` کلید معنایی پایدار، توضیح و قرارداد پارامتر نوع‌دار دارد؛ API استاندارد تولید می‌شود. مسیر فرمان/نوشتن/بازخوانی تغییر نمی‌کند؛ طرح، تنظیمات، دفتر، برنامه، ارتباط، پشتیبان، یادداشت/دستهٔ ذخیره‌شده و شواهد منبع تغییر هدف ترجمه نیستند.
 
-- Entry paths: existing root navigation, creation/editing sheets, Settings/lock,
-  Today, Calendar, Finance, Inbox, reconciliation, reports and backup routes.
-  Existing prerequisites, commands, confirmation/cancellation/retry and Undo
-  behavior must remain identical. No additional account/network requirement.
-- Preserve Persian copy, punctuation, placeholders, accessible labels, RTL,
-  Jalali selection/recurrence, exact integer monetary formatting and Material/
-  Cupertino localization. Use a Persian ARB template with stable semantic keys,
-  descriptions and typed placeholders; generate application localization APIs.
-- Trace: widgets/application projections currently compose inline Persian copy;
-  widgets dispatch the existing command/domain rules, write through the existing
-  repositories, refresh and reconcile related consumers. Only copy retrieval
-  changes. No database schema, settings, ledger, schedule, match, backup format,
-  saved notes/categories, source evidence or parsing token changes are authorized.
-- Pure domain code must remain independent of Flutter. Application-owned default
-  messages outside widget contexts use a generated pure-Dart Persian companion
-  from the same catalog, preserving legacy API/data semantics. A future language
-  capability must explicitly localize these boundaries; this foundation does not
-  claim a complete multilingual product.
-- Exclude user data, bank-SMS recognition patterns, canonical persisted tokens,
-  bundled holiday source datasets, numeric normalization and digit/separator
-  definitions from blanket translation. Record remaining uses explicitly.
-- Evidence: catalog generation reproducibility/content parity, analyzer, full
-  regression suite, production-root Persian navigation/modal tests, critical
-  lock/backup/money/calendar checks and locale-delegate/placeholder tests.
-  Native authentication/notification evidence and independent acceptance are
-  separate gates; automated tests must not claim those have been executed.
+دامنه به Flutter وابسته نمی‌شود. متن پیش‌فرض بیرون بافت ویجت از همراه خالص Dart همان فهرست تولید می‌شود. زبان آینده باید این مرزهای پیش‌فرض را جدا بومی کند؛ بنیاد فارسی، محصول چندزبانه نیست. متن کاربر/منبع، واژگان تشخیص پیامک، شناسهٔ ارز، توکن پایدار، دادهٔ بانک/تعطیلی و تعریف رقم/جداکننده هدف ترجمهٔ عمومی نیستند.
 
-## Implemented scope
+## اجرای بنیاد فارسی؛ ۲۰۲۶-۱۰-۱۴
 
-2026-10-14: **Persian-only foundation implemented**. `lib/l10n/app_fa.arb`
-contains 1,177 unique messages/templates. Application-owned copy was extracted
-from 74 existing source files, including routes, accessibility, validation,
-projections and adapter messages. The root registers generated `AppLocalizations`
-beside the existing framework delegates; isolated widget embeddings retain the
-documented immutable Persian fallback. Standard resources and the 742 default
-companion entries are generated from the same catalog. The default companion
-has no imports or Flutter dependencies. See the [catalog maintenance guide](../lib/l10n/README.md)
-and [ADR 0020](adr/0020-localization-resource-boundaries.md).
+مرحلهٔ اولیه ۱٬۱۷۷ پیام/الگو از ۷۴ فایل و ۷۴۲ مدخل همراه پیش‌فرض داشت؛ **این شمارها متعلق به همان مرحله‌اند** و متن جدید تأییدشدهٔ بازگردانی بعداً اضافه شده است. ریشه، `AppLocalizations` تولیدشده را کنار منابع چارچوب ثبت می‌کند؛ جای‌گذاری مستقل ویجت، پیش‌فرض فارسی تغییرناپذیر مستند دارد. همراه پیش‌فرض هیچ import یا وابستگی به Flutter ندارد. [راهنمای نگهداری](../lib/l10n/README.md) و [تصمیم ۰۰۲۰](adr/0020-localization-resource-boundaries.md) مرزها را مشخص می‌کنند.
 
-No language picker, locale preference, database schema/migration, backup format,
-permission, state-management change or package-version upgrade. `intl 0.20.3`,
-already pinned transitively, is declared directly because Flutter's generated
-resources import it. Parser vocabularies, bank/holiday source datasets, persisted
-financial notes/categories, canonical currency identity, numeric normalization
-and all user/source text retain their prior semantics and contents.
+زبان‌گزین، ترجیح زبان/منطقه، طرح/مهاجرت، مجوز، قالب پشتیبان یا ارتقای بسته اضافه نشد. `intl 0.20.3` که از قبل قفل بود، به علت واردکردن منابع تولیدشده وابستگی مستقیم شد؛ فقط طبقه‌بندی وابستگی تغییر کرد.
 
-## Verification evidence
+## شواهد مهاجرت و شکست تاریخی
 
-Environment: Windows, Flutter 3.47.5 / Dart 3.13.4. Working tree based on
-`5c79331c661562332d35307c8e6da0542998835c`, not a committed release revision.
-Raw local artifacts are under ignored `build/verification/localization/`.
+محیط ویندوز، Flutter 3.47.5 / Dart 3.13.4، درخت کاری بر پایهٔ `5c79331c661562332d35307c8e6da0542998835c` بود؛ نسخهٔ انتشار نبود. گزارش‌ها زیر `build/verification/localization/` محلی‌اند.
 
-| Contract / check | Evidence | Result / limit |
-| --- | --- | --- |
-| Standard generation and unchanged package versions | `flutter gen-l10n`; `flutter pub get --enforce-lockfile --offline` | Passed; lockfile changes only `intl` dependency classification. |
-| Pure-domain/default generation | `dart run tool/generate_persian_copy.dart --check`; generator/unit test | Passed; CI PowerShell/Bash check the companion; no additional generator package. |
-| Exact original copy and placeholder handling | Frozen SHA-256 of pre-migration templates in `localization_resources_test.dart`; temporary exhaustive runtime parity test | Passed: all 1,177 Flutter outputs and 742 companion outputs matched original templates, including argument text with quotes, dollars, braces, Persian digits and line breaks. |
-| Route resources, Persian root/delegates and cancellation | `localization_resource_consumers_test.dart`, `planact_localization_test.dart` | Passed; injected resource overrides reach Settings; production Light/Dark root, quick-add/capture/Jalali/time modal paths retain Persian/RTL and cancellation. This does not certify a second language. |
-| Final localization and exact monetary regressions | `flutter test --no-pub test/unit/localization_resources_test.dart test/unit/currency_codes_test.dart test/unit/persian_money_text_test.dart test/unit/iranian_money_unit_test.dart test/unit/money_input_formatter_test.dart test/widget/localization_resource_consumers_test.dart test/widget/planact_localization_test.dart --reporter expanded` | Passed: 17 tests. |
-| Broad regression, including domain/repositories/restore/lock/calendar/layout/routes | `flutter test --no-pub --reporter expanded` | 836 passed, 5 failed. The five identical cases also fail against isolated original source; see below. Full CI is not green. |
-| Analyzer and format/diff | `flutter analyze --no-pub`; `dart format --output=none --set-exit-if-changed lib test tool/generate_persian_copy.dart`; `git diff --check` | Passed on final source. Longer resource references required eight brace-only lint fixes. |
-| Android compilation | `flutter build apk --debug --no-pub` on final source | Passed. Debug APK SHA-256 `c0da2e09d3b2a1c689a1d3f841850e643540d196239c46d8a7638afd1923e94e`. No installation/device execution or release/signing certification. |
-
-The full-suite run preceded the final brace-only formatting, six new resource
-tests and the extraction of the unchanged Rial display label. Final analyzer,
-focused tests, exhaustive resource parity and APK build cover those final edits;
-the entire suite was not repeated without a new regression indication.
-
-## Historical failed checks: baseline comparison
-
-This section preserves the historical localization checkpoint. The current
-repair and test status is recorded in the five-test follow-up below; the original
-failure evidence is retained rather than overwritten.
-
-An isolated `git archive HEAD` checkout in `build/verification/localization/baseline_check`
-ran the same three test files with their original code and dependency versions.
-The existing, unchanged SQLite native dependency cache was reused to avoid a
-stalled native-library download; application sources/tests were the original
-checkout. Result: 27 passed, the same five failed with the same assertions:
-
-- `quick_capture_sheet_test.dart`: collapsed credit validation expects retained
-  `۱۲۳۴۵`; the existing money input controller contains `12,345`.
-- `sms_currency_review_test.dart`: both theme cases expect the ambiguous-unit
-  error after saving; the existing visible/default-unit review behavior differs.
-- `sms_editable_review_test.dart`: both narrow/large-text actual-transfer cases
-  cannot tap the expected visible `واحد مبلغ` label.
-
-At that checkpoint these were not fixed or hidden by changing test expectations.
-Owner: maintainer.
-Next action: compare each check with the approved grouped-money-input and explicit
-SMS-unit-review contracts, then repair the affected test or behavior with an
-independent acceptance decision. Exposure: existing Persian development paths
-remain unchanged; the failing checks block a claim of green full CI/release
-readiness. Localization-specific checks passed and no additional failing case
-was found in the broad run.
-
-## Acceptance review and remaining gates
-
-Implementation status: **Foundation implemented**, not a multilingual product.
-Automated verification: **Passed for the bounded resource/Persian-route scope**,
-with the separately disclosed inherited full-suite failures. Self-review checked
-source/copy parity, scoped diffs, parser/persistence exclusions and PRD/AGENTS
-consistency. Independent reviewer/sign-off: **Not performed**.
-
-The inherited failure status above belongs to the migration run; consult the
-follow-up below for the repaired checks. Other-language/native/independent
-acceptance gates are unchanged.
-
-Maintainer owns independent acceptance and native device checks; the follow-up
-below records resolution of the five inherited test failures. No new language
-is exposed. Before activating one, explicitly
-localize the pure-default projection/error/helper/calendar/adapter boundaries,
-verify directionality and formatting on actual routes, and preserve calendar/
-recurrence/storage-unit semantics. This change does not close the existing native
-authentication, reminder, backup or other feature release gates. Release build,
-native screen-reader/notification/authentication execution and independent
-acceptance were not run; debug compilation and Flutter tests are not substitutes.
-
-## Five-test repair follow-up — 2026-10-14
-
-Acceptance contract, recorded before the repair:
-
-- User outcome: resolve the five inherited failures against the latest approved
-  PRD monetary-input/SMS-unit-review contract, rather than alter product behavior
-  just to satisfy obsolete expectations. Entry paths are commitment capture after
-  failed saving, and Inbox edit/cancel/save, including narrow RTL with 1.8x text
-  in Light/Dark.
-- Grouping may normalize the display of typed money; failed saving/reopening must
-  preserve that formatted editing value and the exact canonical amount, session
-  credit and reminder selections.
-- Ambiguous SMS units visibly suggest the default. Opening the editor or
-  cancelling an edited choice must preserve the unresolved draft/revision/source
-  evidence and create no financial entry. Explicit saving of the chosen unit
-  must preserve source evidence and convert the reviewed amount exactly.
-- Exercise the actual unit dropdown rather than its floating decoration label;
-  transfer source evidence must continue blocking income/expense confirmation
-  after direction/unit edits. Keep all existing blocking assertions.
-- Scope: focused test repairs and evidence updates; no database/schema,
-  dependency, resource-copy or production behavior change unless investigation
-  proves one necessary. Existing durable SMS/default-unit repository/route tests
-  remain the persistence evidence. Run the three affected files, related
-  money/default-unit/repository checks, analyzer/format and the complete suite.
-  Independent acceptance/native checks remain separate.
-
-Investigation: the latest PRD (money unit/financial input section) explicitly
-requires grouped input and permits visible default-unit suggestion until explicit
-review saving. The existing formatter and editor implement those rules; the
-five failures reproduce before localization. The missed checks were stale
-cross-feature assertions left over when those behaviors were approved, and
-using a floating field label as the interactive target. The minimal repair
-updates the checks while strengthening cancellation/input/evidence guarantees.
-
-## Follow-up verification result
-
-**Implemented:** focused repairs in `quick_capture_sheet_test.dart`,
-`sms_currency_review_test.dart` and `sms_editable_review_test.dart`; no test
-was skipped or disabled and the transfer-confirmation blocking assertions were
-retained. Additional checks protect formatted editing state, exact amounts,
-review revisions, cancellation and immutable original evidence. Only these
-three test files and the two existing verification records changed. No
-production code, resource catalog, schema/migration, dependency or backup change.
-
-**Verified:** Windows, Flutter 3.47.5 / Dart 3.13.4, working tree based on
-`363ded82aca0f2a56ee76ed13b45e26d915b5941`, 2026-10-14. Raw artifacts are in
-ignored `build/verification/failed-test-repair/`.
-
-| Check | Result |
+| بررسی | شاهد و نتیجه |
 | --- | --- |
-| Reproduce the three original test files | 27 passed / same 5 failed before repair. |
-| Repaired three test files | 32 passed / 0 failed, including all five original cases. |
-| `flutter test --no-pub --reporter expanded` on repaired source | **847 passed / 0 failed**, including money formatter, explicit default review, production SMS admission/cold-reopen/backup, root routes and Light/Dark narrow/large-text cases. |
-| `flutter analyze --no-pub` | No issues. |
-| `dart format --output=none --set-exit-if-changed lib test tool/generate_persian_copy.dart` | Passed, 0 changes required. |
-| `git diff --check`, scope and local documentation links | Passed. |
+| تولید استاندارد و فایل قفل | `flutter gen-l10n` و `flutter pub get --enforce-lockfile --offline` موفق؛ ارتقای نسخه نبود |
+| همراه خالص دامنه | `dart run tool/generate_persian_copy.dart --check` و آزمون مولد موفق؛ بررسی CI ویندوز/Bash دارد |
+| برابری متن و پارامتر | هش ثابت الگوهای اصلی و مقایسهٔ جامع موقت: تمام ۱٬۱۷۷ خروجی Flutter و ۷۴۲ پیش‌فرض با متن اصلی برابر؛ نقل‌قول، دلار، آکولاد، رقم فارسی و خط جدید پوشش داشت |
+| مصرف‌کننده و ریشه | تغییر منبع تزریقی تنظیمات، مسیر اصلی/مودال/ثبت سریع/تاریخ/زمان و لغو در دو تم موفق |
+| آزمون منتخب متن/پول | ۱۷ موفق |
+| اجرای گستردهٔ اولیه | ۸۳۶ موفق و پنج شکست؛ این نتیجه وضعیت نهایی فعلی نیست |
+| تحلیل/قالب‌بندی/اختلاف | موفق؛ هشت اصلاح صرفاً آکولادی برای کنترل سبک کد انجام شد |
+| APK آزمایشی | ساخت موفق؛ SHA-256: `c0da2e09d3b2a1c689a1d3f841850e643540d196239c46d8a7638afd1923e94e`؛ نصب یا پذیرش بومی/امضا نبود |
 
-The five-test/full-suite regression blocker is **resolved** for this working
-tree. This supersedes the historical five-failure status above; it does not
-rewrite the original migration evidence or claim an executed release build/full
-release CI. Self-review compared the updated assertions with the approved PRD,
-preserved negative-path/evidence guarantees, and verified the scoped diff.
+اجرای کامل اولیه پیش از آخرین اصلاح قالب، شش آزمون منبع و استخراج عنوان ریال بود؛ تحلیل نهایی، مقایسهٔ جامع، آزمون منتخب و ساخت آن‌ها را پوشش دادند. اجرای کامل همان مرحله دوباره نشده بود.
 
-**Unexecuted / release status:** independent acceptance and native device/release
-checks were not performed; there is no production behavior change requiring a
-new native journey in this test-only repair. The existing SMS, monetary-input
-and localization feature readiness/exposure decisions remain in their respective
-records. Maintainer owns those independent/native gates. No new language,
-product feature, release or deployment is introduced by this follow-up.
+بررسی مستقل کد پایه با `git archive HEAD` در `build/verification/localization/baseline_check`، با منابع/وابستگی اصلی و حافظهٔ وابستگی بومی SQLite موجود، ۲۷ موفق و همان پنج شکست نشان داد: انتظار رقم فارسی بدون گروه‌بندی در ثبت سریع در برابر `12,345`، دو انتظار هشدار واحد مبهم قدیمی، و دو لمس عنوان شناور واحد در پیام انتقال. انتظارها در مرحلهٔ مهاجرت پنهان یا حذف نشدند.
+
+## اصلاح پنج آزمون؛ ۲۰۲۶-۱۰-۱۴
+
+قرارداد پیشاپیش: انتظارها با PRD مصوب گروه‌بندی پول و ذخیرهٔ صریح واحد مقایسه شوند. شکست ذخیره/بازکردن فرم باید مقدار نمایشی قالب‌بندی‌شده و مبلغ استاندارد دقیق، اعتبار جلسه و انتخاب یادآور را حفظ کند. واحد مبهم می‌تواند پیش‌فرض را نمایان پیشنهاد کند؛ بازکردن یا لغو، بازبینی/شواهد/مبلغ حل‌نشده را تغییر نمی‌دهد و دفتر نمی‌نویسد. فقط ذخیرهٔ صریح واحد، تبدیل دقیق را پایدار می‌کند. شواهد انتقال پس از ویرایش جهت/واحد همچنان مانع تأیید درآمد/هزینه است.
+
+بررسی نشان داد رفتار تولید با قرارداد جدید سازگار است؛ نقص، انتظار میان‌قابلیتی قدیمی و لمس عنوان غیرتعاملی فیلد بود. سه فایل آزمون ثبت سریع/واحد/ویرایش پیامک اصلاح شدند؛ کنترل‌های حفظ فرم، لغو، مبلغ، بازبینی و شواهد تقویت شدند. هیچ آزمونی حذف/غیرفعال نشد؛ کد تولید، فهرست متن، طرح، وابستگی و پشتیبان تغییر نکرد.
+
+محیط بر پایهٔ `363ded82aca0f2a56ee76ed13b45e26d915b5941`؛ گزارش محلی در `build/verification/failed-test-repair/`:
+
+| بررسی | نتیجه |
+| --- | --- |
+| بازتولید سه فایل اصلی | ۲۷ موفق / همان پنج شکست |
+| سه فایل اصلاح‌شده | ۳۲ موفق / بدون شکست |
+| `flutter test --no-pub --reporter expanded` | ۸۴۷ موفق / بدون شکست؛ پول، ذخیرهٔ واحد، پذیرش پیامک/بازگشایی/پشتیبان، مسیرهای اصلی و حالت باریک/متن بزرگ را شامل شد |
+| تحلیل، قالب‌بندی منابع و مولد، اختلاف و پیوند | موفق؛ تغییر قالب لازم نبود |
+
+مانع پنج شکست برای آن درخت کاری رفع شد؛ سابقهٔ قبلی حذف نمی‌شود و انتشار/CI کامل امضاشده ادعا نمی‌شود.
+
+## پیگیری متن بازگردانی؛ ۲۰۲۶-۱۰-۱۴
+
+متن جدید عملیات/تأیید/خطا/تاریخچه با `x-planact-introduced: undo-2026-10-14` علامت دارد. هش ثابت الگوهای پیش از مهاجرت حفظ شده و فقط معرفی علامت‌دار جدید را مستثنا می‌کند؛ توضیح/پارامتر/تولید همچنان بررسی می‌شوند. الگوی فارسی اصلی تغییر نکرد. قرارداد رفتاری جدید در [اصلاحات اخیر](SCHEDULE_ACTUAL_VERIFICATION.md) است.
+
+## وضعیت پذیرش
+
+بنیاد فارسی پیاده شده و شواهد خودکار محدوده موفق است؛ چندزبانه‌بودن یا پذیرش مستقل ادعا نمی‌شود. فعال‌کردن زبان آینده نیازمند بومی‌سازی مرزهای پیش‌فرضِ خطا/محاسبه/تقویم/آداپتور و بررسی جهت/قالب‌بندی مسیر واقعی، بدون تغییر معنای تقویم/تکرار/واحد ذخیره است.
+
+نگه‌دارنده مسئول بازبینی مستقل و دستگاه است. احراز هویت، یادآور، پشتیبان، صفحه‌خوان و ساخت امضاشدهٔ انتشار در این کار اجرا نشده‌اند؛ آزمون و APK آزمایشی جای آن‌ها را نمی‌گیرد. زبان جدید یا انتشار جدیدی توسط این مرحله عرضه نمی‌شود.
+
+## مراجع کد و شواهد
+
+- [localization_resources_test.dart](../test/unit/localization_resources_test.dart)
+- [localization_resource_consumers_test.dart](../test/widget/localization_resource_consumers_test.dart)
+- [planact_localization_test.dart](../test/widget/planact_localization_test.dart)

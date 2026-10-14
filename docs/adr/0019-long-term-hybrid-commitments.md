@@ -1,20 +1,15 @@
-# ADR 0019 — Long-term hybrid commitments
+# تصمیم معماری ۰۰۱۹: تعهد ترکیبی بلندمدت
 
-Date: 2026-10-12. Status: user-approved product direction; implementation acceptance Partial.
+تاریخ: ۲۰۲۶-۱۰-۱۲؛ وضعیت: جهت محصول مصوب و پذیرش پیاده‌سازی جزئی.
 
-## Context
+تعداد و پایانِ شامل روز آخر پایدارند. افق عملیاتی تولید، از جمله ۹۰ روز قدیمی، علت کم‌بودن ردیف آینده است؛ محدودیت نمایش یا ازبین‌رفتن پایان نیست. ساخت بی‌نهایت رکورد لازم یا امن نیست. قرارداد پذیرش این تغییر در [شواهد](../MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md) پس از پیاده‌سازی در درخت کار ثبت شد، نه پیش از آن.
 
-Count and inclusive end-date termination already persist. Operational generation horizons (legacy 90 days; newer bounded windows) explain sparse future rows, not a row-display limit or lost termination. Infinite materialization is neither required nor safe. The acceptance contract in [verification](../MONTHLY_YEARLY_RECURRENCE_VERIFICATION.md) was recorded after the working-tree implementation, not before.
+قواعد کامل شامل فرکانس/فاصله، تقویم مرجع، لنگر اصلیِ تغییرناپذیر روز/ماه، معنای زمان، شروع، پایان شامل یا تعداد جایگاه منطقی، نسخهٔ مؤثر و الگوی یادآور/مالی حفظ می‌شوند. اعتبار مستقل است. رخداد عملیاتی، مورد پذیرفته‌شده و تاریخچهٔ واقعی است؛ نگهداری دوره‌ای شروع/ادامهٔ برنامه فرمان محدود صریح است، نه اثر خواندن.
 
-## Decision
+جزئیات و ماه/هفته پیش‌نمایش محدودِ مبتنی بر دادهٔ پایدار را کنار گذشته می‌خوانند. پیش‌نمایش شناسهٔ جعلی یا اثر یادآور، پول، اعتبار و تاریخچه ندارد. این تصمیم محدودیت قدیمیِ «تقویم فقط ردیف ثبت‌شده» را جایگزین می‌کند و خواندنی‌بودن را حفظ می‌کند.
 
-- Keep full durable schedule rules: frequency/interval, reference calendar, immutable original day/month anchors, time semantics, start, inclusive end or logical-slot count, effective versions, reminder and financial generation templates. Entitlement is independent.
-- Operational rows represent admitted occurrences and historical outcomes. Existing startup/resume rolling maintenance remains an explicit bounded command, never a read side effect.
-- Details and Calendar Month/Week may read bounded future range previews alongside recorded history. Preview is calculated from durable state, has no fake occurrence ID and creates no reminder, financial, session or history effects. This supersedes the PRD's Calendar recorded-only restriction, not its read-only guarantee.
-- Count measures logical slots, including occupied/resolved slots, independently of horizon and row population. Retain legacy Gregorian compatibility, original anchors, same-target-month clamp and version boundaries. Manual original/current occupancy suppresses duplicates; every historical status remains recorded.
-- Only explicit preparation admits a preview: obtain transactional writer admission, reread active owner/cycle, versions, exact metadata/templates and original/current occupancy, reject stale, past, occupied or ambiguous slots, then atomically insert one real occurrence with dependent reminder/financial intent. Platform delivery is post-commit; failure there is not a failed domain commit. Reload/retry must be visible; cancellation does not write.
-- No automatic past backfill, historical repair, financial posting, entitlement consumption or full recurrence editor. Recovery of missed past slots remains a separate unresolved product decision.
+تعداد، جایگاه منطقیِ اشغال‌شده/حل‌شده را مستقل از افق و شمار ردیف می‌شمارد. معنای میلادی قدیمی، لنگر اصلی، محدودسازی روز به پایان همان ماه و مرز نسخه حفظ می‌شوند. اشغال تاریخ اصلی/فعلی و ویرایش دستی مانع تکرارند؛ همهٔ وضعیت‌های تاریخی می‌مانند.
 
-## Consequences / evidence
+فقط آماده‌سازی صریح پیش‌نمایش، پس از پذیرش نویسنده و بازخوانی مالک/دورهٔ فعال، نسخه، فراداده/الگو و اشغال اصلی/فعلی، رخداد واقعی با قصد وابسته را اتمیک درج می‌کند. مورد کهنه، گذشته، اشغال‌شده یا مبهم رد می‌شود. تحویل پلتفرم پس از ثبت تراکنش است؛ شکست آن شکست ثبت دامنه نیست. خطا/تلاش مجدد نمایان و انصراف بدون نوشتن است.
 
-No physical schema, migration or dependency is added: existing durable recurrence JSON/templates and tables remain authoritative and portable through strict encrypted personal backup. Read projections are ephemeral, not a second source of truth. Host domain/repository/route evidence does not establish native delivery, device-loss recovery, accessibility or reference-device performance. Owners, next actions and release-blocking independent gates are recorded in the verification document. Existing shared Light/Dark tokens remain unchanged; this is not a broad redesign.
+پرکردن خودکار گذشته، ترمیم تاریخ، ثبت پول، مصرف اعتبار و ویرایشگر کامل تکرار مجاز نشده‌اند؛ بازیابی جایگاه گذشتهٔ تولیدنشده تصمیم بازِ جداست. طرحواره، مهاجرت یا وابستگی تازه ندارد؛ JSON/الگو و جدول موجود مرجع‌اند و پیش‌نمایش مرجع موازی نیست. تست میزبان تحویل بومی، بازیابی دستگاه، دسترس‌پذیری، عملکرد دستگاه مرجع یا پذیرش مستقل را ثابت نمی‌کند؛ مالک و اقدام بعدی در سند شواهد آمده‌اند.

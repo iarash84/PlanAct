@@ -1,9 +1,21 @@
-# Test structure
+# ساختار و اجرای تست‌ها
 
-Tests are organized by the lowest effective layer:
+تست در پایین‌ترین لایهٔ مؤثر نگهداری می‌شود:
 
-- `unit/`: pure domain and core behavior.
-- `repository/`: persistence constraints and transactions.
-- `scenario/`: end-to-end domain scenarios.
-- `integration/`: platform and application integration.
-- `fixtures/`: versioned test data.
+- `unit/`: محاسبه و رفتار دامنه.
+- `repository/`: SQLite، قید، تراکنش، مهاجرت، بازگشایی و دوام.
+- `scenario/`: سناریوهای ترکیبی دامنه.
+- `widget/`: مسیر کاربر، تازه‌سازی و حالت‌های رابط.
+- `integration/`: اتصال برنامه و پلتفرم؛ جایگزین شاهد دستگاه نیست.
+- `fixtures/`: دادهٔ آزمون و نمونهٔ نسخه‌دار.
+
+از ریشهٔ مخزن:
+
+```sh
+flutter test
+flutter analyze
+```
+
+شرایط بررسی مشترک و امضای Android در [گردش توسعه](../docs/development-workflow.md) آمده است. نتایج خام محلی در `build/verification/` و خلاصهٔ شاهد در سند همان قابلیت ثبت می‌شوند. تعداد تست قدیمی نتیجهٔ اجرای جدید نیست.
+
+تست دامنه محاسبه را ثابت می‌کند؛ دوام به پایگاه دادهٔ تولیدی و بازگشایی، مسیر کاربر به تست رابط و رفتار بومی به بررسی دستگاه نیاز دارد. برای نقص مهم، سناریوی شکست و معیار پذیرش را پیش از اصلاح ثبت کنید.

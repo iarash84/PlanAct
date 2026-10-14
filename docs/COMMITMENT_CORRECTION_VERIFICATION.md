@@ -1,44 +1,15 @@
-# Independent commitment corrections
+# شواهد اصلاح مستقل تعهد
 
-## Acceptance contract (2026-10-11, before implementation)
+قرارداد ۲۰۲۶-۱۰-۱۱: از جزئیاتِ دورهٔ فعالِ پایدار، تعداد برنامه و اعتبار بسته دو اقدام مستقل‌اند. ساختِ ذخیره‌نشده پیش‌نویس است، نه اصلاح تاریخچه. پیش‌نمایش، شمار اعلام‌شده، افزودن/لغو آینده، اعتبار قبل/بعد، دامنه و سابقهٔ محافظت‌شده را پیش از تأیید نشان می‌دهد؛ لغو/خطا ورودی را حفظ می‌کند.
 
-Entry: Commitment Details, persisted active cycle. Schedule count and package credit are independent actions; neither implicitly changes the other. Unsaved creation remains a draft, not a historical correction. Existing persisted plans without outcomes still use explicit confirmation and append-only records; plans with history preserve it.
+تأیید، پیش از خواندن تازه پذیرش نویسندهٔ SQLite می‌گیرد و اثرانگشت پیش‌نمایش را مقایسه می‌کند؛ کهنه پیش‌نمایش تازه می‌خواهد. کاهش ناسازگار با گذشته، نتیجه، ویرایش دستی، پرداخت یا مصرف رد می‌شود و کاهش اعتبار باقی‌مانده را منفی نمی‌کند. حذف فیزیکی، تغییر شمارنده، برگشت مالی یا بازنویسی مصرف نیست.
 
-Preview must show declared count, future additions/cancellations, package remaining before/after, scope and protected history before confirmation. Cancel and errors retain form input. Confirm must acquire SQLite writer admission before fresh durable reads and compare the preview fingerprint; stale previews require another preview. Decreases incompatible with protected past/resolved/manual/payment/consumption are rejected. Credit decreases may not make remaining negative. No permanent deletion, counter editing, financial reversal or consumption rewriting.
+تعداد فقط تعداد ثابت با حفظ لنگر/تقویم/زمان، نسخهٔ مؤثر از فردا و حد ۱–۱۰۰۰ است؛ اصلاح دوم با همان مرز رد می‌شود. فقط جایگاه آیندهٔ برنامه‌ریزی‌شده و دست‌نخورده لغو و ردیفش تاریخی می‌شود. افزودن پیش‌نمایش محدود به تولید رخداد است، نه همهٔ آینده. اعتبار `Adjustment` علامت‌دار با دلیل/زمان الحاق می‌کند؛ منفی، اعطا را اصلاح می‌کند نه مصرف. شمارش نوع‌دار و تعریف اصلی بسته می‌مانند.
 
-Schedule scope: count termination only, retaining original recurrence anchor/calendar/time and adding a new effective version. Only untouched scheduled future logical slots can be cancelled; cancelled rows remain historical. Materialization stays bounded. Unsupported/non-count schedules reject visibly. Package corrections append signed semantic ledger entries with reason and timestamp; original package declaration stays unchanged.
+نسخه، رخداد، قصد یادآور/مالی، دفتر و ممیزی JSON یکتای نسخه‌دار در یک تراکنش‌اند. ممیزی در فراداده از طریق این فرمان الحاقی است؛ حفاظت تغییرناپذیریِ سطح پایگاه برای این کلیدها ندارد. اثرانگشت محافظه‌کارانهٔ جدول‌ها ممکن است با تغییر نامرتبط نیز پیش‌نمایش تازه بخواهد. تولید رخداد فقط نسخهٔ تازه را می‌پذیرد. تحویل پس از ثبت تراکنش و خطای بازخوانی/تحویل از برگشت تراکنش جداست.
 
-Durability: one atomic transaction for version, occurrence changes, reminder intent and correction audit; cold reopen and personal SQLite backup preserve logical state. Details and root refresh propagate to Today, Calendar and credit/reminder consumers. Platform reminder delivery is separate from domain commit and reported as pending on failure.
+طرح پایگاه داده ۱۸ و وابستگی‌ها تغییر نکردند؛ `Adjustment` منفی، سازگاری معنایی خوانندهٔ قدیمیِ محدود به مثبت را ثابت نمی‌کند. بازگشایی و پشتیبان رمز‌شدهٔ خوانندهٔ جاری بررسی شده‌اند، نه تنزل امن.
 
-Evidence required: production before/after consumption increases/decreases, protected-history rejection, stale preview, rollback, cold reopen, backup/schema compatibility and actual Details cancellation/error/confirmation journey. No native-device or independent release sign-off is implied by Flutter tests.
+شاهد تاریخی: شش تست تازه افزایش/کاهش مستقل قبل/بعد مصرف، محافظت دستی، کهنه، برگشت تراکنش ممیزی، فایل/بازگشایی/خواندن تاریخچه، پشتیبان و مسیر واقعی جزئیات را پوشش دادند. مجموعهٔ گسترده ۵۴۲ تست؛ پس از محدودیت نهایی نسخه/عنوان آزمایشی، شش تست و تحلیل/قالب/اختلاف دوباره موفق شدند؛ مجموعهٔ گسترده آن‌بار تکرار نشد.
 
-## Status
-
-**Implemented bounded slice; acceptance remains Partial, not release-ready.** Details exposes an explicitly experimental correction form. No permanent deletion or automatic financial/consumption reversal was added. Unsaved creation stays on its existing draft path rather than being treated as a persisted correction.
-
-## Implementation decisions
-
-- Count corrections support fixed-count schedules only, retain the original recurrence/calendar/time anchor, create a new version effective tomorrow, and preserve occupied historical/manual slots. A second count correction sharing that effective boundary is rejected. Limits are 1–1000 logical occurrences; preview additions are bounded materialized additions, not a claim that the entire future series is materialized.
-- Count and credit are separate commands. Credit uses signed Adjustment entries; negative adjustments reduce granted credit, not consumed units. Existing enum indices, original package units and positive-entry semantics stay unchanged. No independent remaining-credit counter exists.
-- SQLite writer admission precedes fresh reads and preview validation. The fingerprint conservatively covers whole affected tables; unrelated changes can require a new preview. Atomic writes include schedule version, cancellations, new occurrence/reminder/financial intent, ledger adjustment and a uniquely keyed versioned JSON correction audit. Correction materialization is restricted to the new schedule version.
-- Audit records use the existing schema metadata backup surface and are append-only through this command. There are no database-level immutable guards for these metadata keys.
-- Schema remains v18: no table/column migration or dependency was introduced. Current-reader cold reopen and encrypted backup restore are covered. Negative Adjustment is a semantic extension: older binaries that enforce positive units cannot safely read these entries. Downgrade/older-reader compatibility is NOT established and must not be advertised. A reviewed application compatibility/version policy remains a release gate.
-- Details reads persisted correction history with reason, Jalali date and before/after values. Input is retained on preview cancellation and validation/confirmation error. Reminder platform delivery runs after domain commit; subsequent failure is pending delivery/refresh, not a rollback claim.
-
-## Verification evidence (2026-10-11)
-
-- Six new tests pass: independent count/credit increases and decreases before/after consumption; incompatible decrease and manual-history rejection; stale preview; atomic rollback after injected final-audit failure; file-based cold reopen including the public history reader; encrypted production SQLite backup restore; actual Details page preview cancellation, retained error input and credit confirmation/refresh callback.
-- Broader unit, repository, scenario and widget regression run: **542 tests passed**. After the final schedule-version restriction and experimental subtitle change, the six correction tests passed again; static analysis reported **no issues**, formatting required no further changes and the whitespace diff check passed. The broad suite was not repeated after those final changes.
-- Existing migration regressions were included in the broad repository suite; no dedicated older-version fixture containing corrections exists because older versions could not create them. This is not evidence of old-reader semantic compatibility.
-
-## Open acceptance gates and exposure decision
-
-Owner for software gaps: commitment-correction implementer; owner for independent acceptance and native evidence: release reviewer/device tester. Experimental development exposure only; production release blocked until these gates are resolved:
-
-1. Add independent separate-connection writer contention evidence; stale-preview and rollback tests alone do not prove contention behavior.
-2. Add explicit payment/Actual/replacement and delivered/snoozed-reminder preservation counterexamples, and correction journeys proving refreshed Today, Calendar and credit consumers through the root route (the current Details test proves the callback, not all consumers).
-3. Review signed-adjustment application/backup compatibility and define a tested older-binary rejection/version contract before distribution.
-4. Verify narrow RTL screens, large text, Light/Dark and correction-history browsing; add navigation-away dirty-input handling if acceptance requires retaining unsaved corrections after leaving Details.
-5. Independently verify native reminder cancellation/rebuild and isolated restore. No device or independent sign-off was performed.
-
-The full independent correction mission must not be described as complete merely because this bounded slice and regression suite pass.
+**دامنهٔ محدود پیاده و پذیرش جزئی است.** مسئول نرم‌افزار باید رقابت اتصال جدا، مثال نقض پرداخت/نتیجه/جایگزین/تحویل/تعویق، بازخوانی ریشهٔ امروز/تقویم/اعتبار و سیاست نسخهٔ قدیمی را بررسی کند. QA/بازبین مستقل باید عرض باریک/متن بزرگ/دو تم/تاریخچه، خروج با پیش‌نویس، لغو اعلان و بازگردانی پشتیبان جدا را بپذیرد. عرضه آزمایشی است و انتشار تا این شواهد مسدود می‌ماند.

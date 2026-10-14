@@ -1,24 +1,21 @@
-# ADR 0007: Commitment use cases and repositories
+# تصمیم معماری ۰۰۰۷: فرمان‌ها و مخزن‌های تعهد
 
-- Status: Accepted
-- Date: 2026-09-20
+وضعیت: پذیرفته‌شده؛ تاریخ مبنا: ۲۰۲۶-۰۹-۲۰؛ تکمیل واگرد: ۲۰۲۶-۱۰-۱۴.
 
-## Decision
+قرارداد مخزن در لایهٔ کاربرد و مستقل از ذخیره‌سازی است. رابط و آداپتور فرمان کاربرد را صدا می‌زنند، نه جدول را. فرمان ساخت، توقف، ادامه و بایگانی جداست. پیاده‌سازی حافظه‌ای برای تست است؛ مسیر تولیدی فعلی Drift است. فرمان، وضعیت تازه را می‌خواند و گذار دامنه را با حفظ سابقه ثبت می‌کند.
 
-Repository interfaces live in application-facing code. UI and future adapters invoke use cases rather than mutating persistence tables. Commitment lifecycle commands are separate use cases: create, pause, resume, and archive.
+## تکمیل مصوب واگرد
 
-The repository contract is asynchronous and persistence-agnostic. The initial in-memory implementation exists for domain/application tests only; Drift persistence is added in P07. Each use case reads the current aggregate, applies a domain transition, and saves the new value, preserving the no-silent-mutation rule.
+واگرد فرمان تأییدشده با پذیرش نویسندهٔ پایدار است، نه تصویر داده ویجت یا پشتهٔ حافظه‌ای. توکن مبهم، عملیات را مشخص می‌کند. نویسندهٔ SQLite پیش از خواندن حالت جاری پذیرفته می‌شود و تغییر را همراه رخداد ممیزیِ نسخه‌دار و الحاقی ثبت می‌کند. رخداد `undo_event_v1` و سرِ هر مالک `undo_head_v1` در `schema_metadata` هستند و پشتیبان شخصی آن‌ها را حفظ می‌کند. جدول، نسخهٔ طرحواره یا بستهٔ تازه لازم نیست. فقط آخرین عملیات واجد شرایط بازگردانی می‌شود؛ واگرد خودش ممیزی دارد و پشتهٔ چندمرحله‌ای یا بازانجام ایجاد نمی‌کند.
 
-## User-approved Undo extension — 2026-10-14
+واگرد وضعیت تعهد، وضعیت ثبت‌شدهٔ قبلی را بدون تغییر اطلاعات، پول یا اعتبار برمی‌گرداند. بازگردانی بایگانیِ فاقد سابقه فقط با توضیح به فعال است؛ سابقهٔ مفقود ساخته نمی‌شود. مسیر تاریخچه دسترسی بعد از پایان پیام موقت را حفظ می‌کند.
 
-Undo is a confirmed application command with durable admission, not a widget snapshot or a global in-memory stack. Domain-facing repository contracts expose opaque operation tokens. SQLite writers acquire admission before reading current state and commit the mutation with an append-only versioned audit event. `undo_event_v1` records live in the established personal `schema_metadata` extension store; per-owner `undo_head_v1` keys identify the latest operation. No table/schema version change or new package is needed. Personal SQLite backup preserves events and heads. Only the latest eligible operation can be undone; Undo itself is audited and does not imply Redo or a multi-operation stack.
+برگشت مالی از شمارش نوع‌دار پایدار `reversal` و مبلغ صحیحِ دقیقاً منفی اثر علامت‌دار اصل استفاده می‌کند. پذیرش تازه، برگشت تکراری را رد می‌کند؛ ابطال انتقال هر دو سمت و کارمزد را اتمیک و با توضیح صریح خنثی می‌کند. جبران قدیمیِ بدطبقه‌بندی‌شده خودکار اصلاح نمی‌شود؛ مرجع جبران شناخته‌شده مانع ابطال دوباره است. قطع/اصلاح ارتباط، تخصیص اصل را حفظ می‌کند و پول را برنمی‌گرداند.
 
-Commitment lifecycle Undo restores the recorded preceding status without changing metadata, financial or entitlement history. Archive restoration uses its recorded preceding status; old archives without that history retain the explicitly disclosed active-state restoration path. Earlier missing events are not synthesized. A dedicated history entry route keeps resolved/archived commitments reachable after snackbars expire.
+بازگشایی نتیجهٔ حل‌شده یا جزئی صریح است، نتیجهٔ قبلی و مرجع آخرین نتیجه در ممیزی می‌مانند. شمار الحاق نتایج، تصویر داده قدیمی و ABA را رد می‌کند و خوانندهٔ تولیدی جزئیات/تقویم این بازبینی را حمل می‌کند. بازگشایی پول یا اعتبار مصرف‌شده را تغییر نمی‌دهد.
 
-Financial reversal uses the existing stable `reversal` enum with integer amount equal to minus the original signed ledger effect. Admission prevents repeated reversal and checks the complete fresh transfer group; cancellation reverses both transfer legs and recorded fees in one transaction, with explicit UI disclosure. Previously misclassified legacy compensations are not silently rewritten. Known legacy compensation references prevent further cancellation pending explicit recovery. Real match removal/correction preserves original allocations and does not reverse money.
+ویرایش تاریخ/ساعت شاهد قبل/بعد دارد. واگرد، توکن و تصویر داده منسجم را بررسی و اثر گذشته، تغییرکرده یا محافظت‌شده را رد می‌کند؛ هویت رخداد و همهٔ تعریف‌ها می‌مانند و بازگردانی مجموعه نسخهٔ رو‌به‌جلو می‌سازد. تولید رخداد یا تغییر مرتبط جدید می‌تواند واگرد را محافظه‌کارانه نامعتبر کند.
 
-Actual reopening is explicit for resolved and partial results, retains prior results and records the referenced latest Actual in audit. Append-count revisions reject stale/ABA occurrence snapshots; every production Details/Calendar reader carries that revision. Reopening changes no consumed entitlement or money. Durable reminder reopening intent distinguishes interrupted reopening from independent explicit reminder cancellation.
+اصلاح‌های بعدی: قصد همهٔ یادآورها و مصرف نشانگر بازگشایی پیش از تحویل پلتفرم اتمیک‌اند؛ لغو بعدی حفظ می‌شود و مالک/دورهٔ غیرفعال اعلان نمی‌گیرد. تخصیص پرداخت برگشت‌خورده از تسویه و امروز کنار گذاشته می‌شود، بدون حذف ارتباط. [شواهد و محدودیت‌ها](../SCHEDULE_ACTUAL_VERIFICATION.md)
 
-Date/time schedule edits record complete intermediate before/after evidence. Undo validates the latest token and a coherent snapshot, refuses past/changed/protected effects, retains identities and creates a forward schedule version for series restoration rather than erasing definitions. Dependent reminder intent commits before platform delivery. New materialization or other relevant changes may conservatively invalidate Undo; unrestricted recovery of such history is outside this slice.
-
-Older binaries can read the unchanged schema but do not implement these semantic safeguards. Downgrade and concurrent older writers are not supported by this decision; no older-reader/writer release acceptance is claimed. Native reminder delivery and independent acceptance remain separate gates in [verification](../SCHEDULE_ACTUAL_VERIFICATION.md).
+نسخهٔ قدیمی ممکن است طرحواره را بخواند، اما این تضمین‌ها را اجرا نمی‌کند؛ نویسندهٔ قدیمیِ هم‌زمان و تنزل نسخه پذیرفته نیستند. تحویل بومی و پذیرش مستقل هنوز موانع جداگانه‌اند.

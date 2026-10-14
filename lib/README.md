@@ -1,9 +1,12 @@
-# Application structure
+# ساختار برنامه
 
-This directory follows the feature-first layering defined in `AGENTS.md`.
+ساختار قابلیت‌محور و لایه‌ای مخزن:
 
-- `core/`: shared domain primitives and infrastructure contracts.
-- `features/`: feature-owned domain, application, data, and presentation code.
-- `app/`: composition root and application wiring.
+- `core/`: انواع پایهٔ دامنه، زیرساخت مشترک و قراردادهای عمومی.
+- `features/`: کد دامنه، کاربرد، داده و نمایش هر قابلیت.
+- `app/`: ترکیب وابستگی‌ها و اتصال مسیرهای برنامه.
+- `l10n/`: متن فارسی و خروجی تولیدشده؛ [راهنمای ویرایش](l10n/README.md).
 
-Dependencies must flow from presentation to application to domain. Data and infrastructure implementations depend on domain/application contracts, never the reverse.
+وابستگی از نمایش به کاربرد و سپس دامنه است. داده و زیرساخت به قراردادهای دامنه/کاربرد وابسته‌اند؛ دامنه به Flutter، Drift یا API پلتفرم وابسته نمی‌شود. ویجت نباید جدول پایگاه داده را مستقیماً تغییر دهد.
+
+مسیر تولیدی از مخزن‌های Drift استفاده می‌کند. مخزن حافظه‌ای برای تست، نمونه و پیش‌نمایش است، نه مرجع دادهٔ ماندگار. [قواعد معماری](../docs/ARCHITECTURE_AND_DOMAIN_RULES.md) و [قرارداد عامل](../AGENTS.md)

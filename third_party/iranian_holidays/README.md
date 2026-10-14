@@ -1,24 +1,23 @@
-# Iranian holiday source snapshots
+# منابع دادهٔ تعطیلات ایران
 
-The upstream events and month-start snapshots are CC0-1.0; their dedication is in [LICENSE](LICENSE). This does not claim a CC0 license for time.ir.
-No converter implementation or GPL source code is copied.
+نسخه‌های ثابت مناسبت و آغاز ماه از پروژه‌های بالادستی CC0-1.0 هستند؛ متن واگذاری در [LICENSE](LICENSE) است. این مجوز به time.ir تعمیم داده نمی‌شود. پیاده‌سازی تبدیل یا کد GPL کپی نشده است.
 
-## Provenance
+## منشأ
 
-- Events: https://github.com/persian-calendar/events at commit `3bfbcc5b667765691784b55b58d8a385217d96d9`, events.json. The local [events.json](events.json) contains only Iranian public holidays (10 Persian fixed event rows and 18 Hijri event rows), preserving upstream metadata. This community-maintained transcription cites University of Tehran annual calendars; it is not itself an official authority.
-- Month starts: https://github.com/roozbehp/qamari at commit `575d275ef169c0a18012506d473ba1008a1c10d0`, sources/calendar-center.txt. The local [month_starts.json](month_starts.json) is a lossless projection of the Gregorian month-start dates for Hijri 1442/1 through 1447/10. That source records calendar-center published annual calendars. The consolidated/observed table is deliberately NOT used: observed moon sightings can differ from previously published calendars.
-- Upstream events COPYING and qamari LICENSE are both CC0.
+- مناسبت‌ها: [persian-calendar/events](https://github.com/persian-calendar/events)، ثبت `3bfbcc5b667765691784b55b58d8a385217d96d9`، فایل `events.json`. [نسخهٔ محلی](events.json) فقط تعطیلات عمومی ایران، ده مناسبت ثابت فارسی و هجده قمری، را با فرادادهٔ اصلی نگه می‌دارد. این رونویسی جامعه‌محور به تقویم سالانهٔ دانشگاه تهران ارجاع دارد و خودش مرجع رسمی نیست.
+- آغاز ماه: [roozbehp/qamari](https://github.com/roozbehp/qamari)، ثبت `575d275ef169c0a18012506d473ba1008a1c10d0`، فایل `sources/calendar-center.txt`. [نسخهٔ محلی](month_starts.json) تصویر بدون اتلاف تاریخ میلادی آغاز ماه قمری۱۴۴۲/۱ تا۱۴۴۷/۱۰ از تقویم‌های منتشرشدهٔ مرکز تقویم است. جدول تجمیعی/رؤیت‌شده استفاده نمی‌شود؛ رؤیت ماه می‌تواند با تقویم از پیش منتشرشده فرق کند.
+- فایل COPYING مناسبت‌ها و LICENSE پروژهٔ qamari هر دو CC0 هستند.
 
-## Coverage and refresh
+## پوشش و به‌روزرسانی
 
-Provider version: iran-1400-1405-v2. Complete public lookup covers Jalali 1400–1405, inclusive. Extra source rows outside that interval are not exposed as complete annual coverage. Fixed current rules are exposed from 1400 onward; future variable holidays are unknown, not predicted. No historical claims are made before 1400.
+نسخهٔ ارائه‌دهنده `iran-1400-1405-v2`، پوشش کامل جلالی۱۴۰۰ تا۱۴۰۵ دارد. ردیف اضافی منبع خارج این بازه پوشش سالانهٔ کامل محسوب نمی‌شود. قواعد ثابت جاری از۱۴۰۰ به بعد نشان داده می‌شوند؛ تعطیلی متغیر آینده نامعلوم است و پیش‌بینی نمی‌شود. قبل از۱۴۰۰ ادعای تاریخی نداریم.
 
-### Published 1405 calendar facts
+### دادهٔ منتشرشدهٔ۱۴۰۵
 
-[time_ir_1405.json](time_ir_1405.json) records minimal date facts retrieved from https://www.time.ir/ on 2026-10-06, using the site's public monthly calendar action. Each of the twelve monthly responses includes its underlying public source URL and SHA-256 of the received response. All 365 enabled days were checked, and official day markers exactly matched official event dates. The snapshot has ten fixed and nineteen lunar date records (including two Eid cycles). Existing CC0 event titles are reused; the combined Prophet/Imam Sadiq birthday expands into two existing reasons.
+[time_ir_1405.json](time_ir_1405.json) فقط نگاشت واقعی حداقلی تاریخ را از [time.ir](https://www.time.ir/) در۲۰۲۶-۱۰-۰۶، با عمل عمومی تقویم ماهانه، ثبت می‌کند. هر دوازده پاسخ، نشانی منبع و SHA-256 پاسخ را دارد؛ همهٔ۳۶۵روز بررسی و نشان رسمی روز دقیقاً با تاریخ مناسبت رسمی برابر بود. ده رکورد ثابت و نوزده قمری، شامل دو چرخهٔ عید، ثبت‌اند. عنوان‌های موجود CC0 استفاده و تولد مشترک پیامبر/امام صادق به دو دلیل موجود گسترش می‌یابد.
 
-This is a secondary published-calendar source, not a directly retrieved official PDF or observed-moon prediction. The previously inaccessible official PDF is not claimed as independently verified. No time.ir JavaScript, HTML, artwork, descriptions, editorial titles or database dump is redistributed; only the minimal factual date mapping and provenance are retained. The CC0 notice applies only to the original upstream snapshots, not the website or its content. StarCalendar/AGPL implementation and datasets were not imported.
+این منبع ثانویهٔ تقویم منتشرشده است؛ PDF رسمی مستقیماً دریافت/مستقلاً تأیید نشده و پیش‌بینی رؤیت ماه نیست. JavaScript، HTML، تصویر، شرح/عنوان تحریری یا پایگاه کامل time.ir بازتوزیع نشده؛ فقط نگاشت حداقلی تاریخ و منشأ حفظ شده‌اند. مجوز CC0 فقط منابع اصلی بالا را پوشش می‌دهد. پیاده‌سازی یا دادهٔ StarCalendar/AGPL وارد نشده است.
 
-Refresh requires explicit review of a published source, a pinned source revision, updated snapshots/coverage/version and regression tests. Generate using [the offline generator](../../tool/generate_iranian_holidays.py), then apply the repository Dart formatter to [the generated data](../../lib/features/calendar/domain/iranian_holiday_data.dart). Running both steps must reproduce that file without differences. Neither generation nor normal application use needs a network connection.
+به‌روزرسانی به بازبینی صریح منبع منتشرشده، نسخهٔ ثابت، اصلاح داده/پوشش/نسخه و آزمون بازگشت نقص نیاز دارد. [مولد آفلاین](../../tool/generate_iranian_holidays.py) و سپس قالب‌دهندهٔ Dart را روی [دادهٔ تولیدی](../../lib/features/calendar/domain/iranian_holiday_data.dart) اجرا کنید؛ هر دو گام باید فایل را بدون اختلاف بازتولید کنند. تولید و استفادهٔ عادی برنامه اینترنت نمی‌خواهند.
 
-The last day of Safar is computed from adjacent published month starts, not hard-coded to day 30. Special/temporary closures are not inferred from recurring holidays; there are no real special closures bundled in this revision.
+آخر صفر از آغاز ماه‌های منتشرشدهٔ مجاور محاسبه می‌شود؛ روز۳۰ ثابت نیست. تعطیلی موقت/ویژه از تکرار رسمی استنباط نمی‌شود و این نسخه مجموعهٔ واقعی تعطیلی ویژه ندارد.

@@ -1,29 +1,15 @@
-# Finance last-row accessibility
+# دسترسی به آخرین ردیف مالی
 
-## Acceptance contract — 2026-10-11
+قرارداد ۲۰۲۶-۱۰-۱۱: از مالیِ پوستهٔ واقعی، فهرست کوتاه/بلندِ فیلترشده باید آخرین کارت و هدف عملیات حداقل ۴۸dp را کاملاً بدون پوشش کنترل افزودن/ناوبری نمایش دهد و لمس واقعی منو را باز کند. شبکه یا مجوز لازم نیست.
 
-Entry: root navigation → مالی, with locally recorded transactions; no permission or connectivity prerequisite. Short and long filtered lists must allow scrolling the entire final transaction row and its standard ≥48dp operations target into an unobscured viewport and opening that menu by an actual pointer tap. Narrow widths, increased text scale, RTL, Light/Dark and simulated system insets are required widget evidence.
+دکمهٔ افزودن مالی در ردیف متناسب با محتوا بالای NavigationBar قرار گرفت تا Scaffold هندسهٔ واقعی را از بدنه کم کند؛ جای دکمه در تب‌های دیگر حفظ شد. حاشیهٔ اشغال‌شده ثابت یا تخمین اندازهٔ دکمهٔ شناور اضافه نشد. مبلغ/جزئیات عرض کامل زیر جهت/منو، فیلتر فهرست انتخاب تمام‌عرض و عنوان حساب شکسته‌اند؛ قلم یا هدف کوچک نشده است. فرمان، فیلتر، ذخیره، تأیید، تلاش مجدد و پشتیبان تغییر نکردند.
 
-Trace: navigation selects Finance → Finance refresh reads repository entries → existing domain filtering/sorting → list renders → operations menu invokes existing confirmation/relationship/tag commands → existing durable writes and refresh callbacks. Quick Add continues to invoke the existing shell quick-add sheet. No application command, domain rule, persistence, cancellation, retry, Undo, filter or loading semantics change.
+شاهد تاریخی: ۵۱ تست متمرکز، شامل ۲۴ حالت پوستهٔ واقعی با عرض ۳۲۰/۳۶۰/۴۳۰، ارتفاع ۹۰۰، متن ۱/۲برابر، روشن/تیره، راست‌به‌چپ، حاشیهٔ اشغال‌شده بالا ۲۴/پایین ۳۴ و ۱/۴۰ تراکنش. تست به انتهای واقعی می‌رود، کران کارت/منو را می‌سنجد، منو و تأیید ابطال را باز و بدون نوشتن لغو، افزودن را باز/بسته و شمار داده را حفظ می‌کند. تحلیل، قالب و اختلاف موفق بودند.
 
-Implementation plan: remove the Finance-only overlap structurally. Compose its existing Quick Add button in a content-sized trailing action row above the existing NavigationBar, so Scaffold excludes the actual combined navigation/action geometry from the body. Keep the floating placement on other tabs. Keep safe-area ownership in NavigationBar/root SafeArea; do not duplicate a fixed system inset or estimate FAB height. No dragging, saved position, new theme values, dependencies, schema/migration or backup impact.
+تست منفرد مالی قبلی هندسهٔ پوسته را نداشت؛ پیدا شدن ویجت اثبات دریافت لمس نبود. در اجرای تاریخی، حالت متن بزرگ امروز نیز ایراد جدا نشان داد؛ این سند اصلاح مالی است و پذیرش سراسری دسترس‌پذیری ادعا نمی‌کند. نگهدارندهٔ نمایش امروز باید وضعیت فعلی آن مسیر را جدا بررسی کند.
 
-Coverage: Finance viewport and root Finance action/navigation composition **Migrated**. Transaction cards now give amount/details the full text width below the direction/menu header; filters use bounded full-width dropdowns with content-driven menu heights, and the accounts heading wraps within its remaining width. These are scoped large-text prerequisites, not smaller fonts or targets. Other tabs' action placement, forms, menu commands, Finance data and shared theme **Intentionally Unchanged** because this is a Finance layout defect, not a global design-system change.
+صفحه‌خوان، ژست/ناوبری سیستمی، همهٔ طول یادداشت/ارتفاع گوشی و پذیرش مستقل هنوز روی دستگاه لازم‌اند. مسئول انتشار/دسترس‌پذیری باید روی نامزد دقیق با TalkBack و متن بزرگ بررسی کند؛ شبیه‌سازی حاشیهٔ اشغال‌شده شاهد بومی نیست.
 
-## Defect and evidence
+## مراجع کد و شواهد
 
-The shell's floating Quick Add button overlays the nested Finance Scaffold; its list's fixed 16dp padding does not reserve the floating control. Existing isolated Finance tests omit this shell geometry, and finding a menu does not prove that it receives a tap. Regression tests must exercise the actual HomeShell, scroll to the end, assert full row/menu bounds clear of the add/navigation regions, tap the menu and cancel its confirmation without writing. Also exercise Quick Add and filter behavior.
-
-Validation results — 2026-10-11:
-
-- Formatting of the two production files and regression test: passed.
-- Static analysis: no issues.
-- Focused widget suite: **51 passed**, including 24 shell-level layout cases and existing Finance transaction-form, tagged-creation and contextual-reconciliation coverage.
-- Layout matrix: widths 320/360/430dp, height 900dp, text scales 1/2, Light/Dark, RTL, simulated 24dp top / 34dp bottom system insets, and 1/40 transactions. Each case selects the expense filter by pointer, reaches the actual list end after layout stabilizes, checks the whole fixture card and ≥48×48dp menu target, opens the menu by pointer, opens/cancels safe-delete confirmation, opens/dismisses Quick Add, and verifies unchanged entry count. No render exceptions are accepted.
-- No domain decisions, persisted defaults, schema/migrations, dependencies, history changes or backup impact. Existing commands and refresh callbacks remain unchanged; no PRD/AGENTS semantic update is required.
-
-Evidence is bounded: this does not prove all note lengths fit simultaneously in a viewport, every phone height, platform delivery, cold-restart durability, native screen readers or app-wide large-text readiness. Initial large-text startup with unresolved financial review cards exposed an existing [Today relationship-review card trailing-width assertion](../lib/features/today/presentation/today_page.dart:243); the matrix applies increased scale after navigating to Finance and does not fix or waive that separate defect. Owner: Today presentation maintainer; next action: a separately scoped startup large-text regression/fix. Exposure: no app-wide accessibility readiness claim; review this gap before release.
-
-## Remaining acceptance gates
-
-Native device review and independent acceptance are unexecuted. Owner: release maintainer / accessibility reviewer. Next action: verify narrow-phone RTL scrolling and menu activation with gesture and three-button navigation, large system fonts, Light/Dark and TalkBack on the release candidate. Exposure: existing Finance remains available with a layout-only fix; this task does not authorize release or waive other financial/native gates. Automated inset simulation is not native system-bar or screen-reader evidence.
+- [today_page.dart](../lib/features/today/presentation/today_page.dart)

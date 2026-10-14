@@ -1,27 +1,19 @@
-# Transactional/platform consistency — Priority 5 checkpoint
+# سازگاری تراکنش و پلتفرم — اولویت ۵
 
-## Implemented boundary
+SQLite و اعلان Android تراکنش مشترک ندارند. ابتدا داده/قصد ثبت و سپس تحویل خارجی از قواعد، رخداد و نمونهٔ پایدار بازاجرایی می‌شود. شکست تحویل نباید کاربر را به ساخت تکراری یا تصور فقدان داده هدایت کند.
 
-SQLite and Android notification APIs cannot share an atomic transaction. Domain persistence commits first; external delivery is retried from durable rules, occurrences and reminder instances. No migration, dependency, platform ID backup requirement or additional mutable balance/entitlement counter is introduced.
+ساخت تعهد، دوره، برنامه، رخداد، قصد یادآور، تنظیم اختیاری بستهٔ اعتبار و انتظار مالی در تراکنش طرح ثبت می‌شوند. مسیر ساخت فعلی فقط `EntitlementPlan` را ذخیره می‌کند و ورودی `Grant` دفتر اعتبار یا سیاست مصرف تازه نمی‌سازد؛ ادعای قدیمی «اعطای اعتبار هنگام ساخت» صحیح نیست. [گزارش‌ها](REPORTS_VERIFICATION.md) نبود سابقهٔ اعطا را افشا می‌کنند و آن را خودکار نمی‌سازند.
 
-- Commitment creation already wraps commitment, cycle, schedule, occurrence, policy, entitlement grant and financial expectation writes in the production plan transaction. Reminder failures after that commit now return explicit pending-delivery feedback instead of inviting duplicate creation.
-- Reminder rule updates, stale-instance cancellation and replacement intent writes are committed together through the optional application-facing reminder transaction contract, implemented by Drift. Android cancellation/scheduling runs only after this transaction exits.
-- Startup reconciliation repairs missing instances and stale scheduled times from enabled rules and eligible durable occurrences, transactionally, before rebuilding platform state. Repeated reconciliation keeps persisted identities stable.
-- Occurrence commands distinguish a committed occurrence with pending reminder synchronization from a failed occurrence write. The currently exposed completion/restore UI updates its state and reports pending synchronization in Persian.
-- Reconciliation preserves delivered history, unchanged snooze deadlines and explicit same-time instance cancellation. It does not modify finance matches, ledger entries or entitlement consumption.
+قانون، لغو نمونهٔ کهنه و قصد جایگزین با قرارداد تراکنش Drift اتمیک‌اند؛ لغو/زمان‌بندی Android پس از خروج از آن است. شروع برنامه نمونهٔ مفقود/زمان کهنه را از قانون فعال و رخداد واجد شرایط ترمیم می‌کند و هویت را ثابت نگه می‌دارد. تکمیل/بازگشایی رابط، ثبت موفق با همگام‌سازی معلق را فارسی نشان می‌دهند.
 
-## Evidence
+تعویق، تحویل و لغو صریح حفظ و پول، ارتباط و اعتبار تغییر نمی‌کنند. CommandGate فقط پذیرش/بازنشستگی حوزهٔ پشتیبان است، نه قفل همهٔ فرمان‌ها.
 
-`test/repository/reminder_interruption_recovery_test.dart` covers file-backed close/reopen with missing intent, stale intent after rescheduling, scheduling failure during committed creation, replacement intent persisted before Android cancellation failure, committed completion with failed cancellation, idempotent repeated recovery and preservation of snooze/delivery/cancellation history.
+شاهد `reminder_interruption_recovery_test.dart`: بازگشایی فایل، قصد مفقود/کهنه، شکست تحویل ساخت، ثبت تراکنش پیش از شکست لغو، تکمیلِ ثبت‌شده با لغو معلق، تکرارِ بی‌اثر و حفظ سابقه. شواهد تاریخی این مرحله ۲۷۶ تست و تحلیل موفق بود.
 
-Existing creation rollback and reminder retry tests remain regression coverage. Existing finance transfer/correction, inbox atomic confirmation and match correction adapters retain their SQLite transactional boundaries; this checkpoint does not claim a new app-wide command serialization contract. The command gate protects backup retirement/admission, not mutual exclusion of every command.
+ابهام نرم‌افزاریِ بازگشایی هم‌زمان و لغو بعدی، بعداً با نشانگر پایدار و ثبت اتمیک همهٔ قواعد در [اصلاح واگرد](SCHEDULE_ACTUAL_VERIFICATION.md) پوشش محدود گرفت؛ عبارت قدیمی «این ابهام هنوز حل نشده» وضعیت امروز نیست.
 
-## Remaining gates / limitations
+## موانع باقی‌مانده
 
-- Simulated exceptions and SQLite reopen tests are not native process-kill, reboot, alarm-delivery or device permission evidence. Complete the independent reminder device verification matrix before release.
-- A restored occurrence interrupted before same-time cancelled intent is reactivated is indistinguishable from explicit individual reminder cancellation under the current schema. Recovery deliberately preserves cancellation rather than silently resurrecting it. An explicit durable lifecycle/version intent is needed to eliminate this ambiguity.
-- Generic platform failure can stop reconciliation before later platform cleanup; durable intent remains available for the next retry. No background worker or automatic infinite retry is added.
-- Postcommit pending outcomes include failures in the reminder synchronization phase, including reminder persistence failures; they do not imply that notification scheduling succeeded. Original domain state remains committed and durable rules remain the recovery source.
-- Cross-command races, comprehensive failure injection for every financial/session command, and occurrence actual/undo history are not completed by this checkpoint. Priorities 6 and 7 remain separate.
+وقفهٔ واقعی پردازش، راه‌اندازی دوبارهٔ دستگاه، تحویل هشدار و مجوز دستگاه مستقل‌اند. شکست عمومی ممکن است پاک‌سازی موارد بعدی را متوقف کند؛ قصد برای تلاش مجدد بعدی می‌ماند و اجراکننده یا تلاش مجدد بی‌نهایت اضافه نشده است. «معلق» می‌تواند شکست ثبت یادآور پس از ثبت تراکنش دامنه را هم شامل شود و موفقیت تحویل را اثبات نمی‌کند. رقابت عمومی بین همهٔ فرمان‌ها و تزریق شکست جامع مالی/جلسه هنوز این شاهد را ندارند.
 
-Presentation coverage is limited to existing Quick Capture/Quick Add committed-creation feedback and occurrence completion/restore feedback. Shared tokens, layout, typography and Light/Dark styling are intentionally unchanged; no app-wide visual redesign is claimed.
+تغییر نمایش فقط بازخورد ساخت/نتیجه بود، نه رنگ، قلم یا طراحی سراسری. طرح پایگاه داده، وابستگی، پشتیبان شناسهٔ بومی یا شمارندهٔ موازی اضافه نشد. نگهدارندهٔ Android/انتشار باید ماتریس [یادآور](REMINDER_VERIFICATION.md) را مستقل تکمیل کند.

@@ -1,20 +1,9 @@
-# Iranian bank artwork
+# تصاویر بانک‌های ایران
 
-Source: user-provided `D:/repos/IranianBankLogos/resources/images`, 2026-10-13.
-Earlier sprite crops were replaced: guessed identities were incorrect and fixed
-cropping removed lower artwork.
+منبع، پوشهٔ محلی `D:/repos/IranianBankLogos/resources/images` ارسالی کاربر در ۲۰۲۶-۱۰-۱۳ است. برش‌های قبلی جایگزین شدند؛ حدس هویت و برش ثابت، برخی نشان‌ها و نوشتهٔ پایین را نادرست یا ناقص می‌کرد.
 
-33 complete 300x300 color PNGs, losslessly compressed (641,355 bytes total).
-All original RGB pixels, bottom captions, proportions and white fields remain.
-No cropping or resizing. White artwork fields preserve Light/Dark readability.
+۳۳ PNG رنگی کامل ۳۰۰×۳۰۰، با فشرده‌سازی بدون اتلاف و حجم مجموع ۶۴۱٬۳۵۵ بایت همراه برنامه‌اند. تمام پیکسل‌های RGB، نوشتهٔ پایین، تناسب و زمینهٔ سفید حفظ شده؛ برش یا تغییر اندازه انجام نشده است. زمینهٔ سفید خوانایی نشان در تم روشن/تیره را حفظ می‌کند.
 
-`manifest.json` records source filenames and shipped SHA-256 hashes.
-Mapping was visually checked against a gallery of named full source files.
-Refah=rb, Karafarin=kar, Post Bank=post, Hekmat=hi, Export Development=edbi,
-Middle East=me, Industry & Mine=bim, Iran-Venezuela=ivbb, Resalat=resalat,
-Melal=melal. rb2 is alternate legacy Refah; accounts use rb. There is no Mehr
-Eqtesad source file. 20 files map to existing bank codes; others are assets only.
+`manifest.json` نام فایل منبع و SHA-256 خروجی را ثبت می‌کند. نگاشت پس از بازبینی گالری کامل نام‌دار انجام شد: رفاه=`rb`، کارآفرین=`kar`، پست‌بانک=`post`، حکمت=`hi`، توسعهٔ صادرات=`edbi`، خاورمیانه=`me`، صنعت‌ومعدن=`bim`، ایران‌ونزوئلا=`ivbb`، رسالت=`resalat` و ملل=`melal`. `rb2` نشان جایگزین قدیمی رفاه است؛ حساب از `rb` استفاده می‌کند. فایل منبع مهر اقتصاد موجود نیست. ۲۰ فایل به کدهای انتخابی بانک نگاشت و بقیه فقط دارایی‌اند.
 
-Import verified every shipped RGB pixel equals the corresponding source pixel.
-Tests protect reviewed mapping, shipped hashes and supported image decoding.
-No bank choices, saved codes, financial data or dependencies were changed.
+هنگام ورود، هر پیکسل خروجی با فایل متناظر منبع برابر بود؛ آزمون‌ها نگاشت بازبینی‌شده، هش خروجی و رمزگشایی تصویر را محافظت می‌کنند. انتخاب بانک، کد ذخیره‌شده، دادهٔ مالی و وابستگی عوض نشده‌اند. این برابری، مجوز حقوقی یا پذیرش مستقل ظاهر دستگاه نیست؛ حدود پذیرش در [ارزیابی حساب و برند](../../docs/ACCOUNT_BRAND_VERIFICATION.md) ثبت شده‌اند.

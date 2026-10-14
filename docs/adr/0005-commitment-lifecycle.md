@@ -1,17 +1,11 @@
-# ADR 0005: Commitment lifecycle
+# تصمیم معماری ۰۰۰۵: چرخهٔ وضعیت تعهد
 
-- Status: Accepted
-- Date: 2026-09-20
+وضعیت: پذیرفته‌شده؛ تاریخ مبنا: ۲۰۲۶-۰۹-۲۰.
 
-## Decision
+تعهد مفهوم پایدار کاربر است و وضعیت آن مستقل از وضعیت رخداد و پایان دوره است. تصمیم اولیه فعال/متوقف/بایگانی و گذار فعال ↔ متوقف و فعال/متوقف → بایگانی را تعریف کرد.
 
-`Commitment` is the stable user concept and has the lifecycle `Active | Paused | Archived`. Its lifecycle is separate from occurrence status and cycle completion.
+## تکمیل مصوب و رفتار جاری
 
-Valid transitions are:
+دامنهٔ فعلی وضعیت انجام‌شده و لغوشده را نیز دارد: تکمیل فقط از فعال، لغو از فعال یا متوقف و بایگانی از هر وضعیت غیر‌بایگانی ممکن است. ادامه فقط برای متوقف است؛ تعهد بایگانی‌شده با فرمان بازگردانی جدا بازیابی می‌شود. بایگانی دوباره نامعتبر است.
 
-- Active → Paused
-- Paused → Active
-- Active → Archived
-- Paused → Archived
-
-Archived commitments are historical and cannot be resumed or archived again. Domain transitions return a new immutable value and reject invalid transitions with a domain validation error.
+[تکمیل واگرد در تصمیم ۰۰۰۷](0007-commitment-use-cases-and-repositories.md) وضعیت ثبت‌شدهٔ قبل از بایگانی را بازمی‌گرداند؛ دادهٔ قدیمی بدون سابقه با توضیح صریح به فعال بازمی‌گردد. این رفتار جای ممنوعیت تاریخیِ بازگردانی را گرفته است. گذار دامنه مقدار جدید می‌سازد و گذار نامعتبر خطای اعتبارسنجی می‌دهد؛ تاریخچه حذف نمی‌شود.

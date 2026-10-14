@@ -1,37 +1,11 @@
-# ADR 0020: Localization resources and compatibility boundaries
+# تصمیم معماری ۰۰۲۰: منابع ترجمه و مرز سازگاری
 
-Date: 2026-10-14
-Status: Accepted for Persian-only localization foundation requested by the user.
+تاریخ: ۲۰۲۶-۱۰-۱۴؛ وضعیت: پذیرفته‌شده برای زیرساخت فقط فارسی.
 
-## Decision
+از `gen-l10n` داخلی Flutter، ARB فارسی در `lib/l10n`، `AppLocalizations` تولیدشده و منابع چارچوب استفاده می‌شود. تنها زبان/منطقه فعال فارسی است؛ راست‌به‌چپ، جلالی و پول صحیح حفظ می‌شوند. `intl` با نسخهٔ ازقبلحل‌شدهٔ `0.20.3` مستقیم اعلام شد؛ نسخهٔ بسته یا مدیریت وضعیت تازه اضافه نشد.
 
-Use Flutter's built-in `gen-l10n`, a Persian ARB template in `lib/l10n`, generated
-typed `AppLocalizations`, and the existing framework delegates. Keep Persian as
-the only enabled locale and preserve RTL/Jalali/integer money behavior. Declare
-`intl` directly at the already resolved `0.20.3` version; no new package version
-or state-management dependency is introduced.
+دامنه API ترجمهٔ Flutter را وارد نمی‌کند. مولد کوچکِ مستقل Dart، متن دارای `x-planact-default` را به `PersianCopy` تبدیل می‌کند تا API رشته‌ای/ثابت قدیمی، متن دقیق و مصرف تاریخی/بومی حفظ شود. خروجی تولیدی منبع دستی دوم نیست و بازتولیدپذیری در بررسی مشترک کنترل می‌شود. توابع نمایشی بدون بافت همین مرز صریح را دارند؛ زبان بعدی باید ورودی ترجمه یا نگاشت نوع‌دار را از این مرز عبور دهد.
 
-Domain code cannot import Flutter localization APIs. Existing labels, validation
-and explanations have legacy string/const APIs, some consumed by durable history
-or native adapters. A small Dart-only generator derives `PersianCopy` from ARB
-entries marked `x-planact-default`, preserving those APIs and exact default text.
-This output is generated, never a second manually maintained catalog. CI checks
-its reproducibility. Context-free presentation helpers retain the same explicit
-default seam; future language activation must pass localization inputs through
-these boundaries or add typed presentation mappings.
+واژگان تجزیه، بانک/تعطیلات، یادداشت/دستهٔ ماندگار، هویت ارز و نرمال‌سازی عدد منبع ترجمه نیستند. دادهٔ کاربر و منبع بازنویسی نمی‌شود. فعال‌سازی زبان مجوز تغییر تقویم تکرار، لنگر، واحد ذخیره یا تصمیم تاریخی نیست.
 
-Parser vocabularies, bank/holiday source datasets, persisted notes/categories,
-currency identity and numeric normalization are not translation resources. Keep
-them stable and do not rewrite existing user/source data. Language activation
-does not authorize changing recurrence calendars, anchors, storage units or
-historical decisions.
-
-## Consequences
-
-Application copy is centralized and translators have template metadata and
-placeholder contracts. Existing Persian routes and non-widget APIs retain their
-behavior without a database migration or new preference. The compatibility
-companion remains Persian: this change is foundation, not multilingual readiness.
-Do not enable another language until route/direction/formatting, context-free
-projection/error/helper and native notification/authentication copy are reviewed
-and verified. See [verification](../LOCALIZATION_VERIFICATION.md).
+این تغییر بدون مهاجرت یا ترجیح زبان تازه، متن برنامه را متمرکز می‌کند؛ همراه سازگاری همچنان فارسی است. پیش از زبان دیگر، مسیر، جهت، قالب، محاسبه/خطا/تابع بدون بافت و متن بومی اعلان/احراز هویت باید بررسی شوند. [شواهد ترجمه](../LOCALIZATION_VERIFICATION.md)

@@ -1,197 +1,58 @@
-# Personal reports — acceptance contract
+# ارزیابی گزارش‌های شخصی و نمودار مالی
 
-Financial chart extension contract (2026-10-13): More → Reports, no new
-permissions, adds monthly cash comparisons, preceding equal-length period
-comparison, category expense/income shares, full-ledger daily account balance,
-financial settlement status and recurring commitment settlement trends. The same
-snapshot and filters feed charts and details; preceding period retains dimensions.
-Overdue uses occurrence due date and unpaid remainder, independent of completion.
-Donuts only represent positive shares; negative corrected category totals are
-disclosed separately. Recurring means explicitly recurring commitment, not inferred
-debt. Future previews never become payments or balance forecasts. Read/retry/filter
-and cancellation remain write-free. No schema, dependency or backup change.
-Required evidence: pure projection counterexamples, populated RTL Light/Dark at
-360dp/large text, production report route regressions and analyzer. Device volume,
-visual review and independent acceptance remain release-maintainer gates. Budgets,
-asset/debt accounting and forecast balances remain outside approved report scope.
+## قرارداد مصوب؛ ۲۰۲۶-۱۰-۱۳
 
-Extension implementation: five approved report priorities are wired in the existing
-route. Cash flow includes Jalali monthly grouped columns, a preceding equal-length
-civil-day comparison and expense/income category donuts. Accounts adds a daily
-full-ledger balance line. Settlement adds financial status amounts and counts;
-the recurring-finance selector limits outgoing expectations to explicit recurring
-commitments and compares scheduled/allocated amounts by due month. Missing months
-in the recurring line retain proportional month spacing rather than invented zero
-obligations. Partial overdue is classified overdue; resolved occurrence status
-never proves financial settlement. All-day obligations expire after their civil
-due day, while timed obligations compare their actual due time.
+مسیر بیشتر ← گزارش‌ها آفلاین و فقط‌خواندنی است و حساب یا مجوز تازه نمی‌خواهد. ده نما: مرور، عملکرد، توجه، جریان نقدی، پرداخت برنامه‌ریزی/تسویه‌شده، بسته، موضوع، آینده، جابه‌جایی و گردش حساب. تاریخ محلی/جلالی با انتهای شامل، برچسب چندگانهٔ شناسه‌پایدار با هرکدام/همه/حذف/بی‌برچسب، تعهد/چرخه، وضعیت و ابعاد مالی مرتبط فیلتر مشترک‌اند. جمع و جزئیات از یک تصویر فیلترشده می‌آیند.
 
-Scope limitations: preceding period is equal in days, not necessarily a previous
-calendar month. Income sources use existing categories, not a new source registry;
-subcategories and debt principal/interest are absent. Forecast/budget/asset-debt
-work requires product-owner decisions on missing financial templates, account
-assignment, uncertainty, budget periods and debt semantics. Next action: define
-those acceptance contracts separately; exposure: no forecast or invented debt
-balance is offered by this extension. Device populated visual/accessibility review,
-realistic-volume timing and independent acceptance remain owned by the release
-maintainer and block a release-ready claim.
+مسیر اجرا: بیشتر ← خوانندهٔ گزارش ← تصویر منسجم SQLite در تراکنش خواندن ← محاسبهٔ خالص دامنه ← بخش/نمودار/جزئیات فارسی RTL. خواندن، فیلتر، لغو و تلاش مجدد هیچ رخداد/یادآور/دفتر/نتیجه/سهمیه‌ای نمی‌نویسند. بازخوانی تصویر کامل را عوض می‌کند؛ خطا حالت خالی ساختگی نیست. بازگشت از جزئیات/عملیات گزارش را بازخوانی می‌کند. فیلتر موقتی و گزارش بازسازی‌پذیر است؛ طرح/مهاجرت/وابستگی/حافظهٔ پایدار گزارش جدید نداریم.
 
-Self-review counterexamples: end-day/all-day versus timed overdue, completed but
-unpaid occurrence, overpayment, transfers and signed ledger corrections, unrelated
-account entries, original category on reversal, separate currencies, Jalali New
-Year and empty cash months, preceding-period filter preservation, one-off expense
-exclusion and tag-filtered cash versus unfiltered account balance. New route tests
-also caught a keyless ExpansionTile sharing scroll PageStorage; each chart now has
-its own stable details key. Lazy route tests explicitly scroll targets into view.
-This implementation review is not independent release sign-off.
+## قواعد محاسبه
 
-Final extension validation (2026-10-13): formatter passed, analyzer reports no
-issues and `git diff --check` passed. New evidence includes five projection tests,
-eight populated 360dp/1.8-scale RTL Light/Dark chart checks, SQLite recurring-route
-status/exclusion checks and cash donut/period/account-line refresh assertions.
-Final focused domain/repository/chart/report-route execution: **37 passed, 0 failed**.
-The full application run finished **831 passed / 5 failed**, 4m35s. A separate
-rerun of the three failing, unmodified files finished **27 passed / 5 failed**:
-`quick_capture_sheet_test.dart` expects ungrouped Persian input where it observes
-`12,345`; both `sms_currency_review_test.dart` cases expect the earlier ambiguous
-unit warning; both actual-transfer `sms_editable_review_test.dart` cases cannot
-find a hit-testable unit selector. These failures were not repaired by this report
-extension, and baseline causality was not established by a clean checkout run.
-Owners: capture/SMS maintainers; next action: review current money formatting and
-explicit-unit presentation contracts against those journeys. Exposure: complete
-application verification is Failed, release readiness remains blocked. Device
-and independent report acceptance are still Not run; no green-suite claim.
+- عملکرد از تاریخ محلی جاری رخداد، تغییرات در صورت کاربرد از تاریخ اصلی، نقدی از تاریخ تراکنش و تسویه از تاریخ سررسید رخداد استفاده می‌کند. این نتیجهٔ جاری تاریخ‌های انتخابی است؛ وضعیت میانی تاریخی ناشناخته بازسازی نمی‌شود. نامعلوم با غیبت فرق دارد؛ بایگانی در تاریخچه می‌ماند و آینده مالک غیرفعال را حذف می‌کند.
+- تسویه تخصیص‌های تأییدشده را مستقل از تاریخ پرداخت می‌سنجد. عقب‌افتادگی از سررسید و باقی‌ماندهٔ پرداخت‌نشده مستقل از تکمیل رخداد است؛ پرداخت جزئیِ سررسیدگذشته نیز عقب‌افتاده است. تمام‌روز پس از پایان روز مدنی و زمان‌دار با زمان واقعی سررسید مقایسه می‌شود.
+- اعتبار بسته از دفتر تا پایان روز انتخابی و گردش از داخل بازه است. نبود `Grant` افشا و نمودار/باقی‌ماندهٔ قابل اتکا پنهان می‌شود؛ واحد تنظیم‌شده اعتبار قابل مصرف فرض نمی‌شود. ساخت `Grant` یا تعمیر گذشته خودکار نیست.
+- موجودی حساب از **کل دفتر** می‌آید؛ فیلتر برچسب فقط ردیف گردش را محدود می‌کند و این تفاوت در گزارش افشا می‌شود.
+- برچسب نقدی پیش‌فرض مستقیمِ ورودی است. حالت صریح تخصیص مرتبط فقط مقدار تطبیق‌خورده را به تعهد نسبت می‌دهد؛ برچسب کپی نمی‌شود و کل پرداخت مشترک به هر موضوع شمرده نمی‌شود. هویت رکورد مانع تکرار چندبرچسب است.
+- ارزها، جهت‌ها و واحد بسته جدا می‌مانند؛ ارز انتظار نامعلوم جمع ساختگی ندارد. برگشت مالی روی تاریخ برگشت و جهت/دستهٔ اصلی اثر می‌گذارد؛ انتقال/افتتاح/تعدیل درآمد یا هزینه نیستند. بررسی مستقل ارتباط از محاسبهٔ استاندارد دامنه است.
+- آینده از پیش‌نمایش فقط‌خواندنی در قطعهٔ حداکثر ۳۱روز و بازهٔ انتخابی حداکثر ۳۶۶روز می‌آید؛ برچسب پیش‌نمایش، بدون شناسه/اثر رخداد و انتظار مالی ساختگی. نقص پوشش انتظار ثبت‌شده در بازهٔ دارای پیش‌نمایش صریح اعلام می‌شود.
 
-Chart acceptance extension (2026-10-13): More → Reports presents labelled,
-accessible horizontal comparisons before detail rows: occurrence statuses,
-cash in/out/net and selected groups, planned/allocated/remaining settlement,
-ledger-backed package credit, recorded versus preview upcoming slots, attention
-counts and opening/movement/closing balances. Every chart uses the same filtered
-projection as details; currencies, directions and package units stay separate.
-Signed values use a zero baseline; empty data is not fabricated, missing Grant
-withholds the credit chart. Existing retry/refresh/navigation behavior applies.
-No writes, migration, backup change or dependency. Required evidence: populated
-RTL Light/Dark narrow/large-text charts, exact signed/zero values, filtered route
-refresh and existing report regressions. Device visual and independent acceptance
-remain release-maintainer gates, not established by widget tests.
+## نمودارها و تمدید مالی
 
-Chart path: More → Reports selection/date/filter → existing ReportsReader
-coherent snapshot → buildPersonalReport read-only projection → ReportBarChart
-and existing details. No durable write occurs. Refresh and return navigation
-rebuild both consumers together. Existing cash/settlement/ledger rules remain
-the source of values; floating point is confined to normalized drawing geometry.
+نمودارهای افقی پیش از جزئیات، وضعیت رخداد، نقدی ورودی/خروجی/خالص، گروه، برنامه/تخصیص/باقی‌مانده، اعتبار مبتنی بر دفتر، آیندهٔ ثبت/پیش‌نمایش، توجه و موجودی آغاز/گردش/پایان را نشان می‌دهند. مقدار علامت‌دار مبنای صفر مشترک دارد؛ خالی/صفر داده‌سازی نمی‌کند. نمودار و جزئیات از یک محاسبه‌اند؛ فقط هندسهٔ رسم می‌تواند ممیزشناور باشد.
 
-Chart verification checkpoint: `test/widget/report_bar_chart_test.dart` passes
-signed common-zero geometry, exact accessible labels, zero/empty data and populated
-360dp RTL Light/Dark at 1.8 text scale. Existing SQLite-backed report journeys now
-assert cash chart values before/after tag filtering and refresh (1000 → 100 → 150).
-The Details journey scrolls its target into the viewport before tapping; inserting
-the visible chart exposed an earlier test assumption about target position.
-Focused report domain/repository/widget run: **23 passed**. Final full application
-suite: **816 passed, 0 failed**, 4m31s. `flutter analyze`: no issues; Dart formatting
-and `git diff --check` passed. No new domain decisions, schema or dependencies.
-Native chart visual/accessibility review and realistic-volume performance remain
-unexecuted; release maintainer owns device review and independent acceptance.
-These automated checks do not change the existing Partial/release readiness gates.
+تمدید مالی پنج اولویت مصوب را وصل کرد: ستون نقدی ماه جلالی، مقایسهٔ دورهٔ قبلی هم‌طول در **روز مدنی**، حلقهٔ دستهٔ درآمد/هزینه، خط موجودی روزانهٔ کل دفتر و وضعیت/روند تسویهٔ تعهد تکراری. دورهٔ قبلی لزوماً ماه تقویمی قبل نیست و همهٔ ابعاد فیلتر را حفظ می‌کند. حلقه فقط سهم مثبت را نشان می‌دهد؛ جمع دستهٔ منفی/اصلاحی جدا افشا می‌شود.
 
-User-approved scope (2026-10-13): offline personal reports reached through More →
-Reports, using existing durable records without new permissions or accounts.
-Provide overview, performance, attention, cash flow, planned/settled payments,
-packages, topic, upcoming, rescheduling and account movement views. Shared filters
-include inclusive local/Jalali dates, stable-ID multi-tag any/all/exclusion/untagged,
-commitment/cycle, status and relevant financial dimensions. All displayed totals
-and drill-down rows must use the same filtered projection.
+تعهد تکراری باید نوع صریح تکراری داشته باشد؛ بدهی حدس زده نمی‌شود. فاصلهٔ ماه‌های غایب متناسب می‌ماند و تعهد صفر اختراع نمی‌شود. پیش‌نمایش، پرداخت یا پیش‌بینی موجودی نیست. منبع درآمد از دستهٔ موجود است؛ ثبت مستقل منبع، زیرگروه، اصل/بهرهٔ بدهی، بودجه/دارایی/بدهی/پیش‌بینی و صادرات خارج محدوده‌اند و قرارداد جدا می‌خواهند. مدت واقعی/به‌موقع‌بودن، دسته‌بندی خودکار، عضویت برچسب تاریخی و تعداد تغییرات میانی بازسازی نمی‌شوند.
 
-Trace: More tap → report reader → transactional SQLite snapshot → pure domain
-projection → Persian RTL report sections and expandable details. Reading, changing
-filters, cancellation and retry must never write occurrences, reminders, financial,
-actual or entitlement state. Refresh replaces a complete snapshot; a failed read
-shows a Persian retry state, never a fabricated empty report. Returning from a
-record/action route reloads the report. Restore/restart reconstruct from existing
-repositories; filters are explicitly temporary, no schema/migration/dependency.
+## شواهد تاریخی
 
-Date semantics: performance uses current occurrence local date (changes may use
-original date); cash uses transaction date; settlement uses occurrence due date,
-with current confirmed allocations across payment dates; packages use ledger
-balance at selected end-of-day, and ledger movement within the selected range.
-These are current outcomes for selected scheduled dates, not a reconstruction of
-unknown historical intermediate schedule/status states. Unknown result is distinct
-from missed. Archived owners remain in history; upcoming excludes inactive owners.
-Account balances use full ledger, never hashtag-filtered movements as a balance.
+| مرحله در ۲۰۲۶-۱۰-۱۳ | شواهد |
+| --- | --- |
+| گزارش پایه؛ ویندوز بر پایهٔ `e28234f` | ۲۱ آزمون جدید: ۱۳ دامنه، دو مخزن، پنج مسیر گزارش و یک بازگشت نقص مالی؛ اجرای نهایی کامل ۸۰۸ موفق / بدون شکست، ۴دقیقه۱۷ثانیه |
+| مسیر جزئیات پایه | اجرای نخست ۸۰۷ موفق/یک شکست جدید داشت؛ مسیر اصلاح و هشت آزمون جزئیات گذشت، سپس اجرای کامل ۸۰۸ انجام شد |
+| نمودار افقی | مقدار علامت‌دار/صفر/خالی، برچسب دقیق، عرض ۳۶۰/متن ۱٫۸برابر/دو تم و فیلتر/بازخوانی نقدی ۱۰۰۰ ← ۱۰۰ ← ۱۵۰؛ منتخب ۲۳ موفق و کامل ۸۱۶ موفق، ۴دقیقه۳۱ثانیه |
+| تمدید مالی | پنج محاسبهٔ جدید، هشت بررسی نمودار پُر در دو تم/۳۶۰/۱٫۸برابر و مسیر SQLite تکراری؛ منتخب ۳۷ موفق؛ کامل ۸۳۱ موفق/پنج شکست، ۴دقیقه۳۵ثانیه |
+| تحلیل/قالب‌بندی/اختلاف | در پایان هر مرحله موفق؛ پایه ۳۱۶ فایل بدون تغییر قالب |
+| دستگاه/عملکرد/بازبینی مستقل | اجرا نشده؛ بودجه و حجم دستگاه مرجع هنوز باید انتخاب شود |
 
-Financial tags are direct entry tags by default. Explicit related-allocation mode
-attributes only matched amounts to selected commitments, without copying tags.
-Distinct record identity prevents multi-tag duplication. Currencies remain
-separate, including unknown expectation currency. Reversal movements affect the
-original cash-flow direction on reversal date; transfers/opening/adjustments are
-not income/expense. Independent transaction review uses the canonical projection.
+پنج شکست تمدید مربوط به انتظارهای قدیمی پول و واحد/لمس پیامک بود؛ بازاجرای سه فایل ۲۷ موفق/پنج شکست داد. آن مرحله پایهٔ پاک مستقل نداشت؛ علت و اصلاح بعدی در [بومی‌سازی](LOCALIZATION_VERIFICATION.md) با اجرای کامل ۸۴۷ موفق ثبت شده است. شکست تاریخی وضعیت جاری گزارش نیست.
 
-Future previews reuse bounded read-only planned slots, in chunks of at most 31
-local dates over a maximum 366-day selected range. They remain labelled previews,
-with no occurrence IDs/effects or invented financial expectations. Recorded future
-financial expectations are explicitly incomplete where preview slots exist.
+مخزن فایل واقعی، بازگشایی سرد، برابری همهٔ جدول‌ها قبل/بعد خواندن، چرخه‌های تاریخی/بایگانی، عضویت استاندارد و پیش‌نمایش دور را بدون اثر بررسی می‌کند. مسیر بیشتر تا گزارش و جزئیات/ذخیره/بازگشت، خطا/تلاش مجدد و لغو تاریخ، فیلتر جمع/جزئیات و هر ده انتخابگر بررسی شدند. متن بزرگ پایه فقط انتخابگر/خالی را می‌سنجید؛ تمدید، نمودار پُر را افزود ولی دستگاه را تأیید نمی‌کند.
 
-Non-goals: exports, budgets, actual duration/on-time inference, forecast balances,
-automatic categorization, historical tag membership reconstruction, intermediate
-rescheduling-event counts and fixing unrelated release gates.
+مثال‌های نقض شامل پایان روز/زمان، تکمیل بدون پرداخت، اضافه‌پرداخت، انتقال/اصلاح علامت‌دار، دستهٔ اصلی برگشت، ارز جدا، نوروز، ماه نقدی خالی، حفظ فیلتر دورهٔ قبل، حذف هزینهٔ یک‌باره و نقدی فیلترشده در برابر موجودی کامل بودند. نبود کلید پایدار گسترش نمودار باعث اشتراک حالت پیمایش شده بود؛ کلید جدا اصلاح شد. افزودن نمودار، هدف خارج دید آزمون جزئیات را آشکار کرد؛ آزمون پیش از لمس پیمایش می‌کند.
 
-Required evidence: independent expected-value domain regressions for date boundary,
-multi-tag overlap, partial allocation, review, reversal, currency and ledger folding;
-SQLite cold reopen/read-only snapshot and older-cycle coverage; More-route widget
-journey, filters/totals/details, error/retry/cancel, Light/Dark RTL and narrow large
-text; formatter/analyzer/full existing suite. Native/device performance and visual
-review plus independent acceptance remain separate release gates owned by the
-release maintainer; next action is device review of this read-only route, with no
-release-ready claim until accepted.
+## وضعیت و تصمیم عرضه
 
-## Implementation and evidence
+پیاده‌سازی فقط‌خواندنی در محدوده انجام و شواهد خودکار موفق است؛ پذیرش انتشار ناقص باقی است. نبود `Grant` پیش‌نیاز داده‌ای حل‌نشده است: مسئول دامنه باید ساخت اولیه و بازیابی تاریخچه را جدا تصویب کند؛ تا آن زمان افشا شود و اعتبار اختراع نشود.
 
-The ten report views, production transactional reader, pure projections, shared
-filters, expandable rows and existing Details/relationship navigation are wired.
-No migration, dependency, permission, stored report cache or platform adapter was
-added. Finance's existing summary now uses its filtered rows; its former unfiltered
-summary lacked a filter-to-summary regression, now covered by a widget check.
+نگه‌دارندهٔ انتشار مسئول بازبینی مستقل، دستگاه پُرداده، قلم/صفحه‌کلید/صفحه‌خوان و زمان تصویر/بازکردن جزئیات با بودجهٔ مرجع است. اعداد آزمون تضمین عملکرد نیستند و دروازه‌های پشتیبان/قفل/یادآور/پیامک را رفع نمی‌کنند.
 
-Package-credit limitation: existing creation can persist a configured entitlement
-without a Grant ledger entry. The report exposes configured units and explicitly
-withholds a reliable remaining balance when Grant is missing. No synthesized Grant,
-consumption or historical repair is performed. This part is Partial for those
-records. Owner: domain maintainer; next action: separately approve initial-grant
-creation and historical recovery semantics. Exposure decision: disclose missing
-ledger inside the report; never show configured units as usable remaining credit.
+## مراجع کد و شواهد
 
-## Verification record
-
-Environment: Windows, repository Flutter/Dart toolchain, 2026-10-13; working-tree
-change on `feature/new-capabilities`, base `e28234f`. Implementation and automated
-verification are separate from independent release acceptance.
-
-| Acceptance scope | Evidence | Status / limits |
-| --- | --- | --- |
-| Inclusive dates, all-day values, stable multi-tag identity, any/all/exclusion/untagged, distinct cash records | `test/unit/personal_reports_test.dart` | Passed; explicit expected values independent of the projection |
-| Separate currencies, reversal date and original classification, partial related allocation, due-date settlement, review invalidation | Same domain suite | Passed; refund/transfer/opening semantics use existing domain conventions |
-| Ledger cutoff, missing Grant disclosure, archive history, reopening, original/current change date, full-ledger account balances | Same domain suite | Passed; missing Grant is still a data prerequisite, not repaired |
-| Durable cold reopen, every-table equality before/after reads, multiple historical cycles | `test/repository/reports_reader_test.dart` | Passed with file-backed SQLite; includes archived owner and canonical typed tag memberships |
-| Future previews across multiple 31-day chunks beyond materialization horizon | Same repository suite | Passed; occurrence rows unchanged and no financial/reminder intent inserted |
-| More → Reports; tag summary/detail scope and refresh in Light/Dark RTL | `test/widget/reports_page_test.dart` | Passed using production SQLite reader |
-| Direct Reports → Details → explicit Save → return and reread | Same widget suite + `test/commitment_details_test.dart` | Passed; existing action-sheet navigation retains the same Details composition |
-| Failed load/retry, picker cancellation, all ten selectors at 360dp and 1.8 text scale | Same widget suite | Passed; large-text coverage is selector/empty-state coverage, not a populated-scale/device claim |
-| Existing Finance summary follows tag filter | `test/widget/finance_report_filter_test.dart` | Passed; regression for previously missed summary/filter consistency |
-| Formatting and whitespace | `dart format --output=none --set-exit-if-changed lib test`; `git diff --check` | Passed; 316 Dart files, 0 changes required |
-| Static analysis | `flutter analyze` | Passed; no issues |
-| Full application suite | `flutter test --reporter expanded` | Passed on final working tree: **808 passed, 0 failed**, 4m17s; includes existing migration, backup/restore, native-adapter seams and all prior widget journeys |
-| Device visual/keyboard/accessibility and realistic-volume performance | Reference phone budget and data volume to be selected by release maintainer | Not run; next action: populated report journeys and measured snapshot/expansion performance before release sign-off |
-| Independent acceptance | Human reviewer/maintainer, distinct from implementation self-review | Not run; no release-ready claim |
-
-The first full execution recorded 807 passed / 1 failed in the newly added direct
-Details journey before final route validation. The corrected route and existing
-Details tests were then run sequentially: 8 passed. The final full run is required
-for the final working tree; that earlier run is not completion evidence. Final
-sequential run completed with **808 passed, 0 failed**. The change adds 21 tests
-(13 domain, 2 repository, 5 report widget journeys and 1 Finance regression).
-
-Exposure: this read-only route is implemented within the documented scope, with
-incomplete ledger and preview financial coverage disclosed inline. Native/scale
-review and independent acceptance are owned by the release maintainer; do not
-announce release readiness based only on the automated counts. Existing backup,
-app-lock, notification and SMS release blockers are unchanged.
+- [personal_reports.dart](../lib/features/reports/domain/personal_reports.dart)
+- [drift_reports_reader.dart](../lib/features/reports/data/drift_reports_reader.dart)
+- [personal_reports_test.dart](../test/unit/personal_reports_test.dart)
+- [reports_reader_test.dart](../test/repository/reports_reader_test.dart)
+- [reports_page_test.dart](../test/widget/reports_page_test.dart)
+- [report_bar_chart_test.dart](../test/widget/report_bar_chart_test.dart)
+- [finance_report_filter_test.dart](../test/widget/finance_report_filter_test.dart)

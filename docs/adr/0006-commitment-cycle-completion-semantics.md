@@ -1,18 +1,14 @@
-# ADR 0006: Commitment cycle completion semantics
+# تصمیم معماری ۰۰۰۶: معنای پایان دورهٔ تعهد
 
-- Status: Accepted
-- Date: 2026-09-20
+وضعیت: پذیرفته‌شده؛ تاریخ: ۲۰۲۶-۰۹-۲۰.
 
-## Decision
+`CommitmentCycle` ترم، بسته یا بازهٔ فعالِ متعلق به `Commitment` پایدار است. تاریخ پایان برنامه‌ریزی‌شده `plannedEndDate` از پایان واقعی `actualEndDate` جداست. مدل، دورهٔ باز، بازهٔ تاریخ، تعداد ثابت، بستهٔ دستی و ترکیبی را پشتیبانی می‌کند؛ مدل به‌تنهایی وجود مسیر کامل رابط را ثابت نمی‌کند.
 
-`CommitmentCycle` represents a term, package, or active period belonging to a stable `Commitment`. It stores `plannedEndDate` and `actualEndDate` separately and supports the cycle types required by the roadmap: open-ended, fixed date range, fixed count, manual package, and hybrid.
+قواعد پایان صریح‌اند:
+- `ByDate`: رسیدن تاریخ برنامه‌ریزی‌شده.
+- `ByUnits`: مصرف واحد هدف.
+- `WhicheverFirst`: رسیدن یکی از دو شرط.
+- `WhicheverLast`: رسیدن هر دو شرط.
+- `Manual`: پایان فقط با فرمان صریح.
 
-Completion rules are explicit:
-
-- `ByDate`: planned date is reached.
-- `ByUnits`: target units are consumed.
-- `WhicheverFirst`: either condition is reached.
-- `WhicheverLast`: both conditions are reached.
-- `Manual`: only an explicit domain command completes the cycle.
-
-A cycle has its own status and does not infer or mutate the parent Commitment status. Invalid configurations and transitions are rejected in the domain.
+دوره وضعیت مستقل دارد و وضعیت تعهد والد را حدس نمی‌زند یا تغییر نمی‌دهد. پیکربندی و گذار نامعتبر در دامنه رد می‌شوند.

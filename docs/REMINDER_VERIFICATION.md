@@ -1,67 +1,46 @@
-# Android reminders: implementation and verification checkpoint
+# ارزیابی یادآورهای اندروید
 
-Date: 2026-10-05. Priority 2 remains **partial**, not release-complete.
+## اجرای اولیه؛ ۲۰۲۶-۱۰-۰۵
 
-## Implemented in this checkpoint
+فعال‌سازی اعلان و هشدار دقیق از اقدام صریح تنظیمات است؛ آغاز برنامه مجوز درخواست نمی‌کند. رد مجوز، ساخت موفق تعهد را شکست جلوه نمی‌دهد: قصد پایدار ذخیره و تحویل در انتظار، همراه راهنمای فعال‌سازی، گزارش می‌شود.
 
-- Explicit, user-initiated notification and exact-alarm permission activation in Settings. No startup permission prompt.
-- Denied permissions do not make successful commitment creation appear to have failed. The result reports pending delivery and the UI explains how to activate reminders.
-- Production commitment creation persists all reminder instances in its database transaction before attempting Android scheduling.
-- Cancellation retries the platform operation even when durable cancellation was already saved.
-- Changed reminder times cancel superseded intent; disable/re-enable preserves instance identity; repeated scheduling does not revive delivered history.
-- Occurrence completion, cancellation, rescheduling and restoration invoke reminder synchronization in the production details action executor.
-- Android IDs use deterministic SHA-256-derived positive integers rather than runtime hash codes. Existing persisted IDs remain honored.
-- Pending alarms carry reminder ownership payloads. Reconciliation cleans owned orphan alarms without removing unrelated notification payloads. Legacy bare UUIDv7 payloads are recognized; duplicate legacy IDs are removed before scheduling.
-- An occupied pending notification ID is rejected rather than silently replacing another owner's alarm.
-- Normal startup can continue with durable reminder intent when optional notification/exact-alarm permissions are unavailable. Recovery rebuild remains strict; no backup release gate has been weakened.
+ساخت تعهد همهٔ نمونه‌های یادآور را پیش از زمان‌بندی Android در تراکنش ذخیره می‌کند. لغو حتی پس از ذخیرهٔ لغو، عملیات پلتفرم را دوباره تلاش می‌کند. تغییر زمان قصد قبلی را لغو می‌کند؛ خاموش/روشن‌کردن هویت نمونه را حفظ و تاریخچهٔ تحویل‌شده را احیا نمی‌کند. تکمیل/لغو/جابه‌جایی/بازگشایی رخداد از مسیر تولید جزئیات همگام‌سازی دارد.
 
-No dependency or persisted-schema changes were introduced. Platform IDs remain nonportable and excluded from backup exports.
+شناسهٔ Android از عدد مثبت مبتنی بر SHA-256 قطعی استفاده می‌کند؛ شناسهٔ ذخیره‌شدهٔ موجود معتبر می‌ماند. اعلان در انتظار مالک دارد؛ تطبیق، یتیم متعلق به برنامه را پاک و دیگر داده‌های اعلان را حفظ می‌کند. UUIDv7 قدیمی شناخته می‌شود و شناسهٔ تکراری قدیمی پیش از زمان‌بندی حذف می‌شود. شناسهٔ اشغال‌شدهٔ مالک دیگر بی‌صدا جایگزین نمی‌شود.
 
-## Automated evidence
+آغاز عادی با مجوز اختیاری ناموجود می‌تواند ادامه دهد؛ بازسازی بازیابی پشتیبان سخت‌گیرانه باقی است. شناسهٔ پلتفرم قابل حمل نیست و در صادرات پشتیبان قرار نمی‌گیرد. طرح/وابستگی تغییر نکرد.
 
-- Formatting completed for changed Dart sources.
-- Flutter analyzer: no issues.
-- Full Flutter test suite: **254 passed**.
-- Git whitespace validation: passed.
-- Added tests cover cancellation failure/retry, superseded time cleanup, identity-preserving re-enable, delivered-history preservation, permission denial preserving every intent, occurrence edit/cancel/restore/complete synchronization, and explicit permission UI/loading/error/retry.
-- Existing backup all-table, rollback and host-generation tests remain passing.
+## شواهد تاریخی خودکار و بومی
 
-Repository tests in this checkpoint largely use in-memory SQLite; these are not independent cold-process/native persistence evidence.
+مرحلهٔ اولیه: ۲۵۴ آزمون کامل موفق، تحلیل و اختلاف معتبر. لغو ناموفق/تلاش مجدد، زمان جایگزین، هویت بازفعال‌سازی، تحویل تاریخی، رد مجوز با حفظ قصد، همگام‌سازی رخداد و رابط مجوز/خطا/تلاش مجدد پوشش داشتند. بیشتر مخزن‌های آن مرحله SQLite حافظه‌ای بودند؛ شاهد مستقل فرایند سرد نیستند.
 
-## Actual native evidence
+ورودی اختصاصی `tool/reminder_verification.dart` فقط شناسهٔ `com.iarash.planact.verification` را می‌پذیرد و پایگاه تولید را باز نمی‌کند. پیش از نصب، شناسهٔ APK جداگانه بررسی شد؛ نصب اصلی `com.iarash.planact` جایگزین/حذف/پاک نشد.
 
-A dedicated verification entry point, `tool/reminder_verification.dart`, refuses to run unless the package name is `com.iarash.planact.verification`. It never opens the production database. Build using the existing isolated-debug environment switch and this target; inspect the built APK application ID before installation.
+روی Samsung SM-A505F با Android 11 / API 30، خروجی زیر ثبت شد:
 
-The APK application ID was verified as `com.iarash.planact.verification`. The original `com.iarash.planact` installation was not replaced, cleared, or uninstalled.
-
-On Samsung SM A505F, Android 11 / API 30, the isolated probe emitted:
-
-```
+```text
 PLANACT_NATIVE_REMINDER_PASS: exact delivery, retry deduplication, cancellation, orphan cleanup
 ```
 
-The probe checked one pending owned alarm after repeated scheduling, waited for actual native delivery, verified the active notification ID, cancelled it and verified removal, then scheduled a future alarm and verified orphan cleanup. This is real plugin/native evidence, **not** proof of the whole product journey or reboot behavior. The API 30 device does not exercise Android 13 notification permission or Android 14 exact-alarm default denial.
+آزمون پس از زمان‌بندی تکراری یک هشدار دارای مالک دید، تحویل واقعی و شناسهٔ اعلان فعال را بررسی کرد، لغو و حذف را سنجید و هشدار آینده/پاک‌کردن یتیم را آزمود. این شاهد واقعی آداپتور است؛ مسیر کامل محصول، راه‌اندازی دوبارهٔ گوشی، مجوز Android 13 یا رد پیش‌فرض هشدار دقیق Android 14 را ثابت نمی‌کند.
 
-## Notification activation correction
+## اصلاح مسیر تنظیمات اعلان
 
-The Settings activation action now checks actual Android notification enablement before and after the runtime permission request. If notifications remain disabled (including Android 12 and earlier, or a denied Android 13+ permission), it opens this application's notification settings, with application-details settings as a fallback. The native bridge completes when the settings activity returns; the adapter then checks actual enablement again. Only enabled notifications allow the existing exact-alarm activation and reminder rebuild to continue. Opening settings alone is not reported as permission granted. The user must enable the system toggle; the application cannot grant permission on the user's behalf.
+فعال‌سازی پیش و پس از درخواست مجوز، فعال‌بودن واقعی اعلان را کنترل می‌کند. اگر خاموش بماند، تنظیمات اعلان همین برنامه و در صورت نیاز جزئیات برنامه باز می‌شود. پل بومی هنگام بازگشت کامل و وضعیت دوباره خوانده می‌شود؛ فقط فعال‌شدن واقعی اجازهٔ ادامهٔ هشدار دقیق/بازسازی می‌دهد. صرف بازکردن تنظیمات موفقیت نیست و برنامه نمی‌تواند مجوز را به‌جای کاربر اعطا کند.
 
-The Persian Settings guidance explains enabling notifications and returning to the application. No startup settings launch, dependency, schema migration, or historical-data change was added.
+۲۶۰ آزمون کامل، تحلیل و ساخت آزمایشی جداگانه موفق بود. چهار آزمون کانال شبیه‌سازی‌شده، فعال قبلی، اعطای زمان اجرا، اعطای تنظیمات و بازگشت بدون اعطا را پوشش دادند؛ این‌ها شاهد بومی بازگشت تنظیمات/OEM نیستند و آزمون API 30 قبلی این پل جدید را نمی‌آزمود.
 
-Validation for this correction: full Flutter suite **260 passed**, analyzer clean, formatting and Git whitespace validation passed, and isolated Android debug APK built successfully. Four added channel-mocked tests cover already enabled notifications, runtime grant, settings grant on return, and return without grant. These tests and compilation are **not native evidence** for the settings return flow; real-device/OEM and Android 13+ verification remains open. The earlier API 30 probe above tested delivery, not this newly added settings bridge.
+## وضعیت فعلی و دروازه‌ها
 
-## Remaining acceptance work
+بازیابی نرم‌افزاری بازگشایی هم‌زمان، مصرف اتمیک قصد چند قاعده و پذیرش تازهٔ مالک/چرخه در [اصلاحات اخیر](SCHEDULE_ACTUAL_VERIFICATION.md) رفع شده‌اند؛ توضیح شکاف قدیمی نباید نقص جاری محسوب شود. ثبت دامنه و تحویل پلتفرم همچنان نتیجه‌های جدا دارند.
 
-- Actual reboot/update/process-interruption tests with durable app state and reminders; manifest receivers alone are insufficient evidence.
-- Android 13+ notification denial/revocation and Android 14+ exact-alarm denial/revocation matrix, including return from system settings.
-- Lifecycle/resume reconciliation and accurate current capability status, not merely a successful activation message.
-- Recover an occurrence edit interrupted between the durable occurrence write and reminder synchronization; derive reminders from current occurrence data rather than stale saved delivery time.
-- Transactional/concurrent rule updates and collision-safe durable platform ID allocation, including cancellation ownership under collisions.
-- Complete user-facing snooze and notification-tap routing. Service-level snooze alone is not a complete product flow.
-- Consistent post-save failure feedback for non-permission platform failures; a committed domain write must not invite duplicate submission.
-- Reminder-specific startup warning placement rather than reusing backup status messaging.
-- Explicit recovery UX for unavailable optional notification permissions after restore, without weakening backup synchronization guarantees.
-- Review all occurrence action consumers and series-edit paths, and archived/paused commitment reminder policy.
-- Persian Light/Dark, scaling, accessibility and native product-flow visual review.
+پذیرش یادآور ناقص است. نگه‌دارنده/QA بومی باید موارد زیر را به فایل و نسخهٔ ثابت دستگاه متصل کند:
 
-Do not mark Priority 2 complete from the automated count or the single native probe above.
+- راه‌اندازی دوباره/به‌روزرسانی/قطع فرایند با حالت پایدار؛ صرف وجود گیرنده کافی نیست.
+- رد/لغو مجوز اعلان Android 13+ و هشدار دقیق Android 14+، بازگشت تنظیمات و وضعیت واقعی پس از بازگشت به برنامه.
+- برخورد شناسهٔ پایدار و مالکیت لغو، تغییر هم‌زمان قواعد و همهٔ مصرف‌کنندگان ویرایش سری.
+- مسیر کامل تعویق و لمس اعلان؛ عملیات سطح سرویس، مسیر آمادهٔ کاربر نیست.
+- بازخورد ذخیره‌شده ولی تحویل ناموفق، جای مناسب هشدار یادآور و بازیابی مجوز اختیاری پس از پشتیبان، بدون تضعیف تضمین بازسازی.
+- سیاست یادآور تعهد متوقف/بایگانی، صفحه‌خوان، متن بزرگ، دو تم و پذیرش مستقل.
+
+شمار آزمون یا یک آزمون بومی منفرد، اولویت یادآور را آمادهٔ انتشار نمی‌کند.
