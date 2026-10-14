@@ -18,7 +18,7 @@ void main() {
       .toList();
 
   test('all verified years include ten fixed holiday dates', () {
-    for (var year = 1400; year <= 1405; year++) {
+    for (var year = 1400; year <= 1406; year++) {
       expect(provider.hasCompleteOfficialCoverage(year), isTrue);
       final fixed = [
         for (var month = 1; month <= 12; month++)
@@ -110,12 +110,12 @@ void main() {
       () => provider.holidaysFor(const JalaliDate(1404, 12, 30)),
       throwsA(isA<Exception>()),
     );
-    expect(provider.hasCompleteOfficialCoverage(1406), isFalse);
+    expect(provider.hasCompleteOfficialCoverage(1407), isFalse);
     expect(provider.hasCompleteOfficialCoverage(1399), isFalse);
     expect(official(const JalaliDate(1399, 1, 1)), isEmpty);
     expect(
       provider
-          .holidaysForMonth(1406, 1)
+          .holidaysForMonth(1407, 1)
           .where((h) => h.kind == CalendarHolidayKind.officialVariable),
       isEmpty,
     );
@@ -181,6 +181,13 @@ void main() {
           .any((h) => h.title.contains('رضا')),
       isFalse,
     );
+    // End-of-Safar must not be added to Arbaeen or Safar 28.
+    for (final day in [13, 21]) {
+      expect(
+        official(JalaliDate(1405, 5, day)).any((h) => h.title.contains('رضا')),
+        isFalse,
+      );
+    }
     expect(official(const JalaliDate(1405, 6, 8)).length, 2);
     final rebuilt = const IranianHolidayProvider().holidaysFor(
       const JalaliDate(1405, 12, 19),
@@ -190,6 +197,131 @@ void main() {
       provider.holidaysFor(const JalaliDate(1405, 12, 19)).map((h) => h.title),
     );
     expect(rebuilt.every((h) => h.source.contains('time.ir')), isTrue);
+  });
+
+  test('all 365 days and reasons of 1406 match the published source', () {
+    final snapshot = jsonDecode(
+      File('third_party/iranian_holidays/time_ir_1406.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    final events = jsonDecode(
+      File('third_party/iranian_holidays/events.json').readAsStringSync(),
+    ) as List;
+    expect(snapshot['year'], 1406);
+    expect(
+      (snapshot['months'] as List).map((m) => m['month']),
+      List.generate(12, (i) => i + 1),
+    );
+    var daysChecked = 0;
+    var officialDays = 0;
+    for (final month in snapshot['months'] as List) {
+      final monthIndex = month['month'] as int;
+      final length = JalaliDate(1406, monthIndex, 1).monthLength;
+      expect(month['day_count'], length);
+      expect(month['response_sha256'], matches(RegExp(r'^[a-f0-9]{64}$')));
+      for (var day = 1; day <= length; day++) {
+        final date = JalaliDate(1406, monthIndex, day);
+        final actual = official(date);
+        expect(
+          actual.isNotEmpty,
+          (month['official_days'] as List).contains(day),
+          reason: '$date',
+        );
+        final expectedReasons = <String>[];
+        for (final row in snapshot['holidays'] as List) {
+          if (row['jalali_month'] != monthIndex || row['jalali_day'] != day) {
+            continue;
+          }
+          final gregorian = date.toDateTime();
+          expect(
+            [gregorian.year, gregorian.month, gregorian.day],
+            [
+              row['gregorian_year'],
+              row['gregorian_month'],
+              row['gregorian_day'],
+            ],
+          );
+          final fixed = row['base'] == 0;
+          for (final event in events) {
+            if (event['calendar'] != (fixed ? 'Persian' : 'Hijri') ||
+                event['month'] != row[fixed ? 'jalali_month' : 'hijri_month']) {
+              continue;
+            }
+            if ((event['rule'] == 'end of month' &&
+                    (row['hijri_day'] == 29 || row['hijri_day'] == 30)) ||
+                event['day'] == row[fixed ? 'jalali_day' : 'hijri_day']) {
+              final kind = fixed
+                  ? CalendarHolidayKind.officialFixed
+                  : CalendarHolidayKind.officialVariable;
+              expectedReasons.add('${kind.name}:${event['title']}');
+            }
+          }
+        }
+        expect(
+          actual.map((h) => '${h.kind.name}:${h.title}'),
+          unorderedEquals(expectedReasons),
+          reason: '$date',
+        );
+        expect(
+          actual.every(
+            (h) =>
+                h.source == 'time.ir published calendar (2026-10-14)' &&
+                h.version == IranianHolidayProvider.dataVersion,
+          ),
+          isTrue,
+          reason: '$date provenance',
+        );
+        daysChecked++;
+        if (actual.isNotEmpty) officialDays++;
+      }
+    }
+    expect(daysChecked, 365);
+    expect(officialDays, 27);
+  });
+
+  test('1406 exact lunar dates, Friday overlap and year boundary', () {
+    for (final (month, day, title) in [
+      (1, 14, 'صادق'),
+      (2, 27, 'قربان'),
+      (3, 4, 'غدیر'),
+      (3, 25, 'تاسوعا'),
+      (3, 26, 'عاشورا'),
+      (5, 3, 'اربعین'),
+      (5, 12, 'رضا'),
+      (12, 8, 'فطر'),
+      (12, 9, 'فطر'),
+    ]) {
+      expect(
+        official(JalaliDate(1406, month, day))
+            .any((h) => h.title.contains(title)),
+        isTrue,
+      );
+    }
+    expect(
+      official(const JalaliDate(1406, 5, 13))
+          .any((h) => h.title.contains('رضا')),
+      isFalse,
+    );
+    for (final day in [3, 11]) {
+      expect(
+        official(JalaliDate(1406, 5, day)).any((h) => h.title.contains('رضا')),
+        isFalse,
+      );
+    }
+    expect(official(const JalaliDate(1406, 5, 29)).length, 2);
+    expect(
+      provider.holidaysFor(const JalaliDate(1406, 1, 13)).map((h) => h.kind),
+      containsAll([
+        CalendarHolidayKind.weekend,
+        CalendarHolidayKind.officialFixed,
+      ]),
+    );
+    expect(provider.hasCompleteOfficialCoverage(1406), isTrue);
+    expect(provider.hasCompleteOfficialCoverage(1407), isFalse);
+    expect(
+      official(const JalaliDate(1407, 1, 1))
+          .every((h) => h.kind == CalendarHolidayKind.officialFixed),
+      isTrue,
+    );
   });
 
   test(

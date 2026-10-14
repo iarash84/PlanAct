@@ -32,28 +32,37 @@ for current, following in zip(starts, starts[1:]):
         day = length if event['rule'] == 'end of month' else event['day']
         date = start + datetime.timedelta(days=day - 1)
         lines.append(f"  ({date.year}, {date.month}, {date.day}, {json.dumps(event['title'], ensure_ascii=False)}),")
-# Exact published 1405 dates: never extrapolate a lunar conversion.
-annual = json.loads((source / 'time_ir_1405.json').read_text(encoding='utf-8'))
-assert annual['year'] == 1405
-assert [m['month'] for m in annual['months']] == list(range(1, 13))
-assert sum(m['day_count'] for m in annual['months']) == 365
-for month in annual['months']:
-    rows = [r for r in annual['holidays'] if r['jalali_month'] == month['month']]
-    assert sorted({r['jalali_day'] for r in rows}) == month['official_days']
-for row in annual['holidays']:
-    assert row['jalali_year'] == 1405 and row['base'] in (0, 2)
-    if row['base'] == 0:
-        assert any(e['calendar'] == 'Persian' and
-                   (e['month'], e['day']) == (row['jalali_month'], row['jalali_day'])
-                   for e in events)
-        continue
-    matches = [e for e in events if e['calendar'] == 'Hijri' and
-               e['month'] == row['hijri_month'] and
-               (e['rule'] == 'end of month' or e['day'] == row['hijri_day'])]
-    assert matches, f"Unrecognized official occasion: {row}"
-    date = datetime.date(row['gregorian_year'], row['gregorian_month'], row['gregorian_day'])
-    assert datetime.date(2026, 3, 21) <= date < datetime.date(2027, 3, 21)
-    for event in matches:
-        lines.append(f"  ({date.year}, {date.month}, {date.day}, {json.dumps(event['title'], ensure_ascii=False)}),")
+# Exact published annual dates: never extrapolate a lunar conversion.
+for year, first_day in [(1405, datetime.date(2026, 3, 21)),
+                        (1406, datetime.date(2027, 3, 21))]:
+    annual = json.loads((source / f'time_ir_{year}.json').read_text(encoding='utf-8'))
+    assert annual['year'] == year
+    assert [m['month'] for m in annual['months']] == list(range(1, 13))
+    assert [m['day_count'] for m in annual['months']] == [31] * 6 + [30] * 5 + [29]
+    for month in annual['months']:
+        rows = [r for r in annual['holidays'] if r['jalali_month'] == month['month']]
+        assert sorted({r['jalali_day'] for r in rows}) == month['official_days']
+    fixed_dates = {(e['month'], e['day']) for e in events if e['calendar'] == 'Persian'}
+    assert {(r['jalali_month'], r['jalali_day']) for r in annual['holidays']
+            if r['base'] == 0} == fixed_dates
+    for row in annual['holidays']:
+        assert row['jalali_year'] == year and row['base'] in (0, 2)
+        month, day = row['jalali_month'], row['jalali_day']
+        assert 1 <= month <= 12 and 1 <= day <= annual['months'][month - 1]['day_count']
+        date = datetime.date(row['gregorian_year'], row['gregorian_month'], row['gregorian_day'])
+        offset = sum(m['day_count'] for m in annual['months'][:month - 1]) + day - 1
+        assert date == first_day + datetime.timedelta(days=offset)
+        if row['base'] == 0:
+            assert (month, day) in fixed_dates
+            continue
+        matches = [e for e in events if e['calendar'] == 'Hijri' and
+                   e['month'] == row['hijri_month'] and
+                   ((e['rule'] == 'end of month' and row['hijri_day'] in (29, 30)) or
+                    e.get('day') == row['hijri_day'])]
+        assert matches, f"Unrecognized official occasion: {row}"
+        for event in matches:
+            if event['rule'] == 'end of month':
+                assert row['hijri_day'] in (29, 30)
+            lines.append(f"  ({date.year}, {date.month}, {date.day}, {json.dumps(event['title'], ensure_ascii=False)}),")
 lines += ['];', '']
 (root / 'lib/features/calendar/domain/iranian_holiday_data.dart').write_text('\n'.join(lines), encoding='utf-8')

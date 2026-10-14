@@ -300,7 +300,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final day = WeekTimeline.startOfWeek(JalaliDate(1406, 1, 1));
+      final day = WeekTimeline.startOfWeek(JalaliDate(1407, 1, 1));
       final item = Commitment.create(
         title: 'عنوان بلند فارسی برای یک برنامه خوانا بدون کوتاه‌سازی',
       );

@@ -34,11 +34,17 @@ class IranianHolidayProvider {
   /// Only validated complete packages are supplied by the application service.
   final Map<int, List<CalendarHoliday>> annualOverrides;
 
-  static const dataVersion = 'iran-1400-1405-v2';
+  static const dataVersion = 'iran-1400-1406-v3';
   static const firstCoveredYear = 1400;
-  static const lastCoveredYear = 1405;
+  static const lastCoveredYear = 1406;
   static const officialSource =
       'persian-calendar/events + qamari/calendar-center';
+
+  static String _sourceForYear(int year) => switch (year) {
+    1405 => 'time.ir published calendar (2026-10-06)',
+    1406 => 'time.ir published calendar (2026-10-14)',
+    _ => officialSource,
+  };
   final List<CalendarHoliday> specialClosures;
 
   bool hasCompleteOfficialCoverage(int year) =>
@@ -78,7 +84,7 @@ class IranianHolidayProvider {
               date: date,
               title: title,
               kind: CalendarHolidayKind.officialFixed,
-              source: officialSource,
+              source: _sourceForYear(date.year),
             ),
           );
         }
@@ -96,9 +102,7 @@ class IranianHolidayProvider {
               date: date,
               title: title,
               kind: CalendarHolidayKind.officialVariable,
-              source: date.year == 1405
-                  ? 'time.ir published calendar (2026-10-06)'
-                  : officialSource,
+              source: _sourceForYear(date.year),
             ),
           );
         }

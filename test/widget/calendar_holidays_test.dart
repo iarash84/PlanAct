@@ -50,6 +50,26 @@ void main() {
         findsNothing,
       );
       await show(const JalaliDate(1406, 1, 1));
+      expect(find.text('تعطیل رسمی: آغاز نوروز'), findsOneWidget);
+      expect(
+        find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
+        findsNothing,
+      );
+      await show(const JalaliDate(1406, 5, 29));
+      expect(
+        find.textContaining('تعطیل رسمی: ولادت حضرت رسول'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('تعطیل رسمی: ولادت حضرت امام جعفر'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('هفته'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('ولادت حضرت رسول'), findsWidgets);
+      expect(find.textContaining('دادهٔ تعطیلات کامل نیست'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await show(const JalaliDate(1407, 1, 1));
       expect(
         find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
         findsOneWidget,

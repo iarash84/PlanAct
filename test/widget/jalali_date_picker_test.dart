@@ -274,7 +274,7 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        await open(tester, date: JalaliDate(1406, 1, 1), dark: dark, scale: 2);
+        await open(tester, date: JalaliDate(1407, 1, 1), dark: dark, scale: 2);
         expect(
           find.textContaining('نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست'),
           findsOneWidget,
@@ -304,5 +304,31 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+  }
+
+  for (final dark in [false, true]) {
+    testWidgets('bundled 1406 lunar holiday in pushed picker dark=$dark', (
+      tester,
+    ) async {
+      DateTime? result;
+      final date = JalaliDate(1406, 5, 29);
+      await open(
+        tester,
+        date: date,
+        dark: dark,
+        onResult: (value) => result = value,
+      );
+      expect(find.textContaining('ولادت حضرت رسول'), findsOneWidget);
+      expect(find.textContaining('ولادت حضرت امام جعفر'), findsOneWidget);
+      expect(
+        find.textContaining('نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست'),
+        findsNothing,
+      );
+      await tester.ensureVisible(find.text('تأیید تاریخ'));
+      await tester.tap(find.text('تأیید تاریخ'));
+      await tester.pumpAndSettle();
+      expect(result, date.toDateTime());
+      expect(tester.takeException(), isNull);
+    });
   }
 }
