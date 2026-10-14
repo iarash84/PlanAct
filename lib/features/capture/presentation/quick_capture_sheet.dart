@@ -32,7 +32,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _count = TextEditingController();
-  final _entitlementUnits = TextEditingController();
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -46,19 +45,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   CommitmentDraft _draft = const CommitmentDraft();
   bool _dateSelected = false;
   bool _timeSelected = false;
-  final _creditController = ExpansibleController();
   final _financeController = ExpansibleController();
   String? _error;
   bool _saving = false;
 
   @override
   void dispose() {
-    _creditController.dispose();
     _financeController.dispose();
     _title.dispose();
     _description.dispose();
     _count.dispose();
-    _entitlementUnits.dispose();
     _financialAmount.dispose();
     super.dispose();
   }
@@ -73,10 +69,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         MoneyInputFormatter.normalize(_count.text.trim()),
       ),
       clearOccurrenceCount: _count.text.trim().isEmpty,
-      entitlementUnits: int.tryParse(
-        MoneyInputFormatter.normalize(_entitlementUnits.text.trim()),
-      ),
-      clearEntitlementUnits: _entitlementUnits.text.trim().isEmpty,
       financialAmount: _moneyInput.parse(_financialAmount.text),
       clearFinancialAmount: _moneyInput.parse(_financialAmount.text) == null,
     );
@@ -93,10 +85,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         _draft.validateForStep(3);
     if (error != null) {
       setState(() => _error = error);
-      if (_draft.entitlement == EntitlementDraft.fixedUnits &&
-          (_draft.entitlementUnits == null || _draft.entitlementUnits! <= 0)) {
-        _creditController.expand();
-      }
       if (_draft.financialMeaning != CommitmentFinancialMeaning.none &&
           (_draft.financialAmount == null || _draft.financialAmount! <= 0)) {
         _financeController.expand();
@@ -215,18 +203,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                             .map((offset) => _reminderLabel(offset.inMinutes))
                             .join(planActL10n(context).commonListSeparator),
                   child: _reminderPicker(),
-                ),
-                _section(
-                  key: 'commitment-credit-section',
-                  title: planActL10n(context).quickCaptureSheetBuildTitle2,
-                  subtitle: _draft.entitlement == EntitlementDraft.none
-                      ? planActL10n(context).quickCaptureSheetBuildSubtitle2
-                      : planActL10n(context).quickCaptureSheetBuildSubtitle3(
-                          (PersianNumbers.format(_draft.entitlementUnits ?? 0))
-                              .toString(),
-                        ),
-                  controller: _creditController,
-                  child: _entitlementFields(),
                 ),
                 _section(
                   key: 'commitment-finance-section',
@@ -654,46 +630,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       (PersianNumbers.format(minutes)).toString(),
     );
   }
-
-  Widget _entitlementFields() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      DropdownButtonFormField<EntitlementDraft>(
-        isExpanded: true,
-        initialValue: _draft.entitlement,
-        decoration: const InputDecoration(
-          labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText,
-        ),
-        items: const [
-          DropdownMenuItem(
-            value: EntitlementDraft.none,
-            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems),
-          ),
-          DropdownMenuItem(
-            value: EntitlementDraft.fixedUnits,
-            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems2),
-          ),
-        ],
-        onChanged: (value) =>
-            setState(() => _draft = _draft.copyWith(entitlement: value)),
-      ),
-      if (_draft.entitlement == EntitlementDraft.fixedUnits) ...[
-        const SizedBox(height: PlanActSpacing.md),
-        TextField(
-          enabled: !_saving,
-          controller: _entitlementUnits,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(
-            labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText2,
-          ),
-          onChanged: (_) => setState(_syncDraft),
-        ),
-      ],
-      const SizedBox(height: PlanActSpacing.sm),
-      const Text(PersianCopy.quickCaptureSheetEntitlementFieldsChildren),
-    ],
-  );
 
   Widget _financialFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,

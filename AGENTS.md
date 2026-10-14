@@ -144,6 +144,8 @@ This is a core invariant:
 
 Teacher cancellation, allowed absence, no-show, makeup session, holiday, pause/freeze, and term extension must be modeled through policy + ledger + occurrence history, not UI special cases.
 
+User-approved 2026-10-14 authoring scope: the general Add Commitment form does not expose session credit or a no-package summary. Recurrence count remains scheduling only and must not infer or grant entitlement. Preserve existing entitlement models, records, reports, correction commands and backup semantics. A separate session-package authoring path is deferred until explicit Grant/Consume/remaining-credit behavior has a complete accepted user journey; hiding the field does not complete that capability. See docs/UI_MIGRATION_VERIFICATION.md.
+
 ### 6.4 Entitlement is ledger-based
 
 Remaining sessions/units are derived from an entitlement ledger.

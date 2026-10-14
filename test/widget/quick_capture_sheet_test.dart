@@ -51,6 +51,10 @@ void main() {
       expect(find.text('افزودن تعهد'), findsOneWidget);
       expect(find.text('ادامه'), findsNothing);
       expect(find.text('زمان‌بندی'), findsOneWidget);
+      expect(find.text('اعتبار جلسات', skipOffstage: false), findsNothing);
+      expect(find.text('اعتبار جلسه', skipOffstage: false), findsNothing);
+      expect(find.text('تعداد جلسه', skipOffstage: false), findsNothing);
+      expect(find.textContaining('بدون بستهٔ جلسه'), findsNothing);
       await tester.tap(find.text('ثبت تعهد'));
       await tester.pumpAndSettle();
       expect(find.text('عنوان تعهد را وارد کنید.'), findsOneWidget);
@@ -176,7 +180,7 @@ void main() {
   });
 
   testWidgets(
-    'collapsed credit validation opens correction and retains optional inputs',
+    'collapsed finance validation opens correction and retains optional inputs',
     (tester) async {
       CommitmentDraft? submitted;
       await tester.pumpWidget(
@@ -203,29 +207,18 @@ void main() {
       await _tap(tester, find.text('یادآور'));
       await _tap(tester, find.text('۱۵ دقیقه قبل'));
       await _tap(tester, find.text('یادآور'));
-      await _tap(tester, find.text('اعتبار جلسات'));
-      await _tap(
-        tester,
-        find.byType(DropdownButtonFormField<EntitlementDraft>),
-      );
-      await _tap(tester, find.text('تعداد ثابت جلسه').last);
-      final units = find.widgetWithText(TextField, 'تعداد جلسه');
-      await tester.ensureVisible(units);
-      await tester.pumpAndSettle();
-      await tester.enterText(units, '۴');
-      await tester.enterText(units, '');
-      await _tap(tester, find.text('اعتبار جلسات'));
-      await _tap(tester, find.text('ثبت تعهد'));
-      expect(submitted, isNull);
-      expect(find.text('تعداد جلسهٔ معتبر را وارد کنید.'), findsOneWidget);
-      expect(units, findsOneWidget);
-      await tester.ensureVisible(units);
-      await tester.pumpAndSettle();
-      await tester.enterText(units, '۶');
-      await _tap(tester, find.text('اعتبار جلسات'));
       await _tap(tester, find.text('اطلاعات مالی'));
       await _tap(tester, find.text('پرداختی'));
       final amount = find.widgetWithText(TextField, 'مبلغ مورد انتظار به ریال');
+      await tester.ensureVisible(amount);
+      await tester.pumpAndSettle();
+      await tester.enterText(amount, '۱۲۳۴۵');
+      await tester.enterText(amount, '');
+      await _tap(tester, find.text('اطلاعات مالی'));
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted, isNull);
+      expect(find.text('مبلغ مورد انتظار را وارد کنید.'), findsOneWidget);
+      expect(amount, findsOneWidget);
       await tester.ensureVisible(amount);
       await tester.pumpAndSettle();
       await tester.enterText(amount, '۱۲۳۴۵');
@@ -235,7 +228,8 @@ void main() {
       expect(enteredAmount.text, '12,345');
       await _tap(tester, find.text('اطلاعات مالی'));
       await _tap(tester, find.text('ثبت تعهد'));
-      expect(submitted!.entitlementUnits, 6);
+      expect(submitted!.entitlement, EntitlementDraft.none);
+      expect(submitted!.entitlementUnits, isNull);
       expect(submitted!.financialAmount, 12345);
       expect(
         submitted!.financialMeaning,
@@ -286,12 +280,7 @@ void main() {
       );
       final save = find.byKey(const ValueKey('commitment-save-button'));
       expect(tester.getRect(save).bottom, lessThanOrEqualTo(640));
-      for (final label in [
-        'یادآور',
-        'اعتبار جلسات',
-        'اطلاعات مالی',
-        'جزئیات بیشتر',
-      ]) {
+      for (final label in ['یادآور', 'اطلاعات مالی', 'جزئیات بیشتر']) {
         await tester.ensureVisible(find.text(label));
         await tester.pumpAndSettle();
         await tester.tap(find.text(label));

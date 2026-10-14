@@ -192,7 +192,7 @@ class CommitmentDraft {
             }).toString(),
           );
     final package = switch (entitlement) {
-      EntitlementDraft.none => PersianCopy.quickCaptureSheetBuildSubtitle2,
+      EntitlementDraft.none => null,
       EntitlementDraft.unlimited =>
         PersianCopy.commitmentDraftEntitlementDraftUnlimited,
       EntitlementDraft.fixedUnits =>
@@ -222,7 +222,7 @@ class CommitmentDraft {
               .toString(),
         ),
     };
-    return '$title · $schedule · $package · $finance';
+    return [title, schedule, ?package, finance].join(' · ');
   }
 
   String _frequencyLabel(RecurrenceFrequency value) => switch (value) {
