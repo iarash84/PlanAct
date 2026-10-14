@@ -12,6 +12,7 @@ import 'package:planact/features/commitments/application/commitment_use_cases.da
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -90,6 +91,12 @@ void main() {
   tearDown(() async => database.close());
 
   Future<void> openHistory(WidgetTester tester) async {
+    // Browsing now remains below Details; explicitly close it before reopening
+    // the root menu. The new retained-position journey is tested separately.
+    if (find.byType(CommitmentBrowseSheet).evaluate().isNotEmpty) {
+      await tester.tap(find.byTooltip('بستن'));
+      await settle(tester);
+    }
     await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
     await settle(tester);
     await tapText(tester, 'تاریخچه و بایگانی تعهدها');

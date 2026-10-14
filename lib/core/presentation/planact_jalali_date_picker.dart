@@ -9,6 +9,7 @@ import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/presentation/holiday_provider_scope.dart';
+import 'package:planact/core/presentation/planact_month_swipe.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 
@@ -177,97 +178,107 @@ class PlanActJalaliDatePickerState extends State<PlanActJalaliDatePicker> {
                             ),
                         ],
                       ),
-                      SizedBox(
-                        key: const ValueKey('date-picker-grid'),
-                        height: ((count + 6) ~/ 7) * cellHeight,
-                        child: GridView.builder(
-                          padding: EdgeInsets.zero,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: count,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 7,
-                                mainAxisExtent: cellHeight,
-                              ),
-                          itemBuilder: (_, index) {
-                            if (index < offset) return const SizedBox();
-                            final day = index - offset + 1;
-                            final date = JalaliDate(
-                              _month.year,
-                              _month.month,
-                              day,
-                            );
-                            final selected = date == _selected;
-                            final reasons = provider.holidaysFor(date);
-                            final kinds = reasons
-                                .map((h) => _kindIcon(h.kind))
-                                .toSet();
-                            return Semantics(
-                              label: [
-                                _dateLabel(date),
-                                ...reasons.map(
-                                  (h) => '${_kindLabel(h.kind)}: ${h.title}',
+                      PlanActMonthSwipe(
+                        onMonthStep: (step) =>
+                            setState(() => _month = _month.addMonths(step)),
+                        child: SizedBox(
+                          key: const ValueKey('date-picker-grid'),
+                          height: ((count + 6) ~/ 7) * cellHeight,
+                          child: GridView.builder(
+                            padding: EdgeInsets.zero,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: count,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 7,
+                                  mainAxisExtent: cellHeight,
                                 ),
-                              ].join(planActL10n(context).commonListSeparator),
-                              selected: selected,
-                              button: true,
-                              child: InkWell(
-                                key: ValueKey('capture-date-$day'),
-                                onTap: () => setState(() => _selected = date),
-                                child: ExcludeSemantics(
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    decoration: selected
-                                        ? BoxDecoration(
-                                            color: scheme.primaryContainer,
-                                            shape: BoxShape.circle,
-                                          )
-                                        : null,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          PersianNumbers.format(day),
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                color: selected
-                                                    ? scheme.onPrimaryContainer
-                                                    : reasons.isNotEmpty
-                                                    ? status.holiday
-                                                    : scheme.onSurface,
-                                              ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            if (selected && kinds.isEmpty)
-                                              Icon(
-                                                Icons.check,
-                                                size: 12,
-                                                color:
-                                                    scheme.onPrimaryContainer,
-                                              ),
-                                            for (final icon in kinds)
-                                              Icon(
-                                                icon,
-                                                size: 12,
-                                                color: selected
-                                                    ? scheme.onPrimaryContainer
-                                                    : status.holiday,
-                                              ),
-                                          ],
-                                        ),
-                                      ],
+                            itemBuilder: (_, index) {
+                              if (index < offset) return const SizedBox();
+                              final day = index - offset + 1;
+                              final date = JalaliDate(
+                                _month.year,
+                                _month.month,
+                                day,
+                              );
+                              final selected = date == _selected;
+                              final reasons = provider.holidaysFor(date);
+                              final kinds = reasons
+                                  .map((h) => _kindIcon(h.kind))
+                                  .toSet();
+                              return Semantics(
+                                label:
+                                    [
+                                      _dateLabel(date),
+                                      ...reasons.map(
+                                        (h) =>
+                                            '${_kindLabel(h.kind)}: ${h.title}',
+                                      ),
+                                    ].join(
+                                      planActL10n(context).commonListSeparator,
+                                    ),
+                                selected: selected,
+                                button: true,
+                                child: InkWell(
+                                  key: ValueKey('capture-date-$day'),
+                                  onTap: () => setState(() => _selected = date),
+                                  child: ExcludeSemantics(
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      decoration: selected
+                                          ? BoxDecoration(
+                                              color: scheme.primaryContainer,
+                                              shape: BoxShape.circle,
+                                            )
+                                          : null,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            PersianNumbers.format(day),
+                                            maxLines: 1,
+                                            softWrap: false,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: selected
+                                                      ? scheme
+                                                            .onPrimaryContainer
+                                                      : reasons.isNotEmpty
+                                                      ? status.holiday
+                                                      : scheme.onSurface,
+                                                ),
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              if (selected && kinds.isEmpty)
+                                                Icon(
+                                                  Icons.check,
+                                                  size: 12,
+                                                  color:
+                                                      scheme.onPrimaryContainer,
+                                                ),
+                                              for (final icon in kinds)
+                                                Icon(
+                                                  icon,
+                                                  size: 12,
+                                                  color: selected
+                                                      ? scheme
+                                                            .onPrimaryContainer
+                                                      : status.holiday,
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ],

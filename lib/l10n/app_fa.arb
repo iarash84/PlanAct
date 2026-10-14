@@ -233,6 +233,21 @@
     },
     "x-planact-default": true
   },
+  "commitmentBrowseExpand": "نمایش تمام‌صفحه",
+  "@commitmentBrowseExpand": {
+    "description": "گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.",
+    "x-planact-introduced": "interaction-2026-10-14"
+  },
+  "commitmentBrowseOpenError": "نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.",
+  "@commitmentBrowseOpenError": {
+    "description": "خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.",
+    "x-planact-introduced": "interaction-2026-10-14"
+  },
+  "commitmentBrowseCollapse": "نمایش کوچک‌تر",
+  "@commitmentBrowseCollapse": {
+    "description": "بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.",
+    "x-planact-introduced": "interaction-2026-10-14"
+  },
   "commonClose": "بستن",
   "@commonClose": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:974.",

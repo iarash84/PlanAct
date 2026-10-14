@@ -47,10 +47,19 @@ void main() {
           expect(find.text('امروز'), findsOneWidget);
           expect(picker, findsNothing);
           expect(find.text('نمایش فهرست روز انتخاب‌شده'), findsNothing);
+          final monthTodayRect = tester.getRect(today);
+          final monthToggleRect = tester.getRect(
+            find.byKey(const ValueKey('calendar-mode-toggle')),
+          );
           await tester.tap(find.text('هفته'));
           await tester.pumpAndSettle();
           final todayRect = tester.getRect(today);
           final pickerRect = tester.getRect(picker);
+          expect(todayRect, monthTodayRect);
+          expect(
+            tester.getRect(find.byKey(const ValueKey('calendar-mode-toggle'))),
+            monthToggleRect,
+          );
           for (final rect in [todayRect, pickerRect]) {
             expect(rect.left, greaterThanOrEqualTo(0));
             expect(rect.right, lessThanOrEqualTo(width));

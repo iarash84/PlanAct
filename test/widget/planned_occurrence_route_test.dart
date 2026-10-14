@@ -224,7 +224,12 @@ void main() {
       await tester.scrollUntilVisible(
         find.byType(PlannedSlotTile),
         200,
-        scrollable: find.byType(Scrollable).first,
+        // Scroll the month's vertical content, not the shell's horizontal tabs.
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .first,
       );
       expect(find.byType(PlannedSlotTile), findsWidgets);
       expect(find.textContaining('پیش‌نمایش برنامه'), findsWidgets);
@@ -251,7 +256,11 @@ void main() {
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  await tester.ensureVisible(finder);
+  // Do not align an already-visible pinned control through the root PageView:
+  // that programmatic horizontal scroll can leave Calendar before the tap.
+  if (finder.hitTestable().evaluate().isEmpty) {
+    await tester.ensureVisible(finder);
+  }
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await _drain(tester);

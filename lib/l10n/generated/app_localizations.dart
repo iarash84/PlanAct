@@ -370,6 +370,24 @@ abstract class AppLocalizations {
   /// **'{value1} · {value2}'**
   String planactAppShowTimelineSubtitle2(String value1, String value2);
 
+  /// گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش تمام‌صفحه'**
+  String get commitmentBrowseExpand;
+
+  /// خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.'**
+  String get commitmentBrowseOpenError;
+
+  /// بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش کوچک‌تر'**
+  String get commitmentBrowseCollapse;
+
   /// Application copy. Original usage: lib/app/planact_app.dart:974.
   ///
   /// In fa, this message translates to:

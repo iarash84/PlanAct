@@ -174,6 +174,16 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
+  String get commitmentBrowseExpand => 'نمایش تمام‌صفحه';
+
+  @override
+  String get commitmentBrowseOpenError =>
+      'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.';
+
+  @override
+  String get commitmentBrowseCollapse => 'نمایش کوچک‌تر';
+
+  @override
   String get commonClose => 'بستن';
 
   @override

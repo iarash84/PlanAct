@@ -21,6 +21,7 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/core/presentation/planact_month_swipe.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 
@@ -71,7 +72,6 @@ class _CalendarPageState extends State<CalendarPage> {
   Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
   Map<String, List<PlannedOccurrenceSlot>> _monthPreviews = {};
   final _monthScroll = ScrollController();
-  double _swipeDistance = 0;
 
   @override
   void dispose() {
@@ -236,325 +236,336 @@ class _CalendarPageState extends State<CalendarPage> {
       }),
       child: Text(planActL10n(context).calendarPageTodayButtonLabel),
     );
-    if (_week) {
-      final dates = WeekTimeline.dates(_selectedDay);
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: PlanActSpacing.md,
-              vertical: PlanActSpacing.sm,
-            ),
-            child: toggle,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
-            child: Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Wrap(
-                alignment: WrapAlignment.end,
-                spacing: PlanActSpacing.sm,
-                children: [todayButton, dateButton],
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                tooltip: planActL10n(context).calendarPageBuildTooltip,
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () =>
-                    setState(() => _selectedDay = _selectedDay.addDays(-7)),
-              ),
-              Expanded(
-                child: Text(
-                  '${PersianDateFormatter.date(dates.first)} — ${PersianDateFormatter.date(dates.last)}',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              IconButton(
-                tooltip: planActL10n(context).calendarPageBuildTooltip2,
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () =>
-                    setState(() => _selectedDay = _selectedDay.addDays(7)),
-              ),
-            ],
-          ),
-          Expanded(
-            child: WeekTimelineView(
-              key: ValueKey(_weekPositionRevision),
-              date: _selectedDay,
-              commitments: widget.commitments,
-              occurrences: widget.occurrences,
-              holidays: _holidayProvider,
-              loader: widget.weekLoader,
-              plannedLoader: widget.plannedLoader,
-              onTap: widget.onCommitmentTap,
-              onAdd: widget.onAdd,
-            ),
-          ),
-        ],
-      );
-    }
-    return ListView(
-      controller: _monthScroll,
-      padding: const EdgeInsets.fromLTRB(
-        PlanActSpacing.md,
-        PlanActSpacing.sm,
-        PlanActSpacing.md,
-        PlanActSpacing.xl,
-      ),
+    final dates = WeekTimeline.dates(_selectedDay);
+    return Column(
       children: [
-        toggle,
-        Align(alignment: AlignmentDirectional.centerEnd, child: todayButton),
-        _CalendarHeader(
-          month: _month,
-          onPrevious: () => _moveMonth(-1),
-          onNext: () => _moveMonth(1),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: PlanActSpacing.md,
+            vertical: PlanActSpacing.sm,
+          ),
+          child: toggle,
         ),
-        if (!_holidayProvider.hasCompleteOfficialCoverage(_month.year))
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: PlanActSpacing.sm),
-            child: Text(planActL10n(context).calendarPageBuildChildren),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Wrap(
+              alignment: WrapAlignment.start,
+              spacing: PlanActSpacing.sm,
+              children: [todayButton, if (_week) dateButton],
+            ),
           ),
-        if (_monthLoading)
-          Column(
-            children: [
-              LinearProgressIndicator(),
-              Text(planActL10n(context).calendarPageBuildChildren2),
-            ],
-          )
-        else if (_monthError)
-          Column(
-            children: [
-              Text(planActL10n(context).calendarPageBuildChildren3),
-              TextButton(
-                onPressed: () => setState(() {
-                  _loadMonth();
-                }),
-                child: Text(planActL10n(context).commonRetry),
-              ),
-            ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
+          child: _CalendarHeader(
+            title: _week
+                ? '${PersianDateFormatter.date(dates.first)} — ${PersianDateFormatter.date(dates.last)}'
+                : PersianDateFormatter.month(_month),
+            previousLabel: _week
+                ? planActL10n(context).calendarPageBuildTooltip
+                : planActL10n(context).planactJalaliDatePickerBuildTooltip,
+            nextLabel: _week
+                ? planActL10n(context).calendarPageBuildTooltip2
+                : planActL10n(context).planactJalaliDatePickerBuildTooltip2,
+            onPrevious: () => _week
+                ? setState(() => _selectedDay = _selectedDay.addDays(-7))
+                : _moveMonth(-1),
+            onNext: () => _week
+                ? setState(() => _selectedDay = _selectedDay.addDays(7))
+                : _moveMonth(1),
           ),
-        if (!_monthLoading && !_monthError && _monthItems.isEmpty)
-          Text(planActL10n(context).calendarPageBuildChildren4),
-        const SizedBox(height: PlanActSpacing.md),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final scaler = MediaQuery.textScalerOf(context);
-            // Seven columns stay in the viewport, including on narrow phones.
-            // The documented narrow-grid exception applies to width, not height.
-            final cellWidth = (constraints.maxWidth - 6 * 3) / 7;
-            final labelStyle = theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurfaceVariant,
-            );
-            double textHeight(String text, TextStyle? style) {
-              final painter = TextPainter(
-                text: TextSpan(text: text, style: style),
-                textDirection: Directionality.of(context),
-                textScaler: scaler,
-              )..layout(maxWidth: cellWidth - 4);
-              final height = painter.height;
-              painter.dispose();
-              return height;
-            }
-
-            final compact = PersianDateFormatter.weekdayNames.any((name) {
-              final painter = TextPainter(
-                text: TextSpan(text: name, style: labelStyle),
-                textDirection: Directionality.of(context),
-                textScaler: scaler,
-              )..layout();
-              final tooWide = painter.width > cellWidth;
-              painter.dispose();
-              return tooWide;
-            });
-            final numberHeight = List.generate(
-              _month.monthLength,
-              (index) => textHeight(
-                PersianNumbers.format(index + 1),
-                theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ).reduce(math.max);
-            final markerPainter = TextPainter(
-              text: TextSpan(
-                text: planActL10n(context).calendarPageMarkerPainterText,
-                style: theme.textTheme.labelSmall,
-              ),
-              textDirection: Directionality.of(context),
-              textScaler: scaler,
-            )..layout(maxWidth: cellWidth - 8);
-            final markerHeight = markerPainter.preferredLineHeight * 2 + 4;
-            markerPainter.dispose();
-            final holidayHeight = textHeight(
-              planActL10n(context).calendarPageHolidayHeightMessage,
-              theme.textTheme.labelSmall,
-            );
-            double weekHeight(int week) {
-              var height = 48.0;
-              for (var column = 0; column < 7; column++) {
-                final day = week * 7 + column - leading + 1;
-                if (day < 1 || day > _month.monthLength) continue;
-                final date = JalaliDate(_month.year, _month.month, day);
-                final items = _commitmentsFor(date);
-                final hasHoliday = holidays.any(
-                  (holiday) => holiday.date == date,
-                );
-                final overflowHeight = items.length > 2
-                    ? textHeight(
-                        '+${PersianNumbers.format(items.length - 2)}',
-                        theme.textTheme.labelSmall,
+        ),
+        Expanded(
+          child: _week
+              ? WeekTimelineView(
+                  key: ValueKey(_weekPositionRevision),
+                  date: _selectedDay,
+                  commitments: widget.commitments,
+                  occurrences: widget.occurrences,
+                  holidays: _holidayProvider,
+                  loader: widget.weekLoader,
+                  plannedLoader: widget.plannedLoader,
+                  onTap: widget.onCommitmentTap,
+                  onAdd: widget.onAdd,
+                )
+              : ListView(
+                  controller: _monthScroll,
+                  padding: const EdgeInsets.fromLTRB(
+                    PlanActSpacing.md,
+                    0,
+                    PlanActSpacing.md,
+                    PlanActSpacing.xl,
+                  ),
+                  children: [
+                    if (!_holidayProvider.hasCompleteOfficialCoverage(
+                      _month.year,
+                    ))
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: PlanActSpacing.sm,
+                        ),
+                        child: Text(
+                          planActL10n(context).calendarPageBuildChildren,
+                        ),
+                      ),
+                    if (_monthLoading)
+                      Column(
+                        children: [
+                          LinearProgressIndicator(),
+                          Text(planActL10n(context).calendarPageBuildChildren2),
+                        ],
                       )
-                    : 0.0;
-                height = math.max(
-                  height,
-                  numberHeight +
-                      (hasHoliday ? holidayHeight : 0) +
-                      math.min(items.length, 2) * (markerHeight + 2) +
-                      overflowHeight +
-                      PlanActSpacing.sm +
-                      (date == today ? 4 : 0),
-                );
-              }
-              return height;
-            }
+                    else if (_monthError)
+                      Column(
+                        children: [
+                          Text(planActL10n(context).calendarPageBuildChildren3),
+                          TextButton(
+                            onPressed: () => setState(() {
+                              _loadMonth();
+                            }),
+                            child: Text(planActL10n(context).commonRetry),
+                          ),
+                        ],
+                      ),
+                    if (!_monthLoading && !_monthError && _monthItems.isEmpty)
+                      Text(planActL10n(context).calendarPageBuildChildren4),
+                    const SizedBox(height: PlanActSpacing.md),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final scaler = MediaQuery.textScalerOf(context);
+                        // Seven columns stay in the viewport, including on narrow phones.
+                        // The documented narrow-grid exception applies to width, not height.
+                        final cellWidth = (constraints.maxWidth - 6 * 3) / 7;
+                        final labelStyle = theme.textTheme.labelMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            );
+                        double textHeight(String text, TextStyle? style) {
+                          final painter = TextPainter(
+                            text: TextSpan(text: text, style: style),
+                            textDirection: Directionality.of(context),
+                            textScaler: scaler,
+                          )..layout(maxWidth: cellWidth - 4);
+                          final height = painter.height;
+                          painter.dispose();
+                          return height;
+                        }
 
-            return Column(
-              children: [
-                Row(
-                  children: List.generate(7, (index) {
-                    final name = PersianDateFormatter.weekdayNames[index];
-                    return Expanded(
-                      child: Semantics(
-                        label: name,
-                        child: ExcludeSemantics(
-                          child: Text(
-                            compact
-                                ? PersianDateFormatter
-                                      .compactWeekdayNames[index]
-                                : name,
-                            textAlign: TextAlign.center,
-                            style: labelStyle,
+                        final compact = PersianDateFormatter.weekdayNames.any((
+                          name,
+                        ) {
+                          final painter = TextPainter(
+                            text: TextSpan(text: name, style: labelStyle),
+                            textDirection: Directionality.of(context),
+                            textScaler: scaler,
+                          )..layout();
+                          final tooWide = painter.width > cellWidth;
+                          painter.dispose();
+                          return tooWide;
+                        });
+                        final numberHeight = List.generate(
+                          _month.monthLength,
+                          (index) => textHeight(
+                            PersianNumbers.format(index + 1),
+                            theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ).reduce(math.max);
+                        final markerPainter = TextPainter(
+                          text: TextSpan(
+                            text: planActL10n(context)
+                                .calendarPageMarkerPainterText,
+                            style: theme.textTheme.labelSmall,
+                          ),
+                          textDirection: Directionality.of(context),
+                          textScaler: scaler,
+                        )..layout(maxWidth: cellWidth - 8);
+                        final markerHeight =
+                            markerPainter.preferredLineHeight * 2 + 4;
+                        markerPainter.dispose();
+                        final holidayHeight = textHeight(
+                          planActL10n(context).calendarPageHolidayHeightMessage,
+                          theme.textTheme.labelSmall,
+                        );
+                        double weekHeight(int week) {
+                          var height = 48.0;
+                          for (var column = 0; column < 7; column++) {
+                            final day = week * 7 + column - leading + 1;
+                            if (day < 1 || day > _month.monthLength) continue;
+                            final date = JalaliDate(
+                              _month.year,
+                              _month.month,
+                              day,
+                            );
+                            final items = _commitmentsFor(date);
+                            final hasHoliday = holidays.any(
+                              (holiday) => holiday.date == date,
+                            );
+                            final overflowHeight = items.length > 2
+                                ? textHeight(
+                                    '+${PersianNumbers.format(items.length - 2)}',
+                                    theme.textTheme.labelSmall,
+                                  )
+                                : 0.0;
+                            height = math.max(
+                              height,
+                              numberHeight +
+                                  (hasHoliday ? holidayHeight : 0) +
+                                  math.min(items.length, 2) *
+                                      (markerHeight + 2) +
+                                  overflowHeight +
+                                  PlanActSpacing.sm +
+                                  (date == today ? 4 : 0),
+                            );
+                          }
+                          return height;
+                        }
+
+                        return Column(
+                          children: [
+                            Row(
+                              children: List.generate(7, (index) {
+                                final name =
+                                    PersianDateFormatter.weekdayNames[index];
+                                return Expanded(
+                                  child: Semantics(
+                                    label: name,
+                                    child: ExcludeSemantics(
+                                      child: Text(
+                                        compact
+                                            ? PersianDateFormatter
+                                                  .compactWeekdayNames[index]
+                                            : name,
+                                        textAlign: TextAlign.center,
+                                        style: labelStyle,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: PlanActSpacing.xs),
+                            PlanActMonthSwipe(
+                              key: const ValueKey('calendar-month-grid'),
+                              onMonthStep: _moveMonth,
+                              child: Column(
+                                children: List.generate(cellCount ~/ 7, (week) {
+                                  final height = weekHeight(week);
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      top: week == 0 ? 0 : 3,
+                                    ),
+                                    child: SizedBox(
+                                      height: height,
+                                      child: GridView.builder(
+                                        padding: EdgeInsets.zero,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: 7,
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 7,
+                                              crossAxisSpacing: 3,
+                                              mainAxisExtent: height,
+                                            ),
+                                        itemBuilder: (context, column) {
+                                          final index = week * 7 + column;
+                                          final day = index - leading + 1;
+                                          if (day < 1 ||
+                                              day > _month.monthLength) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          final date = JalaliDate(
+                                            _month.year,
+                                            _month.month,
+                                            day,
+                                          );
+                                          final items = _commitmentsFor(date);
+                                          return _CalendarDay(
+                                            date: date,
+                                            selected: _selectedDay == date,
+                                            isToday: today == date,
+                                            holidays: holidays
+                                                .where(
+                                                  (holiday) =>
+                                                      holiday.date == date,
+                                                )
+                                                .toList(),
+                                            commitments: items,
+                                            markerHeight: markerHeight,
+                                            onTap: () => setState(
+                                              () => _selectedDay = date,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            const SizedBox(height: PlanActSpacing.lg),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Text(
+                                PersianDateFormatter.relative(_selectedDay),
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: PlanActSpacing.sm),
+                    for (final holiday in _holidayProvider.holidaysFor(
+                      _selectedDay,
+                    ))
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: PlanActSpacing.xs,
+                        ),
+                        child: Text(
+                          _holidayLabel(holiday),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: PlanActStatusColors.of(context).holiday,
                           ),
                         ),
                       ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: PlanActSpacing.xs),
-                GestureDetector(
-                  key: const ValueKey('calendar-month-grid'),
-                  onHorizontalDragStart: (_) => _swipeDistance = 0,
-                  onHorizontalDragUpdate: (details) =>
-                      _swipeDistance += details.delta.dx,
-                  onHorizontalDragCancel: () => _swipeDistance = 0,
-                  onHorizontalDragEnd: (_) {
-                    if (_swipeDistance.abs() >= 48) {
-                      _moveMonth(_swipeDistance > 0 ? 1 : -1);
-                    }
-                    _swipeDistance = 0;
-                  },
-                  child: Column(
-                    children: List.generate(cellCount ~/ 7, (week) {
-                      final height = weekHeight(week);
-                      return Padding(
-                        padding: EdgeInsets.only(top: week == 0 ? 0 : 3),
-                        child: SizedBox(
-                          height: height,
-                          child: GridView.builder(
-                            padding: EdgeInsets.zero,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: 7,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 7,
-                                  crossAxisSpacing: 3,
-                                  mainAxisExtent: height,
-                                ),
-                            itemBuilder: (context, column) {
-                              final index = week * 7 + column;
-                              final day = index - leading + 1;
-                              if (day < 1 || day > _month.monthLength) {
-                                return const SizedBox.shrink();
-                              }
-                              final date = JalaliDate(
-                                _month.year,
-                                _month.month,
-                                day,
-                              );
-                              final items = _commitmentsFor(date);
-                              return _CalendarDay(
-                                date: date,
-                                selected: _selectedDay == date,
-                                isToday: today == date,
-                                holidays: holidays
-                                    .where((holiday) => holiday.date == date)
-                                    .toList(),
-                                commitments: items,
-                                markerHeight: markerHeight,
-                                onTap: () =>
-                                    setState(() => _selectedDay = date),
-                              );
-                            },
-                          ),
+                    if (_monthLoading || _monthError)
+                      Text(planActL10n(context).calendarPageBuildChildren5)
+                    else if (selectedItems.isEmpty)
+                      Text(planActL10n(context).calendarPageBuildChildren6)
+                    else
+                      ...selectedItems.map(
+                        (item) => CalendarCommitmentCard(
+                          commitment: item,
+                          occurrences: _occurrencesFor(item),
+                          previews:
+                              (_monthPreviews[item.id.value] ??
+                                      <PlannedOccurrenceSlot>[])
+                                  .where(
+                                    (slot) =>
+                                        JalaliDate.fromDateTime(
+                                          slot.date.toUtcDateForCalculation(),
+                                        ) ==
+                                        _selectedDay,
+                                  )
+                                  .toList(),
+                          reminderRules: widget.reminderRules,
+                          onTap: widget.onCommitmentTap == null
+                              ? null
+                              : () => widget.onCommitmentTap!(item),
                         ),
-                      );
-                    }),
-                  ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: PlanActSpacing.lg),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    PersianDateFormatter.relative(_selectedDay),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
         ),
-        const SizedBox(height: PlanActSpacing.sm),
-        for (final holiday in _holidayProvider.holidaysFor(_selectedDay))
-          Padding(
-            padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
-            child: Text(
-              _holidayLabel(holiday),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: PlanActStatusColors.of(context).holiday,
-              ),
-            ),
-          ),
-        if (_monthLoading || _monthError)
-          Text(planActL10n(context).calendarPageBuildChildren5)
-        else if (selectedItems.isEmpty)
-          Text(planActL10n(context).calendarPageBuildChildren6)
-        else
-          ...selectedItems.map(
-            (item) => CalendarCommitmentCard(
-              commitment: item,
-              occurrences: _occurrencesFor(item),
-              previews:
-                  (_monthPreviews[item.id.value] ?? <PlannedOccurrenceSlot>[])
-                      .where(
-                        (slot) =>
-                            JalaliDate.fromDateTime(
-                              slot.date.toUtcDateForCalculation(),
-                            ) ==
-                            _selectedDay,
-                      )
-                      .toList(),
-              reminderRules: widget.reminderRules,
-              onTap: widget.onCommitmentTap == null
-                  ? null
-                  : () => widget.onCommitmentTap!(item),
-            ),
-          ),
       ],
     );
   }
@@ -585,12 +596,16 @@ String _holidayLabel(CalendarHoliday holiday) => switch (holiday.kind) {
 
 class _CalendarHeader extends StatelessWidget {
   const _CalendarHeader({
-    required this.month,
+    required this.title,
+    required this.previousLabel,
+    required this.nextLabel,
     required this.onPrevious,
     required this.onNext,
   });
 
-  final JalaliDate month;
+  final String title;
+  final String previousLabel;
+  final String nextLabel;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
 
@@ -600,13 +615,13 @@ class _CalendarHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          tooltip: planActL10n(context).planactJalaliDatePickerBuildTooltip,
+          tooltip: previousLabel,
           onPressed: onPrevious,
           icon: const Icon(Icons.chevron_left),
         ),
         Expanded(
           child: Text(
-            PersianDateFormatter.month(month),
+            title,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
@@ -614,7 +629,7 @@ class _CalendarHeader extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: planActL10n(context).planactJalaliDatePickerBuildTooltip2,
+          tooltip: nextLabel,
           onPressed: onNext,
           icon: const Icon(Icons.chevron_right),
         ),

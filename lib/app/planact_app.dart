@@ -8,6 +8,7 @@ import 'package:planact/features/commitments/data/drift_commitment_correction_re
 import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
 import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
+import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
@@ -375,6 +376,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ? DriftFinanceRepository(_repository.database)
       : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
+  final _commitmentViewsRevision = ValueNotifier<int>(0);
   final Map<String, List<DateTime>> _scheduledDates = {};
   Map<String, List<Occurrence>> _calendarOccurrences = {};
   List<ReminderRule> _calendarReminderRules = [];
@@ -550,10 +552,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _todayActionCenter = actionCenter;
           _todayError = null;
         });
+        _commitmentViewsRevision.value++;
       }
     } catch (_) {
       if (mounted) {
         setState(() => _todayError = PersianCopy.planactAppRefreshMessage);
+        _commitmentViewsRevision.value++;
       }
       if (throwOnFailure) rethrow;
     }
@@ -1063,7 +1067,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _showTimeline({bool includeHistory = false}) async {
+  List<Commitment> _timelineItems(bool includeHistory) {
     final items =
         _commitments
             .where(
@@ -1085,55 +1089,37 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             }
             return first.compareTo(second);
           });
-    await showDialog<void>(
+    return items;
+  }
+
+  Future<void> _showTimeline({bool includeHistory = false}) async {
+    await showModalBottomSheet<void>(
       context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(
-            includeHistory
-                ? planActL10n(context).commitmentHistoryTitle
-                : PersianCopy.planactAppShowTimelineTitle,
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: items.isEmpty
-                ? const Text(PersianCopy.planactAppShowTimelineContent)
-                : ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          child: Text(PersianNumbers.format(index + 1)),
-                        ),
-                        title: Text(item.title),
-                        subtitle: Text(
-                          PersianCopy.planactAppShowTimelineSubtitle2(
-                            (_firstScheduledDate(item) == null
-                                    ? PersianCopy.planactAppShowTimelineSubtitle
-                                    : _formatDate(_firstScheduledDate(item)!))
-                                .toString(),
-                            (_statusLabel(item.status)).toString(),
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          _showCommitmentDetails(item);
-                        },
-                      );
-                    },
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(PersianCopy.commonClose),
-            ),
-          ],
+      sheetAnimationStyle: AnimationStyle(
+        duration: PlanActMotion.duration(context),
+        reverseDuration: PlanActMotion.duration(context, PlanActMotion.short),
+      ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: false,
+      enableDrag: false,
+      builder: (context) => ValueListenableBuilder<int>(
+        valueListenable: _commitmentViewsRevision,
+        builder: (context, revision, _) => CommitmentBrowseSheet(
+          title: includeHistory
+              ? planActL10n(context).commitmentHistoryTitle
+              : planActL10n(context).planactAppShowTimelineTitle,
+          items: _timelineItems(includeHistory),
+          subtitle: (item) =>
+              planActL10n(context).planactAppShowTimelineSubtitle2(
+                _firstScheduledDate(item) == null
+                    ? planActL10n(context).planactAppShowTimelineSubtitle
+                    : _formatDate(_firstScheduledDate(item)!),
+                _statusLabel(item.status),
+              ),
+          onOpen: _showCommitmentDetails,
+          error: _todayError,
+          onRetry: _refresh,
         ),
       ),
     );
@@ -1215,6 +1201,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     _smsSync?.removeListener(_smsSyncChanged);
     _smsSync?.dispose();
     _pageController.dispose();
+    _commitmentViewsRevision.dispose();
     super.dispose();
   }
 
@@ -1416,36 +1403,28 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               .toList(),
         ),
       ),
-      floatingActionButton: _selectedIndex == 2
-          ? null
-          : FloatingActionButton(
-              tooltip: planActL10n(context).commonQuickAdd,
-              onPressed: _showQuickAdd,
-              child: const Icon(Icons.add),
-            ),
-      // Finance's last operations target must never sit behind Quick Add.
-      // Let Scaffold reserve the measured action + navigation height instead
-      // of guessing FAB or system-bar dimensions in the transaction list.
+      // One persistent action host across tabs. Its measured height reserves
+      // space for every page, including Finance's final operations target.
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_selectedIndex == 2)
-            SafeArea(
-              top: false,
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.all(PlanActSpacing.lg),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  heightFactor: 1,
-                  child: FloatingActionButton(
-                    tooltip: planActL10n(context).commonQuickAdd,
-                    onPressed: _showQuickAdd,
-                    child: const Icon(Icons.add),
-                  ),
+          SafeArea(
+            top: false,
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.all(PlanActSpacing.lg),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                heightFactor: 1,
+                child: FloatingActionButton(
+                  key: const ValueKey('shell-quick-add'),
+                  tooltip: planActL10n(context).commonQuickAdd,
+                  onPressed: _showQuickAdd,
+                  child: const Icon(Icons.add),
                 ),
               ),
             ),
+          ),
           NavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) {

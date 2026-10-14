@@ -357,7 +357,17 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester.getTopLeft(find.text(PersianDateFormatter.date(day))).dy,
-        lessThan(220),
+        // Sticky to the agenda viewport, independently of the shared header's
+        // text-scale-aware height above it.
+        inInclusiveRange(
+          tester
+              .getTopLeft(find.byKey(const ValueKey('week-agenda-scroll')))
+              .dy,
+          tester
+                  .getTopLeft(find.byKey(const ValueKey('week-agenda-scroll')))
+                  .dy +
+              48,
+        ),
       );
       await tester.tap(find.byTooltip('هفته بعد'));
       await tester.pumpAndSettle();

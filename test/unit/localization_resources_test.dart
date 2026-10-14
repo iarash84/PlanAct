@@ -32,6 +32,12 @@ void main() {
     expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
     expect(copy.occurrenceCancelled, 'لغوشده');
     expect(copy.calendarPageTodayButtonLabel, 'امروز');
+    expect(copy.commitmentBrowseExpand, 'نمایش تمام‌صفحه');
+    expect(copy.commitmentBrowseCollapse, 'نمایش کوچک‌تر');
+    expect(
+      copy.commitmentBrowseOpenError,
+      'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.',
+    );
   });
 
   test(
@@ -77,7 +83,7 @@ void main() {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
     // must update this baseline with explicit review, not regenerate it in CI.
-    // New user-approved Undo/Inbox/SMS messages are separately marked and are not part
+    // New user-approved Undo/Inbox/SMS/browse messages are separately marked and are not part
     // of the frozen pre-migration source. All catalog metadata is still checked.
     final templates =
         catalog.entries
@@ -89,6 +95,7 @@ void main() {
                     'inbox-default-2026-10-14',
                     'sms-sync-2026-10-14',
                     'sms-permission-2026-10-14',
+                    'interaction-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

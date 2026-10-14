@@ -840,6 +840,8 @@ When introducing a new directional interaction, compare it with existing PlanAct
 
 ## Changes to Shared UI
 
+User-approved 2026-10-14 interaction consistency: Month and every shared date-picker consumer reuse the same grid-only horizontal month gesture (physical right next, left previous, 48dp threshold); picker selection remains staged until confirmation. Calendar Month/Week share header composition with Today anchored at RTL start and Week-only date selection following with natural wrapping. Quick Add has one persistent measured host above root navigation across all tabs, preserving Finance last-row access without tab-driven FAB entrance/exit. Timeline and History remain separate menu entries using one draggable bottom-sheet pattern, initially medium and expandable in the same route to safe full height, with pinned title, accessible expand/collapse/close, coordinated list scrolling and preserved extent/offset on return from existing Details. Refresh after existing commands must update the retained sheet; browsing has no durable effects. See docs/UI_MIGRATION_VERIFICATION.md for bounded coverage and outstanding independent/device acceptance.
+
 Before creating a new visual component:
 
 1. Search existing shared components, themes, and tokens for an equivalent pattern.
