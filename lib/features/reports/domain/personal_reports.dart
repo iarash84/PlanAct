@@ -22,6 +22,7 @@ enum PersonalReportKind {
   upcoming,
   changes,
   accounts,
+  recurringFinance,
 }
 
 enum ReportTagMode { any, all, untagged }

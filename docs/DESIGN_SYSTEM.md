@@ -164,6 +164,14 @@ RTL is the default. Use Flutter directionality, `AlignmentDirectional`, start/en
 
 ## Accessibility and responsive behavior
 
+Financial reports use grouped columns for period comparisons, stacked columns for
+settlement amounts, daily balance/recurring-cost lines and category-share donuts.
+Use theme primary/secondary/tertiary/on-surface-variant roles with written legends,
+exact Persian values and expandable accessible details; never use color alone.
+Signed lines/columns retain a zero baseline. Donuts disclose nonpositive corrected
+totals outside their positive shares. RTL chart time/group order follows ambient
+directionality; labels wrap outside drawing geometry, preserving large text.
+
 - Maintain a minimum 48×48dp interactive target, except the seven-column Calendar Month and shared modal date-picker grids when seven standard targets cannot fit: distribute available width equally without horizontal scrolling, retain at least 48dp height, and never overlap hit regions. This user-approved dense-calendar exception does not apply to Week or other controls. Visual icon size is not target size; do not inflate each day with an independent information button.
 - Target WCAG 2.1 AA contrast as a baseline: 4.5:1 for normal text and 3:1 for large text and essential non-text controls; verify foregrounds against their actual Light and Dark surfaces.
 - Support system text scaling without clipping, fixed-height text regions, or reducing font size to conceal overflow.

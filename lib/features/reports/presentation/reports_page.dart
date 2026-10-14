@@ -16,6 +16,8 @@ import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/reports/application/reports_reader.dart';
 import 'package:planact/features/reports/domain/personal_reports.dart';
 import 'package:planact/features/reports/presentation/report_bar_chart.dart';
+import 'package:planact/features/reports/presentation/financial_report_chart.dart';
+import 'package:planact/features/reports/domain/financial_chart_projections.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
@@ -31,6 +33,7 @@ String personalReportLabel(PersonalReportKind kind) => switch (kind) {
   PersonalReportKind.upcoming => 'برنامه و پرداخت‌های پیش‌رو',
   PersonalReportKind.changes => 'جابه‌جایی و لغو برنامه‌ها',
   PersonalReportKind.accounts => 'گردش و موجودی حساب‌ها',
+  PersonalReportKind.recurringFinance => 'هزینه‌های تکرارشونده و اقساط',
 };
 
 class ReportsPage extends StatefulWidget {
@@ -347,7 +350,9 @@ class _ReportsPageState extends State<ReportsPage> {
               s: occurrenceStatusLabel(s),
           }, (v) => _status = v),
       ],
-      if (_financial || _kind == PersonalReportKind.settlement) ...[
+      if (_financial ||
+          _kind == PersonalReportKind.settlement ||
+          _kind == PersonalReportKind.recurringFinance) ...[
         _select<StableId>('حساب', _account, {
           for (final a in data.accounts) a.id: a.name,
         }, (v) => _account = v),
@@ -592,6 +597,9 @@ class _ReportsPageState extends State<ReportsPage> {
       }
     }
     if (_combined || _kind == PersonalReportKind.cashFlow) {
+      if (_kind == PersonalReportKind.cashFlow) {
+        widgets.addAll(_cashCharts(report, data));
+      }
       widgets.add(
         const Text(
           'انتقال، موجودی اولیه و تعدیل در دخل‌وخرج حساب نمی‌شوند؛ بازپرداخت در ورودی لحاظ می‌شود.',
@@ -707,6 +715,7 @@ class _ReportsPageState extends State<ReportsPage> {
     if (_combined ||
         [
           PersonalReportKind.settlement,
+          PersonalReportKind.recurringFinance,
           PersonalReportKind.upcoming,
         ].contains(_kind)) {
       widgets.add(
@@ -716,6 +725,10 @@ class _ReportsPageState extends State<ReportsPage> {
       );
       final groups = <String, List<ReportSettlement>>{};
       for (final s in report.settlements) {
+        if (_kind == PersonalReportKind.recurringFinance &&
+            !isRecurringExpense(s)) {
+          continue;
+        }
         final key =
             '${s.expectation.direction == FinancialExpectationDirection.incoming ? 'دریافت' : 'پرداخت'} — ${s.expectation.currency ?? 'واحد نامشخص'}';
         (groups[key] ??= []).add(s);
@@ -730,6 +743,46 @@ class _ReportsPageState extends State<ReportsPage> {
         final currency = group.value.first.expectation.currency;
         widgets.add(
           _section(group.key, [
+            FinancialReportChart(
+              title: 'مبلغ تسویه‌شده و باقی‌ماندهٔ تعهدات',
+              labels: const ['تعهدات'],
+              style: FinancialChartStyle.stacked,
+              format: (v) => _money(v, currency),
+              series: [
+                for (final state in FinancialDueState.values)
+                  FinancialChartSeries(
+                    switch (state) {
+                      FinancialDueState.settled => 'تسویه‌شده',
+                      FinancialDueState.partial => 'باقی‌ماندهٔ تسویهٔ جزئی',
+                      FinancialDueState.pending => 'در انتظار',
+                      FinancialDueState.overdue => 'سررسیدگذشته',
+                    },
+                    [
+                      group.value
+                          .where((s) => financialDueState(s, _now) == state)
+                          .fold<int>(
+                            0,
+                            (sum, s) =>
+                                sum +
+                                (state == FinancialDueState.settled
+                                    ? s.expectation.amount
+                                    : s.remaining),
+                          ),
+                    ],
+                  ),
+              ],
+            ),
+            if (_kind == PersonalReportKind.recurringFinance)
+              ..._recurringCharts(group.value, currency),
+            for (final state in FinancialDueState.values)
+              Text(
+                '${switch (state) {
+                  FinancialDueState.settled => 'تسویه‌شده',
+                  FinancialDueState.partial => 'تسویهٔ جزئی در انتظار',
+                  FinancialDueState.pending => 'در انتظار',
+                  FinancialDueState.overdue => 'سررسیدگذشته',
+                }}: ${PersianNumbers.format(group.value.where((s) => financialDueState(s, _now) == state).length)} تعهد مالی',
+              ),
             _moneyChart('برنامه در برابر تسویه', currency, {
               'برنامه': expected,
               'تطبیق': allocated,
@@ -753,7 +806,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ], expanded: true),
         );
       }
-      if (report.settlements.isEmpty) {
+      if (groups.isEmpty) {
         widgets.add(
           const Text('انتظار مالی ثبت‌شده‌ای با این فیلترها وجود ندارد.'),
         );
@@ -925,6 +978,26 @@ class _ReportsPageState extends State<ReportsPage> {
               'خالص گردش کل دوره': a.movement,
               'پایان دوره': a.closing,
             }),
+            FinancialReportChart(
+              title: 'روند موجودی پایان روز از کل دفتر',
+              style: FinancialChartStyle.line,
+              labels: accountBalanceSeries(
+                data,
+                a.account.id,
+                _filter,
+              ).map((p) => _date(p.date)).toList(),
+              series: [
+                FinancialChartSeries(
+                  'موجودی',
+                  accountBalanceSeries(
+                    data,
+                    a.account.id,
+                    _filter,
+                  ).map((p) => p.amount).toList(),
+                ),
+              ],
+              format: (v) => _money(v, a.account.currency),
+            ),
             Text('ابتدای دوره: ${_money(a.opening, a.account.currency)}'),
             Text(
               'خالص گردش کل دوره: ${_money(a.movement, a.account.currency)}',
@@ -942,6 +1015,114 @@ class _ReportsPageState extends State<ReportsPage> {
       }
     }
     return widgets;
+  }
+
+  List<Widget> _cashCharts(PersonalReport report, ReportSnapshot data) {
+    final previousFilter = precedingPeriod(_filter);
+    final previous = buildPersonalReport(
+      data,
+      previousFilter,
+      kind: PersonalReportKind.cashFlow,
+      now: _now,
+    );
+    final result = <Widget>[
+      Text(
+        'مقایسه با بازهٔ هم‌طول قبلی: ${_date(previousFilter.from)} تا ${_date(previousFilter.to)}؛ همان فیلترها اعمال می‌شوند.',
+      ),
+    ];
+    for (final currency in {
+      ...report.cashTotals.keys,
+      ...previous.cashTotals.keys,
+    }) {
+      final current = report.cashTotals[currency] ?? ReportCashTotal();
+      final old = previous.cashTotals[currency] ?? ReportCashTotal();
+      result.add(
+        FinancialReportChart(
+          title: 'مقایسهٔ دوره‌ها — $currency',
+          style: FinancialChartStyle.grouped,
+          labels: const ['دورهٔ قبلی', 'دورهٔ انتخاب‌شده'],
+          series: [
+            FinancialChartSeries('ورودی', [old.incoming, current.incoming]),
+            FinancialChartSeries('خروجی', [old.outgoing, current.outgoing]),
+            FinancialChartSeries('خالص', [old.net, current.net]),
+          ],
+          format: (v) => _money(v, currency),
+        ),
+      );
+      final months = monthlyCashTotals(report.movements, currency, _filter);
+      final keys = months.keys.toList()..sort();
+      result.add(
+        FinancialReportChart(
+          title: 'درآمد و هزینهٔ ماهانه — $currency',
+          style: FinancialChartStyle.grouped,
+          labels: keys.map(PersianNumbers.format).toList(),
+          series: [
+            FinancialChartSeries(
+              'ورودی',
+              keys.map((k) => months[k]!.incoming).toList(),
+            ),
+            FinancialChartSeries(
+              'خروجی',
+              keys.map((k) => months[k]!.outgoing).toList(),
+            ),
+          ],
+          format: (v) => _money(v, currency),
+        ),
+      );
+      for (final type in [AccountEntryType.expense, AccountEntryType.income]) {
+        final shares = categoryShares(report.movements, currency, type);
+        result.add(
+          FinancialReportChart(
+            title:
+                '${type == AccountEntryType.expense ? 'سهم دسته‌های هزینه' : 'سهم منابع درآمد بر اساس دسته'} — $currency',
+            style: FinancialChartStyle.donut,
+            labels: shares.keys.toList(),
+            series: [FinancialChartSeries('مبلغ', shares.values.toList())],
+            format: (v) => _money(v, currency),
+          ),
+        );
+      }
+    }
+    return result;
+  }
+
+  List<Widget> _recurringCharts(List<ReportSettlement> rows, String? currency) {
+    final months = recurringSettlementMonths(rows);
+    final keys = months.keys.toList()..sort();
+    return [
+      const Text(
+        'تعهدهای صریحاً تکرارشونده؛ مبنا سررسید و تطبیق فعلی است، نه اصل بدهی یا تاریخ پرداخت. آینده فقط شامل انتظارهای مالی ثبت‌شده است.',
+      ),
+      FinancialReportChart(
+        title: 'روند هزینه‌های تکرارشونده و اقساط',
+        style: FinancialChartStyle.line,
+        positions: keys.map((key) {
+          final parts = key.split('-').map(int.parse).toList();
+          return parts[0] * 12 + parts[1];
+        }).toList(),
+        labels: keys.map(PersianNumbers.format).toList(),
+        series: [
+          FinancialChartSeries(
+            'برنامه',
+            keys
+                .map(
+                  (k) => months[k]!.fold<int>(
+                    0,
+                    (a, s) => a + s.expectation.amount,
+                  ),
+                )
+                .toList(),
+          ),
+          FinancialChartSeries(
+            'تطبیق واقعی',
+            keys
+                .map((k) => months[k]!.fold<int>(0, (a, s) => a + s.allocated))
+                .toList(),
+          ),
+        ],
+        format: (v) => _money(v, currency),
+      ),
+    ];
   }
 
   Widget _moneyChart(String title, String? currency, Map<String, int> values) =>

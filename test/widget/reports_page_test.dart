@@ -18,6 +18,13 @@ import 'package:planact/features/reports/application/reports_reader.dart';
 import 'package:planact/features/reports/domain/personal_reports.dart';
 import 'package:planact/features/reports/presentation/reports_page.dart';
 import 'package:planact/features/reports/presentation/report_bar_chart.dart';
+import 'package:planact/features/reports/presentation/financial_report_chart.dart';
+import 'package:planact/features/reports/data/drift_reports_reader.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
+import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
+import 'package:planact/features/finance/domain/financial_expectation.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 class _Reader implements ReportsReader {
   bool fail = true;
@@ -36,6 +43,15 @@ class _Reader implements ReportsReader {
 
 Future<void> chooseReport(WidgetTester tester, PersonalReportKind kind) async {
   final selector = find.byType(DropdownButtonFormField<PersonalReportKind>);
+  if (selector.evaluate().isEmpty) {
+    final scroll = find
+        .descendant(
+          of: find.byType(ReportsPage),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+    await tester.scrollUntilVisible(selector, -180, scrollable: scroll);
+  }
   if (tester
           .widget<DropdownButtonFormField<PersonalReportKind>>(selector)
           .initialValue ==
@@ -60,6 +76,75 @@ Future<void> chooseReport(WidgetTester tester, PersonalReportKind kind) async {
 }
 
 void main() {
+  testWidgets(
+    'SQLite recurring report excludes one-off expense and classifies due time independently',
+    (tester) async {
+      final database = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(database.close);
+      final expectations = DriftFinancialExpectationRepository(database);
+      final create = CreateCommitmentPlan(
+        commitments: DriftCommitmentRepository(database),
+        plans: DriftCommitmentPlanRepository(database),
+        financialExpectations: FinancialExpectationUseCases(expectations),
+      );
+      await create(
+        title: 'اقساط',
+        startAt: DateTime(2026, 10, 12, 10),
+        kind: CommitmentKind.recurring,
+        frequency: RecurrenceFrequency.weekly,
+        occurrenceCount: 2,
+        financialDirection: FinancialExpectationDirection.outgoing,
+        financialAmount: 100,
+      );
+      await create(
+        title: 'خرید یک‌باره',
+        startAt: DateTime(2026, 10, 12, 10),
+        financialDirection: FinancialExpectationDirection.outgoing,
+        financialAmount: 900,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: PlanActTheme.light(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: ReportsPage(
+              reader: DriftReportsReader(database),
+              now: DateTime(2026, 10, 13, 12),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await chooseReport(tester, PersonalReportKind.recurringFinance);
+      final scroll = find
+          .descendant(
+            of: find.byType(ReportsPage),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      await tester.scrollUntilVisible(
+        find.text('روند هزینه‌های تکرارشونده و اقساط'),
+        180,
+        scrollable: scroll,
+      );
+      final trend = tester
+          .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
+          .firstWhere((chart) => chart.style == FinancialChartStyle.line);
+      expect(trend.series.first.values, [200]);
+      expect(trend.series.last.values, [0]);
+      await tester.scrollUntilVisible(
+        find.text('مبلغ تسویه‌شده و باقی‌ماندهٔ تعهدات'),
+        -180,
+        scrollable: scroll,
+      );
+      final status = tester
+          .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
+          .firstWhere((chart) => chart.style == FinancialChartStyle.stacked);
+      expect(status.series.map((s) => s.values.single), [0, 0, 100, 100]);
+      expect((await expectations.listExpectations()).length, 3);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets(
     'report opens Details directly and rereads durable edits on return',
     (tester) async {
@@ -238,6 +323,28 @@ void main() {
             .widgetList<ReportBarChart>(find.byType(ReportBarChart))
             .firstWhere((chart) => chart.title == 'مقایسهٔ دخل‌وخرج');
         expect(cashChart().data.map((d) => d.value), [0, 1000, -1000]);
+        FinancialReportChart sharesChart() => tester
+            .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
+            .firstWhere((chart) => chart.style == FinancialChartStyle.donut);
+        Future<void> expectShares(int amount) async {
+          await tester.scrollUntilVisible(
+            find.text('سهم دسته‌های هزینه — IRR'),
+            -180,
+            scrollable: scroll,
+          );
+          expect(sharesChart().series.single.values, [amount]);
+        }
+
+        await expectShares(1000);
+        await tester.scrollUntilVisible(
+          find.text('مقایسهٔ دوره‌ها — IRR'),
+          -180,
+          scrollable: scroll,
+        );
+        final periods = tester
+            .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
+            .firstWhere((chart) => chart.title.startsWith('مقایسهٔ دوره‌ها'));
+        expect(periods.series[1].values, [0, 1000]);
         await tester.scrollUntilVisible(
           find.text('فیلترهای گزارش'),
           -180,
@@ -259,6 +366,7 @@ void main() {
         expect(cashChart().data.map((d) => d.value), [0, 100, -100]);
         expect(find.text('هزینهٔ دیگر'), findsNothing);
         expect(find.text('هزینهٔ ورزش'), findsWidgets);
+        await expectShares(100);
         final extra = await add(50, 'ورزش دوم');
         await tags.attach(
           recordId: extra.id.value,
@@ -274,6 +382,17 @@ void main() {
         );
         expect(find.text('خروجی: ۱۵۰ ریال'), findsOneWidget);
         expect(cashChart().data.map((d) => d.value), [0, 150, -150]);
+        await expectShares(150);
+        await chooseReport(tester, PersonalReportKind.accounts);
+        await tester.scrollUntilVisible(
+          find.text('روند موجودی پایان روز از کل دفتر'),
+          180,
+          scrollable: scroll,
+        );
+        final balanceLine = tester
+            .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
+            .firstWhere((chart) => chart.style == FinancialChartStyle.line);
+        expect(balanceLine.series.single.values.last, -1050);
         expect((await finance.listEntries()).length, 3);
         await tester.pumpWidget(const SizedBox.shrink());
       },

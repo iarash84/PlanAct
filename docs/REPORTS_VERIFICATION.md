@@ -1,5 +1,67 @@
 # Personal reports — acceptance contract
 
+Financial chart extension contract (2026-10-13): More → Reports, no new
+permissions, adds monthly cash comparisons, preceding equal-length period
+comparison, category expense/income shares, full-ledger daily account balance,
+financial settlement status and recurring commitment settlement trends. The same
+snapshot and filters feed charts and details; preceding period retains dimensions.
+Overdue uses occurrence due date and unpaid remainder, independent of completion.
+Donuts only represent positive shares; negative corrected category totals are
+disclosed separately. Recurring means explicitly recurring commitment, not inferred
+debt. Future previews never become payments or balance forecasts. Read/retry/filter
+and cancellation remain write-free. No schema, dependency or backup change.
+Required evidence: pure projection counterexamples, populated RTL Light/Dark at
+360dp/large text, production report route regressions and analyzer. Device volume,
+visual review and independent acceptance remain release-maintainer gates. Budgets,
+asset/debt accounting and forecast balances remain outside approved report scope.
+
+Extension implementation: five approved report priorities are wired in the existing
+route. Cash flow includes Jalali monthly grouped columns, a preceding equal-length
+civil-day comparison and expense/income category donuts. Accounts adds a daily
+full-ledger balance line. Settlement adds financial status amounts and counts;
+the recurring-finance selector limits outgoing expectations to explicit recurring
+commitments and compares scheduled/allocated amounts by due month. Missing months
+in the recurring line retain proportional month spacing rather than invented zero
+obligations. Partial overdue is classified overdue; resolved occurrence status
+never proves financial settlement. All-day obligations expire after their civil
+due day, while timed obligations compare their actual due time.
+
+Scope limitations: preceding period is equal in days, not necessarily a previous
+calendar month. Income sources use existing categories, not a new source registry;
+subcategories and debt principal/interest are absent. Forecast/budget/asset-debt
+work requires product-owner decisions on missing financial templates, account
+assignment, uncertainty, budget periods and debt semantics. Next action: define
+those acceptance contracts separately; exposure: no forecast or invented debt
+balance is offered by this extension. Device populated visual/accessibility review,
+realistic-volume timing and independent acceptance remain owned by the release
+maintainer and block a release-ready claim.
+
+Self-review counterexamples: end-day/all-day versus timed overdue, completed but
+unpaid occurrence, overpayment, transfers and signed ledger corrections, unrelated
+account entries, original category on reversal, separate currencies, Jalali New
+Year and empty cash months, preceding-period filter preservation, one-off expense
+exclusion and tag-filtered cash versus unfiltered account balance. New route tests
+also caught a keyless ExpansionTile sharing scroll PageStorage; each chart now has
+its own stable details key. Lazy route tests explicitly scroll targets into view.
+This implementation review is not independent release sign-off.
+
+Final extension validation (2026-10-13): formatter passed, analyzer reports no
+issues and `git diff --check` passed. New evidence includes five projection tests,
+eight populated 360dp/1.8-scale RTL Light/Dark chart checks, SQLite recurring-route
+status/exclusion checks and cash donut/period/account-line refresh assertions.
+Final focused domain/repository/chart/report-route execution: **37 passed, 0 failed**.
+The full application run finished **831 passed / 5 failed**, 4m35s. A separate
+rerun of the three failing, unmodified files finished **27 passed / 5 failed**:
+`quick_capture_sheet_test.dart` expects ungrouped Persian input where it observes
+`12,345`; both `sms_currency_review_test.dart` cases expect the earlier ambiguous
+unit warning; both actual-transfer `sms_editable_review_test.dart` cases cannot
+find a hit-testable unit selector. These failures were not repaired by this report
+extension, and baseline causality was not established by a clean checkout run.
+Owners: capture/SMS maintainers; next action: review current money formatting and
+explicit-unit presentation contracts against those journeys. Exposure: complete
+application verification is Failed, release readiness remains blocked. Device
+and independent report acceptance are still Not run; no green-suite claim.
+
 Chart acceptance extension (2026-10-13): More → Reports presents labelled,
 accessible horizontal comparisons before detail rows: occurrence statuses,
 cash in/out/net and selected groups, planned/allocated/remaining settlement,

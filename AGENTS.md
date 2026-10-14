@@ -264,6 +264,15 @@ subject's cash. Account balance remains a full-ledger projection even when detai
 rows are tag-filtered; disclose that exception in the report. See
 [report verification](docs/REPORTS_VERIFICATION.md) for bounded scope and evidence.
 
+Financial chart extensions retain integer projections, separate currencies and
+confirmed allocation semantics. Financial overdue uses occurrence due time/date
+and unpaid remainder independently of occurrence completion. Daily balance lines
+use the full account ledger; preceding equal-length civil-day comparisons preserve
+all filter dimensions. Donut shares exclude nonpositive category totals with
+explicit disclosure, never silently discard correction evidence. Recurring expense
+reports require explicit recurring commitment kind, never infer debt or forecast
+unrecorded payments. Chart geometry alone may use floating point.
+
 - Use foreign keys, indexes, transactional writes, and explicit migrations from the beginning.
 - Use stable IDs independent from local row auto-increment. UUIDv7 or ULID are acceptable implementation choices; record the final choice in an ADR.
 - Every schema change requires a forward migration and tests using older-version fixtures.
