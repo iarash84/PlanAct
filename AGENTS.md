@@ -903,13 +903,19 @@ Do not report a task as complete when analysis or relevant tests fail.
 ## SMS bounded consent safeguards
 
 SMS permission is not historical-import consent. Inbox requires explicit bounded
-recent-range or new-only selection; navigation, refresh, lifecycle and broadcasts
-must not start a scan without an explicit ingestion action. Source queries must
+recent-range or new-only selection. User-approved 2026-10-14: a separate, initially
+off automatic-new-message choice starts a durable boundary at activation;
+startup/resume, foreground broadcasts and Today/Inbox pull-to-refresh may sync
+only that consented window. Existing import consent does not enable automation.
+Historical scans still require explicit start/resume. Source queries must
 bound dates and page in stable timestamp/row-ID order off the native UI thread.
 Persist consent, fixed scan horizon and resumable progress; checkpoint only safely
 handled rows/pages, preserve resolved suggestions and replay interrupted pages
-idempotently. Resume/Retry is explicit after restart/restore. No permanent native
-service is implied. Native provider compatibility, delayed insertions, permission
+idempotently. Automatic consent/progress is separate from historical scans and
+survives restart/backup/restore; disabling preserves staged data and re-enabling
+starts a fresh boundary. Revoked permission prevents reads, never prompts silently,
+and must not hide other Today content. No permanent native service is implied.
+See ADR 0021. Native provider compatibility, delayed insertions, permission
 revocation and reference-device responsiveness require independent device evidence.
 Existing global fingerprint identity limitations are not proof of lossless imports.
 See [SMS verification](docs/SMS_VERIFICATION.md).

@@ -4459,6 +4459,25 @@ class AppLocalizationsFa extends AppLocalizations {
   String get inboxCurrencyAlreadyResolved => 'واحد مبلغ قبلاً مشخص شده است.';
 
   @override
+  String get smsAutomaticTitle => 'دریافت خودکار پیامک‌های جدید';
+
+  @override
+  String get smsAutomaticDescription =>
+      'با فعال‌سازی، فقط پیامک‌های دریافتی از همین لحظه هنگام بازشدن یا بازگشت به برنامه، دریافت پیامک و کشیدن صفحه به پایین بررسی می‌شوند. ثبت مالی با تأیید شماست. هنگام بسته‌بودن برنامه دریافت انجام نمی‌شود.';
+
+  @override
+  String get smsAutomaticSyncFailed =>
+      'بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.';
+
+  @override
+  String get smsAutomaticPermissionRequired =>
+      'برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.';
+
+  @override
+  String get smsAutomaticSettingFailed =>
+      'تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
   String get inboxCurrencyRevisionRequired =>
       'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.';
 }

@@ -6971,6 +6971,34 @@
     "x-planact-introduced": "inbox-default-2026-10-14",
     "x-planact-default": true
   },
+  "smsAutomaticTitle": "دریافت خودکار پیامک‌های جدید",
+  "@smsAutomaticTitle": {
+    "description": "Explicit opt-in for foreground ingestion of new SMS only.",
+    "x-planact-introduced": "sms-sync-2026-10-14"
+  },
+  "smsAutomaticDescription": "با فعال‌سازی، فقط پیامک‌های دریافتی از همین لحظه هنگام بازشدن یا بازگشت به برنامه، دریافت پیامک و کشیدن صفحه به پایین بررسی می‌شوند. ثبت مالی با تأیید شماست. هنگام بسته‌بودن برنامه دریافت انجام نمی‌شود.",
+  "@smsAutomaticDescription": {
+    "description": "Consent boundary, foreground triggers, and mandatory financial review; historical import is separate.",
+    "x-planact-introduced": "sms-sync-2026-10-14"
+  },
+  "smsAutomaticSyncFailed": "بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.",
+  "@smsAutomaticSyncFailed": {
+    "description": "Retryable automatic SMS read, checkpoint or refresh error without sensitive details.",
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "x-planact-default": true
+  },
+  "smsAutomaticPermissionRequired": "برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.",
+  "@smsAutomaticPermissionRequired": {
+    "description": "Missing or revoked SMS access never prompts automatically or reads the provider.",
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "x-planact-default": true
+  },
+  "smsAutomaticSettingFailed": "تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.",
+  "@smsAutomaticSettingFailed": {
+    "description": "Failed durable consent write must not change the effective SMS synchronization setting.",
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "x-planact-default": true
+  },
   "inboxCurrencyRevisionRequired": "برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.",
   "@inboxCurrencyRevisionRequired": {
     "description": "Durable confirmation requires a reviewed revision before accepting a proposed unit.",

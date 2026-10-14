@@ -31,6 +31,7 @@ import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
+import 'package:planact/features/inbox/presentation/sms_sync_controller.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -91,7 +92,9 @@ class PlanActApp extends StatefulWidget {
     this.holidayPackages,
     this.backupActions,
     this.backupMessage,
+    this.smsSource,
   });
+  final AndroidSmsSource? smsSource;
   final HolidayPackageService? holidayPackages;
   final BackupActions? backupActions;
   final String? backupMessage;
@@ -259,6 +262,7 @@ class _PlanActAppState extends State<PlanActApp> {
               ),
             )
           : HomeShell(
+              smsSource: widget.smsSource,
               holidayPackages: widget.holidayPackages,
               backupActions: widget.backupActions,
               backupMessage: widget.backupMessage,
@@ -289,6 +293,7 @@ class HomeShell extends StatefulWidget {
     this.holidayPackages,
     this.backupActions,
     this.backupMessage,
+    this.smsSource,
     this.themeMode = ThemeMode.system,
     this.appLockEnabled = false,
     this.appLockController,
@@ -300,6 +305,7 @@ class HomeShell extends StatefulWidget {
   static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
+  final AndroidSmsSource? smsSource;
   final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
@@ -388,11 +394,31 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ? DriftInboxRepository(_repository.database)
         : InMemoryInboxRepository(),
   );
+  late final AndroidSmsSource _smsSource =
+      widget.smsSource ?? AndroidSmsSource();
+  SmsSyncController? _smsSync;
+
+  void _smsSyncChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _refreshWithSms() async {
+    await _smsSync?.refresh();
+    await _refresh();
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (_repository is DriftCommitmentRepository) {
+      _smsSync = SmsSyncController(
+        inbox: _inboxUseCases,
+        source: _smsSource,
+        onChanged: _refresh,
+      )..addListener(_smsSyncChanged);
+      _smsSync!.start();
+    }
     _maintainSchedules();
   }
 
@@ -598,7 +624,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             },
             finance: _financeRepository,
             onDetermineRelationship: _openRelationship,
-            smsSource: AndroidSmsSource(),
+            smsSource: _smsSource,
+            smsSync: _smsSync,
           ),
         ),
       ),
@@ -1185,6 +1212,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _smsSync?.removeListener(_smsSyncChanged);
+    _smsSync?.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -1202,8 +1231,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         dashboard: _todayDashboard,
         actionCenter: _todayActionCenter,
         error: _todayError,
-        onRetry: _refresh,
-        onRefresh: _refresh,
+        smsSyncError: _smsSync?.error,
+        onRetry: _refreshWithSms,
+        onRefresh: _refreshWithSms,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,

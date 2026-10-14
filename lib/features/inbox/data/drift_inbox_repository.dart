@@ -22,7 +22,8 @@ class DriftInboxRepository
         AtomicInboxConfirmation,
         AtomicInboxStaging,
         AtomicInboxReview,
-        SmsScanStore {
+        SmsScanStore,
+        AutomaticSmsScanStore {
   DriftInboxRepository(this.database);
 
   @override
@@ -30,6 +31,7 @@ class DriftInboxRepository
 
   final db.AppDatabase database;
   static const smsScanMetadataKey = 'sms_scan_v1';
+  static const automaticSmsScanMetadataKey = 'sms_automatic_scan_v1';
 
   String _key(String id) => 'inbox_review_v1:$id';
 
@@ -129,13 +131,26 @@ class DriftInboxRepository
 
   @override
   Future<void> writeSmsScan(String? expected, String value) =>
+      _writeScan(smsScanMetadataKey, expected, value);
+
+  @override
+  Future<String?> readAutomaticSmsScan() => CommandGate.runFor(
+    this,
+    () => database.readMetadata(automaticSmsScanMetadataKey),
+  );
+
+  @override
+  Future<void> writeAutomaticSmsScan(String? expected, String value) =>
+      _writeScan(automaticSmsScanMetadataKey, expected, value);
+
+  Future<void> _writeScan(String key, String? expected, String value) =>
       CommandGate.runFor(
         this,
         () => database.transaction(() async {
-          if (await database.readMetadata(smsScanMetadataKey) != expected) {
+          if (await database.readMetadata(key) != expected) {
             throw StateError('SMS scan changed; reload before retrying');
           }
-          await database.writeMetadata(smsScanMetadataKey, value);
+          await database.writeMetadata(key, value);
         }),
       );
 

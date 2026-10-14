@@ -772,5 +772,8 @@ abstract final class PersianCopy {
   static const matchCorrectMessage = "مبلغ و مقصد تخصیص را اصلاح کنید؛ ارتباط قبلی در سابقه می‌ماند و موجودی حساب تغییر نمی‌کند.";
   static const actualReopenMessage = "نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.";
   static const inboxCurrencyAlreadyResolved = "واحد مبلغ قبلاً مشخص شده است.";
+  static const smsAutomaticSyncFailed = "بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.";
+  static const smsAutomaticPermissionRequired = "برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.";
+  static const smsAutomaticSettingFailed = "تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.";
   static const inboxCurrencyRevisionRequired = "برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.";
 }

@@ -76,14 +76,18 @@ void main() {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
     // must update this baseline with explicit review, not regenerate it in CI.
-    // New user-approved Undo/Inbox messages are separately marked and are not part
+    // New user-approved Undo/Inbox/SMS messages are separately marked and are not part
     // of the frozen pre-migration source. All catalog metadata is still checked.
     final templates =
         catalog.entries
             .where((entry) => !entry.key.startsWith('@'))
             .where(
-              (entry) => !const {'undo-2026-10-14', 'inbox-default-2026-10-14'}
-                  .contains(
+              (entry) =>
+                  !const {
+                    'undo-2026-10-14',
+                    'inbox-default-2026-10-14',
+                    'sms-sync-2026-10-14',
+                  }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
                   ),

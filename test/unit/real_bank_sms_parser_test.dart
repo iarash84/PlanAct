@@ -7,6 +7,48 @@ import '../fixtures/real_bank_sms.dart';
 
 void main() {
   const parser = LocalSmsParser();
+  // Reported Sina layouts, with the private account replaced. In particular,
+  // preserve the trailing account whitespace and Arabic yeh from the source.
+  final sinaReports = [
+    (
+      text: 'بانک سينا\nبرداشت از  123-456-1234567-1 \nمبلغ  38,470,144 ريال\nمانده 2,802,961 ريال\nزمان : 1405/7/23 ; 17:46:44',
+      amount: 38470144,
+      balance: 2802961,
+      direction: TransactionDirection.outgoing,
+      at: DateTime(2026, 10, 15, 17, 46, 44),
+    ),
+    (
+      text: 'بانک سينا\nبرداشت از  123-456-1234567-1 \nمبلغ  700,000 ريال\nمانده 41,273,105 ريال\nزمان : 1405/7/23 ; 08:42:02',
+      amount: 700000,
+      balance: 41273105,
+      direction: TransactionDirection.outgoing,
+      at: DateTime(2026, 10, 15, 8, 42, 2),
+    ),
+    (
+      text: 'بانک سينا\nواريز به  123-456-1234567-1 \nمبلغ  304,554 ريال\nمانده 49,973,525 ريال\nزمان : 1405/7/15 ; 19:03:47',
+      amount: 304554,
+      balance: 49973525,
+      direction: TransactionDirection.incoming,
+      at: DateTime(2026, 10, 7, 19, 3, 47),
+    ),
+  ];
+  for (var i = 0; i < sinaReports.length; i++) {
+    test('reported Sina message ${i + 1} retains amount, balance and date', () {
+      final sample = sinaReports[i];
+      final parsed = parser.parse(text: sample.text, currency: 'IRR');
+      expect(parsed.amount.minorUnits, sample.amount);
+      expect(parsed.amount.currency, 'IRR');
+      expect(parsed.balance!.minorUnits, sample.balance);
+      expect(parsed.direction, sample.direction);
+      expect(parsed.bank, 'سینا');
+      expect(parsed.accountHint, '123-456-1234567-1');
+      expect(parsed.occurredAt, sample.at);
+      expect(parsed.currencyEvidence!.detectedUnit, SmsMoneyUnit.rial);
+      expect(parsed.currencyEvidence!.requiresSelection, isFalse);
+      expect(parsed.isTransfer, isFalse);
+      expect(parsed.quality, ParseQuality.high);
+    });
+  }
   for (var i = 0; i < realBankSms.length; i++) {
     test('redacted actual corpus ${i + 1}', () {
       final parsed = parser.parse(text: realBankSms[i], currency: 'USD');

@@ -27,6 +27,8 @@ import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/features/inbox/application/sms_ingestion.dart';
 import 'package:planact/features/inbox/presentation/sms_scan_card.dart';
+import 'package:planact/features/inbox/presentation/sms_automatic_sync_card.dart';
+import 'package:planact/features/inbox/presentation/sms_sync_controller.dart';
 import 'package:planact/features/inbox/application/inbox_review_projection.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/bulk_inbox_reject.dart';
@@ -39,6 +41,7 @@ class InboxPage extends StatefulWidget {
     required this.inbox,
     required this.finance,
     this.smsSource,
+    this.smsSync,
     this.tagRepository,
     this.onDetermineRelationship,
     this.onDataChanged,
@@ -49,6 +52,7 @@ class InboxPage extends StatefulWidget {
   final InboxUseCases inbox;
   final FinanceRepository finance;
   final AndroidSmsSource? smsSource;
+  final SmsSyncController? smsSync;
   final Future<void> Function(StableId transactionId)? onDetermineRelationship;
 
   @override
@@ -56,7 +60,9 @@ class InboxPage extends StatefulWidget {
 }
 
 class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
-  StreamSubscription<AndroidSmsMessage>? _smsSubscription;
+  SmsSyncController? _smsSync;
+  bool _ownsSmsSync = false;
+  int _smsRevision = 0;
   bool _reloading = false;
   bool _reloadRequested = false;
   static const _logger = AppLogger();
@@ -95,31 +101,47 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _smsSubscription = widget.smsSource?.messages.listen(
-      (_) async {
-        // The broadcast may precede insertion by the default SMS application.
-        // Import only provider rows; never create a second broadcast identity.
-        await Future<void>.delayed(const Duration(seconds: 2));
-        if (mounted) await _reload();
-      },
-      onError: (Object error) {
-        if (mounted) {
-          setState(() => _smsError = PersianCopy.inboxPageInitStateOnError);
-        }
-      },
-    );
+    _smsSync = widget.smsSync;
+    if (_smsSync == null &&
+        widget.smsSource != null &&
+        widget.inbox.repository is AutomaticSmsScanStore) {
+      _ownsSmsSync = true;
+      _smsSync = SmsSyncController(
+        inbox: widget.inbox,
+        source: widget.smsSource!,
+      );
+    }
+    _smsRevision = _smsSync?.revision ?? 0;
+    _smsSync?.addListener(_smsSyncChanged);
+    if (_ownsSmsSync) _smsSync!.start();
     _reload();
+    unawaited(_refreshSms());
+  }
+
+  void _smsSyncChanged() {
+    if (!mounted) return;
+    setState(() => _smsAccess = _smsSync?.access ?? _smsAccess);
+    if (_smsRevision != _smsSync!.revision) {
+      _smsRevision = _smsSync!.revision;
+      unawaited(_reload());
+    }
+  }
+
+  Future<void> _refreshSms() async {
+    await _syncSms();
+    await _reload();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !_working) _reload();
+    if (state == AppLifecycleState.resumed && !_working) _refreshSms();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _smsSubscription?.cancel();
+    _smsSync?.removeListener(_smsSyncChanged);
+    if (_ownsSmsSync) _smsSync?.dispose();
     _bulk?.cancel();
     _scroll.dispose();
     super.dispose();
@@ -133,7 +155,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     _reloading = true;
     final epoch = _epoch;
     try {
-      await _syncSms();
       await widget.inbox.expireRawText();
       final suggestions = await widget.inbox.repository.listSuggestions();
       final imports = await widget.inbox.repository.listImports();
@@ -196,6 +217,9 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final source = widget.smsSource;
     if (source == null) return;
     try {
+      if (_smsSync != null) {
+        await _smsSync!.refresh(checkAccess: true);
+      }
       final access = await source.hasAccess();
       if (!access) {
         if (mounted) {
@@ -207,7 +231,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         return;
       }
       // Permission is not consent to inspect historical provider rows.
-      if (mounted) setState(() => _smsAccess = true);
+      if (mounted) {
+        setState(() {
+          _smsAccess = true;
+          _smsError = null;
+        });
+      }
     } catch (error) {
       _logger.error(
         'SMS sync failed',
@@ -275,7 +304,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       }
       if (!mounted) return;
       if (granted) {
-        await _reload();
+        await _refreshSms();
       } else {
         setState(() {
           _smsAccess = false;
@@ -671,7 +700,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null && _items.isEmpty) {
       return RefreshIndicator(
-        onRefresh: _reload,
+        onRefresh: _refreshSms,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -682,7 +711,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                 title: planActL10n(context).inboxPageBuildTitle,
                 message: _error!,
                 actionLabel: planActL10n(context).commonRetry,
-                onAction: _reload,
+                onAction: _refreshSms,
               ),
             ),
           ],
@@ -695,11 +724,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         _SmsStatusCard(
           access: _smsAccess,
           error: _smsError,
-          onRefresh: _reload,
+          onRefresh: _refreshSms,
           onEnable: widget.smsSource != null && !_working && _smsAccess != true
               ? _enableSms
               : null,
         ),
+        if (_smsSync != null) SmsAutomaticSyncCard(controller: _smsSync!),
         if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
           SmsScanCard(
             inbox: widget.inbox,
@@ -815,7 +845,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       ],
     );
     return RefreshIndicator(
-      onRefresh: _reload,
+      onRefresh: _refreshSms,
       child: ListView.builder(
         controller: _scroll,
         key: const PageStorageKey('inbox-review'),

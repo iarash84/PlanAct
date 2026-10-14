@@ -7457,6 +7457,36 @@ abstract class AppLocalizations {
   /// **'واحد مبلغ قبلاً مشخص شده است.'**
   String get inboxCurrencyAlreadyResolved;
 
+  /// Explicit opt-in for foreground ingestion of new SMS only.
+  ///
+  /// In fa, this message translates to:
+  /// **'دریافت خودکار پیامک‌های جدید'**
+  String get smsAutomaticTitle;
+
+  /// Consent boundary, foreground triggers, and mandatory financial review; historical import is separate.
+  ///
+  /// In fa, this message translates to:
+  /// **'با فعال‌سازی، فقط پیامک‌های دریافتی از همین لحظه هنگام بازشدن یا بازگشت به برنامه، دریافت پیامک و کشیدن صفحه به پایین بررسی می‌شوند. ثبت مالی با تأیید شماست. هنگام بسته‌بودن برنامه دریافت انجام نمی‌شود.'**
+  String get smsAutomaticDescription;
+
+  /// Retryable automatic SMS read, checkpoint or refresh error without sensitive details.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.'**
+  String get smsAutomaticSyncFailed;
+
+  /// Missing or revoked SMS access never prompts automatically or reads the provider.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.'**
+  String get smsAutomaticPermissionRequired;
+
+  /// Failed durable consent write must not change the effective SMS synchronization setting.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.'**
+  String get smsAutomaticSettingFailed;
+
   /// Durable confirmation requires a reviewed revision before accepting a proposed unit.
   ///
   /// In fa, this message translates to:
