@@ -1391,11 +1391,68 @@
     "description": "Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:90.",
     "x-planact-default": true
   },
+  "holidayDataCoverageTitle": "سال‌ها و منابع تعطیلات",
+  "@holidayDataCoverageTitle": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14"
+  },
+  "holidayDataCoveredYears": "سال‌های دارای پوشش کامل: {years}",
+  "@holidayDataCoveredYears": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14",
+    "placeholders": {
+      "years": {
+        "type": "String",
+        "description": "Formatted Persian list of actual covered years; never a min/max range."
+      }
+    }
+  },
+  "holidayDataYearOrigin": "سال {year}؛ {origin}",
+  "@holidayDataYearOrigin": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14",
+    "placeholders": {
+      "year": {
+        "type": "String",
+        "description": "Persian year digits."
+      },
+      "origin": {
+        "type": "String",
+        "description": "Localized bundled or explicitly imported origin."
+      }
+    }
+  },
+  "holidayDataOriginBundled": "همراه برنامه",
+  "@holidayDataOriginBundled": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14"
+  },
+  "holidayDataOriginImported": "بستهٔ واردشده",
+  "@holidayDataOriginImported": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14"
+  },
+  "holidayDataRevision": "بازبینی {revision}",
+  "@holidayDataRevision": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14",
+    "placeholders": {
+      "revision": {
+        "type": "String",
+        "description": "Persian annual revision digits."
+      }
+    }
+  },
+  "holidayDataMissingCoverage": "برای سال‌هایی که در این فهرست نیستند، پوشش کامل تعطیلات رسمی نداریم؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.",
+  "@holidayDataMissingCoverage": {
+    "description": "Holiday reference-data coverage in More; derived from effective validated annual data.",
+    "x-planact-introduced": "holiday-data-2026-10-14"
+  },
   "holidayPackageSettingsCardBuildTitle": "دادهٔ تعطیلات",
   "@holidayPackageSettingsCardBuildTitle": {
     "description": "Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:104."
   },
-  "holidayPackageSettingsCardBuildSubtitle": "دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه",
+  "holidayPackageSettingsCardBuildSubtitle": "ورود سال‌های جدید بدون به‌روزرسانی برنامه",
   "@holidayPackageSettingsCardBuildSubtitle": {
     "description": "Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:107."
   },

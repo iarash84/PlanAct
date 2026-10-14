@@ -32,6 +32,53 @@ void main() {
   tearDown(() async => directory.delete(recursive: true));
 
   test(
+    'new unbundled year and explicit revision correction survive cold reopen',
+    () async {
+      expect(service.provider.hasCompleteOfficialCoverage(1407), isFalse);
+      files.value = await holidayFixture(year: 1407);
+      final prepared = (await service.prepare())!;
+      expect(service.provider.hasCompleteOfficialCoverage(1407), isFalse);
+      await service.install(prepared, publisherApproved: true);
+      final corrected = await HolidayDataPackage.verify(
+        await holidayFixture(
+          year: 1407,
+          revision: 2,
+          mutate: (data) {
+            ((data['holidays'] as List).first as Map)['title'] =
+                'دلیل اصلاح‌شده';
+          },
+        ),
+      );
+      // Preparing a correction is read-only; only installation admits it.
+      files.value = corrected.encoded;
+      await service.prepare();
+      expect(service.packages.single.revision, 1);
+      await service.install(corrected, publisherApproved: false);
+      service = HolidayPackageService(SqliteHolidayPackageStore(file), Files());
+      await service.load();
+      expect(service.provider.hasCompleteOfficialCoverage(1407), isTrue);
+      expect(service.provider.hasCompleteOfficialCoverage(1408), isFalse);
+      expect(service.calendars.last, (
+        year: 1407,
+        revision: 2,
+        source: 'https://example.test/calendar',
+        imported: true,
+      ));
+      expect(
+        service.provider
+            .holidaysFor(const JalaliDate(1407, 1, 1))
+            .any((h) => h.title == 'دلیل اصلاح‌شده'),
+        isTrue,
+      );
+      await expectLater(
+        service.install(prepared, publisherApproved: false),
+        throwsA(isA<HolidayPackageException>()),
+      );
+      expect(service.packages.single.revision, 2);
+    },
+  );
+
+  test(
     'first trust requires approval; durable reload retains overlapping reasons',
     () async {
       final package = await HolidayDataPackage.verify(await holidayFixture());

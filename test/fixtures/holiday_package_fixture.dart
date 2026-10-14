@@ -5,19 +5,20 @@ import 'package:planact/core/time/jalali_date.dart';
 
 // Synthetic data only: not a published Iranian calendar or production key.
 Future<String> holidayFixture({
+  int year = 1406,
   int revision = 1,
   int publisher = 1,
   void Function(Map<String, Object>)? mutate,
 }) async {
   final data = <String, Object>{
-    'year': 1406,
+    'year': year,
     'revision': revision,
     'source': 'https://example.test/calendar',
     'months': List.generate(
       12,
       (i) => <String, Object>{
         'month': i + 1,
-        'dayCount': JalaliDate(1406, i + 1, 1).monthLength,
+        'dayCount': JalaliDate(year, i + 1, 1).monthLength,
         'officialDays': i == 0 ? [1] : <int>[],
       },
     ),
@@ -37,9 +38,14 @@ Future<String> holidayFixture({
     ],
   };
   mutate?.call(data);
+  return signHolidayPayload(jsonEncode(data), publisher: publisher);
+}
+
+/// Test-only signing identity; never distribute this key or these packages.
+Future<String> signHolidayPayload(String encoded, {int publisher = 1}) async {
   final algorithm = Ed25519();
   final key = await algorithm.newKeyPairFromSeed(List.filled(32, publisher));
-  final payload = utf8.encode(jsonEncode(data));
+  final payload = utf8.encode(encoded);
   final signature = await algorithm.sign(payload, keyPair: key);
   return jsonEncode({
     'format': 'planact-holidays-v1',

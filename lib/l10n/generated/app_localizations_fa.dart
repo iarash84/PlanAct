@@ -929,11 +929,39 @@ class AppLocalizationsFa extends AppLocalizations {
       'ورود بسته انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید؛ دادهٔ قبلی حفظ شده است.';
 
   @override
+  String get holidayDataCoverageTitle => 'سال‌ها و منابع تعطیلات';
+
+  @override
+  String holidayDataCoveredYears(String years) {
+    return 'سال‌های دارای پوشش کامل: $years';
+  }
+
+  @override
+  String holidayDataYearOrigin(String year, String origin) {
+    return 'سال $year؛ $origin';
+  }
+
+  @override
+  String get holidayDataOriginBundled => 'همراه برنامه';
+
+  @override
+  String get holidayDataOriginImported => 'بستهٔ واردشده';
+
+  @override
+  String holidayDataRevision(String revision) {
+    return 'بازبینی $revision';
+  }
+
+  @override
+  String get holidayDataMissingCoverage =>
+      'برای سال‌هایی که در این فهرست نیستند، پوشش کامل تعطیلات رسمی نداریم؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.';
+
+  @override
   String get holidayPackageSettingsCardBuildTitle => 'دادهٔ تعطیلات';
 
   @override
   String get holidayPackageSettingsCardBuildSubtitle =>
-      'دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه';
+      'ورود سال‌های جدید بدون به‌روزرسانی برنامه';
 
   @override
   String holidayPackageSettingsCardBuildSubtitle2(String value1) {

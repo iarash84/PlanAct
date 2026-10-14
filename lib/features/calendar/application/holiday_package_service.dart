@@ -1,6 +1,14 @@
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/calendar/domain/holiday_data_package.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
+import 'package:planact/features/calendar/domain/holiday_calendar_catalog.dart';
+
+typedef HolidayCalendarInfo = ({
+  int year,
+  int revision,
+  String source,
+  bool imported,
+});
 
 abstract interface class HolidayPackageStore {
   Future<List<String>> load();
@@ -12,19 +20,44 @@ abstract interface class HolidayPackageFileSource {
 }
 
 class HolidayPackageService {
-  HolidayPackageService(this.store, this.files);
+  HolidayPackageService(this.store, this.files, {this.bundledCatalog});
   final HolidayPackageStore store;
   final HolidayPackageFileSource files;
+  final HolidayCalendarCatalog? bundledCatalog;
   List<HolidayDataPackage> _packages = const [];
   bool _installing = false;
   String? loadError;
 
   List<HolidayDataPackage> get packages => List.unmodifiable(_packages);
   IranianHolidayProvider get provider => IranianHolidayProvider(
+    catalog: bundledCatalog,
     annualOverrides: {
       for (final package in _packages) package.year: package.holidays,
     },
   );
+
+  /// Effective reference data; approved imports retain priority for their year.
+  List<HolidayCalendarInfo> get calendars {
+    final entries = <int, HolidayCalendarInfo>{
+      for (final data in provider.bundledCatalog.byYear.values)
+        data.year: (
+          year: data.year,
+          revision: data.revision,
+          source: data.source,
+          imported: false,
+        ),
+      for (final package in _packages)
+        package.year: (
+          year: package.year,
+          revision: package.revision,
+          source: package.source,
+          imported: true,
+        ),
+    };
+    return List.unmodifiable(
+      entries.values.toList()..sort((a, b) => a.year.compareTo(b.year)),
+    );
+  }
 
   Future<void> load() async {
     try {

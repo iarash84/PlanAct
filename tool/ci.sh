@@ -10,6 +10,7 @@ cd "$repo_root"
 
 flutter pub get --enforce-lockfile
 dart run tool/generate_persian_copy.dart --check
+dart run tool/generate_iranian_holidays.dart --check
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 # Keep assertion details and stack traces visible in GitHub Actions logs.

@@ -1,0 +1,12 @@
+{
+  "format": "planact-holiday-catalog-v1",
+  "calendars": [
+    "reviewed/iran-1400-r1.json",
+    "reviewed/iran-1401-r1.json",
+    "reviewed/iran-1402-r1.json",
+    "reviewed/iran-1403-r1.json",
+    "reviewed/iran-1404-r1.json",
+    "reviewed/iran-1405-r1.json",
+    "reviewed/iran-1406-r1.json"
+  ]
+}

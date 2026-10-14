@@ -2,13 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:planact/features/calendar/domain/annual_holiday_data.dart';
 import 'package:planact/features/calendar/domain/holiday_data_package.dart';
 
 /// Publisher-only offline tool. Keep the seed outside the repository.
 Future<void> main(List<String> args) async {
   try {
     final algorithm = Ed25519();
-    if (args.length == 2 && args[0] == 'keygen') {
+    if (args.length == 2 && args[0] == 'validate') {
+      final data = AnnualHolidayData.parse(await File(args[1]).readAsString());
+      stdout.writeln(
+        'Structurally valid year ${data.year}, revision ${data.revision}; source review is separate.',
+      );
+    } else if (args.length == 2 && args[0] == 'keygen') {
       final file = File(args[1]);
       if (file.existsSync()) throw StateError('Refusing to overwrite a key');
       final key = await algorithm.newKeyPair();
@@ -53,6 +59,7 @@ Future<void> main(List<String> args) async {
     } else {
       stderr.writeln(
         'Usage: dart run tool/holiday_package.dart keygen SEED_FILE\n'
+        '       dart run tool/holiday_package.dart validate REVIEWED_JSON\n'
         '       dart run tool/holiday_package.dart sign SEED_FILE REVIEWED_JSON OUTPUT\n'
         '       dart run tool/holiday_package.dart verify PACKAGE',
       );

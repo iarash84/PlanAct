@@ -1665,6 +1665,48 @@ abstract class AppLocalizations {
   /// **'ورود بسته انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید؛ دادهٔ قبلی حفظ شده است.'**
   String get holidayPackageSettingsCardImportMessage2;
 
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال‌ها و منابع تعطیلات'**
+  String get holidayDataCoverageTitle;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال‌های دارای پوشش کامل: {years}'**
+  String holidayDataCoveredYears(String years);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال {year}؛ {origin}'**
+  String holidayDataYearOrigin(String year, String origin);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'همراه برنامه'**
+  String get holidayDataOriginBundled;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'بستهٔ واردشده'**
+  String get holidayDataOriginImported;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازبینی {revision}'**
+  String holidayDataRevision(String revision);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای سال‌هایی که در این فهرست نیستند، پوشش کامل تعطیلات رسمی نداریم؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.'**
+  String get holidayDataMissingCoverage;
+
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:104.
   ///
   /// In fa, this message translates to:
@@ -1674,7 +1716,7 @@ abstract class AppLocalizations {
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:107.
   ///
   /// In fa, this message translates to:
-  /// **'دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه'**
+  /// **'ورود سال‌های جدید بدون به‌روزرسانی برنامه'**
   String get holidayPackageSettingsCardBuildSubtitle;
 
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:108.

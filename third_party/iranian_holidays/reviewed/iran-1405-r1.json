@@ -1,0 +1,287 @@
+{
+  "year": 1405,
+  "revision": 1,
+  "source": "https://www.time.ir/",
+  "provenance": {
+    "description": "Published monthly source: ../time_ir_1405.json; see ../README.md for dates, hashes and source-review limitations."
+  },
+  "months": [
+    {
+      "month": 1,
+      "dayCount": 31,
+      "officialDays": [
+        1,
+        2,
+        3,
+        4,
+        12,
+        13,
+        25
+      ]
+    },
+    {
+      "month": 2,
+      "dayCount": 31,
+      "officialDays": []
+    },
+    {
+      "month": 3,
+      "dayCount": 31,
+      "officialDays": [
+        6,
+        14,
+        15
+      ]
+    },
+    {
+      "month": 4,
+      "dayCount": 31,
+      "officialDays": [
+        3,
+        4
+      ]
+    },
+    {
+      "month": 5,
+      "dayCount": 31,
+      "officialDays": [
+        13,
+        21,
+        22,
+        30
+      ]
+    },
+    {
+      "month": 6,
+      "dayCount": 31,
+      "officialDays": [
+        8
+      ]
+    },
+    {
+      "month": 7,
+      "dayCount": 30,
+      "officialDays": []
+    },
+    {
+      "month": 8,
+      "dayCount": 30,
+      "officialDays": [
+        22
+      ]
+    },
+    {
+      "month": 9,
+      "dayCount": 30,
+      "officialDays": []
+    },
+    {
+      "month": 10,
+      "dayCount": 30,
+      "officialDays": [
+        2,
+        16
+      ]
+    },
+    {
+      "month": 11,
+      "dayCount": 30,
+      "officialDays": [
+        4,
+        22
+      ]
+    },
+    {
+      "month": 12,
+      "dayCount": 29,
+      "officialDays": [
+        9,
+        19,
+        20,
+        29
+      ]
+    }
+  ],
+  "holidays": [
+    {
+      "month": 1,
+      "day": 1,
+      "kind": "officialFixed",
+      "title": "آغاز نوروز"
+    },
+    {
+      "month": 1,
+      "day": 1,
+      "kind": "officialVariable",
+      "title": "عید سعید فطر"
+    },
+    {
+      "month": 1,
+      "day": 2,
+      "kind": "officialFixed",
+      "title": "عید نوروز"
+    },
+    {
+      "month": 1,
+      "day": 2,
+      "kind": "officialVariable",
+      "title": "تعطیل به مناسبت عید سعید فطر"
+    },
+    {
+      "month": 1,
+      "day": 3,
+      "kind": "officialFixed",
+      "title": "عید نوروز"
+    },
+    {
+      "month": 1,
+      "day": 4,
+      "kind": "officialFixed",
+      "title": "عید نوروز"
+    },
+    {
+      "month": 1,
+      "day": 12,
+      "kind": "officialFixed",
+      "title": "روز جمهوری اسلامی ایران"
+    },
+    {
+      "month": 1,
+      "day": 13,
+      "kind": "officialFixed",
+      "title": "روز طبیعت"
+    },
+    {
+      "month": 1,
+      "day": 25,
+      "kind": "officialVariable",
+      "title": "شهادت حضرت امام جعفر صادق (ع) (۱۴۸ ه‍.ق)"
+    },
+    {
+      "month": 3,
+      "day": 6,
+      "kind": "officialVariable",
+      "title": "عید سعید قربان"
+    },
+    {
+      "month": 3,
+      "day": 14,
+      "kind": "officialFixed",
+      "title": "رحلت حضرت امام خمینی (ره) رهبر کبیر انقلاب و بنیان‌گذار جمهوری اسلامی ایران (۱۳۶۸ ه‍.ق)"
+    },
+    {
+      "month": 3,
+      "day": 14,
+      "kind": "officialVariable",
+      "title": "عید سعید غدیر خم (۱۰ ه‍.ق)"
+    },
+    {
+      "month": 3,
+      "day": 15,
+      "kind": "officialFixed",
+      "title": "قیام خونین ۱۵ خرداد (۱۳۴۲ ه‍.ش)"
+    },
+    {
+      "month": 4,
+      "day": 3,
+      "kind": "officialVariable",
+      "title": "تاسوعای حسینی"
+    },
+    {
+      "month": 4,
+      "day": 4,
+      "kind": "officialVariable",
+      "title": "عاشورای حسینی"
+    },
+    {
+      "month": 5,
+      "day": 13,
+      "kind": "officialVariable",
+      "title": "اربعین حسینی"
+    },
+    {
+      "month": 5,
+      "day": 21,
+      "kind": "officialVariable",
+      "title": "رحلت حضرت رسول اکرم (ص) (۱۱ ه‍.ق) – شهادت حضرت امام حسن مجتبی (ع) (۵۰ ه‍.ق)"
+    },
+    {
+      "month": 5,
+      "day": 22,
+      "kind": "officialVariable",
+      "title": "شهادت حضرت امام رضا (ع) (۲۰۳ ه‍.ق) (۳۰ صَفَر یا انتهای ماه)"
+    },
+    {
+      "month": 5,
+      "day": 30,
+      "kind": "officialVariable",
+      "title": "شهادت حضرت امام حسن عسکری (ع) (۲۶۰ ه‍.ق) و آغاز امامت حضرت ولی عصر (عج)"
+    },
+    {
+      "month": 6,
+      "day": 8,
+      "kind": "officialVariable",
+      "title": "ولادت حضرت رسول اکرم (ص) (۵۳ سال قبل از هجرت) و روز اخلاق و مهرورزی"
+    },
+    {
+      "month": 6,
+      "day": 8,
+      "kind": "officialVariable",
+      "title": "ولادت حضرت امام جعفر صادق (ع) مؤسس مذهب جعفری (۸۳ ه‍.ق)"
+    },
+    {
+      "month": 8,
+      "day": 22,
+      "kind": "officialVariable",
+      "title": "شهادت حضرت فاطمهٔ زهرا (س) (۱۱ ه‍.ق)"
+    },
+    {
+      "month": 10,
+      "day": 2,
+      "kind": "officialVariable",
+      "title": "ولادت حضرت امام علی (ع) (۲۳ سال قبل از هجرت)"
+    },
+    {
+      "month": 10,
+      "day": 16,
+      "kind": "officialVariable",
+      "title": "مبعث حضرت رسول اکرم (ص) (۱۳ سال قبل از هجرت)"
+    },
+    {
+      "month": 11,
+      "day": 4,
+      "kind": "officialVariable",
+      "title": "ولادت حضرت قائم (عج) (۲۵۵ ه‍.ق) و روز جهانی مستضعفان"
+    },
+    {
+      "month": 11,
+      "day": 22,
+      "kind": "officialFixed",
+      "title": "پیروزی انقلاب اسلامی ایران و سقوط نظام شاهنشاهی (۱۳۵۷ ه‍.ش)"
+    },
+    {
+      "month": 12,
+      "day": 9,
+      "kind": "officialVariable",
+      "title": "شهادت حضرت امام علی (ع) (۴۰ ه‍.ق)"
+    },
+    {
+      "month": 12,
+      "day": 19,
+      "kind": "officialVariable",
+      "title": "عید سعید فطر"
+    },
+    {
+      "month": 12,
+      "day": 20,
+      "kind": "officialVariable",
+      "title": "تعطیل به مناسبت عید سعید فطر"
+    },
+    {
+      "month": 12,
+      "day": 29,
+      "kind": "officialFixed",
+      "title": "روز ملی‌شدن صنعت نفت ایران (۱۳۲۹ ه‍.ش)"
+    }
+  ]
+}

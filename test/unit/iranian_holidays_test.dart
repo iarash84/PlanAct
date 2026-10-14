@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
-import 'package:planact/features/calendar/domain/iranian_holiday_data.dart';
 
 void main() {
   const provider = IranianHolidayProvider();
@@ -16,6 +16,36 @@ void main() {
             h.kind == CalendarHolidayKind.officialVariable,
       )
       .toList();
+
+  test(
+    'all pre-refactor official dates and exact reasons remain unchanged',
+    () {
+      // Frozen from the production provider BEFORE replacing the old tables.
+      // A common parser must not serve as independent evidence of source accuracy.
+      final rows = <String>[];
+      for (var year = 1400; year <= 1406; year++) {
+        for (var month = 1; month <= 12; month++) {
+          for (
+            var day = 1;
+            day <= JalaliDate(year, month, 1).monthLength;
+            day++
+          ) {
+            final reasons = official(
+              JalaliDate(year, month, day),
+            ).map((h) => '${h.kind.name}|${h.title}').toList()..sort();
+            for (final reason in reasons) {
+              rows.add('$year/$month/$day|$reason');
+            }
+          }
+        }
+      }
+      expect(rows.length, 200);
+      expect(
+        sha256.convert(utf8.encode(rows.join('\n'))).toString(),
+        '663e1019b95234b9921e25b83ec57288b64260a81b24275f6e3d5bb7223796be',
+      );
+    },
+  );
 
   test('all verified years include ten fixed holiday dates', () {
     for (var year = 1400; year <= 1406; year++) {
@@ -73,25 +103,15 @@ void main() {
   test('Safar end follows published month length, including 29-day month', () {
     // Calendar-center: 1443/2 starts September 8, 1443/3 October 8.
     final date = JalaliDate.fromDateTime(DateTime(2021, 10, 7));
-    // The source also contains a 29-day Safar in 1442, outside public coverage.
+    // The published 1447 Safar has 29 days. No approximate conversion is used.
     expect(
-      iranianVariableHolidays.any(
-        (row) =>
-            row.$1 == 2020 &&
-            row.$2 == 10 &&
-            row.$3 == 17 &&
-            row.$4.contains('رضا'),
-      ),
+      official(const JalaliDate(1405, 5, 22))
+          .any((h) => h.title.contains('رضا')),
       isTrue,
     );
     expect(
-      iranianVariableHolidays.any(
-        (row) =>
-            row.$1 == 2020 &&
-            row.$2 == 10 &&
-            row.$3 == 18 &&
-            row.$4.contains('رضا'),
-      ),
+      official(const JalaliDate(1405, 5, 23))
+          .any((h) => h.title.contains('رضا')),
       isFalse,
     );
     expect(official(date).any((h) => h.title.contains('رضا')), isTrue);
@@ -196,7 +216,12 @@ void main() {
       rebuilt.map((h) => h.title),
       provider.holidaysFor(const JalaliDate(1405, 12, 19)).map((h) => h.title),
     );
-    expect(rebuilt.every((h) => h.source.contains('time.ir')), isTrue);
+    expect(
+      rebuilt
+          .where((h) => h.kind != CalendarHolidayKind.weekend)
+          .every((h) => h.source.contains('time.ir')),
+      isTrue,
+    );
   });
 
   test('all 365 days and reasons of 1406 match the published source', () {
@@ -263,9 +288,7 @@ void main() {
         );
         expect(
           actual.every(
-            (h) =>
-                h.source == 'time.ir published calendar (2026-10-14)' &&
-                h.version == IranianHolidayProvider.dataVersion,
+            (h) => h.source == 'https://www.time.ir/' && h.version == '1406-r1',
           ),
           isTrue,
           reason: '$date provenance',

@@ -32,6 +32,15 @@ void main() {
     expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
     expect(copy.occurrenceCancelled, 'لغوشده');
     expect(copy.calendarPageTodayButtonLabel, 'امروز');
+    expect(copy.holidayDataCoverageTitle, 'سال‌ها و منابع تعطیلات');
+    expect(
+      copy.holidayPackageSettingsCardBuildSubtitle,
+      'ورود سال‌های جدید بدون به‌روزرسانی برنامه',
+    );
+    expect(
+      copy.holidayDataYearOrigin('۱۴۰۷', copy.holidayDataOriginImported),
+      'سال ۱۴۰۷؛ بستهٔ واردشده',
+    );
     expect(copy.commitmentBrowseExpand, 'نمایش تمام‌صفحه');
     expect(copy.commitmentBrowseCollapse, 'نمایش کوچک‌تر');
     expect(
@@ -102,6 +111,7 @@ void main() {
                     'sms-permission-2026-10-14',
                     'interaction-2026-10-14',
                     'alarm-2026-10-14',
+                    'holiday-data-2026-10-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -113,8 +123,8 @@ void main() {
           ..sort();
     expect(
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
-      // User-approved 2026-10-14: Calendar's Today label is shortened to «امروز».
-      '8e9d76ff582480663f279adc62c8c24bf82bb06ecd32f731e8612675c1f25d13',
+      // User-approved 2026-10-14: Today label and removal of stale fixed holiday coverage.
+      '2ff5958f826b430234383923df25f0477e43dd9bf9a1b02d23c6b179ea1cfff3',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;
