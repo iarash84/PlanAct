@@ -4432,4 +4432,33 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get actualReopenMessage =>
       'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.';
+
+  @override
+  String inboxDefaultUnitProposalAmount(String amount, String unit) {
+    return '$amount $unit (پیشنهاد پیش‌فرض برنامه)';
+  }
+
+  @override
+  String inboxDefaultUnitAmount(String amount, String unit) {
+    return '$amount $unit';
+  }
+
+  @override
+  String get inboxDefaultUnitConfirmationNotice =>
+      'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.';
+
+  @override
+  String get inboxDefaultUnitEditorNotice =>
+      'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. ذخیره، مبلغ را با واحد انتخابی ثبت می‌کند.';
+
+  @override
+  String get inboxDefaultUnitReviewNotice =>
+      'واحد پیامک نامشخص است؛ واحد پیش‌فرض برنامه هنگام تأیید قابل تغییر است.';
+
+  @override
+  String get inboxCurrencyAlreadyResolved => 'واحد مبلغ قبلاً مشخص شده است.';
+
+  @override
+  String get inboxCurrencyRevisionRequired =>
+      'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.';
 }

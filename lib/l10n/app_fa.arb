@@ -6931,5 +6931,50 @@
     "description": "Undo repair: explicit operation feedback and confirmation.",
     "x-planact-introduced": "undo-2026-10-14",
     "x-planact-default": true
+  },
+  "inboxDefaultUnitProposalAmount": "{amount} {unit} (پیشنهاد پیش‌فرض برنامه)",
+  "@inboxDefaultUnitProposalAmount": {
+    "description": "Visible app-unit proposal for an unresolved SMS amount; neither display nor cancellation persists it.",
+    "x-planact-introduced": "inbox-default-2026-10-14",
+    "placeholders": {
+      "amount": {"type": "String", "description": "Grouped Persian source integer."},
+      "unit": {"type": "String", "description": "Visible rial/toman proposal."}
+    }
+  },
+  "inboxDefaultUnitAmount": "{amount} {unit}",
+  "@inboxDefaultUnitAmount": {
+    "description": "Amount and pinned unit shown for explicit financial confirmation.",
+    "x-planact-introduced": "inbox-default-2026-10-14",
+    "placeholders": {
+      "amount": {"type": "String", "description": "Grouped Persian source integer."},
+      "unit": {"type": "String", "description": "Selected rial/toman unit."}
+    }
+  },
+  "inboxDefaultUnitConfirmationNotice": "واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.",
+  "@inboxDefaultUnitConfirmationNotice": {
+    "description": "Final confirmation explicitly accepts the visible, overridable unit proposal.",
+    "x-planact-introduced": "inbox-default-2026-10-14"
+  },
+  "inboxDefaultUnitEditorNotice": "واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. ذخیره، مبلغ را با واحد انتخابی ثبت می‌کند.",
+  "@inboxDefaultUnitEditorNotice": {
+    "description": "Saving an SMS review accepts the visible unit; original source evidence is retained.",
+    "x-planact-introduced": "inbox-default-2026-10-14"
+  },
+  "inboxDefaultUnitReviewNotice": "واحد پیامک نامشخص است؛ واحد پیش‌فرض برنامه هنگام تأیید قابل تغییر است.",
+  "@inboxDefaultUnitReviewNotice": {
+    "description": "Unresolved Inbox draft can be reviewed directly in confirmation.",
+    "x-planact-introduced": "inbox-default-2026-10-14"
+  },
+  "inboxCurrencyAlreadyResolved": "واحد مبلغ قبلاً مشخص شده است.",
+  "@inboxCurrencyAlreadyResolved": {
+    "description": "Domain guard against overwriting existing source/review currency evidence.",
+    "x-planact-introduced": "inbox-default-2026-10-14",
+    "x-planact-default": true
+  },
+  "inboxCurrencyRevisionRequired": "برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.",
+  "@inboxCurrencyRevisionRequired": {
+    "description": "Durable confirmation requires a reviewed revision before accepting a proposed unit.",
+    "x-planact-introduced": "inbox-default-2026-10-14",
+    "x-planact-default": true
   }
 }

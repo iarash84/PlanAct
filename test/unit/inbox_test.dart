@@ -6,8 +6,54 @@ import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 void main() {
+  test(
+    'review unit proposal converts exactly and protects earlier evidence',
+    () {
+      TransactionDraft draft({SmsCurrencyEvidence? evidence}) =>
+          TransactionDraft(
+            id: StableId.generate(),
+            stagedImportId: StableId.generate(),
+            amount: const Money(minorUnits: 123, currency: 'IRR'),
+            occurredAt: DateTime.utc(2026, 10, 14, 12, 30),
+            type: 'expense',
+            merchant: 'شرح',
+            currencyEvidence: evidence,
+          );
+      final original = draft(
+        evidence: const SmsCurrencyEvidence(sourceAmount: 123),
+      );
+      final selected = original.selectUnresolvedCurrency(SmsMoneyUnit.toman);
+      expect(selected.amount, const Money(minorUnits: 1230, currency: 'IRR'));
+      expect(selected.occurredAt, original.occurredAt);
+      expect(selected.merchant, original.merchant);
+      expect(original.currencyEvidence!.requiresSelection, isTrue);
+      for (final protected in [
+        selected,
+        draft(),
+        draft(
+          evidence: const SmsCurrencyEvidence(
+            sourceAmount: 123,
+            detectedUnit: SmsMoneyUnit.rial,
+          ),
+        ),
+      ]) {
+        expect(
+          () => protected.selectUnresolvedCurrency(SmsMoneyUnit.toman),
+          throwsA(isA<ValidationError>()),
+        );
+      }
+      expect(
+        () => draft(
+          evidence: const SmsCurrencyEvidence(sourceAmount: 922337203685477581),
+        ).selectUnresolvedCurrency(SmsMoneyUnit.toman),
+        throwsA(isA<ValidationError>()),
+      );
+    },
+  );
+
   test('stages a local SMS as a Persian explainable suggestion', () async {
     final inbox = InMemoryInboxRepository();
     final useCases = InboxUseCases(inbox);

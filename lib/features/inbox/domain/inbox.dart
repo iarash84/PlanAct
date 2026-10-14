@@ -189,6 +189,23 @@ class TransactionDraft {
               ),
       );
 
+  /// A visible review proposal is accepted by the user, never by ingestion.
+  /// Existing source/reviewer units and legacy amounts cannot be overwritten.
+  TransactionDraft selectUnresolvedCurrency(SmsMoneyUnit unit) {
+    final evidence = currencyEvidence;
+    if (evidence == null ||
+        !evidence.requiresSelection ||
+        amount.currency != 'IRR') {
+      throw const ValidationError(PersianCopy.inboxCurrencyAlreadyResolved);
+    }
+    return TransactionDraft.fromReviewJson({
+      ...toReviewJson(),
+      'minorUnits': unit.canonicalIrr(evidence.sourceAmount),
+      'currency': 'IRR',
+      'currencyEvidence': evidence.select(unit).toJson(),
+    });
+  }
+
   void validateConfirmation({SmsExtractionEvidence? extractedEvidence}) {
     if (extractedEvidence?.isTransfer == true || type == 'transfer') {
       throw const ValidationError(PersianCopy.inboxValidateConfirmationMessage);

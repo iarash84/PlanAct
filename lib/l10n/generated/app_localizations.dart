@@ -7420,6 +7420,48 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.'**
   String get actualReopenMessage;
+
+  /// Visible app-unit proposal for an unresolved SMS amount; neither display nor cancellation persists it.
+  ///
+  /// In fa, this message translates to:
+  /// **'{amount} {unit} (پیشنهاد پیش‌فرض برنامه)'**
+  String inboxDefaultUnitProposalAmount(String amount, String unit);
+
+  /// Amount and pinned unit shown for explicit financial confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'{amount} {unit}'**
+  String inboxDefaultUnitAmount(String amount, String unit);
+
+  /// Final confirmation explicitly accepts the visible, overridable unit proposal.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.'**
+  String get inboxDefaultUnitConfirmationNotice;
+
+  /// Saving an SMS review accepts the visible unit; original source evidence is retained.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. ذخیره، مبلغ را با واحد انتخابی ثبت می‌کند.'**
+  String get inboxDefaultUnitEditorNotice;
+
+  /// Unresolved Inbox draft can be reviewed directly in confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک نامشخص است؛ واحد پیش‌فرض برنامه هنگام تأیید قابل تغییر است.'**
+  String get inboxDefaultUnitReviewNotice;
+
+  /// Domain guard against overwriting existing source/review currency evidence.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد مبلغ قبلاً مشخص شده است.'**
+  String get inboxCurrencyAlreadyResolved;
+
+  /// Durable confirmation requires a reviewed revision before accepting a proposed unit.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.'**
+  String get inboxCurrencyRevisionRequired;
 }
 
 class _AppLocalizationsDelegate

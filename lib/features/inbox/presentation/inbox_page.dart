@@ -31,6 +31,7 @@ import 'package:planact/features/inbox/application/inbox_review_projection.dart'
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/bulk_inbox_reject.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 class InboxPage extends StatefulWidget {
   const InboxPage({
@@ -881,6 +882,18 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   String? _error;
   bool _dateAcknowledged = false;
   bool _classificationAcknowledged = false;
+  SmsMoneyUnit? _proposedUnit;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
+        true) {
+      _proposedUnit ??= MoneyUnitScope.of(context) == IranianMoneyUnit.toman
+          ? SmsMoneyUnit.toman
+          : SmsMoneyUnit.rial;
+    }
+  }
 
   Future<void> _save() async {
     if (_saving) return;
@@ -905,11 +918,6 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
       setState(() => _error = PersianCopy.inboxPageSaveMessage4);
       return;
     }
-    if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
-        true) {
-      setState(() => _error = PersianCopy.inboxPageSaveMessage5);
-      return;
-    }
     final account = _account;
     if (account == null) {
       setState(() => _error = PersianCopy.financePageResultOnPrimary);
@@ -924,6 +932,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         suggestion: widget.item.suggestion,
         account: account,
         finance: widget.finance,
+        selectedUnit: _proposedUnit,
       );
       if (mounted) {
         setState(() => _saving = false);
@@ -958,7 +967,43 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                   .currencyEvidence
                   ?.requiresSelection ==
               true)
-            Text(planActL10n(context).inboxPageBuildChildren)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  planActL10n(context).inboxDefaultUnitAmount(
+                    PersianNumbers.format(
+                      MoneyInputFormatter.groupText(
+                        widget
+                            .item
+                            .suggestion
+                            .draft
+                            .currencyEvidence!
+                            .sourceAmount
+                            .toString(),
+                      ),
+                    ),
+                    _proposedUnit!.label,
+                  ),
+                ),
+                Text(planActL10n(context).inboxDefaultUnitConfirmationNotice),
+                DropdownButtonFormField<SmsMoneyUnit>(
+                  initialValue: _proposedUnit,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: planActL10n(context)
+                        .smsReviewEditorBuildLabelText,
+                  ),
+                  items: [
+                    for (final unit in SmsMoneyUnit.values)
+                      DropdownMenuItem(value: unit, child: Text(unit.label)),
+                  ],
+                  onChanged: _saving
+                      ? null
+                      : (value) => setState(() => _proposedUnit = value!),
+                ),
+              ],
+            )
           else
             Text(
               PersianMoneyText.money(
@@ -1111,12 +1156,13 @@ class _ReviewCardState extends State<_ReviewCard> {
   Widget build(BuildContext context) {
     final draft = widget.item.suggestion.draft;
     final amount = draft.currencyEvidence?.requiresSelection == true
-        ? planActL10n(context).inboxPageAmountMessage(
+        ? planActL10n(context).inboxDefaultUnitProposalAmount(
             (PersianNumbers.format(
               MoneyInputFormatter.groupText(
                 draft.currencyEvidence!.sourceAmount.toString(),
               ),
             )).toString(),
+            MoneyUnitScope.of(context).label,
           )
         : PersianMoneyText.money(
             draft.amount,
@@ -1175,7 +1221,7 @@ class _ReviewCardState extends State<_ReviewCard> {
               draft.currencyEvidence == null
                   ? planActL10n(context).inboxPageBuildChildren13
                   : draft.currencyEvidence!.requiresSelection
-                  ? planActL10n(context).inboxPageBuildChildren14
+                  ? planActL10n(context).inboxDefaultUnitReviewNotice
                   : planActL10n(context).inboxPageBuildChildren17(
                       (draft.currencyEvidence!.effectiveUnit!.label).toString(),
                       (draft.currencyEvidence!.selectedUnit == null

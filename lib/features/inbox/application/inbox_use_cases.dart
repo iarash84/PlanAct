@@ -45,6 +45,7 @@ abstract interface class AtomicInboxConfirmation {
     required StableId suggestionId,
     required AccountEntry entry,
     int? expectedRevision,
+    SmsMoneyUnit? selectedUnit,
   });
 }
 
@@ -621,18 +622,20 @@ class InboxUseCases {
     required InboxSuggestion suggestion,
     required FinancialAccount account,
     required FinanceRepository finance,
+    SmsMoneyUnit? selectedUnit,
   }) => CommandGate.runFor(repository, () async {
     if (suggestion.status == SuggestionStatus.rejected ||
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
     }
-    suggestion.draft.validateConfirmation(
-      extractedEvidence: suggestion.extractedEvidence,
-    );
+    final draft = selectedUnit == null
+        ? suggestion.draft
+        : suggestion.draft.selectUnresolvedCurrency(selectedUnit);
+    draft.validateConfirmation(extractedEvidence: suggestion.extractedEvidence);
     if (account.status != FinancialAccountStatus.active) {
       throw const ValidationError('Archived accounts cannot receive imports');
     }
-    if (account.currency != suggestion.draft.amount.currency) {
+    if (account.currency != draft.amount.currency) {
       throw const ValidationError(
         'Suggestion and account currencies must match',
       );
@@ -640,22 +643,23 @@ class InboxUseCases {
     final entry = AccountEntry(
       id: _stableImportId(
         '${suggestion.stagedImportId.value}:financial-entry',
-        suggestion.draft.occurredAt,
+        draft.occurredAt,
       ),
       accountId: account.id,
-      type: suggestion.draft.type == 'income'
+      type: draft.type == 'income'
           ? AccountEntryType.income
           : AccountEntryType.expense,
-      amount: suggestion.draft.amount,
-      occurredAt: suggestion.draft.occurredAt.toUtc(),
-      referenceId: suggestion.draft.reference,
-      note: suggestion.draft.merchant,
+      amount: draft.amount,
+      occurredAt: draft.occurredAt.toUtc(),
+      referenceId: draft.reference,
+      note: draft.merchant,
     );
     if (repository case final AtomicInboxConfirmation atomic) {
       return atomic.confirmAtomically(
         suggestionId: suggestion.id,
         entry: entry,
         expectedRevision: suggestion.revision,
+        selectedUnit: selectedUnit,
       );
     }
     final stored = (await repository.listSuggestions()).firstWhere(
@@ -670,12 +674,20 @@ class InboxUseCases {
         stored.status == SuggestionStatus.rejected) {
       throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
     }
-    stored.draft.validateConfirmation(
-      extractedEvidence: stored.extractedEvidence,
-    );
+    final reviewed = selectedUnit == null
+        ? stored.draft
+        : stored.draft.selectUnresolvedCurrency(selectedUnit);
+    reviewed.validateConfirmation(extractedEvidence: stored.extractedEvidence);
     await finance.saveEntry(entry);
     await repository.saveSuggestion(
-      suggestion.withStatus(SuggestionStatus.confirmed),
+      InboxSuggestion(
+        id: stored.id,
+        stagedImportId: stored.stagedImportId,
+        draft: reviewed,
+        status: SuggestionStatus.confirmed,
+        revision: stored.revision + 1,
+        extractedEvidence: stored.extractedEvidence,
+      ),
     );
     final staged = (await repository.listImports()).firstWhere(
       (item) => item.id == suggestion.stagedImportId,

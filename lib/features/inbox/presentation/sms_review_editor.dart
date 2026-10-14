@@ -385,6 +385,8 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
             )
           else
             Text(planActL10n(context).smsReviewEditorBuildChildren16),
+          if (_draft.currencyEvidence?.requiresSelection == true)
+            Text(planActL10n(context).inboxDefaultUnitEditorNotice),
           _field(
             _merchant,
             planActL10n(context).smsReviewEditorBuildChildren17,
