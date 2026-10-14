@@ -23,7 +23,7 @@ void main() {
       final repository = InMemoryInboxRepository();
       final inbox = InboxUseCases(repository);
       final finance = InMemoryFinanceRepository();
-      await inbox.stageSms(
+      final original = await inbox.stageSms(
         rawText: 'برداشت مبلغ 2500\nمانده: 900 ریال',
         sourceKey: 'ambiguous',
         currency: 'IRR',
@@ -40,26 +40,48 @@ void main() {
       );
       await tester.pumpAndSettle();
       await _tap(tester, find.text('ویرایش'));
-      await _tap(tester, find.text('ذخیره و بررسی'));
+      final unitField = find.byType(DropdownButtonFormField<SmsMoneyUnit>);
+      // The approved editor suggests the visible rial default. Neither opening
+      // nor cancelling a changed suggestion is explicit reviewed-unit saving.
       expect(
-        find.text('واحد مبلغ نامشخص است؛ ریال یا تومان را انتخاب کنید.'),
-        findsOneWidget,
-      );
-      expect(
-        (await repository.listSuggestions())
-            .single
-            .draft
-            .currencyEvidence!
-            .requiresSelection,
-        isTrue,
+        tester
+            .widget<DropdownButtonFormField<SmsMoneyUnit>>(unitField)
+            .initialValue,
+        SmsMoneyUnit.rial,
       );
       expect(find.text('ویرایش پیشنهاد تراکنش'), findsOneWidget);
-      await _tap(tester, find.byType(DropdownButtonFormField<SmsMoneyUnit>));
+      await _tap(tester, unitField);
+      await _tap(tester, find.text('تومان').last);
+      await _tap(tester, find.text('انصراف'));
+      final cancelled = (await repository.listSuggestions()).single;
+      expect(cancelled.revision, original.revision);
+      expect(cancelled.draft.amount.minorUnits, 2500);
+      expect(cancelled.draft.currencyEvidence!.requiresSelection, isTrue);
+      expect(
+        cancelled.extractedEvidence!.toJson(),
+        original.extractedEvidence!.toJson(),
+      );
+      expect(await finance.listEntries(), isEmpty);
+      await _tap(tester, find.text('ویرایش'));
+      expect(
+        tester
+            .widget<DropdownButtonFormField<SmsMoneyUnit>>(unitField)
+            .initialValue,
+        SmsMoneyUnit.rial,
+      );
+      await _tap(tester, unitField);
       await _tap(tester, find.text('تومان').last);
       await _tap(tester, find.text('ذخیره و بررسی'));
       final selected = (await repository.listSuggestions()).single;
       expect(selected.draft.amount.minorUnits, 25000);
       expect(selected.draft.currencyEvidence!.selectedUnit, SmsMoneyUnit.toman);
+      expect(selected.revision, original.revision + 1);
+      expect(selected.draft.currencyEvidence!.sourceAmount, 2500);
+      expect(selected.draft.currencyEvidence!.detectedUnit, isNull);
+      expect(
+        selected.extractedEvidence!.toJson(),
+        original.extractedEvidence!.toJson(),
+      );
       expect(await finance.listEntries(), isEmpty);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
@@ -74,6 +96,8 @@ void main() {
         (await repository.listSuggestions()).single.draft.amount.minorUnits,
         25000,
       );
+      expect(await finance.listEntries(), isEmpty);
+      expect(tester.takeException(), isNull);
     });
   }
 }

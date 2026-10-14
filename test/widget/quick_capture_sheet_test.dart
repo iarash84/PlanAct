@@ -229,6 +229,10 @@ void main() {
       await tester.ensureVisible(amount);
       await tester.pumpAndSettle();
       await tester.enterText(amount, '۱۲۳۴۵');
+      // Grouping is the approved input behavior. Preserve the formatted editing
+      // value across failed saving, not the pre-formatter keystrokes.
+      final enteredAmount = tester.widget<TextField>(amount).controller!.value;
+      expect(enteredAmount.text, '12,345');
       await _tap(tester, find.text('اطلاعات مالی'));
       await _tap(tester, find.text('ثبت تعهد'));
       expect(submitted!.entitlementUnits, 6);
@@ -240,7 +244,7 @@ void main() {
       expect(submitted!.reminderOffsets, [const Duration(minutes: 15)]);
       expect(find.textContaining('اطلاعات شما حفظ شده است'), findsOneWidget);
       await _tap(tester, find.text('اطلاعات مالی'));
-      expect(tester.widget<TextField>(amount).controller!.text, '۱۲۳۴۵');
+      expect(tester.widget<TextField>(amount).controller!.value, enteredAmount);
     },
   );
 

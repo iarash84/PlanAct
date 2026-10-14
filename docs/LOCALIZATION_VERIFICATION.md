@@ -75,7 +75,11 @@ tests and the extraction of the unchanged Rial display label. Final analyzer,
 focused tests, exhaustive resource parity and APK build cover those final edits;
 the entire suite was not repeated without a new regression indication.
 
-## Existing failed checks: baseline comparison
+## Historical failed checks: baseline comparison
+
+This section preserves the historical localization checkpoint. The current
+repair and test status is recorded in the five-test follow-up below; the original
+failure evidence is retained rather than overwritten.
 
 An isolated `git archive HEAD` checkout in `build/verification/localization/baseline_check`
 ran the same three test files with their original code and dependency versions.
@@ -90,7 +94,8 @@ checkout. Result: 27 passed, the same five failed with the same assertions:
 - `sms_editable_review_test.dart`: both narrow/large-text actual-transfer cases
   cannot tap the expected visible `واحد مبلغ` label.
 
-These were not fixed or hidden by changing test expectations. Owner: maintainer.
+At that checkpoint these were not fixed or hidden by changing test expectations.
+Owner: maintainer.
 Next action: compare each check with the approved grouped-money-input and explicit
 SMS-unit-review contracts, then repair the affected test or behavior with an
 independent acceptance decision. Exposure: existing Persian development paths
@@ -106,11 +111,86 @@ with the separately disclosed inherited full-suite failures. Self-review checked
 source/copy parity, scoped diffs, parser/persistence exclusions and PRD/AGENTS
 consistency. Independent reviewer/sign-off: **Not performed**.
 
-Maintainer owns independent acceptance, the five existing failures, and native
-device checks. No new language is exposed. Before activating one, explicitly
+The inherited failure status above belongs to the migration run; consult the
+follow-up below for the repaired checks. Other-language/native/independent
+acceptance gates are unchanged.
+
+Maintainer owns independent acceptance and native device checks; the follow-up
+below records resolution of the five inherited test failures. No new language
+is exposed. Before activating one, explicitly
 localize the pure-default projection/error/helper/calendar/adapter boundaries,
 verify directionality and formatting on actual routes, and preserve calendar/
 recurrence/storage-unit semantics. This change does not close the existing native
 authentication, reminder, backup or other feature release gates. Release build,
 native screen-reader/notification/authentication execution and independent
 acceptance were not run; debug compilation and Flutter tests are not substitutes.
+
+## Five-test repair follow-up — 2026-10-14
+
+Acceptance contract, recorded before the repair:
+
+- User outcome: resolve the five inherited failures against the latest approved
+  PRD monetary-input/SMS-unit-review contract, rather than alter product behavior
+  just to satisfy obsolete expectations. Entry paths are commitment capture after
+  failed saving, and Inbox edit/cancel/save, including narrow RTL with 1.8x text
+  in Light/Dark.
+- Grouping may normalize the display of typed money; failed saving/reopening must
+  preserve that formatted editing value and the exact canonical amount, session
+  credit and reminder selections.
+- Ambiguous SMS units visibly suggest the default. Opening the editor or
+  cancelling an edited choice must preserve the unresolved draft/revision/source
+  evidence and create no financial entry. Explicit saving of the chosen unit
+  must preserve source evidence and convert the reviewed amount exactly.
+- Exercise the actual unit dropdown rather than its floating decoration label;
+  transfer source evidence must continue blocking income/expense confirmation
+  after direction/unit edits. Keep all existing blocking assertions.
+- Scope: focused test repairs and evidence updates; no database/schema,
+  dependency, resource-copy or production behavior change unless investigation
+  proves one necessary. Existing durable SMS/default-unit repository/route tests
+  remain the persistence evidence. Run the three affected files, related
+  money/default-unit/repository checks, analyzer/format and the complete suite.
+  Independent acceptance/native checks remain separate.
+
+Investigation: the latest PRD (money unit/financial input section) explicitly
+requires grouped input and permits visible default-unit suggestion until explicit
+review saving. The existing formatter and editor implement those rules; the
+five failures reproduce before localization. The missed checks were stale
+cross-feature assertions left over when those behaviors were approved, and
+using a floating field label as the interactive target. The minimal repair
+updates the checks while strengthening cancellation/input/evidence guarantees.
+
+## Follow-up verification result
+
+**Implemented:** focused repairs in `quick_capture_sheet_test.dart`,
+`sms_currency_review_test.dart` and `sms_editable_review_test.dart`; no test
+was skipped or disabled and the transfer-confirmation blocking assertions were
+retained. Additional checks protect formatted editing state, exact amounts,
+review revisions, cancellation and immutable original evidence. Only these
+three test files and the two existing verification records changed. No
+production code, resource catalog, schema/migration, dependency or backup change.
+
+**Verified:** Windows, Flutter 3.47.5 / Dart 3.13.4, working tree based on
+`363ded82aca0f2a56ee76ed13b45e26d915b5941`, 2026-10-14. Raw artifacts are in
+ignored `build/verification/failed-test-repair/`.
+
+| Check | Result |
+| --- | --- |
+| Reproduce the three original test files | 27 passed / same 5 failed before repair. |
+| Repaired three test files | 32 passed / 0 failed, including all five original cases. |
+| `flutter test --no-pub --reporter expanded` on repaired source | **847 passed / 0 failed**, including money formatter, explicit default review, production SMS admission/cold-reopen/backup, root routes and Light/Dark narrow/large-text cases. |
+| `flutter analyze --no-pub` | No issues. |
+| `dart format --output=none --set-exit-if-changed lib test tool/generate_persian_copy.dart` | Passed, 0 changes required. |
+| `git diff --check`, scope and local documentation links | Passed. |
+
+The five-test/full-suite regression blocker is **resolved** for this working
+tree. This supersedes the historical five-failure status above; it does not
+rewrite the original migration evidence or claim an executed release build/full
+release CI. Self-review compared the updated assertions with the approved PRD,
+preserved negative-path/evidence guarantees, and verified the scoped diff.
+
+**Unexecuted / release status:** independent acceptance and native device/release
+checks were not performed; there is no production behavior change requiring a
+new native journey in this test-only repair. The existing SMS, monetary-input
+and localization feature readiness/exposure decisions remain in their respective
+records. Maintainer owns those independent/native gates. No new language,
+product feature, release or deployment is introduced by this follow-up.

@@ -44,3 +44,32 @@ next action: independent acceptance and native narrow-screen/keyboard review of
 post-save tags and monetary forms. Exposure decision: source changes are available
 for review; release readiness remains conditional on those checks and existing
 SMS/report native gates. No release or deployment was performed.
+
+## Cross-feature regression follow-up (2026-10-14)
+
+Five pre-existing route-test failures were investigated against the approved PRD
+contract above. The formatter correctly grouped `۱۲۳۴۵` as the existing normalized
+editing representation `12,345`; the old capture check expected raw keystrokes
+after failed saving. The revised check verifies the grouped editing value before
+saving and its full preservation after failure, alongside canonical 12345 IRR,
+credit and reminders.
+
+The ambiguous-unit tests still expected saving to reject a visibly suggested
+default, contrary to the approved explicit-save contract. They now change the
+suggestion and cancel first (no revision, amount, evidence or financial write),
+then reopen and explicitly save toman (exact 25000 IRR, one review revision,
+original unresolved evidence retained). Existing production default-save,
+cold-reopen/backup and unresolved-confirmation checks remain required.
+
+The two narrow/large-text transfer tests tapped a floating field decoration;
+they now select the actual typed unit dropdown. Their source-transfer protection
+assertions remain, with additional exact reviewed-unit/amount/revision checks.
+No application behavior, schema, resource copy or dependency changed.
+
+The three repaired test files passed all 32 cases. Full-suite/analyzer results
+and the separate native/independent acceptance status are recorded in the
+[five-test follow-up](LOCALIZATION_VERIFICATION.md#five-test-repair-follow-up--2026-10-14).
+Escaped check: earlier monetary/default-review changes did not update these
+cross-feature expectations. Next comparable change should update route tests in
+the same task, covering formatted input, cancellation and immutable evidence,
+and target the interactive control rather than floating decoration text.
