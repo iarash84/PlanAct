@@ -7,6 +7,15 @@
 
 ## Document Governance
 
+About content checkpoint (2026-10-13): Settings → «درباره پلن‌اکت» provides a
+Persian introduction to the current local commitment/finance surfaces, privacy and
+permission explanations, user-controlled encrypted-backup/key responsibility and
+development status without claiming release acceptance. Installed version/build
+comes from platform metadata with visible loading/error/retry. The app license and
+copyright match the repository LICENSE (PolyForm Noncommercial 1.0.0, Iarash);
+full bundled terms and dependency notices are accessible offline. No new data,
+permissions or product capabilities. See [About verification](../ABOUT_VERIFICATION.md).
+
 This document defines **what PlanAct must do and why**: product scope, user-visible behavior, acceptance criteria, priorities, and non-goals.
 
 `AGENTS.md` is the companion implementation contract and defines **how the product must be built safely**: architecture boundaries, persistence/data-integrity rules, coding constraints, testing expectations, and AI-agent workflow.

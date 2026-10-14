@@ -107,7 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: ListTile(
           leading: const Icon(Icons.info_outline),
           title: const Text('درباره پلن‌اکت'),
-          subtitle: const Text('نسخه، build و اطلاعات محلی برنامه'),
+          subtitle: const Text('معرفی برنامه، نسخه، حریم خصوصی و مجوزها'),
           trailing: const Icon(Icons.chevron_left),
           onTap: widget.onAbout,
         ),

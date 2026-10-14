@@ -76,6 +76,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/licenses/planact.txt
     - assets/icons/app_icon.png
     - assets/banks/
 
