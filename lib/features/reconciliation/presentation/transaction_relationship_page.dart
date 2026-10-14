@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -320,6 +321,9 @@ class _TransactionRelationshipPageState
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
+                        inputFormatters: const [
+                          MoneyInputFormatter(decimal: true),
+                        ],
                         decoration: InputDecoration(
                           labelText:
                               'مبلغ ارتباط به ${_moneyInput.label(data.transaction.amount.currency)}',

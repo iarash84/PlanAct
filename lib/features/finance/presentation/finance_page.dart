@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
 import 'package:planact/features/finance/presentation/account_information_card.dart';
@@ -338,6 +339,9 @@ class FinancePageState extends State<FinancePage> {
                         decimal: true,
                         signed: true,
                       ),
+                      inputFormatters: const [
+                        MoneyInputFormatter(decimal: true),
+                      ],
                       decoration: InputDecoration(
                         labelText:
                             'مبلغ به ${moneyInput.label(account?.currency ?? CurrencyCodes.irr)}',

@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -214,7 +215,7 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   String _money(int amount, String? currency) => currency == null
-      ? '${PersianNumbers.format(amount)} (واحد نامشخص)'
+      ? '${PersianNumbers.format(MoneyInputFormatter.groupText(amount.toString()))} (واحد نامشخص)'
       : PersianMoneyText.amount(
           amount,
           currency,

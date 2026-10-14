@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -60,7 +61,7 @@ class SmsOriginalEvidence extends StatelessWidget {
           const Text('شواهد اصلی پیامک قدیمی در دسترس نیست.')
         else ...[
           Text(
-            'مبلغ اصلی: ${original.currencyEvidence == null ? PersianMoneyText.money(original.amount, unit: MoneyUnitScope.of(context)) : '${PersianNumbers.format(original.currencyEvidence!.sourceAmount)} ${original.currencyEvidence!.effectiveUnit?.label ?? 'واحد نامشخص'}'}',
+            'مبلغ اصلی: ${original.currencyEvidence == null ? PersianMoneyText.money(original.amount, unit: MoneyUnitScope.of(context)) : '${PersianNumbers.format(MoneyInputFormatter.groupText(original.currencyEvidence!.sourceAmount.toString()))} ${original.currencyEvidence!.effectiveUnit?.label ?? 'واحد نامشخص'}'}',
           ),
           Text(
             'جهت پیامک: ${evidence!.isTransfer ? 'انتقال' : smsDirectionLabel(original.direction)}',
@@ -152,15 +153,22 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
       _legacyUnit = _draft.amount.currency == 'IRR'
           ? MoneyUnitScope.of(context)
           : IranianMoneyUnit.rial;
+      if (_draft.currencyEvidence?.requiresSelection == true) {
+        _unit = _legacyUnit == IranianMoneyUnit.toman
+            ? SmsMoneyUnit.toman
+            : SmsMoneyUnit.rial;
+      }
       _amount = TextEditingController(
-        text: _draft.currencyEvidence == null
-            ? _legacyUnit.inputText(_draft.amount.minorUnits)
-            : _unit == null
-            ? _draft.currencyEvidence!.sourceAmount.toString()
-            : (_unit == SmsMoneyUnit.toman
-                      ? IranianMoneyUnit.toman
-                      : IranianMoneyUnit.rial)
-                  .inputText(_draft.amount.minorUnits),
+        text: MoneyInputFormatter.groupText(
+          _draft.currencyEvidence == null
+              ? _legacyUnit.inputText(_draft.amount.minorUnits)
+              : _draft.currencyEvidence!.requiresSelection
+              ? _draft.currencyEvidence!.sourceAmount.toString()
+              : (_unit == SmsMoneyUnit.toman
+                        ? IranianMoneyUnit.toman
+                        : IranianMoneyUnit.rial)
+                    .inputText(_draft.amount.minorUnits),
+        ),
       );
       _initialized = true;
     }
@@ -279,6 +287,9 @@ class _SmsReviewEditorState extends State<SmsReviewEditor> {
     padding: const EdgeInsets.only(bottom: PlanActSpacing.sm),
     child: TextField(
       controller: controller,
+      inputFormatters: controller == _amount
+          ? const [MoneyInputFormatter(decimal: true)]
+          : null,
       enabled: !_saving,
       decoration: InputDecoration(labelText: label),
     ),

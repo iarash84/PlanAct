@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -179,6 +180,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
             controller: _amount,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: const [MoneyInputFormatter(decimal: true)],
 
             decoration: InputDecoration(
               labelText: 'مبلغ به ${_moneyInput.label(_account.currency)}',
@@ -316,6 +318,7 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: const [MoneyInputFormatter(decimal: true)],
 
           decoration: InputDecoration(
             labelText: 'مبلغ به ${_moneyInput.label(_from.currency)}',

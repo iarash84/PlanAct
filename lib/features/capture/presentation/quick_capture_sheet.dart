@@ -667,6 +667,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           enabled: !_saving,
           controller: _financialAmount,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: const [MoneyInputFormatter(decimal: true)],
           decoration: InputDecoration(
             labelText: 'مبلغ مورد انتظار به ${_moneyInput.unit.label}',
           ),

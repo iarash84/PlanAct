@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -175,6 +176,7 @@ class _AccountFormSheetState extends State<AccountFormSheet>
                 decimal: true,
                 signed: true,
               ),
+              inputFormatters: const [MoneyInputFormatter(decimal: true)],
               decoration: InputDecoration(
                 labelText: 'موجودی اولیه (اختیاری)',
                 suffixText: _money!.unit.label,

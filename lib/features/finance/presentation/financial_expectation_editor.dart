@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -152,6 +153,9 @@ class _FinancialExpectationEditorState
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
+                        inputFormatters: const [
+                          MoneyInputFormatter(decimal: true),
+                        ],
                         decoration: InputDecoration(
                           labelText:
                               'مبلغ به ${_moneyInput.label(_currency.text)}',

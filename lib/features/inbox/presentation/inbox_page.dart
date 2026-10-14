@@ -1,3 +1,6 @@
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 
@@ -33,11 +36,13 @@ class InboxPage extends StatefulWidget {
     required this.inbox,
     required this.finance,
     this.smsSource,
+    this.tagRepository,
     this.onDetermineRelationship,
     this.onDataChanged,
   });
 
   final Future<void> Function()? onDataChanged;
+  final TagRepository? tagRepository;
   final InboxUseCases inbox;
   final FinanceRepository finance;
   final AndroidSmsSource? smsSource;
@@ -336,6 +341,33 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
     if (mounted && imported != null) {
       final id = imported.id;
+      if (widget.tagRepository != null) {
+        await showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (_) => SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                PlanActSpacing.page,
+                PlanActSpacing.page,
+                PlanActSpacing.page,
+                PlanActSpacing.page + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: RecordTagEditor(
+                repository: widget.tagRepository!,
+                recordId: id.value,
+                type: TaggableType.accountEntry,
+                onChanged: () async {
+                  await widget.onDataChanged?.call();
+                },
+              ),
+            ),
+          ),
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).clearSnackBars();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -1063,7 +1095,7 @@ class _ReviewCardState extends State<_ReviewCard> {
   Widget build(BuildContext context) {
     final draft = widget.item.suggestion.draft;
     final amount = draft.currencyEvidence?.requiresSelection == true
-        ? '${PersianNumbers.format(draft.currencyEvidence!.sourceAmount)} (واحد نامشخص)'
+        ? '${PersianNumbers.format(MoneyInputFormatter.groupText(draft.currencyEvidence!.sourceAmount.toString()))} (واحد نامشخص)'
         : PersianMoneyText.money(
             draft.amount,
             unit: MoneyUnitScope.of(context),

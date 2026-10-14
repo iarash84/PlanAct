@@ -584,6 +584,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         builder: (_) => Scaffold(
           appBar: AppBar(title: const Text('صندوق ورودی')),
           body: InboxPage(
+            tagRepository: _tagRepository,
             inbox: _inboxUseCases,
             onDataChanged: () async {
               await _refresh();

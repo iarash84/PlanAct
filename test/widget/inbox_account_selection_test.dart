@@ -1,3 +1,12 @@
+import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/app/app_settings.dart';
+import 'package:planact/app/money_unit_scope.dart';
+import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
+import 'package:planact/features/inbox/presentation/sms_review_editor.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -46,6 +55,72 @@ Future<void> selectAccount(WidgetTester tester, String name) async {
 }
 
 void main() {
+  testWidgets('ambiguous SMS suggests default only until explicit save', (
+    tester,
+  ) async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    final inbox = InboxUseCases(DriftInboxRepository(db));
+    final controller = MoneyUnitController(AppSettings(db));
+    await controller.load();
+    await controller.select(IranianMoneyUnit.toman);
+    await inbox.stageSms(
+      rawText: '\u0628\u0631\u062f\u0627\u0634\u062a \u0645\u0628\u0644\u063a 1234567',
+      sourceKey: 'default-unit',
+      currency: 'IRR',
+    );
+    final suggestion = (await inbox.repository.listSuggestions()).single;
+    expect(suggestion.draft.currencyEvidence!.requiresSelection, isTrue);
+    Widget editor() => MaterialApp(
+      builder: (_, child) =>
+          MoneyUnitScope(controller: controller, child: child!),
+      home: Scaffold(
+        body: SmsReviewEditor(suggestion: suggestion, inbox: inbox),
+      ),
+    );
+    await tester.pumpWidget(editor());
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<DropdownButtonFormField<SmsMoneyUnit>>(
+            find.byType(DropdownButtonFormField<SmsMoneyUnit>),
+          )
+          .initialValue,
+      SmsMoneyUnit.toman,
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      '1,234,567',
+    );
+    // Leaving the form without saving never persists the suggested unit.
+    await tester.pumpWidget(const SizedBox());
+    expect(
+      (await inbox.repository.listSuggestions())
+          .single
+          .draft
+          .currencyEvidence!
+          .requiresSelection,
+      isTrue,
+    );
+    await tester.pumpWidget(editor());
+    await tester.pumpAndSettle();
+    final saveLabel = tester
+        .widget<PlanActFormSheet>(find.byType(PlanActFormSheet))
+        .primaryLabel;
+    await tester.tap(find.text(saveLabel));
+    await tester.pumpAndSettle();
+    final reviewed = (await inbox.repository.listSuggestions()).single;
+    expect(reviewed.draft.currencyEvidence!.selectedUnit, SmsMoneyUnit.toman);
+    expect(reviewed.draft.amount.minorUnits, 12345670);
+    expect(
+      reviewed.extractedEvidence!.draft.currencyEvidence!.requiresSelection,
+      isTrue,
+    );
+    expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+    await db.close();
+  });
+
   for (final incoming in [false, true]) {
     testWidgets(
       'SMS route explicitly selects account, confirms once and cold reopens ($incoming)',
@@ -86,6 +161,7 @@ void main() {
               home: Scaffold(
                 body: InboxPage(
                   inbox: inbox,
+                  tagRepository: incoming ? DriftTagRepository(database) : null,
                   finance: finance,
                   onDataChanged: () async {
                     refreshes++;
@@ -142,6 +218,15 @@ void main() {
           await tester.tap(find.text('تأیید نهایی'));
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
+          if (incoming) {
+            expect(find.byType(RecordTagEditor), findsOneWidget);
+            await tester.enterText(find.byType(TextField).last, 'route-tag');
+            await tester.testTextInput.receiveAction(TextInputAction.done);
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+            await tester.pumpAndSettle();
+            Navigator.of(tester.element(find.byType(RecordTagEditor))).pop();
+            await tester.pumpAndSettle();
+          }
           final entries = await finance.listEntries();
           expect(entries, hasLength(1));
           expect(entries.single.accountId, second.id);
@@ -149,7 +234,7 @@ void main() {
             entries.single.type,
             incoming ? AccountEntryType.income : AccountEntryType.expense,
           );
-          expect(refreshes, 1);
+          expect(refreshes, incoming ? 2 : 1);
           expect(find.text('صف بررسی خالی است'), findsOneWidget);
           await tester.tap(find.text('تعیین ارتباط'));
           expect(relationshipId, entries.single.id);
@@ -173,6 +258,21 @@ void main() {
           ).listSuggestions()).single;
           expect(durableSuggestion.draft.bank, 'بانک بررسی‌شده');
           expect(durableSuggestion.extractedEvidence!.draft.bank, isNull);
+          if (incoming) {
+            final tags = DriftTagRepository(reopened);
+            final assigned = await tags.tagsFor(
+              entries.single.id.value,
+              TaggableType.accountEntry,
+            );
+            expect(assigned, hasLength(1));
+            expect(
+              await tags.recordsWithTag(
+                assigned.single,
+                TaggableType.accountEntry,
+              ),
+              contains(entries.single.id.value),
+            );
+          }
           await reopened.close();
           await directory.delete(recursive: true);
         });

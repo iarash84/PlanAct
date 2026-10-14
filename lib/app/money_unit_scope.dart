@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/core/money/iranian_money_unit.dart';
@@ -53,6 +54,8 @@ class PinnedMoneyInput {
       (currency.trim().toUpperCase() == 'IRR' ? unit : IranianMoneyUnit.rial)
           .parse(text);
   String inputText(int value, {String currency = 'IRR'}) =>
-      (currency.trim().toUpperCase() == 'IRR' ? unit : IranianMoneyUnit.rial)
-          .inputText(value);
+      MoneyInputFormatter.groupText(
+        (currency.trim().toUpperCase() == 'IRR' ? unit : IranianMoneyUnit.rial)
+            .inputText(value),
+      );
 }

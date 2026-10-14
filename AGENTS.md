@@ -33,6 +33,7 @@ The product is **not** primarily a calendar, to-do list, reminder app, expense t
 - **RTL by default.** The application UI must use right-to-left layout semantics correctly. Do not achieve RTL by manually reversing lists or hard-coding directional padding/icons; use Flutter directionality and start/end-aware layout APIs.
 - **Jalali calendar for users.** User-facing dates, date pickers, calendar views, recurrence editing, and date-related summaries must use the Persian (Jalali) calendar and Persian locale conventions. Domain persistence must retain unambiguous, testable date/time semantics and must not conflate display-calendar conversion with stored instants or local dates.
 - **Locale-aware formatting.** Persian digits, weekday/month names, number formatting, and pluralization must be handled through locale-aware presentation code, not scattered string replacements.
+- Monetary fields and displays must group integer digits from the right in threes while preserving sign, precision and canonical stored values. Inbox review may visibly suggest the app default for ambiguous SMS units only when explicit reviewer saving persists the choice; source evidence and historical amounts must remain intact.
 
 ## 3. Current implementation baseline
 
