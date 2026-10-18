@@ -771,4 +771,20 @@ abstract final class PersianCopy {
   static const matchAmountLabel = "مبلغ تخصیص";
   static const matchCorrectMessage = "مبلغ و مقصد تخصیص را اصلاح کنید؛ ارتباط قبلی در سابقه می‌ماند و موجودی حساب تغییر نمی‌کند.";
   static const actualReopenMessage = "نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.";
+  static const inboxCurrencyAlreadyResolved = "واحد مبلغ قبلاً مشخص شده است.";
+  static const smsAutomaticSyncFailed = "بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.";
+  static const smsAutomaticPermissionRequired = "برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.";
+  static const smsAutomaticSettingFailed = "تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.";
+  static const inboxCurrencyRevisionRequired = "برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.";
+  static const reminderDeliveryLabel = "روش یادآوری";
+  static const reminderDeliveryNotification = "اعلان";
+  static const reminderDeliveryAlarm = "آلارم";
+  static const reminderAlarmHelp = "آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.";
+  static const reminderAlarmTitle = "آلارم پلن‌اکت";
+  static const reminderAlarmBody = "زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.";
+  static const reminderAlarmStop = "قطع";
+  static const reminderAlarmSnooze = "تعویق ۱۰ دقیقه";
+  static const reminderAlarmChannel = "آلارم‌های تعهد";
+  static const reminderAlarmChannelDescription = "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.";
+  static const reminderAlarmRetry = "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.";
 }

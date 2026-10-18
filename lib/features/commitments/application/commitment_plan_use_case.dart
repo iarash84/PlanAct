@@ -109,6 +109,7 @@ class CreateCommitmentPlan {
     int? occurrenceCount,
     DateTime? endDate,
     List<Duration> reminderOffsets = const [],
+    ReminderDelivery reminderDelivery = ReminderDelivery.notification,
     int? entitlementUnits,
     DateTime? entitlementExpiry,
     FinancialExpectationDirection? financialDirection,
@@ -200,6 +201,7 @@ class CreateCommitmentPlan {
           ? 800
           : 120,
       generationReminderOffsets: effectiveReminderOffsets,
+      generationReminderDelivery: reminderDelivery,
       generationFinancialExpectation: financialDirection == null
           ? null
           : FinancialExpectationTemplate(
@@ -223,6 +225,7 @@ class CreateCommitmentPlan {
           ReminderRule.beforeOccurrence(
             occurrenceId: occurrence.id,
             offset: offset,
+            delivery: reminderDelivery,
             title: title,
           ),
     ];

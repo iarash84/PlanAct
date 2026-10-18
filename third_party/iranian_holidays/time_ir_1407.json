@@ -1,0 +1,465 @@
+{
+  "year": 1407,
+  "retrieved_utc": "2026-10-14",
+  "source": "https://www.time.ir/",
+  "retrieval_method": "Public website monthly calendar action (fetchEventCalendarAction); hashes cover original text/x-component response bytes. Secondary-source published calendar display; independent official PDF verification unavailable. No local lunar prediction.",
+  "months": [
+    {
+      "month": 1,
+      "day_count": 31,
+      "official_days": [
+        1,
+        2,
+        3,
+        4,
+        12,
+        13
+      ],
+      "response_sha256": "74b448c3370f5e7d2dfe25ff0f2d354a0f2428276b411dc07099be4ca2d8af94",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=1&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 2,
+      "day_count": 31,
+      "official_days": [
+        17,
+        25
+      ],
+      "response_sha256": "e91f01037c0225fc9d788972a41240af29b6d663bc67684e72a7767ece3fffd3",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=2&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 3,
+      "day_count": 31,
+      "official_days": [
+        14,
+        15
+      ],
+      "response_sha256": "e38db81a15fb09f3178f5dfd73a626b0e638e122ce98666bf092f971b93141da",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=3&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 4,
+      "day_count": 31,
+      "official_days": [
+        24
+      ],
+      "response_sha256": "0e5b18fa15caac7eee52fe53be41ad3037918534caecd1ba1a9f9e89a514e7ea",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=4&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 5,
+      "day_count": 31,
+      "official_days": [
+        1,
+        2,
+        10,
+        19
+      ],
+      "response_sha256": "66491b4eb341f799d1fed4578ef551c259a2d4b1c3676d0eed1a0aa78397195e",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=5&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 6,
+      "day_count": 31,
+      "official_days": [],
+      "response_sha256": "8ae05f153ec157ac7fa373760a5b7d7e2f0ef148fbce7490fd378ab8ffe65d8c",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=6&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 7,
+      "day_count": 30,
+      "official_days": [],
+      "response_sha256": "70a3311b314eec28a75f036d77d6dfd604c7b786836fcf0ea6b016c606281064",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=7&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 8,
+      "day_count": 30,
+      "official_days": [
+        1
+      ],
+      "response_sha256": "f001a9e9e93c59b726644f82c4e45f859487c306e5e388f082a8ed72be34a370",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=8&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 9,
+      "day_count": 30,
+      "official_days": [
+        11,
+        25
+      ],
+      "response_sha256": "c4fa8f7e4175ab25d4f61e459b6ccc2b856477fd100e7d44f1c9e3054ba3fb9a",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=9&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 10,
+      "day_count": 30,
+      "official_days": [
+        12
+      ],
+      "response_sha256": "b4dc91097661ad8f556c6b79a17e5af14acb69951d328be90517a301fc425c32",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=10&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 11,
+      "day_count": 30,
+      "official_days": [
+        18,
+        22,
+        27,
+        28
+      ],
+      "response_sha256": "741a099006c85de2ee7a34b46d34c2030bbb4a577954ef6f82d9dde89151fca8",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=11&day=0&base1=0&base2=1&base3=2"
+    },
+    {
+      "month": 12,
+      "day_count": 29,
+      "official_days": [
+        21,
+        29
+      ],
+      "response_sha256": "2d2aa4da5a6e5457048985329e392f0e8848f08e4ca8026a5cefb0ccfb96fbb7",
+      "source_url": "https://api.time.ir/v1/event/fa/events/calendar?year=1407&month=12&day=0&base1=0&base2=1&base3=2"
+    }
+  ],
+  "holidays": [
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 1,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 20,
+      "hijri_year": 1449,
+      "hijri_month": 10,
+      "hijri_day": 23
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 2,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 21,
+      "hijri_year": 1449,
+      "hijri_month": 10,
+      "hijri_day": 24
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 3,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 22,
+      "hijri_year": 1449,
+      "hijri_month": 10,
+      "hijri_day": 25
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 3,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 22,
+      "hijri_year": 1449,
+      "hijri_month": 10,
+      "hijri_day": 25
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 4,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 23,
+      "hijri_year": 1449,
+      "hijri_month": 10,
+      "hijri_day": 26
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 12,
+      "gregorian_year": 2028,
+      "gregorian_month": 3,
+      "gregorian_day": 31,
+      "hijri_year": 1449,
+      "hijri_month": 11,
+      "hijri_day": 4
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 1,
+      "jalali_day": 13,
+      "gregorian_year": 2028,
+      "gregorian_month": 4,
+      "gregorian_day": 1,
+      "hijri_year": 1449,
+      "hijri_month": 11,
+      "hijri_day": 5
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 2,
+      "jalali_day": 17,
+      "gregorian_year": 2028,
+      "gregorian_month": 5,
+      "gregorian_day": 6,
+      "hijri_year": 1449,
+      "hijri_month": 12,
+      "hijri_day": 10
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 2,
+      "jalali_day": 25,
+      "gregorian_year": 2028,
+      "gregorian_month": 5,
+      "gregorian_day": 14,
+      "hijri_year": 1449,
+      "hijri_month": 12,
+      "hijri_day": 18
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 3,
+      "jalali_day": 14,
+      "gregorian_year": 2028,
+      "gregorian_month": 6,
+      "gregorian_day": 3,
+      "hijri_year": 1450,
+      "hijri_month": 1,
+      "hijri_day": 9
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 3,
+      "jalali_day": 14,
+      "gregorian_year": 2028,
+      "gregorian_month": 6,
+      "gregorian_day": 3,
+      "hijri_year": 1450,
+      "hijri_month": 1,
+      "hijri_day": 9
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 3,
+      "jalali_day": 15,
+      "gregorian_year": 2028,
+      "gregorian_month": 6,
+      "gregorian_day": 4,
+      "hijri_year": 1450,
+      "hijri_month": 1,
+      "hijri_day": 10
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 3,
+      "jalali_day": 15,
+      "gregorian_year": 2028,
+      "gregorian_month": 6,
+      "gregorian_day": 4,
+      "hijri_year": 1450,
+      "hijri_month": 1,
+      "hijri_day": 10
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 4,
+      "jalali_day": 24,
+      "gregorian_year": 2028,
+      "gregorian_month": 7,
+      "gregorian_day": 14,
+      "hijri_year": 1450,
+      "hijri_month": 2,
+      "hijri_day": 20
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 5,
+      "jalali_day": 1,
+      "gregorian_year": 2028,
+      "gregorian_month": 7,
+      "gregorian_day": 22,
+      "hijri_year": 1450,
+      "hijri_month": 2,
+      "hijri_day": 28
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 5,
+      "jalali_day": 2,
+      "gregorian_year": 2028,
+      "gregorian_month": 7,
+      "gregorian_day": 23,
+      "hijri_year": 1450,
+      "hijri_month": 2,
+      "hijri_day": 29
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 5,
+      "jalali_day": 10,
+      "gregorian_year": 2028,
+      "gregorian_month": 7,
+      "gregorian_day": 31,
+      "hijri_year": 1450,
+      "hijri_month": 3,
+      "hijri_day": 8
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 5,
+      "jalali_day": 19,
+      "gregorian_year": 2028,
+      "gregorian_month": 8,
+      "gregorian_day": 9,
+      "hijri_year": 1450,
+      "hijri_month": 3,
+      "hijri_day": 17
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 8,
+      "jalali_day": 1,
+      "gregorian_year": 2028,
+      "gregorian_month": 10,
+      "gregorian_day": 22,
+      "hijri_year": 1450,
+      "hijri_month": 6,
+      "hijri_day": 3
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 9,
+      "jalali_day": 11,
+      "gregorian_year": 2028,
+      "gregorian_month": 12,
+      "gregorian_day": 1,
+      "hijri_year": 1450,
+      "hijri_month": 7,
+      "hijri_day": 13
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 9,
+      "jalali_day": 25,
+      "gregorian_year": 2028,
+      "gregorian_month": 12,
+      "gregorian_day": 15,
+      "hijri_year": 1450,
+      "hijri_month": 7,
+      "hijri_day": 27
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 10,
+      "jalali_day": 12,
+      "gregorian_year": 2029,
+      "gregorian_month": 1,
+      "gregorian_day": 1,
+      "hijri_year": 1450,
+      "hijri_month": 8,
+      "hijri_day": 15
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 11,
+      "jalali_day": 18,
+      "gregorian_year": 2029,
+      "gregorian_month": 2,
+      "gregorian_day": 6,
+      "hijri_year": 1450,
+      "hijri_month": 9,
+      "hijri_day": 21
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 11,
+      "jalali_day": 22,
+      "gregorian_year": 2029,
+      "gregorian_month": 2,
+      "gregorian_day": 10,
+      "hijri_year": 1450,
+      "hijri_month": 9,
+      "hijri_day": 25
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 11,
+      "jalali_day": 27,
+      "gregorian_year": 2029,
+      "gregorian_month": 2,
+      "gregorian_day": 15,
+      "hijri_year": 1450,
+      "hijri_month": 10,
+      "hijri_day": 1
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 11,
+      "jalali_day": 28,
+      "gregorian_year": 2029,
+      "gregorian_month": 2,
+      "gregorian_day": 16,
+      "hijri_year": 1450,
+      "hijri_month": 10,
+      "hijri_day": 2
+    },
+    {
+      "base": 2,
+      "jalali_year": 1407,
+      "jalali_month": 12,
+      "jalali_day": 21,
+      "gregorian_year": 2029,
+      "gregorian_month": 3,
+      "gregorian_day": 11,
+      "hijri_year": 1450,
+      "hijri_month": 10,
+      "hijri_day": 25
+    },
+    {
+      "base": 0,
+      "jalali_year": 1407,
+      "jalali_month": 12,
+      "jalali_day": 29,
+      "gregorian_year": 2029,
+      "gregorian_month": 3,
+      "gregorian_day": 19,
+      "hijri_year": 1450,
+      "hijri_month": 11,
+      "hijri_day": 3
+    }
+  ]
+}

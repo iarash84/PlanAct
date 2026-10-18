@@ -17,7 +17,7 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
-// Acceptance: actual root Add -> wizard controls -> review -> durable save ->
+// Acceptance: actual root Add -> form controls -> review -> durable save ->
 // Today/Calendar. Explicit calendars are independent of Jalali display; count
 // and inclusive end dates are independent of frequency. Invalid/cancelled
 // drafts do not write. File reopen checks authoring durability, not backup or
@@ -187,6 +187,8 @@ void main() {
               final items = await commitments.list();
               expect(items, hasLength(1));
               saved = (await plans.findByCommitmentId(items.single.id))!;
+              // A recurrence count schedules slots; it must never grant credit.
+              await _expectNoEntitlement(database);
             });
             _expectPlan(saved, frequency, calendar, termination, end, expected);
             final today = tester.widget<TodayPage>(find.byType(TodayPage));
@@ -221,6 +223,7 @@ void main() {
                 end,
                 expected,
               );
+              await _expectNoEntitlement(database);
             });
           },
         );
@@ -314,6 +317,17 @@ Future<void> _openCapture(WidgetTester tester) async {
   await _tap(tester, find.byTooltip('افزودن سریع'));
   await _tap(tester, find.byKey(const ValueKey('quick-add-commitment')));
   expect(find.byType(QuickCaptureSheet), findsOneWidget);
+  expect(find.text('اعتبار جلسات', skipOffstage: false), findsNothing);
+  expect(find.text('تعداد جلسه', skipOffstage: false), findsNothing);
+  expect(find.textContaining('بدون بستهٔ جلسه'), findsNothing);
+}
+
+Future<void> _expectNoEntitlement(AppDatabase database) async {
+  expect(await database.select(database.entitlementPlans).get(), isEmpty);
+  expect(
+    await database.select(database.entitlementLedgerEntries).get(),
+    isEmpty,
+  );
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {

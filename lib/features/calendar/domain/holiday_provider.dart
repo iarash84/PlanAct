@@ -1,49 +1,34 @@
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/time/jalali_date.dart';
-import 'package:planact/features/calendar/domain/iranian_holiday_data.dart';
+import 'package:planact/features/calendar/domain/calendar_holiday.dart';
+import 'package:planact/features/calendar/domain/holiday_calendar_catalog.dart';
 
-enum CalendarHolidayKind { weekend, officialFixed, officialVariable, special }
-
-class CalendarHoliday {
-  const CalendarHoliday({
-    required this.date,
-    required this.title,
-    this.kind = CalendarHolidayKind.weekend,
-    this.source = 'Iranian weekly weekend rule',
-    this.version = IranianHolidayProvider.dataVersion,
-    this.scope = 'Iran',
-  });
-
-  final JalaliDate date;
-  final String title;
-  final CalendarHolidayKind kind;
-  final String source;
-  final String version;
-  final String scope;
-}
+export 'calendar_holiday.dart';
 
 /// Published calendar dates, not an approximate lunar-calendar calculation.
-/// Additional special closures must be supplied from a versioned durable source;
-/// this class does not create or persist user closures.
+/// Additional special closures must have a versioned durable source.
 class IranianHolidayProvider {
   const IranianHolidayProvider({
     this.specialClosures = const [],
     this.annualOverrides = const {},
+    this.catalog,
   });
 
   /// Only validated complete packages are supplied by the application service.
   final Map<int, List<CalendarHoliday>> annualOverrides;
-
-  static const dataVersion = 'iran-1400-1405-v2';
-  static const firstCoveredYear = 1400;
-  static const lastCoveredYear = 1405;
-  static const officialSource =
-      'persian-calendar/events + qamari/calendar-center';
   final List<CalendarHoliday> specialClosures;
+  final HolidayCalendarCatalog? catalog;
+
+  HolidayCalendarCatalog get bundledCatalog =>
+      catalog ?? HolidayCalendarCatalog.bundled;
+
+  List<int> get coveredYears => List.unmodifiable(
+    {...bundledCatalog.byYear.keys, ...annualOverrides.keys}.toList()..sort(),
+  );
 
   bool hasCompleteOfficialCoverage(int year) =>
       annualOverrides.containsKey(year) ||
-      (year >= firstCoveredYear && year <= lastCoveredYear);
+      bundledCatalog.byYear.containsKey(year);
 
   List<CalendarHoliday> holidaysForMonth(int year, int month) {
     final first = JalaliDate(year, month, 1);
@@ -54,8 +39,7 @@ class IranianHolidayProvider {
   }
 
   List<CalendarHoliday> holidaysFor(JalaliDate date) {
-    // Force validation even when there are no matching official events.
-    final weekday = date.weekDay;
+    final weekday = date.weekDay; // Validate even when there are no records.
     final result = <CalendarHoliday>[];
     if (weekday == 7) {
       result.add(
@@ -65,42 +49,31 @@ class IranianHolidayProvider {
         ),
       );
     }
-    // Current fixed rules are not evidence for arbitrary historical years.
-    if (annualOverrides[date.year] case final overrides?) {
-      result.addAll(overrides.where((h) => h.date == date));
-    }
-    if (!annualOverrides.containsKey(date.year) &&
-        date.year >= firstCoveredYear) {
-      for (final (month, day, title) in iranianFixedHolidays) {
-        if (date.month == month && date.day == day) {
-          result.add(
-            CalendarHoliday(
-              date: date,
-              title: title,
-              kind: CalendarHolidayKind.officialFixed,
-              source: officialSource,
-            ),
-          );
-        }
-      }
-    }
-    if (!annualOverrides.containsKey(date.year) &&
-        hasCompleteOfficialCoverage(date.year)) {
-      final gregorian = date.toDateTime();
-      for (final (year, month, day, title) in iranianVariableHolidays) {
-        if (gregorian.year == year &&
-            gregorian.month == month &&
-            gregorian.day == day) {
-          result.add(
-            CalendarHoliday(
-              date: date,
-              title: title,
-              kind: CalendarHolidayKind.officialVariable,
-              source: date.year == 1405
-                  ? 'time.ir published calendar (2026-10-06)'
-                  : officialSource,
-            ),
-          );
+    final annual =
+        annualOverrides[date.year] ??
+        bundledCatalog.byYear[date.year]?.holidays;
+    if (annual != null) {
+      result.addAll(annual.where((h) => h.date == date));
+    } else {
+      // Preserve the existing incomplete-year fixed-rule fallback. It does not
+      // establish annual coverage or predict any variable holiday.
+      final years = bundledCatalog.years;
+      if (years.isNotEmpty && date.year >= years.first) {
+        final latest = bundledCatalog.byYear[years.last]!;
+        for (final holiday in latest.holidays) {
+          if (holiday.kind == CalendarHolidayKind.officialFixed &&
+              holiday.date.month == date.month &&
+              holiday.date.day == date.day) {
+            result.add(
+              CalendarHoliday(
+                date: date,
+                title: holiday.title,
+                kind: holiday.kind,
+                source: holiday.source,
+                version: '${latest.version}-fixed-rules',
+              ),
+            );
+          }
         }
       }
     }

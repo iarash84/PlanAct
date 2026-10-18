@@ -370,6 +370,24 @@ abstract class AppLocalizations {
   /// **'{value1} · {value2}'**
   String planactAppShowTimelineSubtitle2(String value1, String value2);
 
+  /// گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش تمام‌صفحه'**
+  String get commitmentBrowseExpand;
+
+  /// خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.'**
+  String get commitmentBrowseOpenError;
+
+  /// بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش کوچک‌تر'**
+  String get commitmentBrowseCollapse;
+
   /// Application copy. Original usage: lib/app/planact_app.dart:974.
   ///
   /// In fa, this message translates to:
@@ -1451,10 +1469,10 @@ abstract class AppLocalizations {
   /// **'رفتن به تاریخ'**
   String get calendarPageDateButtonLabel;
 
-  /// Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:238.
+  /// Calendar action returning to the current local date while preserving Month/Week mode. Short label approved 2026-10-14.
   ///
   /// In fa, this message translates to:
-  /// **'بازگشت به امروز'**
+  /// **'امروز'**
   String get calendarPageTodayButtonLabel;
 
   /// Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:260.
@@ -1647,6 +1665,48 @@ abstract class AppLocalizations {
   /// **'ورود بسته انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید؛ دادهٔ قبلی حفظ شده است.'**
   String get holidayPackageSettingsCardImportMessage2;
 
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال‌ها و منابع تعطیلات'**
+  String get holidayDataCoverageTitle;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال‌های دارای پوشش کامل: {years}'**
+  String holidayDataCoveredYears(String years);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'سال {year}؛ {origin}'**
+  String holidayDataYearOrigin(String year, String origin);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'همراه برنامه'**
+  String get holidayDataOriginBundled;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'بستهٔ واردشده'**
+  String get holidayDataOriginImported;
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازبینی {revision}'**
+  String holidayDataRevision(String revision);
+
+  /// Holiday reference-data coverage in More; derived from effective validated annual data.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای سال‌هایی که در این فهرست نیستند، پوشش کامل تعطیلات رسمی نداریم؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.'**
+  String get holidayDataMissingCoverage;
+
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:104.
   ///
   /// In fa, this message translates to:
@@ -1656,7 +1716,7 @@ abstract class AppLocalizations {
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:107.
   ///
   /// In fa, this message translates to:
-  /// **'دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه'**
+  /// **'ورود سال‌های جدید بدون به‌روزرسانی برنامه'**
   String get holidayPackageSettingsCardBuildSubtitle;
 
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:108.
@@ -7420,6 +7480,582 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.'**
   String get actualReopenMessage;
+
+  /// Visible app-unit proposal for an unresolved SMS amount; neither display nor cancellation persists it.
+  ///
+  /// In fa, this message translates to:
+  /// **'{amount} {unit} (پیشنهاد پیش‌فرض برنامه)'**
+  String inboxDefaultUnitProposalAmount(String amount, String unit);
+
+  /// Amount and pinned unit shown for explicit financial confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'{amount} {unit}'**
+  String inboxDefaultUnitAmount(String amount, String unit);
+
+  /// Final confirmation explicitly accepts the visible, overridable unit proposal.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.'**
+  String get inboxDefaultUnitConfirmationNotice;
+
+  /// Saving an SMS review accepts the visible unit; original source evidence is retained.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. ذخیره، مبلغ را با واحد انتخابی ثبت می‌کند.'**
+  String get inboxDefaultUnitEditorNotice;
+
+  /// Unresolved Inbox draft can be reviewed directly in confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پیامک نامشخص است؛ واحد پیش‌فرض برنامه هنگام تأیید قابل تغییر است.'**
+  String get inboxDefaultUnitReviewNotice;
+
+  /// Domain guard against overwriting existing source/review currency evidence.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد مبلغ قبلاً مشخص شده است.'**
+  String get inboxCurrencyAlreadyResolved;
+
+  /// Explicit opt-in for foreground ingestion of new SMS only.
+  ///
+  /// In fa, this message translates to:
+  /// **'دریافت خودکار پیامک‌های جدید'**
+  String get smsAutomaticTitle;
+
+  /// Consent boundary, foreground triggers, and mandatory financial review; historical import is separate.
+  ///
+  /// In fa, this message translates to:
+  /// **'با فعال‌سازی، فقط پیامک‌های دریافتی از همین لحظه هنگام بازشدن یا بازگشت به برنامه، دریافت پیامک و کشیدن صفحه به پایین بررسی می‌شوند. ثبت مالی با تأیید شماست. هنگام بسته‌بودن برنامه دریافت انجام نمی‌شود.'**
+  String get smsAutomaticDescription;
+
+  /// Retryable automatic SMS read, checkpoint or refresh error without sensitive details.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.'**
+  String get smsAutomaticSyncFailed;
+
+  /// Missing or revoked SMS access never prompts automatically or reads the provider.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.'**
+  String get smsAutomaticPermissionRequired;
+
+  /// Failed durable consent write must not change the effective SMS synchronization setting.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.'**
+  String get smsAutomaticSettingFailed;
+
+  /// Expandable optional SMS permission recovery help in Inbox.
+  ///
+  /// In fa, this message translates to:
+  /// **'راهنمای دسترسی پیامک در تنظیمات گوشی'**
+  String get smsPermissionHelpTitle;
+
+  /// Conditional guidance for restricted installations and ordinary denial. English strings are exact OS labels for identifying settings in supplied device screenshots; OEM placement is conditional. Permission is separate from import consent.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر گوشی پیام «دسترسی برنامه به پیامک رد شد» یا «تنظیمات محدودشده» نشان می‌دهد، ممکن است دسترسی به‌دلیل روش نصب یا سیاست امنیتی گوشی محدود شده باشد.\n\n۱. تنظیمات همین برنامه (App info) را باز کنید.\n۲. فقط اگر به برنامه و منبع نصب آن اعتماد دارید، گزینهٔ «اجازهٔ تنظیمات محدودشده» (Allow restricted settings) را فعال کنید. در بعضی گوشی‌ها این گزینه در منوی سه‌نقطه و در شیائومی/پوکو ممکن است در پایین صفحه باشد.\n۳. سپس در «مجوزها» (App permissions)، «پیامک» (SMS) را روی «مجاز» (Allow) بگذارید و به برنامه برگردید.\n\nاگر این گزینه وجود ندارد، مجوز پیامک را در همان بخش مجوزها بررسی کنید یا به برنامه برگردید و دوباره درخواست دهید. محدودیت سازمانی یا گوشی ممکن است مانع باشد؛ برنامه نمی‌تواند آن را خودکار بردارد. سایر بخش‌ها و ورود دستی بدون این مجوز در دسترس‌اند. فعال‌شدن مجوز به‌تنهایی تاریخچه را وارد یا دریافت خودکار را روشن نمی‌کند.'**
+  String get smsPermissionHelpBody;
+
+  /// Explicit action opens this package's App info, never changes a permission.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازکردن تنظیمات همین برنامه'**
+  String get smsPermissionOpenSettings;
+
+  /// Denial or cancelled request; does not assert the cause is Restricted Settings.
+  ///
+  /// In fa, this message translates to:
+  /// **'دسترسی پیامک فعال نشد. می‌توانید دوباره درخواست دهید یا راهنمای تنظیمات گوشی را دنبال کنید.'**
+  String get smsPermissionNotGranted;
+
+  /// Bounded permission request timeout or native failure with recovery actions.
+  ///
+  /// In fa, this message translates to:
+  /// **'درخواست دسترسی پیامک کامل نشد. وضعیت را تازه کنید، دوباره تلاش کنید یا تنظیمات همین برنامه را بررسی کنید.'**
+  String get smsPermissionRequestFailed;
+
+  /// Failed App info intent with retry and manual path.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیمات باز نشد؛ دوباره تلاش کنید یا از تنظیمات گوشی، برنامه‌ها، پلن‌اکت وارد شوید.'**
+  String get smsPermissionSettingsFailed;
+
+  /// Durable confirmation requires a reviewed revision before accepting a proposed unit.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.'**
+  String get inboxCurrencyRevisionRequired;
+
+  /// Label for notification/alarm selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'روش یادآوری'**
+  String get reminderDeliveryLabel;
+
+  /// Standard notification delivery choice.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان'**
+  String get reminderDeliveryNotification;
+
+  /// Audible alarm delivery choice.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم'**
+  String get reminderDeliveryAlarm;
+
+  /// Alarm behavior and permission disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.'**
+  String get reminderAlarmHelp;
+
+  /// Private native alarm notification title.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم پلن‌اکت'**
+  String get reminderAlarmTitle;
+
+  /// Private native alarm notification body without personal data.
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.'**
+  String get reminderAlarmBody;
+
+  /// Native alarm dismiss action.
+  ///
+  /// In fa, this message translates to:
+  /// **'قطع'**
+  String get reminderAlarmStop;
+
+  /// Native alarm action with fixed ten-minute snooze.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعویق ۱۰ دقیقه'**
+  String get reminderAlarmSnooze;
+
+  /// Native alarm channel name.
+  ///
+  /// In fa, this message translates to:
+  /// **'آلارم‌های تعهد'**
+  String get reminderAlarmChannel;
+
+  /// Alarm channel description.
+  ///
+  /// In fa, this message translates to:
+  /// **'زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.'**
+  String get reminderAlarmChannelDescription;
+
+  /// Native scheduling/playback failure notification.
+  ///
+  /// In fa, this message translates to:
+  /// **'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.'**
+  String get reminderAlarmRetry;
+
+  /// Independent date-only calendar note action and type label.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت'**
+  String get calendarNoteLabel;
+
+  /// Note identity color picker label.
+  ///
+  /// In fa, this message translates to:
+  /// **'رنگ یادداشت'**
+  String get calendarNoteColorLabel;
+
+  /// Explains note identity color use.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت در تقویم با این رنگ نمایش داده می‌شود.'**
+  String get calendarNoteColorHint;
+
+  /// Global Add note subtitle.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان و توضیحات روی تقویم، بدون اعلان'**
+  String get calendarNoteAddSubtitle;
+
+  /// Create note form title.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن یادداشت'**
+  String get calendarNoteCreateTitle;
+
+  /// Edit note form title.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش یادداشت'**
+  String get calendarNoteEditTitle;
+
+  /// Required note title field label.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان'**
+  String get calendarNoteTitleField;
+
+  /// Optional note description label.
+  ///
+  /// In fa, this message translates to:
+  /// **'توضیحات (اختیاری)'**
+  String get calendarNoteDescriptionField;
+
+  /// Explicit Jalali note date picker action.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب تاریخ'**
+  String get calendarNoteChooseDate;
+
+  /// Empty note title validation error.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان یادداشت را وارد کنید.'**
+  String get calendarNoteTitleRequired;
+
+  /// Missing note date validation error.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ یادداشت را انتخاب کنید.'**
+  String get calendarNoteDateRequired;
+
+  /// Save failed; input remains available for retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت ذخیره نشد. دوباره تلاش کنید.'**
+  String get calendarNoteSaveFailed;
+
+  /// Stale edit conflict; reopen to read fresh revision.
+  ///
+  /// In fa, this message translates to:
+  /// **'این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.'**
+  String get calendarNoteStale;
+
+  /// Explanation of note delivery semantics.
+  ///
+  /// In fa, this message translates to:
+  /// **'این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.'**
+  String get calendarNoteNoDelivery;
+
+  /// Successful durable note save.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت ذخیره شد.'**
+  String get calendarNoteSaved;
+
+  /// Global search page title and shell accessibility label.
+  ///
+  /// In fa, this message translates to:
+  /// **'جست‌وجو'**
+  String get searchTitle;
+
+  /// Accessible label for the global text query.
+  ///
+  /// In fa, this message translates to:
+  /// **'عبارت جست‌وجو'**
+  String get searchFieldLabel;
+
+  /// Search all supported record types.
+  ///
+  /// In fa, this message translates to:
+  /// **'همه'**
+  String get searchAll;
+
+  /// Commitment search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدات'**
+  String get searchCommitments;
+
+  /// Financial entry search filter and result type, including transfers and corrections.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش‌ها'**
+  String get searchTransactions;
+
+  /// Independent calendar note search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت‌ها'**
+  String get searchNotes;
+
+  /// Financial account search filter and result type.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌ها'**
+  String get searchAccounts;
+
+  /// Clear only the transient query, never records.
+  ///
+  /// In fa, this message translates to:
+  /// **'پاک‌کردن عبارت جست‌وجو'**
+  String get searchClear;
+
+  /// Reload search data from durable local records.
+  ///
+  /// In fa, this message translates to:
+  /// **'تازه‌سازی نتایج'**
+  String get searchRefresh;
+
+  /// Empty query guidance disclosing supported fields and historical coverage.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.'**
+  String get searchGuidance;
+
+  /// No text matches, with query/filter recovery guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.'**
+  String get searchNoResults;
+
+  /// Search snapshot read failure; paired with retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.'**
+  String get searchReadError;
+
+  /// Search result opening failure with recovery guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.'**
+  String get searchOpenError;
+
+  /// Historical cancelled commitment search status.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغوشده'**
+  String get searchCancelled;
+
+  /// Matching result count; count is a Persian-formatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} نتیجه'**
+  String searchResultCount(String count);
+
+  /// Read-only financial search detail scope and existing management route.
+  ///
+  /// In fa, this message translates to:
+  /// **'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.'**
+  String get searchFinancialReadOnly;
+
+  /// Count-based occurrence outcome chart in Commitment Details.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت انجام نوبت‌ها'**
+  String get progressOutcomesTitle;
+
+  /// Separate count-based financial settlement chart; never inferred from completion.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت پرداخت‌ها'**
+  String get progressPaymentsTitle;
+
+  /// Explicit schedule target, independent of materialization horizon; Persian formatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'از مجموع {count} نوبت'**
+  String progressTotal(String count);
+
+  /// Fully paid count versus all other slots; preformatted integer percentages, not money ratios.
+  ///
+  /// In fa, this message translates to:
+  /// **'{paid}٪ تسویه‌شده، {unsettled}٪ بدون تسویهٔ تأییدشده'**
+  String progressPaymentSummary(String paid, String unsettled);
+
+  /// Recorded completed occurrence progress segment.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌شده'**
+  String get progressCompleted;
+
+  /// Fully settled outgoing expectation count.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت‌شده'**
+  String get progressPaid;
+
+  /// Partially settled count, never counted as fully paid.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت جزئی'**
+  String get progressPartPaid;
+
+  /// Cancelled progress segment, separate from completion.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغوشده'**
+  String get progressCancelled;
+
+  /// Resolved skipped occurrence progress segment.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌نشده'**
+  String get progressSkipped;
+
+  /// Unresolved or unprepared schedule slots, not remaining entitlement.
+  ///
+  /// In fa, this message translates to:
+  /// **'باقی‌مانده'**
+  String get progressRemaining;
+
+  /// Outgoing slots without allocated payment, excluding partial payments; cancellation of attendance does not waive payment.
+  ///
+  /// In fa, this message translates to:
+  /// **'پرداخت‌نشده'**
+  String get progressUnpaid;
+
+  /// Missing or ambiguous financial expectation evidence; never inferred paid or unpaid.
+  ///
+  /// In fa, this message translates to:
+  /// **'وضعیت پرداخت نامشخص'**
+  String get progressUnknownPayment;
+
+  /// Full text alternative for a chart segment, with Persian formatted count and integer percentage.
+  ///
+  /// In fa, this message translates to:
+  /// **'{label}: {count} نوبت ({percent}٪)'**
+  String progressLegend(String label, String count, String percent);
+
+  /// Discloses schedule count versus entitlement and operational generation horizon.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.'**
+  String get progressCountBasis;
+
+  /// Financial progress evidence and count-based percentage scope.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.'**
+  String get progressPaymentBasis;
+
+  /// Accessible label for progress snapshot loading.
+  ///
+  /// In fa, this message translates to:
+  /// **'در حال خواندن پیشرفت تعهد'**
+  String get progressLoading;
+
+  /// Progress read failure and stale-content disclosure, paired with retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.'**
+  String get progressReadError;
+
+  /// Suppresses misleading percentages for ambiguous duplicate or over-target history without rewriting it.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.'**
+  String get progressAmbiguous;
+
+  /// Count reduction cancellations outside current recurrence prefix, with preformatted integer.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.'**
+  String progressExcludedCancellations(String count);
+
+  /// Commitment checklist route and action.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست کارها'**
+  String get checklistTitle;
+
+  /// Shared list scope and absence of automatic lifecycle or financial effects.
+  ///
+  /// In fa, this message translates to:
+  /// **'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.'**
+  String get checklistScope;
+
+  /// Add a checklist item.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن کار'**
+  String get checklistAdd;
+
+  /// Explicit checklist item rename.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش کار'**
+  String get checklistEdit;
+
+  /// Required task name field.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان کار'**
+  String get checklistItemTitle;
+
+  /// Empty checklist item validation.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان کار را وارد کنید.'**
+  String get checklistEmptyTitle;
+
+  /// Failed write retains dialog draft and requires reload before another write.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.'**
+  String get checklistSaveError;
+
+  /// Read failure distinct from committed save failure.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.'**
+  String get checklistReadError;
+
+  /// Resolved and archived commitments retain readable checklists.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.'**
+  String get checklistReadOnly;
+
+  /// Checked versus visible task count using formatted Persian integers.
+  ///
+  /// In fa, this message translates to:
+  /// **'{checked} از {total} کار انجام شده'**
+  String checklistProgress(String checked, String total);
+
+  /// Empty checklist guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.'**
+  String get checklistEmpty;
+
+  /// Accessible item action menu tooltip.
+  ///
+  /// In fa, this message translates to:
+  /// **'اقدام‌های این کار'**
+  String get checklistActions;
+
+  /// Reversible item removal retaining history.
+  ///
+  /// In fa, this message translates to:
+  /// **'کنار گذاشتن کار'**
+  String get checklistRemove;
+
+  /// Explicit removal confirmation with restoration disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.'**
+  String get checklistRemoveConfirm;
+
+  /// Expandable retained removed tasks.
+  ///
+  /// In fa, this message translates to:
+  /// **'کارهای کنارگذاشته‌شده'**
+  String get checklistRemoved;
+
+  /// Restore task with original identity and checked state.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگرداندن کار'**
+  String get checklistRestore;
+
+  /// Accessible month day note summary, separate from commitment counts.
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} یادداشت: {titles}'**
+  String calendarNoteDaySummary(String count, String titles);
 }
 
 class _AppLocalizationsDelegate

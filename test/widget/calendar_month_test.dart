@@ -74,8 +74,17 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('calendar-month-grid'))).height,
       lessThan(450),
     );
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final offset = position.pixels;
     await tester.tap(find.byKey(const ValueKey('calendar-day-15')));
     await tester.pumpAndSettle();
+    expect(
+      position.pixels,
+      offset,
+      reason: 'Day selection must not jump to the list',
+    );
     expect(
       tester
           .widget<Semantics>(find.byKey(const ValueKey('calendar-day-15')))
@@ -83,6 +92,12 @@ void main() {
           .selected,
       isTrue,
     );
+    await tester.scrollUntilVisible(
+      find.text('برای این روز تعهدی ثبت نشده است.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.byType(CalendarCommitmentCard), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -205,12 +220,14 @@ void main() {
             ),
             findsNothing,
           );
-          final action = find.byKey(const ValueKey('calendar-show-day-list'));
-          await tester.ensureVisible(action);
-          await tester.pumpAndSettle();
-          await tester.tap(action);
-          await tester.pumpAndSettle();
+          expect(find.text('نمایش فهرست روز انتخاب‌شده'), findsNothing);
           final heading = find.text(PersianDateFormatter.relative(date));
+          await tester.scrollUntilVisible(
+            heading,
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
           expect(heading, findsOneWidget);
           expect(tester.getRect(heading).top, greaterThanOrEqualTo(0));
           expect(tester.getRect(heading).bottom, lessThanOrEqualTo(900));
@@ -224,6 +241,7 @@ void main() {
               200,
               scrollable: find.byType(Scrollable).first,
             );
+            await tester.pumpAndSettle();
             final widget = tester.widget<CalendarCommitmentCard>(
               find.ancestor(
                 of: card,
@@ -243,9 +261,13 @@ void main() {
           final last = find.byKey(
             ValueKey('calendar-commitment-${items.last.id.value}'),
           );
-          await tester.tap(
-            find.descendant(of: last, matching: find.text(items.last.title)),
+          final lastTitle = find.descendant(
+            of: last,
+            matching: find.text(items.last.title),
           );
+          await tester.ensureVisible(lastTitle);
+          await tester.pumpAndSettle();
+          await tester.tap(lastTitle);
           expect(opened, items.last);
           expect(tester.takeException(), isNull);
         },

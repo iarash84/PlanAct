@@ -52,8 +52,9 @@ void main() {
       await show();
       expect(
         find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
-        findsOneWidget,
+        findsNothing,
       );
+      expect(find.text('تعطیل رسمی: آغاز نوروز'), findsOneWidget);
       await tester.runAsync(() async {
         await service.install(
           await HolidayDataPackage.verify(await holidayFixture()),
@@ -63,6 +64,7 @@ void main() {
       await show();
       expect(find.text('تعطیل رسمی: تعطیلی آزمایشی'), findsOneWidget);
       expect(find.text('تعطیل رسمی: دلیل هم‌زمان آزمایشی'), findsOneWidget);
+      expect(find.text('تعطیل رسمی: آغاز نوروز'), findsNothing);
       expect(
         find.textContaining('دادهٔ تعطیلات رسمی این سال کامل نیست'),
         findsNothing,

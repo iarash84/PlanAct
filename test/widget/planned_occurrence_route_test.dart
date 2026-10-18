@@ -210,6 +210,8 @@ void main() {
         expect((await db.select(db.occurrences).get()).length, initial + 1);
       });
       await _tap(tester, find.text('تقویم').last);
+      expect(find.byKey(const ValueKey('calendar-pick-date')), findsNothing);
+      await _tap(tester, find.text('هفته'));
       await _tap(tester, find.byKey(const ValueKey('calendar-pick-date')));
       // A different, still-unrecorded date 25 months away.
       for (var i = 0; i < 25; i++) {
@@ -218,7 +220,17 @@ void main() {
       await _tap(tester, find.byKey(const ValueKey('capture-date-19')));
       await _tap(tester, find.text('تأیید تاریخ'));
       await _drain(tester);
-      await _tap(tester, find.byKey(const ValueKey('calendar-show-day-list')));
+      await _tap(tester, find.text('ماه'));
+      await tester.scrollUntilVisible(
+        find.byType(PlannedSlotTile),
+        200,
+        // Scroll the month's vertical content, not the shell's horizontal tabs.
+        scrollable: find
+            .byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
       expect(find.byType(PlannedSlotTile), findsWidgets);
       expect(find.textContaining('پیش‌نمایش برنامه'), findsWidgets);
       await tester.drag(find.byType(ListView).last, const Offset(0, 2000));
@@ -244,7 +256,11 @@ void main() {
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  await tester.ensureVisible(finder);
+  // Do not align an already-visible pinned control through the root PageView:
+  // that programmatic horizontal scroll can leave Calendar before the tap.
+  if (finder.hitTestable().evaluate().isEmpty) {
+    await tester.ensureVisible(finder);
+  }
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await _drain(tester);

@@ -88,6 +88,7 @@ class DriftCommitmentPlanRepository
                   plan.schedule.recurrenceRule,
                   plan.schedule.generationReminderOffsets,
                   plan.schedule.generationFinancialExpectation,
+                  plan.schedule.generationReminderDelivery,
                 ),
               ),
               endDate: Value(
@@ -375,6 +376,7 @@ class DriftCommitmentPlanRepository
               final rule = ReminderRule.beforeOccurrence(
                 occurrenceId: occurrence.id,
                 offset: offset,
+                delivery: schedule.generationReminderDelivery,
                 title: owner.title,
               );
               await reminders.saveRule(rule);
@@ -693,6 +695,7 @@ class DriftCommitmentPlanRepository
         final rule = ReminderRule.beforeOccurrence(
           occurrenceId: occurrence.id,
           offset: offset,
+          delivery: schedule.generationReminderDelivery,
           title: owner.title,
         );
         await reminders.saveRule(rule);
@@ -829,6 +832,7 @@ class DriftCommitmentPlanRepository
     RecurrenceRule? value,
     List<Duration> offsets,
     FinancialExpectationTemplate? financial,
+    ReminderDelivery delivery,
   ) => value == null
       ? null
       : jsonEncode({
@@ -838,6 +842,7 @@ class DriftCommitmentPlanRepository
           'calendar': value.calendar.name,
           'monthOfYear': value.monthOfYear,
           'generationReminderMinutes': offsets.map((o) => o.inMinutes).toList(),
+          'generationReminderDelivery': delivery.name,
           'frequency': value.frequency.index,
           'interval': value.interval,
           'weekdays': value.weekdays.toList(),
@@ -921,6 +926,14 @@ class DriftCommitmentPlanRepository
     effectiveFrom: _parseDate(r.effectiveFrom),
     generationHorizonDays: r.generationHorizonDays,
     generationFinancialExpectation: _parseFinancial(r.recurrenceRule),
+    generationReminderDelivery: r.recurrenceRule == null
+        ? ReminderDelivery.notification
+        : ReminderDelivery.values.byName(
+            (jsonDecode(r.recurrenceRule!)
+                        as Map<String, dynamic>)['generationReminderDelivery']
+                    as String? ??
+                'notification',
+          ),
     generationReminderOffsets: r.recurrenceRule == null
         ? const []
         : ((jsonDecode(r.recurrenceRule!)

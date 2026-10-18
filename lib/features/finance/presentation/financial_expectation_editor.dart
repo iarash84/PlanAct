@@ -15,11 +15,13 @@ class FinancialExpectationEditor extends StatefulWidget {
     required this.occurrenceId,
     required this.useCases,
     required this.accounts,
+    this.onSaved,
   });
 
   final StableId occurrenceId;
   final FinancialExpectationUseCases useCases;
   final List<FinancialAccount> accounts;
+  final VoidCallback? onSaved;
 
   @override
   State<FinancialExpectationEditor> createState() =>
@@ -99,7 +101,10 @@ class _FinancialExpectationEditorState
           accountId: _account?.id,
         );
       }
-      if (mounted) _message(PersianCopy.financialExpectationEditorSaveMessage2);
+      if (mounted) {
+        _message(PersianCopy.financialExpectationEditorSaveMessage2);
+        widget.onSaved?.call();
+      }
     } catch (_) {
       if (mounted) _message(PersianCopy.financialExpectationEditorSaveMessage3);
     } finally {

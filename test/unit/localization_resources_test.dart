@@ -31,6 +31,22 @@ void main() {
     );
     expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
     expect(copy.occurrenceCancelled, 'لغوشده');
+    expect(copy.calendarPageTodayButtonLabel, 'امروز');
+    expect(copy.holidayDataCoverageTitle, 'سال‌ها و منابع تعطیلات');
+    expect(
+      copy.holidayPackageSettingsCardBuildSubtitle,
+      'ورود سال‌های جدید بدون به‌روزرسانی برنامه',
+    );
+    expect(
+      copy.holidayDataYearOrigin('۱۴۰۷', copy.holidayDataOriginImported),
+      'سال ۱۴۰۷؛ بستهٔ واردشده',
+    );
+    expect(copy.commitmentBrowseExpand, 'نمایش تمام‌صفحه');
+    expect(copy.commitmentBrowseCollapse, 'نمایش کوچک‌تر');
+    expect(
+      copy.commitmentBrowseOpenError,
+      'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.',
+    );
   });
 
   test(
@@ -44,6 +60,11 @@ void main() {
         expected,
       );
       expect(expected, isNot(contains('import ')));
+      final native = File(
+        'android/app/src/main/res/values/planact_alarm_strings.xml',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+      expect(native, generator.renderAndroid(catalog));
+      expect(native, contains('تعویق ۱۰ دقیقه'));
       expect(PersianCopy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
       expect(PersianDateFormatter.monthNames, [
         'فروردین',
@@ -76,16 +97,29 @@ void main() {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
     // must update this baseline with explicit review, not regenerate it in CI.
-    // New user-approved Undo messages are separately marked and are not part
+    // New user-approved Undo/Inbox/SMS/browse/note messages are separately marked and are not part
     // of the frozen pre-migration source. All catalog metadata is still checked.
     final templates =
         catalog.entries
             .where((entry) => !entry.key.startsWith('@'))
             .where(
               (entry) =>
-                  (catalog['@${entry.key}']
-                      as Map<String, dynamic>)['x-planact-introduced'] !=
-                  'undo-2026-10-14',
+                  !const {
+                    'undo-2026-10-14',
+                    'inbox-default-2026-10-14',
+                    'sms-sync-2026-10-14',
+                    'sms-permission-2026-10-14',
+                    'interaction-2026-10-14',
+                    'alarm-2026-10-14',
+                    'holiday-data-2026-10-14',
+                    'calendar-note-2026-10-14',
+                    'checklist-2026-10-14',
+                    'search-2026-10-14',
+                    'counted-progress-2026-10-14',
+                  }.contains(
+                    (catalog['@${entry.key}']
+                        as Map<String, dynamic>)['x-planact-introduced'],
+                  ),
             )
             .map((entry) => entry.value as String)
             .toSet()
@@ -93,7 +127,8 @@ void main() {
           ..sort();
     expect(
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
-      'b04b4a228fd63f3ee19492423d368c56b5510970a67bb85c6f0b4667da577140',
+      // User-approved 2026-10-14: Today label and removal of stale fixed holiday coverage.
+      '2ff5958f826b430234383923df25f0477e43dd9bf9a1b02d23c6b179ea1cfff3',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;

@@ -105,11 +105,12 @@ void main() {
       expect(find.byType(TimePickerDialog), findsNothing);
       expect(find.text('انتخاب زمان'), findsOneWidget);
 
-      final advanced = find.text('اعتبار جلسات');
+      expect(find.text('اعتبار جلسات'), findsNothing);
+      final advanced = find.text('اطلاعات مالی');
       await tester.ensureVisible(advanced);
       await tester.pumpAndSettle();
       expect(find.bySemanticsLabel(material.expandedHint), findsWidgets);
-      final collapsed = find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first;
+      final collapsed = find.bySemanticsLabel(RegExp('^اطلاعات مالی')).first;
       expect(
         tester.getSemantics(collapsed).getSemanticsData().hint,
         material.expandedHint,
@@ -117,7 +118,7 @@ void main() {
       await _tap(tester, advanced);
       expect(
         tester
-            .getSemantics(find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first)
+            .getSemantics(find.bySemanticsLabel(RegExp('^اطلاعات مالی')).first)
             .getSemanticsData()
             .hint,
         material.collapsedHint,
@@ -125,7 +126,7 @@ void main() {
       await _tap(tester, advanced);
       expect(
         tester
-            .getSemantics(find.bySemanticsLabel(RegExp('^اعتبار جلسات')).first)
+            .getSemantics(find.bySemanticsLabel(RegExp('^اطلاعات مالی')).first)
             .getSemanticsData()
             .hint,
         material.expandedHint,

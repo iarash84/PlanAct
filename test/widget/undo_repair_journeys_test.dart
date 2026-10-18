@@ -5,13 +5,17 @@ import 'package:planact/app/planact_app.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
+import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -50,6 +54,43 @@ Future<void> tapText(WidgetTester tester, String label) async {
   await settle(tester);
 }
 
+Future<void> showOccurrenceMonth(WidgetTester tester, DateTime date) async {
+  final range = find.byType(PlannedDetailsRange);
+  final l10n = planActL10n(tester.element(range));
+  final current = JalaliDate.now();
+  final target = JalaliDate.fromDateTime(date);
+  final months =
+      (target.year - current.year) * 12 + target.month - current.month;
+  final navigation = find.descendant(
+    of: range,
+    matching: find.byTooltip(
+      months < 0
+          ? l10n.plannedOccurrenceWidgetsBuildTooltip2
+          : l10n.plannedOccurrenceWidgetsBuildTooltip3,
+    ),
+  );
+  for (var i = 0; i < months.abs(); i++) {
+    await tester.scrollUntilVisible(
+      navigation,
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(navigation);
+    await settle(tester);
+  }
+  expect(
+    find.descendant(
+      of: range,
+      matching: find.text(
+        l10n.plannedOccurrenceWidgetsBuildChildren6(
+          PersianDateFormatter.month(target),
+        ),
+      ),
+    ),
+    findsOneWidget,
+  );
+}
+
 class _ReminderPlatform implements ReminderPlatformAdapter {
   final active = <String, ReminderInstance>{};
   @override
@@ -75,9 +116,16 @@ void main() {
     commitments = DriftCommitmentRepository(database);
     plans = DriftCommitmentPlanRepository(database);
     finance = DriftFinanceRepository(database);
+    // Always exercise a Jalali month boundary, including Esfand -> Farvardin.
+    // A relative five-day offset only exposed the missing navigation near month end.
+    final nextMonth = JalaliDate.now().addMonths(1);
     plan = await CreateCommitmentPlan(commitments: commitments, plans: plans)(
       title: 'class',
-      startAt: DateTime.now().add(const Duration(days: 5)),
+      startAt: JalaliDate(
+        nextMonth.year,
+        nextMonth.month,
+        10,
+      ).toDateTime().add(const Duration(hours: 18)),
     );
     bank = FinancialAccount(
       id: StableId.generate(),
@@ -90,6 +138,12 @@ void main() {
   tearDown(() async => database.close());
 
   Future<void> openHistory(WidgetTester tester) async {
+    // Browsing now remains below Details; explicitly close it before reopening
+    // the root menu. The new retained-position journey is tested separately.
+    if (find.byType(CommitmentBrowseSheet).evaluate().isNotEmpty) {
+      await tester.tap(find.byTooltip('بستن'));
+      await settle(tester);
+    }
     await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
     await settle(tester);
     await tapText(tester, 'تاریخچه و بایگانی تعهدها');
@@ -466,6 +520,7 @@ void main() {
           ),
         );
         await settle(tester);
+        await showOccurrenceMonth(tester, original);
         final popup = find.byType(PopupMenuButton<OccurrenceAction>);
         await tester.scrollUntilVisible(
           popup,
@@ -607,6 +662,7 @@ void main() {
         ),
       );
       await settle(tester);
+      await showOccurrenceMonth(tester, originalTime);
       final popup = find.byType(PopupMenuButton<OccurrenceAction>);
       await tester.scrollUntilVisible(
         popup,

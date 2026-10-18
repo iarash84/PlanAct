@@ -1,4 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/notes/domain/calendar_note.dart';
+import 'package:planact/features/notes/presentation/calendar_note_tile.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 
@@ -58,6 +60,9 @@ class WeekTimelineView extends StatefulWidget {
     this.plannedLoader,
     this.onTap,
     this.onAdd,
+    this.noteLoader,
+    this.notesRevision = 0,
+    this.onNoteTap,
   });
   final JalaliDate date;
   final List<Commitment> commitments;
@@ -68,6 +73,9 @@ class WeekTimelineView extends StatefulWidget {
   plannedLoader;
   final ValueChanged<Commitment>? onTap;
   final VoidCallback? onAdd;
+  final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
+  final int notesRevision;
+  final ValueChanged<CalendarNote>? onNoteTap;
   @override
   State<WeekTimelineView> createState() => _WeekTimelineViewState();
 }
@@ -81,7 +89,8 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
   final _headerScroll = ScrollController();
   final _bodyScroll = ScrollController();
   bool _syncing = false;
-  Future<PlannedOccurrenceRange>? _future;
+  Future<(PlannedOccurrenceRange, List<CalendarNote>)>? _future;
+  List<CalendarNote> _notes = [];
   void _sync(ScrollController source, ScrollController target) {
     if (_syncing || !source.hasClients || !target.hasClients) return;
     _syncing = true;
@@ -108,16 +117,24 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     final start = WeekTimeline.localDate(WeekTimeline.startOfWeek(widget.date));
     final planned = widget.plannedLoader;
     final loader = widget.loader;
-    _future = planned != null
-        ? Future.sync(() => planned(start, start.addDays(7)))
-        : loader == null
+    final noteLoader = widget.noteLoader;
+    _notes = [];
+    _future = planned == null && loader == null && noteLoader == null
         ? null
-        : Future.sync(
-            () async => PlannedOccurrenceRange(
-              recorded: await loader(start),
-              preview: const {},
-            ),
-          );
+        : Future.sync(() async {
+            final notes =
+                await noteLoader?.call(start, start.addDays(7)) ??
+                <CalendarNote>[];
+            final range = planned != null
+                ? await planned(start, start.addDays(7))
+                : PlannedOccurrenceRange(
+                    recorded: loader == null
+                        ? widget.occurrences
+                        : await loader(start),
+                    preview: const {},
+                  );
+            return (range, notes);
+          });
   }
 
   @override
@@ -127,7 +144,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
         oldWidget.occurrences != widget.occurrences ||
         oldWidget.commitments != widget.commitments ||
         oldWidget.loader != widget.loader ||
-        oldWidget.plannedLoader != widget.plannedLoader) {
+        oldWidget.plannedLoader != widget.plannedLoader ||
+        oldWidget.noteLoader != widget.noteLoader ||
+        oldWidget.notesRevision != widget.notesRevision) {
       _load();
       if (oldWidget.date != widget.date) {
         _resetScroll = true;
@@ -148,7 +167,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
   @override
   Widget build(BuildContext context) {
     if (_future == null) return _content(widget.occurrences);
-    return FutureBuilder<PlannedOccurrenceRange>(
+    return FutureBuilder<(PlannedOccurrenceRange, List<CalendarNote>)>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -173,9 +192,10 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
             ),
           );
         }
+        _notes = snapshot.data?.$2 ?? [];
         return _content(
-          snapshot.data?.recorded ?? const {},
-          snapshot.data?.preview ?? const {},
+          snapshot.data?.$1.recorded ?? const {},
+          snapshot.data?.$1.preview ?? const {},
         );
       },
     );
@@ -302,7 +322,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
               padding: EdgeInsets.all(PlanActSpacing.sm),
               child: Text(PersianCopy.weekTimelineViewContentChildren),
             ),
-            if (entries.isEmpty)
+            if (entries.isEmpty && _notes.isEmpty)
               const Text(PersianCopy.weekTimelineViewContentChildren2),
             Expanded(
               child: LayoutBuilder(
@@ -401,6 +421,8 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                                                       ) ==
                                                       day)
                                                 _card(entry.$1, entry.$2, null),
+                                            for (final note in _notesFor(day))
+                                              _noteTile(note),
                                           ],
                                         ),
                                       ),
@@ -623,7 +645,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (entries.isEmpty && index == initialDay) ...[
+                      if (entries.isEmpty &&
+                          _notes.isEmpty &&
+                          index == initialDay) ...[
                         const Text(
                           PersianCopy.weekTimelineViewContentChildren2,
                         ),
@@ -693,11 +717,24 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                 .compareTo(WeekTimeline.displayDate(bStart));
             return order != 0 ? order : a.$2.key.compareTo(b.$2.key);
           });
-    if (items.isEmpty) {
+    final notes = _notesFor(day);
+    if (items.isEmpty && notes.isEmpty) {
       return [const Text(PersianCopy.weekTimelineViewAgendaEntriesMessage)];
     }
-    return [for (final entry in items) _agendaRow(entry.$1, entry.$2)];
+    return [
+      for (final note in notes) _noteTile(note),
+      for (final entry in items) _agendaRow(entry.$1, entry.$2),
+    ];
   }
+
+  List<CalendarNote> _notesFor(JalaliDate day) => _notes
+      .where((note) => note.date == LocalDate.fromDateTime(day.toDateTime()))
+      .toList();
+
+  Widget _noteTile(CalendarNote note) => CalendarNoteTile(
+    note: note,
+    onTap: widget.onNoteTap == null ? null : () => widget.onNoteTap!(note),
+  );
 
   Widget _agendaRow(Commitment commitment, _WeekSlot occurrence) {
     if (occurrence.preview != null) {

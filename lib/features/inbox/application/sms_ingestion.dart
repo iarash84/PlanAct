@@ -13,6 +13,21 @@ abstract interface class SmsScanStore {
   Future<void> writeSmsScan(String? expected, String value);
 }
 
+abstract interface class AutomaticSmsScanStore {
+  Future<String?> readAutomaticSmsScan();
+  Future<void> writeAutomaticSmsScan(String? expected, String value);
+}
+
+class AutomaticSmsScanAdapter implements SmsScanStore {
+  AutomaticSmsScanAdapter(this.store);
+  final AutomaticSmsScanStore store;
+  @override
+  Future<String?> readSmsScan() => store.readAutomaticSmsScan();
+  @override
+  Future<void> writeSmsScan(String? expected, String value) =>
+      store.writeAutomaticSmsScan(expected, value);
+}
+
 class SmsScan {
   SmsScan({
     required this.from,
@@ -23,6 +38,7 @@ class SmsScan {
     this.inspected = 0,
     this.unsupported = 0,
     this.complete = false,
+    this.automatic = false,
   });
   final int from;
   int until;
@@ -32,6 +48,7 @@ class SmsScan {
   int inspected;
   int unsupported;
   bool complete;
+  bool automatic;
 
   String encode() => jsonEncode({
     'version': 1,
@@ -43,6 +60,7 @@ class SmsScan {
     'inspected': inspected,
     'unsupported': unsupported,
     'complete': complete,
+    'automatic': automatic,
   });
   factory SmsScan.decode(String text) {
     final m = jsonDecode(text) as Map<String, dynamic>;
@@ -58,18 +76,37 @@ class SmsScan {
       inspected: m['inspected'] as int,
       unsupported: m['unsupported'] as int,
       complete: m['complete'] as bool,
+      automatic: m['automatic'] as bool? ?? false,
     );
   }
 }
 
-/// No read/lifecycle side effect. Every run is explicitly started or resumed.
+/// Bounded ingestion, invoked by explicit imports or separately consented sync.
 class SmsIngestion {
-  SmsIngestion(this.inbox, this.source);
+  SmsIngestion(this.inbox, this.source, {SmsScanStore? store})
+    : _store = store ?? inbox.repository as SmsScanStore;
   final InboxUseCases inbox;
   final AndroidSmsSource source;
-  static final _active = Expando<bool>();
+  static final _tails = Expando<Future<void>>();
   bool _cancelled = false;
-  SmsScanStore get _store => inbox.repository as SmsScanStore;
+  final SmsScanStore _store;
+
+  // The native read is outside a database transaction. Serialize whole scans
+  // within this application owner; durable writes still compare fresh state.
+  Future<void> _exclusive(Future<void> Function() action) async {
+    final previous = _tails[inbox.repository] ?? Future<void>.value();
+    final done = Completer<void>();
+    _tails[inbox.repository] = done.future;
+    try {
+      await CommandGate.runFor(inbox.repository, () async {
+        await previous;
+        await action();
+      });
+    } finally {
+      done.complete();
+    }
+  }
+
   Future<SmsScan?> load() async {
     final text = await _store.readSmsScan();
     return text == null ? null : SmsScan.decode(text);
@@ -81,8 +118,8 @@ class SmsIngestion {
     required DateTime from,
     required DateTime until,
     required bool newOnly,
-  }) => CommandGate.runFor(inbox.repository, () async {
-    if (_active[inbox.repository] == true) throw StateError('Scan is active');
+    bool automatic = false,
+  }) => _exclusive(() async {
     if (from.isAfter(until)) {
       throw const ValidationError(PersianCopy.smsIngestionConsentMessage);
     }
@@ -93,17 +130,15 @@ class SmsIngestion {
         from: from.millisecondsSinceEpoch,
         until: until.millisecondsSinceEpoch,
         newOnly: newOnly,
+        automatic: automatic,
       ).encode(),
     );
   });
 
-  Future<void> run({
-    required void Function(SmsScan) onProgress,
-  }) => CommandGate.runFor(inbox.repository, () async {
-    if (_active[inbox.repository] == true) throw StateError('Scan is active');
-    _active[inbox.repository] = true;
+  Future<void> run({required void Function(SmsScan) onProgress}) {
     _cancelled = false;
-    try {
+    return _exclusive(() async {
+      if (_cancelled) return;
       var saved = await _store.readSmsScan();
       if (saved == null) {
         throw const ValidationError(PersianCopy.smsIngestionRunMessage);
@@ -168,8 +203,6 @@ class SmsIngestion {
         saved = scan.encode();
         onProgress(scan);
       }
-    } finally {
-      _active[inbox.repository] = false;
-    }
-  });
+    });
+  }
 }

@@ -48,7 +48,23 @@ void main() {
       entitlementUnits: 4,
     );
     expect(draft.reviewSummary(), contains('نیازمند پرداخت'));
-    expect(draft.reviewSummary(), contains('۴'));
+    expect(draft.reviewSummary(), contains('۴ جلسه'));
+  });
+
+  test('counted recurrence summary does not imply a session package', () {
+    final draft = CommitmentDraft(
+      title: 'مطالعه',
+      kind: CommitmentKind.recurring,
+      startAt: DateTime(2026, 10, 1, 18),
+      frequency: RecurrenceFrequency.daily,
+      termination: RecurrenceTermination.count,
+      occurrenceCount: 8,
+    );
+    expect(draft.reviewSummary(), contains('۸ نوبت'));
+    expect(draft.reviewSummary(), isNot(contains('بسته')));
+    expect(draft.reviewSummary(), isNot(contains('جلسه')));
+    expect(draft.entitlement, EntitlementDraft.none);
+    expect(draft.entitlementUnits, isNull);
   });
 
   test('draft preserves multiple reminder offsets independently', () {

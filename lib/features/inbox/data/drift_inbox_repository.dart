@@ -22,7 +22,8 @@ class DriftInboxRepository
         AtomicInboxConfirmation,
         AtomicInboxStaging,
         AtomicInboxReview,
-        SmsScanStore {
+        SmsScanStore,
+        AutomaticSmsScanStore {
   DriftInboxRepository(this.database);
 
   @override
@@ -30,6 +31,7 @@ class DriftInboxRepository
 
   final db.AppDatabase database;
   static const smsScanMetadataKey = 'sms_scan_v1';
+  static const automaticSmsScanMetadataKey = 'sms_automatic_scan_v1';
 
   String _key(String id) => 'inbox_review_v1:$id';
 
@@ -129,13 +131,26 @@ class DriftInboxRepository
 
   @override
   Future<void> writeSmsScan(String? expected, String value) =>
+      _writeScan(smsScanMetadataKey, expected, value);
+
+  @override
+  Future<String?> readAutomaticSmsScan() => CommandGate.runFor(
+    this,
+    () => database.readMetadata(automaticSmsScanMetadataKey),
+  );
+
+  @override
+  Future<void> writeAutomaticSmsScan(String? expected, String value) =>
+      _writeScan(automaticSmsScanMetadataKey, expected, value);
+
+  Future<void> _writeScan(String key, String? expected, String value) =>
       CommandGate.runFor(
         this,
         () => database.transaction(() async {
-          if (await database.readMetadata(smsScanMetadataKey) != expected) {
+          if (await database.readMetadata(key) != expected) {
             throw StateError('SMS scan changed; reload before retrying');
           }
-          await database.writeMetadata(smsScanMetadataKey, value);
+          await database.writeMetadata(key, value);
         }),
       );
 
@@ -185,9 +200,18 @@ class DriftInboxRepository
     required StableId suggestionId,
     required AccountEntry entry,
     int? expectedRevision,
+    SmsMoneyUnit? selectedUnit,
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      // Acquire SQLite writer admission before reading the revision or evidence.
+      if (selectedUnit != null && expectedRevision == null) {
+        throw const ValidationError(PersianCopy.inboxCurrencyRevisionRequired);
+      }
+      await database.customStatement(
+        'UPDATE schema_metadata SET value = value WHERE key = ?',
+        ['schema_version'],
+      );
       final suggestion =
           await (database.select(database.inboxSuggestions)
                 ..where((table) => table.id.equals(suggestionId.value)))
@@ -220,31 +244,24 @@ class DriftInboxRepository
       final fresh = (await listSuggestions()).firstWhere(
         (s) => s.id == suggestionId,
       );
-      fresh.draft.validateConfirmation(
-        extractedEvidence: fresh.extractedEvidence,
-      );
+      if (expectedRevision != null &&
+          metadata['revision'] != expectedRevision) {
+        throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
+      }
+      final reviewed = selectedUnit == null
+          ? fresh.draft
+          : fresh.draft.selectUnresolvedCurrency(selectedUnit);
+      reviewed.validateConfirmation(extractedEvidence: fresh.extractedEvidence);
       if (entry.type != AccountEntryType.income &&
           entry.type != AccountEntryType.expense) {
         throw const ValidationError(
           PersianCopy.driftInboxRepositoryConfirmAtomicallyMessage,
         );
       }
-      metadata['reviewed'] = fresh.draft.toReviewJson();
-      final currencyEvidence = metadata['currencyEvidence'];
-      if (currencyEvidence != null &&
-          SmsCurrencyEvidence.fromJson(currencyEvidence as Map<String, dynamic>)
-              .requiresSelection) {
-        throw const ValidationError(
-          PersianCopy.driftInboxRepositoryConfirmAtomicallyMessage2,
-        );
-      }
-      if (expectedRevision != null &&
-          metadata['revision'] != expectedRevision) {
-        throw const ValidationError(PersianCopy.inboxUseCasesEditMessage3);
-      }
+      metadata['reviewed'] = reviewed.toReviewJson();
+      metadata['currencyEvidence'] = reviewed.currencyEvidence?.toJson();
       if (suggestion.status != SuggestionStatus.confirmed.index) {
-        if (suggestion.minorUnits != entry.amount.minorUnits ||
-            suggestion.currency != entry.amount.currency ||
+        if (reviewed.amount != entry.amount ||
             suggestion.occurredAt.toUtc() != entry.occurredAt.toUtc() ||
             suggestion.reference != entry.referenceId ||
             suggestion.merchant != entry.note ||
@@ -268,6 +285,8 @@ class DriftInboxRepository
         )..where((table) => table.id.equals(suggestionId.value))).write(
           db.InboxSuggestionsCompanion(
             status: Value(SuggestionStatus.confirmed.index),
+            minorUnits: Value(reviewed.amount.minorUnits),
+            currency: Value(reviewed.amount.currency),
           ),
         );
         await (database.update(

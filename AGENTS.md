@@ -31,6 +31,7 @@ The product is **not** primarily a calendar, to-do list, reminder app, expense t
 - **User-controlled backup.** Offline-first must not mean data-loss-prone.
 - **Persian-first experience.** The primary product language is Persian; user-facing labels, actions, statuses, errors, empty states, accessibility text, and onboarding copy must be Persian unless a documented exception exists.
 - **RTL by default.** The application UI must use right-to-left layout semantics correctly. Do not achieve RTL by manually reversing lists or hard-coding directional padding/icons; use Flutter directionality and start/end-aware layout APIs.
+  User-approved 2026-10-14 Android subpage motion enters from logical end and exits there on Back (left in RTL), through the shared theme and inherited directionality; honor reduced motion. See docs/DESIGN_SYSTEM.md and docs/UI_MIGRATION_VERIFICATION.md.
 - **Jalali calendar for users.** User-facing dates, date pickers, calendar views, recurrence editing, and date-related summaries must use the Persian (Jalali) calendar and Persian locale conventions. Domain persistence must retain unambiguous, testable date/time semantics and must not conflate display-calendar conversion with stored instants or local dates.
 - **Locale-aware formatting.** Persian digits, weekday/month names, number formatting, and pluralization must be handled through locale-aware presentation code, not scattered string replacements.
 - Application-owned Persian copy belongs in `lib/l10n/app_fa.arb`, with stable semantic keys, descriptions and placeholder contracts. Widgets use the registered generated localization resources. Pure-domain/context-free compatibility defaults are generated from the same catalog, never maintained separately; do not import Flutter localization into domain code. Parser vocabularies, source datasets, currency identity and persisted/user-authored text are not blanket translation targets. The current migration is Persian-only foundation; another language requires explicit localization of default-copy boundaries and separate direction/calendar/formatting/platform acceptance. See [localization verification](docs/LOCALIZATION_VERIFICATION.md).
@@ -103,6 +104,15 @@ A UI event must call an application/domain command or use case. **UI code must n
 
 ## 6. Domain model invariants
 
+User-approved 2026-10-14 checklist scope: a commitment may own one shared checklist
+(for example shopping tasks), independent from cycles and occurrences. Preserve
+stable item identity, checked state, reversible removal and append-only revisions;
+admit writes against fresh owner status and revision transactionally. Checking all
+items never completes an occurrence/commitment, records money or consumes credit.
+Keep heads and retained snapshots in personal backups. Search exposes existing
+type-specific commands with their confirmation/Undo rules; browsing remains read-only.
+See docs/adr/0024-commitment-checklists.md and docs/CHECKLIST_VERIFICATION.md.
+
 ### 6.1 Commitment hierarchy
 
 ```text
@@ -137,12 +147,16 @@ Completed/cancelled/skipped occurrences are historical records. Do not hard-dele
 
 ### 6.3 Schedule is not entitlement
 
+User-approved 2026-10-14 counted progress: Details charts use the explicit durable schedule count, never the generated horizon or entitlement balance. Keep completed, cancelled, skipped and unresolved counts distinct. Financial progress uses active confirmed settlement allocations, excludes reversed transactions and keeps partial payments separate; occurrence completion never proves payment. Read one coherent gated production snapshot, retain unknown/ambiguous history visibly and never mutate data while projecting progress. See docs/UI_MIGRATION_VERIFICATION.md.
+
 This is a core invariant:
 
 - **Schedule** answers: “When should a session happen?”
 - **Entitlement** answers: “How many sessions/units does the user still have a right to consume?”
 
 Teacher cancellation, allowed absence, no-show, makeup session, holiday, pause/freeze, and term extension must be modeled through policy + ledger + occurrence history, not UI special cases.
+
+User-approved 2026-10-14 authoring scope: the general Add Commitment form does not expose session credit or a no-package summary. Recurrence count remains scheduling only and must not infer or grant entitlement. Preserve existing entitlement models, records, reports, correction commands and backup semantics. A separate session-package authoring path is deferred until explicit Grant/Consume/remaining-credit behavior has a complete accepted user journey; hiding the field does not complete that capability. See docs/UI_MIGRATION_VERIFICATION.md.
 
 ### 6.4 Entitlement is ledger-based
 
@@ -228,6 +242,16 @@ Required reference scenarios:
 
 ## 9. Reminder rules
 
+User-approved 2026-10-14: optional Android alarm delivery is separate from ordinary
+notifications and occurrence completion. Legacy reminders stay notifications.
+The native adapter must use OS scheduling without a continuously running Flutter
+process, fresh transactional SQLite admission, bounded playback and durable explicit
+snooze. Stop/snooze must not write occurrence, money or session outcomes. Backup/restore
+must suspend native DB access and rebuild intent after replacement. Native schema,
+enum and time coupling and older-writer limitations require independent acceptance;
+see [ADR 0022](docs/adr/0022-optional-native-alarm-reminders.md) and
+[alarm verification](docs/ALARM_REMINDER_VERIFICATION.md).
+
 - `ReminderRule` defines the relative/absolute rule.
 - `ReminderInstance` is the concrete scheduled notification.
 - Rescheduling an occurrence must cancel/recompute future reminder instances.
@@ -238,6 +262,13 @@ Required reference scenarios:
 - Avoid orphan and duplicate notifications.
 
 ## 10. Actual, history, and reconciliation
+
+User-approved 2026-10-14 calendar notes: Global Add offers independent notes with
+title, optional description, explicit Jalali local date and shared identity color.
+Notes appear in Month and Week and may be explicitly edited with revision checks
+and retained snapshots. They must never create commitments, occurrences, overdue
+attention, reminders/notifications/alarms, money or entitlement effects. Preserve
+notes in personal backup; see ADR 0023 and docs/CALENDAR_NOTES_VERIFICATION.md.
 
 Actual/Evidence may represent:
 
@@ -255,6 +286,8 @@ Financial matching between transactions and occurrences is many-to-many to suppo
 Transaction relationship review is separate from real matches, categories and tags. Only explicit confirmation may resolve an unmatched remainder as independent; navigation/cancellation is not review. Persist append-only independent/reopened decisions with transaction amount, allocation/history fingerprints and monotonic per-transaction revision. Undo/reopening appends history; it must not reverse financial entries or remove matches. A changed amount or allocation history invalidates the old decision for the current remainder, without deleting it. Today must classify eligible unreversed income/expense remainders through the domain projection, not suppress a whole transaction because any active match exists. Production allocation admission and review compare-and-append must validate fresh durable state transactionally; CommandGate alone is not serialization. New review history belongs in personal backup logical preservation and schema compatibility tests. See docs/adr/0015-transaction-relationship-review.md.
 
 ## 11. Persistence and migration rules
+
+Global search (user-requested 2026-10-14) is a read-only local projection of current durable commitments, financial entries, calendar-note heads and accounts, including clearly labeled history/archive. Search normalization must never rewrite stored text. Keep query/index state transient, read production data through application contracts and a coherent gated SQLite snapshot, and preserve existing confirmation/revision rules when opening editable results. See docs/SEARCH_VERIFICATION.md.
 
 Reporting checkpoint (2026-10-13): personal reports are read-only projections of
 coherent durable snapshots. Use occurrence dates for performance/settlement,
@@ -838,6 +871,8 @@ When introducing a new directional interaction, compare it with existing PlanAct
 
 ## Changes to Shared UI
 
+User-approved 2026-10-14 interaction consistency: Month and every shared date-picker consumer reuse the same grid-only horizontal month gesture (physical right next, left previous, 48dp threshold); picker selection remains staged until confirmation. Calendar Month/Week share header composition with Today anchored at RTL start and Week-only date selection following with natural wrapping. Quick Add has one persistent measured host above root navigation across all tabs, preserving Finance last-row access without tab-driven FAB entrance/exit. Timeline and History remain separate menu entries using one draggable bottom-sheet pattern, initially medium and expandable in the same route to safe full height, with pinned title, accessible expand/collapse/close, coordinated list scrolling and preserved extent/offset on return from existing Details. Refresh after existing commands must update the retained sheet; browsing has no durable effects. See docs/UI_MIGRATION_VERIFICATION.md for bounded coverage and outstanding independent/device acceptance.
+
 Before creating a new visual component:
 
 1. Search existing shared components, themes, and tokens for an equivalent pattern.
@@ -903,13 +938,19 @@ Do not report a task as complete when analysis or relevant tests fail.
 ## SMS bounded consent safeguards
 
 SMS permission is not historical-import consent. Inbox requires explicit bounded
-recent-range or new-only selection; navigation, refresh, lifecycle and broadcasts
-must not start a scan without an explicit ingestion action. Source queries must
+recent-range or new-only selection. User-approved 2026-10-14: a separate, initially
+off automatic-new-message choice starts a durable boundary at activation;
+startup/resume, foreground broadcasts and Today/Inbox pull-to-refresh may sync
+only that consented window. Existing import consent does not enable automation.
+Historical scans still require explicit start/resume. Source queries must
 bound dates and page in stable timestamp/row-ID order off the native UI thread.
 Persist consent, fixed scan horizon and resumable progress; checkpoint only safely
 handled rows/pages, preserve resolved suggestions and replay interrupted pages
-idempotently. Resume/Retry is explicit after restart/restore. No permanent native
-service is implied. Native provider compatibility, delayed insertions, permission
+idempotently. Automatic consent/progress is separate from historical scans and
+survives restart/backup/restore; disabling preserves staged data and re-enabling
+starts a fresh boundary. Revoked permission prevents reads, never prompts silently,
+and must not hide other Today content. No permanent native service is implied.
+See ADR 0021. Native provider compatibility, delayed insertions, permission
 revocation and reference-device responsiveness require independent device evidence.
 Existing global fingerprint identity limitations are not proof of lossless imports.
 See [SMS verification](docs/SMS_VERIFICATION.md).
@@ -940,7 +981,7 @@ new drafts without compatibility acceptance. See [SMS verification](docs/SMS_VER
 
 ## Offline Iranian holiday safeguards
 
-Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Current-year 1405 coverage is checked against all twelve time.ir published months; do not describe that secondary source as independent verification of the official PDF. Future-year coverage and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
+Holiday lookup must use versioned, traceable offline data and explicitly distinguish weekly weekends, official fixed/variable holidays, and scoped special closures. Preserve overlapping reasons. Published Iranian lunar dates must not be replaced by an approximate Islamic conversion. Incomplete annual coverage must be visible; missing markers are not evidence of a working day. Special closure inputs require a durable versioned source, not authoritative transient widget state. Holiday refreshes must not silently mutate occurrences, reminders, entitlement or financial history. Bundled 1405 and 1406 coverage is checked against all twelve time.ir published months for each year; do not describe that secondary source as independent verification of the official PDF. Safar-end reasons apply only to the published final day, never every holiday in Safar. Coverage from 1407 onward and actual special closure datasets still require explicit source review, as recorded in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
 
 ## Schedule/actual checkpoint safeguards
 
@@ -958,13 +999,17 @@ The production adapter decisions and unresolved release gates are recorded in do
 
 Annual packages use explicit first-publisher fingerprint approval and pinned Ed25519 signer continuity; a valid signature is not evidence of official source accuracy or factual completeness. Keep source review separate from structural coverage validation. Preserve old data on rejection or transactional failure, never reset trust silently, and never mutate personal history on reference-data imports. Public package storage is outside personal backup/restore; retain original packages. See docs/adr/0014-independent-holiday-packages.md.
 
+User-approved 2026-10-14 data separation: bundled and imported holidays share the v1 annual payload and one pure-domain validator. Reviewed year files and their explicit catalog are reference data; generated Dart is a reproducible packaging artifact that preserves synchronous offline consumers, never a second editable source. Coverage is exact membership, not a continuous min/max assumption. Show effective per-year origin, revision and source in More; preserve explicitly approved import priority. Annual preparation accepts year/revision and validates Jalali leap lengths without forecasting lunar dates. Existing signed v1 packages, trust and public-store schema remain compatible. See the acceptance/evidence record in docs/IRANIAN_HOLIDAYS_VERIFICATION.md.
+
 ## Calendar Week safeguards
+
+User-approved 2026-10-14 Calendar navigation: label the current-date action «امروز» in both modes and preserve the mode. Expose «رفتن به تاریخ» only in Week, grouped beside Today with wrapping at insufficient width/text scale. Month day selection updates the full list below the grid without forced scrolling; remove the separate day-list shortcut and retain ordinary vertical access. These are presentation-only changes; preserve bounded read-only loading and existing details/history/reminder semantics. See docs/MONTH_CALENDAR_VERIFICATION.md.
 
 The month fit-to-screen touch-width exception applies only to Month, never Week. The user-approved 2026-10-07 Week redesign supersedes horizontal phone scrolling: use a single vertical Saturday–Friday agenda with pinned day headings, readable wrapping rows, the shared commitment identity marker, actual status text/icons and standard 48dp targets. No phone horizontal day scrolling or blank 24-hour grid. Open the current week at today with earlier days accessible above; other weeks start Saturday. Keep compact empty days, whole-week empty/add, loading/retry, holidays/overlapping reasons/incomplete coverage and existing navigation/details/reminder flows. Retain the timeline automatically only when actual available width accommodates all seven readable day/lane columns at the current text scale; otherwise use the agenda, without new settings. Recorded LocalDate occurrences are all-day; recorded DateTime occurrences are point starts. Equal starts do not prove conflicts. Do not fabricate ends/durations or persist visual card footprints. Optional explicit interval/midnight layout inputs are pure synthetic seams, not parallel event storage. Identity palette colors remain independent of actual status text/icons. Bounded durable Week reads must respect local/date/instant serialization, preserve every historical status, and never generate or mutate schedules. Existing Today eager plan reads are not eliminated by this scoped Calendar change.
 
 ## Iranian currency presentation safeguards
 
-Canonical new Iranian monetary data uses integer IRR. Rial/toman is a durable display/input preference (rial by default), not a currency migration or FX operation. Shared exact signed integer conversion must preserve tenth-toman remainders and reject excess precision/overflow without rounding. Root preference propagation covers pushed and modal routes; manual forms pin an explicitly labelled unit until closed. Failed preference writes retain the previous effective unit. Legacy/non-IRR amounts and currency identifiers must not be silently converted. SMS amount evidence and explicit selection are independent of Settings; ambiguous new drafts cannot enter the ledger. Preference and evidence must survive cold reopen and personal backup/restore. See [currency verification](docs/CURRENCY_UNIFICATION_VERIFICATION.md) for evidence and native/independent acceptance gates.
+Canonical new Iranian monetary data uses integer IRR. Rial/toman is a durable display/input preference (rial by default), not a currency migration or FX operation. Shared exact signed integer conversion must preserve tenth-toman remainders and reject excess precision/overflow without rounding. Root preference propagation covers pushed and modal routes; manual forms pin an explicitly labelled unit until closed. Failed preference writes retain the previous effective unit. Legacy/non-IRR amounts and currency identifiers must not be silently converted. SMS extraction evidence is independent of Settings; unresolved drafts cannot enter the ledger without user acceptance of a visible unit. For unresolved evidence only, Confirm/Edit proposes the app preference visibly, pinned on opening and overridable; final confirmation accepts the displayed unit without an Edit detour. Fresh transactional writer admission and revision checks must precede selection, with exact conversion, reviewed snapshot/evidence and ledger write committed together. Opening/cancellation/failure must not persist a proposed unit. Detected/prior selected units and original extraction remain intact. Preference and accepted evidence must survive cold reopen and personal backup/restore. See [currency verification](docs/CURRENCY_UNIFICATION_VERIFICATION.md) for evidence and native/independent acceptance gates.
 
 
 ## Financial account metadata safeguards

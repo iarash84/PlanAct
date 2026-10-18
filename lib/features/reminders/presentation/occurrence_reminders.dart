@@ -7,10 +7,20 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/presentation/reminder_options.dart';
+import 'package:planact/features/reminders/presentation/reminder_delivery_picker.dart';
+import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 String reminderRuleLabel(ReminderRule rule) {
+  final label = _reminderTimeRuleLabel(rule);
+  return rule.delivery == ReminderDelivery.alarm
+      ? '${PersianCopy.reminderDeliveryAlarm}: $label'
+      : label;
+}
+
+String _reminderTimeRuleLabel(ReminderRule rule) {
   if (rule.anchor == ReminderAnchor.absolute) {
     final date = rule.absoluteAt!.toLocal();
     return PersianCopy.occurrenceRemindersReminderRuleLabelMessage(
@@ -214,6 +224,8 @@ class EditOccurrenceRemindersDialog extends StatefulWidget {
 class _EditOccurrenceRemindersDialogState
     extends State<EditOccurrenceRemindersDialog> {
   late final List<ReminderRule> _selected = [...widget.rules];
+  late ReminderDelivery _delivery =
+      widget.rules.firstOrNull?.delivery ?? ReminderDelivery.notification;
   final _minutes = TextEditingController();
   String? _error;
   @override
@@ -235,6 +247,7 @@ class _EditOccurrenceRemindersDialogState
         ReminderRule.beforeOccurrence(
           occurrenceId: widget.occurrence.id,
           offset: Duration(minutes: minutes),
+          delivery: _delivery,
         ),
       );
       _error = null;
@@ -251,6 +264,29 @@ class _EditOccurrenceRemindersDialogState
         children: [
           Text(planActL10n(context).occurrenceRemindersBuildChildren),
           const SizedBox(height: PlanActSpacing.md),
+          ReminderDeliveryPicker(
+            value: _delivery,
+            onChanged: (delivery) {
+              setState(() {
+                _delivery = delivery;
+                for (var i = 0; i < _selected.length; i++) {
+                  final rule = _selected[i];
+                  if (rule.delivery == delivery) continue;
+                  // A replacement rule preserves old delivery history.
+                  _selected[i] = ReminderRule(
+                    id: StableId.generate(),
+                    occurrenceId: rule.occurrenceId,
+                    anchor: rule.anchor,
+                    offset: rule.offset,
+                    absoluteAt: rule.absoluteAt,
+                    title: rule.title,
+                    body: rule.body,
+                    delivery: delivery,
+                  );
+                }
+              });
+            },
+          ),
           for (final rule in _selected)
             ListTile(
               title: Text(reminderRuleLabel(rule)),
@@ -272,17 +308,12 @@ class _EditOccurrenceRemindersDialogState
           if (widget.occurrence.currentScheduledAt is DateTime) ...[
             Wrap(
               spacing: PlanActSpacing.sm,
-              children: [0, 15, 30, 60, 1440]
+              runSpacing: PlanActSpacing.sm,
+              children: [0, 15, 30, 60, ...reminderDayPresetMinutes]
                   .map(
                     (minutes) => ActionChip(
                       label: Text(
-                        minutes == 0
-                            ? planActL10n(context)
-                                  .occurrenceRemindersReminderRuleLabelMessage2
-                            : planActL10n(context)
-                                  .quickCaptureSheetReminderLabelMessage3(
-                                    (PersianNumbers.format(minutes)).toString(),
-                                  ),
+                        reminderOffsetLabel(planActL10n(context), minutes),
                       ),
                       onPressed: () => _add(minutes),
                     ),

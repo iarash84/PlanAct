@@ -9,7 +9,7 @@ import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
 /// The supported entry points exposed by the global add action.
-enum QuickAddAction { expense, income, transfer, commitment }
+enum QuickAddAction { expense, income, transfer, commitment, note }
 
 class QuickAddSheet extends StatelessWidget {
   const QuickAddSheet({super.key});
@@ -63,6 +63,13 @@ class QuickAddSheet extends StatelessWidget {
               title: planActL10n(context).calendarPageMarkerPainterText,
               subtitle: planActL10n(context).quickAddSheetBuildSubtitle4,
               onTap: () => Navigator.pop(context, QuickAddAction.commitment),
+            ),
+            _ActionTile(
+              key: const ValueKey('quick-add-note'),
+              icon: Icons.note_alt_outlined,
+              title: planActL10n(context).calendarNoteLabel,
+              subtitle: planActL10n(context).calendarNoteAddSubtitle,
+              onTap: () => Navigator.pop(context, QuickAddAction.note),
             ),
           ],
         ),

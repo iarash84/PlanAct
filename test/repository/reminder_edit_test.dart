@@ -56,14 +56,18 @@ void main() {
       await repository.saveInstance(snoozed);
       final added = ReminderRule.beforeOccurrence(
         occurrenceId: plan.occurrences.single.id,
-        offset: const Duration(minutes: 30),
+        offset: const Duration(days: 3),
+      );
+      final tenDays = ReminderRule.beforeOccurrence(
+        occurrenceId: plan.occurrences.single.id,
+        offset: const Duration(days: 10),
       );
       platform.fail = true;
       expect(
         await service.editOccurrenceRules(
           occurrenceId: plan.occurrences.single.id,
           expected: current,
-          selected: [current.last, added],
+          selected: [current.last, added, tenDays],
           now: DateTime(2029),
         ),
         isTrue,
@@ -75,9 +79,25 @@ void main() {
       final rules = await repository.listRules();
       expect(
         rules.where((rule) => rule.enabled).map((rule) => rule.id),
-        unorderedEquals([current.last.id, added.id]),
+        unorderedEquals([current.last.id, added.id, tenDays.id]),
       );
       final restored = await repository.listInstances();
+      expect(
+        rules.singleWhere((rule) => rule.id == added.id).offset,
+        const Duration(days: -3),
+      );
+      expect(
+        rules.singleWhere((rule) => rule.id == tenDays.id).offset,
+        const Duration(days: -10),
+      );
+      expect(
+        restored.singleWhere((item) => item.ruleId == added.id).scheduledAt,
+        DateTime(2029, 12, 29, 18).toUtc(),
+      );
+      expect(
+        restored.singleWhere((item) => item.ruleId == tenDays.id).scheduledAt,
+        DateTime(2029, 12, 22, 18).toUtc(),
+      );
       expect(
         restored.singleWhere((item) => item.id == instances.first.id).status,
         ReminderInstanceStatus.delivered,

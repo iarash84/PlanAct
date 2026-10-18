@@ -65,6 +65,8 @@ class _AccountCreationRouteState extends State<_AccountCreationRoute> {
   );
 }
 
+enum FinanceRecordKind { account, entry }
+
 class FinancePage extends StatefulWidget {
   const FinancePage({
     super.key,
@@ -75,6 +77,8 @@ class FinancePage extends StatefulWidget {
     this.onDataChanged,
     this.onDetermineRelationship,
     this.embedded = false,
+    this.focusedRecordId,
+    this.focusedKind = FinanceRecordKind.entry,
   });
 
   final Future<void> Function(StableId transactionId)? onDetermineRelationship;
@@ -83,6 +87,10 @@ class FinancePage extends StatefulWidget {
   final Future<void> Function()? onDataChanged;
   final FinanceRepository repository;
   final bool embedded;
+
+  /// Search opens the existing controls for exactly one durable record.
+  final String? focusedRecordId;
+  final FinanceRecordKind focusedKind;
   final FinancialExpectationRepository? expectationRepository;
 
   @override
@@ -129,7 +137,14 @@ class FinancePageState extends State<FinancePage> {
       final tags = await widget.tagRepository?.list() ?? <Tag>[];
       final memberships = <String, Set<StableId>>{};
       if (widget.tagRepository case final TagRepository repository) {
-        for (final entry in entries) {
+        // Keep the full ledger for balance/reversal rules; only memberships
+        // depend on which records this route actually presents.
+        final entriesWithTags = widget.focusedRecordId == null
+            ? entries
+            : widget.focusedKind == FinanceRecordKind.entry
+            ? entries.where((entry) => entry.id.value == widget.focusedRecordId)
+            : const <AccountEntry>[];
+        for (final entry in entriesWithTags) {
           memberships[entry.id.value] = await repository.tagsFor(
             entry.id.value,
             TaggableType.accountEntry,
@@ -730,226 +745,265 @@ class FinancePageState extends State<FinancePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: widget.embedded
-          ? null
-          : AppBar(title: Text(planActL10n(context).navigationFinance)),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : !_hasLoaded
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _loadError ?? planActL10n(context).financePageBuildChildren,
-                  ),
-                  TextButton(
-                    onPressed: _refresh,
-                    child: Text(planActL10n(context).commonRetry),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: _refresh,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (_loadError != null)
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.warning_amber_outlined),
-                        title: Text(
-                          planActL10n(context).financePageBuildTitle2,
-                        ),
-                        subtitle: Text(_loadError!),
-                        trailing: TextButton(
-                          onPressed: _refresh,
-                          child: Text(planActL10n(context).commonRetry),
-                        ),
-                      ),
-                    ),
-                  _buildSummary(),
-                  const SizedBox(height: 12),
-                  _buildFilters(),
-                  if (widget.tagRepository != null) ...[
-                    if (_filterBusy) const LinearProgressIndicator(),
-                    TagFilter(
-                      tags: _tags,
-                      selected: _tagFilter,
-                      enabled: !_filterBusy,
-                      onChanged: _filterTag,
+    return PopScope(
+      canPop:
+          widget.focusedRecordId == null ||
+          (_pendingEntries.isEmpty && _pendingAccounts.isEmpty),
+      child: Scaffold(
+        appBar: widget.embedded
+            ? null
+            : AppBar(title: Text(planActL10n(context).navigationFinance)),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : !_hasLoaded
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _loadError ??
+                          planActL10n(context).financePageBuildChildren,
                     ),
                     TextButton(
-                      onPressed: () => showTagManager(
-                        context,
-                        repository: widget.tagRepository!,
-                        onChanged: _tagsChanged,
-                      ),
-                      child: Text(
-                        planActL10n(context).tagControlsContentChildren,
-                      ),
+                      onPressed: _refresh,
+                      child: Text(planActL10n(context).commonRetry),
                     ),
                   ],
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          planActL10n(context).financePageBuildChildren2,
-                          style: Theme.of(context).textTheme.titleLarge,
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _refresh,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (_loadError != null)
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.warning_amber_outlined),
+                          title: Text(
+                            planActL10n(context).financePageBuildTitle2,
+                          ),
+                          subtitle: Text(_loadError!),
+                          trailing: TextButton(
+                            onPressed: _refresh,
+                            child: Text(planActL10n(context).commonRetry),
+                          ),
                         ),
                       ),
-                      Wrap(
-                        spacing: 4,
-                        children: [
-                          IconButton(
-                            onPressed: _addIncome,
-                            tooltip: planActL10n(context)
-                                .financePageBuildTooltip,
-                            icon: const Icon(Icons.add_circle_outline),
-                          ),
-                          IconButton(
-                            onPressed: _addAccount,
-                            tooltip: planActL10n(context)
-                                .accountFormSheetBuildTitle,
-                            icon: const Icon(Icons.add_card),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  if (_accounts.isEmpty)
-                    Card(
-                      child: ListTile(
-                        title: Text(
-                          planActL10n(context).financePageBuildTitle3,
+                    if (widget.focusedRecordId == null) ...[
+                      _buildSummary(),
+                      const SizedBox(height: 12),
+                      _buildFilters(),
+                      if (widget.tagRepository != null) ...[
+                        if (_filterBusy) const LinearProgressIndicator(),
+                        TagFilter(
+                          tags: _tags,
+                          selected: _tagFilter,
+                          enabled: !_filterBusy,
+                          onChanged: _filterTag,
                         ),
-                      ),
-                    ),
-                  for (final account in _accounts)
-                    AccountInformationCard(
-                      key: ValueKey(account.id),
-                      account: account,
-                      balance: rebuildBalance(account, _entries),
-                      operations: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: planActL10n(context)
-                                .accountFormSheetBuildTitle2,
-                            onPressed: _pendingAccounts.contains(account.id)
-                                ? null
-                                : () => _editAccount(account),
-                            icon: const Icon(Icons.edit_outlined),
+                        TextButton(
+                          onPressed: () => showTagManager(
+                            context,
+                            repository: widget.tagRepository!,
+                            onChanged: _tagsChanged,
                           ),
-                          PopupMenuButton<FinancialAccountStatus>(
-                            key: ValueKey('account-menu:${account.id.value}'),
-                            tooltip:
-                                account.status == FinancialAccountStatus.active
-                                ? planActL10n(context)
-                                      .financeArchivedAccountAction
-                                : planActL10n(context)
-                                      .financeRestoreAccountAction,
-                            enabled: !_pendingAccounts.contains(account.id),
-                            onSelected: (_) => _changeAccountStatus(account),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value:
-                                    account.status ==
-                                        FinancialAccountStatus.active
-                                    ? FinancialAccountStatus.archived
-                                    : FinancialAccountStatus.active,
-                                child: Text(
-                                  account.status ==
-                                          FinancialAccountStatus.active
-                                      ? planActL10n(context)
-                                            .financeArchivedAccountAction
-                                      : planActL10n(context)
-                                            .financeRestoreAccountAction,
-                                ),
+                          child: Text(
+                            planActL10n(context).tagControlsContentChildren,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              planActL10n(context).financePageBuildChildren2,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 4,
+                            children: [
+                              IconButton(
+                                onPressed: _addIncome,
+                                tooltip: planActL10n(context)
+                                    .financePageBuildTooltip,
+                                icon: const Icon(Icons.add_circle_outline),
+                              ),
+                              IconButton(
+                                onPressed: _addAccount,
+                                tooltip: planActL10n(context)
+                                    .accountFormSheetBuildTitle,
+                                icon: const Icon(Icons.add_card),
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ),
-                  const SizedBox(height: 20),
-                  Text(
-                    planActL10n(context).financePageBuildChildren3,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  if (_filteredEntries.isEmpty)
-                    Card(
-                      child: ListTile(
-                        title: Text(
-                          planActL10n(context).financePageBuildTitle4,
+                    ],
+                    if (_accounts.isEmpty)
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            planActL10n(context).financePageBuildTitle3,
+                          ),
                         ),
                       ),
-                    ),
-                  for (final entry in _filteredEntries)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(PlanActSpacing.lg),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    for (final account in _accounts.where(
+                      (a) =>
+                          widget.focusedRecordId == null ||
+                          (widget.focusedKind == FinanceRecordKind.account &&
+                              a.id.value == widget.focusedRecordId),
+                    ))
+                      AccountInformationCard(
+                        key: ValueKey(account.id),
+                        account: account,
+                        balance: rebuildBalance(account, _entries),
+                        operations: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TransactionDirectionIcon(entry: entry),
-                                _entryOperations(entry),
+                            IconButton(
+                              tooltip: planActL10n(context)
+                                  .accountFormSheetBuildTitle2,
+                              onPressed: _pendingAccounts.contains(account.id)
+                                  ? null
+                                  : () => _editAccount(account),
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
+                            PopupMenuButton<FinancialAccountStatus>(
+                              key: ValueKey('account-menu:${account.id.value}'),
+                              tooltip:
+                                  account.status ==
+                                      FinancialAccountStatus.active
+                                  ? planActL10n(context)
+                                        .financeArchivedAccountAction
+                                  : planActL10n(context)
+                                        .financeRestoreAccountAction,
+                              enabled: !_pendingAccounts.contains(account.id),
+                              onSelected: (_) => _changeAccountStatus(account),
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value:
+                                      account.status ==
+                                          FinancialAccountStatus.active
+                                      ? FinancialAccountStatus.archived
+                                      : FinancialAccountStatus.active,
+                                  child: Text(
+                                    account.status ==
+                                            FinancialAccountStatus.active
+                                        ? planActL10n(context)
+                                              .financeArchivedAccountAction
+                                        : planActL10n(context)
+                                              .financeRestoreAccountAction,
+                                  ),
+                                ),
                               ],
-                            ),
-                            Text(
-                              '${transactionLabel(entry)} · ${_money(entry.amount)}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: PlanActSpacing.sm),
-                            DefaultTextStyle.merge(
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    [
-                                      PersianDateFormatter.date(
-                                        JalaliDate.fromDateTime(
-                                          entry.occurredAt.toLocal(),
-                                        ),
-                                      ),
-                                      PersianNumbers.format(
-                                        '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                                      ),
-                                      if (entry.category != null)
-                                        entry.category!,
-                                      entry.note ??
-                                          planActL10n(context)
-                                              .financePageBuildChildren4,
-                                    ].join(' · '),
-                                  ),
-                                  TagLabels(
-                                    labels: _tags
-                                        .where(
-                                          (tag) =>
-                                              _entryTags[entry.id.value]
-                                                  ?.contains(tag.id) ??
-                                              false,
-                                        )
-                                        .map((tag) => tag.label),
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                ],
+                    const SizedBox(height: 20),
+                    if (widget.focusedRecordId == null)
+                      Text(
+                        planActL10n(context).financePageBuildChildren3,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    if ((widget.focusedRecordId == null &&
+                            _filteredEntries.isEmpty) ||
+                        (widget.focusedRecordId != null &&
+                            (widget.focusedKind == FinanceRecordKind.account
+                                ? !_accounts.any(
+                                    (a) => a.id.value == widget.focusedRecordId,
+                                  )
+                                : !_entries.any(
+                                    (e) => e.id.value == widget.focusedRecordId,
+                                  ))))
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            planActL10n(context).financePageBuildTitle4,
+                          ),
+                        ),
+                      ),
+                    for (final entry in _filteredEntries.where(
+                      (e) =>
+                          widget.focusedRecordId == null ||
+                          (widget.focusedKind == FinanceRecordKind.entry &&
+                              e.id.value == widget.focusedRecordId),
+                    ))
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(PlanActSpacing.lg),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TransactionDirectionIcon(entry: entry),
+                                  _entryOperations(entry),
+                                ],
+                              ),
+                              Text(
+                                '${transactionLabel(entry)} · ${_money(entry.amount)}',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: PlanActSpacing.sm),
+                              DefaultTextStyle.merge(
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      [
+                                        if (widget.focusedRecordId != null)
+                                          _accounts
+                                                  .where(
+                                                    (a) =>
+                                                        a.id == entry.accountId,
+                                                  )
+                                                  .firstOrNull
+                                                  ?.name ??
+                                              '',
+                                        PersianDateFormatter.date(
+                                          JalaliDate.fromDateTime(
+                                            entry.occurredAt.toLocal(),
+                                          ),
+                                        ),
+                                        PersianNumbers.format(
+                                          '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                        ),
+                                        if (entry.category != null)
+                                          entry.category!,
+                                        entry.note ??
+                                            planActL10n(context)
+                                                .financePageBuildChildren4,
+                                      ].join(' · '),
+                                    ),
+                                    TagLabels(
+                                      labels: _tags
+                                          .where(
+                                            (tag) =>
+                                                _entryTags[entry.id.value]
+                                                    ?.contains(tag.id) ??
+                                                false,
+                                          )
+                                          .map((tag) => tag.label),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

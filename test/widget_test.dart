@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
+import 'package:planact/features/calendar/presentation/calendar_commitment_card.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/main.dart';
 
@@ -109,10 +110,16 @@ void main() {
     );
     semantics.dispose();
     await tester.scrollUntilVisible(
-      find.text('کلاس موسیقی'),
+      find.byType(CalendarCommitmentCard),
       300,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('کلاس موسیقی'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CalendarCommitmentCard),
+        matching: find.text('کلاس موسیقی'),
+      ),
+      findsOneWidget,
+    );
   });
 }

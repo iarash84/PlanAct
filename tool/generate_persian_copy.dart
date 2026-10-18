@@ -51,6 +51,34 @@ String render(Map<String, dynamic> catalog) {
   return lines.join('\n');
 }
 
+/// Native notification controls use the same editable Persian catalog.
+String renderAndroid(Map<String, dynamic> catalog) {
+  String escape(String text) => text
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll("'", "\\'")
+      .replaceAll('"', '\\"');
+  final lines = <String>[
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<!-- GENERATED from lib/l10n/app_fa.arb. Do not edit. -->',
+    '<resources>',
+  ];
+  for (final entry in catalog.entries) {
+    if (entry.key.startsWith('@')) continue;
+    final metadata = catalog['@${entry.key}'] as Map<String, dynamic>?;
+    final name = metadata?['x-planact-android-resource'];
+    if (name == null) continue;
+    if (name is! String || !RegExp(r'^[a-z][a-z0-9_]*$').hasMatch(name)) {
+      throw FormatException('Invalid Android resource name: $name');
+    }
+    lines.add(
+      '    <string name="$name">${escape(entry.value as String)}</string>',
+    );
+  }
+  return [...lines, '</resources>', ''].join('\n');
+}
+
 void main(List<String> args) {
   if (args.any((arg) => arg != '--check')) {
     stderr.writeln('Usage: dart run tool/generate_persian_copy.dart [--check]');
@@ -63,9 +91,18 @@ void main(List<String> args) {
   final expected = render(
     jsonDecode(catalog.readAsStringSync()) as Map<String, dynamic>,
   );
+  final android = File(
+    '${root.path}/android/app/src/main/res/values/planact_alarm_strings.xml',
+  );
+  final expectedAndroid = renderAndroid(
+    jsonDecode(catalog.readAsStringSync()) as Map<String, dynamic>,
+  );
   if (args.contains('--check')) {
     if (!output.existsSync() ||
-        output.readAsStringSync().replaceAll('\r\n', '\n') != expected) {
+        output.readAsStringSync().replaceAll('\r\n', '\n') != expected ||
+        !android.existsSync() ||
+        android.readAsStringSync().replaceAll('\r\n', '\n') !=
+            expectedAndroid) {
       stderr.writeln(
         'Persian copy is stale; run dart run tool/generate_persian_copy.dart',
       );
@@ -76,5 +113,6 @@ void main(List<String> args) {
     return;
   }
   output.writeAsStringSync(expected);
+  android.writeAsStringSync(expectedAndroid);
   stdout.writeln('Generated framework-independent Persian default copy.');
 }

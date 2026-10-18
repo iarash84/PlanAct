@@ -134,6 +134,9 @@ class FinancialExpectationUseCases {
           .where((item) => item.settled)
           .toList(growable: false);
 
+  /// Both settled and outstanding items from one coherent settlement snapshot.
+  Future<List<FinancialExpectationSettlement>> settlements() => _settlements();
+
   Future<FinancialExpectation> archive(
     FinancialExpectation item, {
     DateTime? now,

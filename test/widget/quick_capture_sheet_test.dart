@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/capture/presentation/quick_capture_sheet.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
 
 void main() {
   Widget host() => const MaterialApp(
@@ -44,6 +45,101 @@ void main() {
     expect(find.text('یادآوری‌های این تعهد'), findsOneWidget);
   });
 
+  testWidgets('day presets are opt-in, toggleable and submitted together', (
+    tester,
+  ) async {
+    CommitmentDraft? submitted;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: QuickCaptureSheet(
+              onSave: (draft) async {
+                submitted = draft;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const ValueKey('commitment-title-field')),
+      'تمدید بیمه',
+    );
+    await _tap(tester, find.text('انتخاب تاریخ'));
+    await _tap(tester, find.byKey(const ValueKey('capture-date-1')));
+    await _tap(tester, find.text('تأیید تاریخ'));
+    await _tap(tester, find.text('انتخاب زمان'));
+    await _tap(tester, find.byType(TextButton).last);
+    await _tap(tester, find.text('یادآور'));
+    final three = find.widgetWithText(FilterChip, '۳ روز قبل');
+    final ten = find.widgetWithText(FilterChip, '۱۰ روز قبل');
+    expect(tester.widget<FilterChip>(three).selected, isFalse);
+    expect(tester.widget<FilterChip>(ten).selected, isFalse);
+    await _tap(tester, three);
+    await _tap(tester, ten);
+    await _tap(tester, three);
+    expect(tester.widget<FilterChip>(three).selected, isFalse);
+    await _tap(tester, three);
+    await _tap(tester, find.text('یادآور'));
+    await _tap(tester, find.text('ثبت تعهد'));
+    expect(
+      submitted!.reminderOffsets,
+      unorderedEquals([const Duration(days: 3), const Duration(days: 10)]),
+    );
+    expect(tester.takeException(), isNull);
+    expect(submitted!.reminderDelivery, ReminderDelivery.notification);
+  });
+
+  testWidgets(
+    'alarm choice survives section collapse, validation and submission',
+    (tester) async {
+      CommitmentDraft? submitted;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: QuickCaptureSheet(
+                onSave: (draft) async {
+                  submitted = draft;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('commitment-title-field')),
+        'قرار',
+      );
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.widgetWithText(ChoiceChip, 'آلارم'));
+      await _tap(tester, find.widgetWithText(FilterChip, '۱۵ دقیقه قبل'));
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted, isNull);
+      await _tap(tester, find.text('یادآور'));
+      expect(
+        tester
+            .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'آلارم'))
+            .selected,
+        isTrue,
+      );
+      await _tap(tester, find.text('یادآور'));
+      await _tap(tester, find.text('انتخاب تاریخ'));
+      await _tap(tester, find.byKey(const ValueKey('capture-date-1')));
+      await _tap(tester, find.text('تأیید تاریخ'));
+      await _tap(tester, find.text('انتخاب زمان'));
+      await _tap(tester, find.byType(TextButton).last);
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted!.reminderDelivery, ReminderDelivery.alarm);
+      expect(submitted!.reminderOffsets, [const Duration(minutes: 15)]);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'single page validates and retains input across optional sections',
     (tester) async {
@@ -51,6 +147,10 @@ void main() {
       expect(find.text('افزودن تعهد'), findsOneWidget);
       expect(find.text('ادامه'), findsNothing);
       expect(find.text('زمان‌بندی'), findsOneWidget);
+      expect(find.text('اعتبار جلسات', skipOffstage: false), findsNothing);
+      expect(find.text('اعتبار جلسه', skipOffstage: false), findsNothing);
+      expect(find.text('تعداد جلسه', skipOffstage: false), findsNothing);
+      expect(find.textContaining('بدون بستهٔ جلسه'), findsNothing);
       await tester.tap(find.text('ثبت تعهد'));
       await tester.pumpAndSettle();
       expect(find.text('عنوان تعهد را وارد کنید.'), findsOneWidget);
@@ -176,7 +276,7 @@ void main() {
   });
 
   testWidgets(
-    'collapsed credit validation opens correction and retains optional inputs',
+    'collapsed finance validation opens correction and retains optional inputs',
     (tester) async {
       CommitmentDraft? submitted;
       await tester.pumpWidget(
@@ -203,29 +303,18 @@ void main() {
       await _tap(tester, find.text('یادآور'));
       await _tap(tester, find.text('۱۵ دقیقه قبل'));
       await _tap(tester, find.text('یادآور'));
-      await _tap(tester, find.text('اعتبار جلسات'));
-      await _tap(
-        tester,
-        find.byType(DropdownButtonFormField<EntitlementDraft>),
-      );
-      await _tap(tester, find.text('تعداد ثابت جلسه').last);
-      final units = find.widgetWithText(TextField, 'تعداد جلسه');
-      await tester.ensureVisible(units);
-      await tester.pumpAndSettle();
-      await tester.enterText(units, '۴');
-      await tester.enterText(units, '');
-      await _tap(tester, find.text('اعتبار جلسات'));
-      await _tap(tester, find.text('ثبت تعهد'));
-      expect(submitted, isNull);
-      expect(find.text('تعداد جلسهٔ معتبر را وارد کنید.'), findsOneWidget);
-      expect(units, findsOneWidget);
-      await tester.ensureVisible(units);
-      await tester.pumpAndSettle();
-      await tester.enterText(units, '۶');
-      await _tap(tester, find.text('اعتبار جلسات'));
       await _tap(tester, find.text('اطلاعات مالی'));
       await _tap(tester, find.text('پرداختی'));
       final amount = find.widgetWithText(TextField, 'مبلغ مورد انتظار به ریال');
+      await tester.ensureVisible(amount);
+      await tester.pumpAndSettle();
+      await tester.enterText(amount, '۱۲۳۴۵');
+      await tester.enterText(amount, '');
+      await _tap(tester, find.text('اطلاعات مالی'));
+      await _tap(tester, find.text('ثبت تعهد'));
+      expect(submitted, isNull);
+      expect(find.text('مبلغ مورد انتظار را وارد کنید.'), findsOneWidget);
+      expect(amount, findsOneWidget);
       await tester.ensureVisible(amount);
       await tester.pumpAndSettle();
       await tester.enterText(amount, '۱۲۳۴۵');
@@ -235,7 +324,8 @@ void main() {
       expect(enteredAmount.text, '12,345');
       await _tap(tester, find.text('اطلاعات مالی'));
       await _tap(tester, find.text('ثبت تعهد'));
-      expect(submitted!.entitlementUnits, 6);
+      expect(submitted!.entitlement, EntitlementDraft.none);
+      expect(submitted!.entitlementUnits, isNull);
       expect(submitted!.financialAmount, 12345);
       expect(
         submitted!.financialMeaning,
@@ -286,16 +376,15 @@ void main() {
       );
       final save = find.byKey(const ValueKey('commitment-save-button'));
       expect(tester.getRect(save).bottom, lessThanOrEqualTo(640));
-      for (final label in [
-        'یادآور',
-        'اعتبار جلسات',
-        'اطلاعات مالی',
-        'جزئیات بیشتر',
-      ]) {
+      for (final label in ['یادآور', 'اطلاعات مالی', 'جزئیات بیشتر']) {
         await tester.ensureVisible(find.text(label));
         await tester.pumpAndSettle();
         await tester.tap(find.text(label));
         await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+      for (final label in ['۳ روز قبل', '۱۰ روز قبل']) {
+        await _tap(tester, find.widgetWithText(FilterChip, label));
         expect(tester.takeException(), isNull);
       }
     });

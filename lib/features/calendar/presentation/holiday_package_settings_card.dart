@@ -1,5 +1,4 @@
 import 'package:planact/core/localization/planact_localizations.dart';
-import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -25,6 +24,7 @@ class _HolidayPackageSettingsCardState
   String? _message;
 
   Future<void> _import() async {
+    final l10n = planActL10n(context);
     setState(() {
       _busy = true;
       _message = null;
@@ -36,54 +36,48 @@ class _HolidayPackageSettingsCardState
       final approved = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text(
-            PersianCopy.holidayPackageSettingsCardApprovedTitle,
-          ),
+          title: Text(l10n.holidayPackageSettingsCardApprovedTitle),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  PersianCopy.holidayPackageSettingsCardApprovedChildren(
+                  l10n.holidayPackageSettingsCardApprovedChildren(
                     (PersianNumbers.format(package.year)).toString(),
                     (PersianNumbers.format(package.revision)).toString(),
                   ),
                 ),
                 Text(
-                  PersianCopy.holidayPackageSettingsCardApprovedChildren2(
+                  l10n.holidayPackageSettingsCardApprovedChildren2(
                     (package.source).toString(),
                   ),
                 ),
-                const Text(
-                  PersianCopy.holidayPackageSettingsCardApprovedChildren3,
-                ),
+                Text(l10n.holidayPackageSettingsCardApprovedChildren3),
                 SelectableText(
                   package.fingerprint,
                   textDirection: TextDirection.ltr,
                 ),
                 Text(
                   first
-                      ? PersianCopy.holidayPackageSettingsCardApprovedChildren4
-                      : PersianCopy.holidayPackageSettingsCardApprovedChildren5,
+                      ? l10n.holidayPackageSettingsCardApprovedChildren4
+                      : l10n.holidayPackageSettingsCardApprovedChildren5,
                 ),
-                const Text(
-                  PersianCopy.holidayPackageSettingsCardApprovedChildren6,
-                ),
+                Text(l10n.holidayPackageSettingsCardApprovedChildren6),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text(PersianCopy.commonCancel),
+              child: Text(l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(
                 first
-                    ? PersianCopy.holidayPackageSettingsCardApprovedActions
-                    : PersianCopy.holidayPackageSettingsCardApprovedActions2,
+                    ? l10n.holidayPackageSettingsCardApprovedActions
+                    : l10n.holidayPackageSettingsCardApprovedActions2,
               ),
             ),
           ],
@@ -95,16 +89,14 @@ class _HolidayPackageSettingsCardState
         publisherApproved: approved == true,
       );
       if (!mounted) return;
-      setState(
-        () => _message = PersianCopy.holidayPackageSettingsCardImportMessage,
-      );
+      setState(() => _message = l10n.holidayPackageSettingsCardImportMessage);
       widget.onInstalled();
     } on HolidayPackageException catch (error) {
       if (mounted) setState(() => _message = error.message);
     } catch (_) {
       if (mounted) {
         setState(
-          () => _message = PersianCopy.holidayPackageSettingsCardImportMessage2,
+          () => _message = l10n.holidayPackageSettingsCardImportMessage2,
         );
       }
     } finally {
@@ -122,15 +114,46 @@ class _HolidayPackageSettingsCardState
             planActL10n(context).holidayPackageSettingsCardBuildTitle,
           ),
           subtitle: Text(
-            widget.service.packages.isEmpty
-                ? planActL10n(context).holidayPackageSettingsCardBuildSubtitle
-                : planActL10n(context).holidayPackageSettingsCardBuildSubtitle2(
-                    (widget.service.packages
-                            .map((p) => PersianNumbers.format(p.year))
-                            .join(planActL10n(context).commonListSeparator))
-                        .toString(),
-                  ),
+            planActL10n(context).holidayPackageSettingsCardBuildSubtitle,
           ),
+        ),
+        ExpansionTile(
+          title: Text(planActL10n(context).holidayDataCoverageTitle),
+          subtitle: Text(
+            planActL10n(context).holidayDataCoveredYears(
+              widget.service.calendars
+                  .map((data) => PersianNumbers.format(data.year))
+                  .join(planActL10n(context).commonListSeparator),
+            ),
+          ),
+          children: [
+            for (final data in widget.service.calendars)
+              ListTile(
+                title: Text(
+                  planActL10n(context).holidayDataYearOrigin(
+                    PersianNumbers.format(data.year),
+                    data.imported
+                        ? planActL10n(context).holidayDataOriginImported
+                        : planActL10n(context).holidayDataOriginBundled,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      planActL10n(context).holidayDataRevision(
+                        PersianNumbers.format(data.revision),
+                      ),
+                    ),
+                    Text(data.source, textDirection: TextDirection.ltr),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(PlanActSpacing.lg),
+              child: Text(planActL10n(context).holidayDataMissingCoverage),
+            ),
+          ],
         ),
         if (widget.service.loadError != null)
           Padding(
@@ -140,7 +163,7 @@ class _HolidayPackageSettingsCardState
         if (_message != null)
           Padding(
             padding: const EdgeInsets.all(PlanActSpacing.lg),
-            child: Text(_message!, semanticsLabel: _message),
+            child: Semantics(liveRegion: true, child: Text(_message!)),
           ),
         Padding(
           padding: const EdgeInsets.all(PlanActSpacing.lg),

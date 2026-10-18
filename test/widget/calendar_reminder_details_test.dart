@@ -136,6 +136,14 @@ void main() {
                   offset: const Duration(minutes: 15),
                 ),
                 ReminderRule.beforeOccurrence(
+                  occurrenceId: selected.id,
+                  offset: const Duration(days: 3),
+                ),
+                ReminderRule.beforeOccurrence(
+                  occurrenceId: selected.id,
+                  offset: const Duration(days: 10),
+                ),
+                ReminderRule.beforeOccurrence(
                   occurrenceId: next.id,
                   offset: const Duration(hours: 2),
                 ),
@@ -146,7 +154,12 @@ void main() {
         );
         expect(find.text('ساعت ۱۸:۳۰'), findsOneWidget);
         expect(find.text('برنامه‌ریزی‌شده'), findsOneWidget);
-        expect(find.text('یادآوری: ۱۵ دقیقه قبل از شروع'), findsOneWidget);
+        expect(
+          find.text(
+            'یادآوری: ۱۵ دقیقه قبل از شروع، ۳ روز قبل از شروع، ۱۰ روز قبل از شروع',
+          ),
+          findsOneWidget,
+        );
         expect(find.textContaining('۲ ساعت قبل'), findsNothing);
         expect(tester.takeException(), isNull);
       },
@@ -163,13 +176,94 @@ void main() {
         ),
       );
       await tester.enterText(find.byType(TextField), '۴۵');
+      await tester.ensureVisible(find.text('افزودن یادآوری'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('افزودن یادآوری'));
       await tester.pump();
       expect(find.text('۴۵ دقیقه قبل از شروع'), findsOneWidget);
+      await tester.ensureVisible(find.byTooltip('حذف این یادآوری'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('حذف این یادآوری'));
       await tester.pump();
       expect(find.text('بدون یادآوری'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
+
+  for (final brightness in Brightness.values) {
+    testWidgets('day presets save once and cancel safely in $brightness', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final selected = occurrence(DateTime(2030, 1, 1, 18));
+      final original = ReminderRule.beforeOccurrence(
+        occurrenceId: selected.id,
+        offset: const Duration(minutes: 15),
+      );
+      List<ReminderRule>? result;
+      var returned = false;
+      await tester.pumpWidget(
+        app(
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  result = await showDialog<List<ReminderRule>>(
+                    context: context,
+                    builder: (_) => MediaQuery(
+                      data: const MediaQueryData(
+                        textScaler: TextScaler.linear(2),
+                      ),
+                      child: EditOccurrenceRemindersDialog(
+                        occurrence: selected,
+                        rules: [original],
+                      ),
+                    ),
+                  );
+                  returned = true;
+                },
+                child: const Text('باز کردن'),
+              ),
+            ),
+          ),
+          brightness: brightness,
+        ),
+      );
+      Future<void> tap(Finder finder) async {
+        await tester.ensureVisible(finder);
+        await tester.pumpAndSettle();
+        await tester.tap(finder);
+        await tester.pumpAndSettle();
+      }
+
+      await tap(find.text('باز کردن'));
+      expect(find.text('۳ روز قبل از شروع'), findsNothing);
+      await tap(find.widgetWithText(ActionChip, '۳ روز قبل'));
+      await tap(find.widgetWithText(ActionChip, '۱۰ روز قبل'));
+      await tap(find.widgetWithText(ActionChip, '۳ روز قبل'));
+      expect(find.text('۳ روز قبل از شروع'), findsOneWidget);
+      await tap(find.text('انصراف'));
+      expect(returned, isTrue);
+      expect(result, isNull);
+      expect(original.enabled, isTrue);
+      await tap(find.text('باز کردن'));
+      expect(find.text('۳ روز قبل از شروع'), findsNothing);
+      await tap(find.widgetWithText(ActionChip, '۳ روز قبل'));
+      await tap(find.widgetWithText(ActionChip, '۱۰ روز قبل'));
+      await tap(find.text('ذخیرهٔ یادآوری‌ها'));
+      expect(
+        result!.map((rule) => rule.offset),
+        unorderedEquals([
+          const Duration(minutes: -15),
+          const Duration(days: -3),
+          const Duration(days: -10),
+        ]),
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

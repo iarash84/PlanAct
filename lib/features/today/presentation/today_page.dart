@@ -21,6 +21,7 @@ class TodayPage extends StatelessWidget {
     this.dashboard,
     this.actionCenter,
     this.error,
+    this.smsSyncError,
     this.onRetry,
     this.onRefresh,
     required this.onAdd,
@@ -35,6 +36,7 @@ class TodayPage extends StatelessWidget {
   final TodayDashboard? dashboard;
   final TodayActionCenter? actionCenter;
   final String? error;
+  final String? smsSyncError;
   final VoidCallback? onRetry;
   final Future<void> Function()? onRefresh;
   final VoidCallback onAdd;
@@ -68,6 +70,15 @@ class TodayPage extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: PlanActSpacing.lg),
+        if (smsSyncError != null)
+          PlanActStateMessage(
+            message: smsSyncError!,
+            isError: true,
+            action: TextButton(
+              onPressed: onRefresh,
+              child: Text(planActL10n(context).commonRetry),
+            ),
+          ),
         if (onOpenRelationshipQueue != null)
           OutlinedButton.icon(
             onPressed: onOpenRelationshipQueue,

@@ -20,13 +20,33 @@ class AndroidReminderPlatformAdapter
   AndroidReminderPlatformAdapter({
     FlutterLocalNotificationsPlugin? plugin,
     MethodChannel? settingsChannel,
+    MethodChannel? alarmChannel,
   }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
        _settingsChannel =
-           settingsChannel ?? const MethodChannel('planact/reminder-settings');
+           settingsChannel ?? const MethodChannel('planact/reminder-settings'),
+       _alarms = alarmChannel ?? const MethodChannel('planact/alarms');
 
   final FlutterLocalNotificationsPlugin _plugin;
   final MethodChannel _settingsChannel;
+  final MethodChannel _alarms;
   bool _initialized = false;
+
+  Future<void> configureAlarms({
+    required String databasePath,
+    required int schemaVersion,
+  }) => _alarms.invokeMethod<void>('configure', {
+    'path': databasePath,
+    'schema': schemaVersion,
+  });
+
+  Future<void> suspendAlarms() => _alarms.invokeMethod<void>('suspend');
+
+  /// Called only from the explicit reminder enable action, after exact access.
+  Future<bool> requestAlarmChannelPermission() async {
+    if (await _alarms.invokeMethod<bool>('available') == true) return true;
+    await _settingsChannel.invokeMethod<void>('openNotificationSettings');
+    return await _alarms.invokeMethod<bool>('available') == true;
+  }
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -96,6 +116,14 @@ class AndroidReminderPlatformAdapter
         await _plugin.cancel(id: pending.id);
       }
     }
+    try {
+      await _alarms.invokeMethod<void>('removeOrphans', {
+        'active': activeInstanceIds.toList(),
+      });
+    } on MissingPluginException {
+      // Hosts without the Android alarm adapter cannot have its inventory.
+      // Actual alarm scheduling still fails explicitly below.
+    }
   }
 
   @override
@@ -114,6 +142,23 @@ class AndroidReminderPlatformAdapter
     }
     if (!await exactAlarmsEnabled()) {
       throw const ReminderPermissionUnavailable();
+    }
+    if (instance.delivery == ReminderDelivery.alarm) {
+      if (await _alarms.invokeMethod<bool>('available') != true) {
+        throw const ReminderPermissionUnavailable();
+      }
+      // Remove a legacy ordinary notification with the same instance owner.
+      await _plugin.cancel(id: _notificationId(instance));
+      final admitted = await _alarms.invokeMethod<bool>('schedule', {
+        'id': instance.id.value,
+        'at': scheduledAt.toUtc().millisecondsSinceEpoch ~/ 1000,
+      });
+      if (admitted != true) {
+        throw StateError(
+          'Native alarm intent changed before delivery admission.',
+        );
+      }
+      return;
     }
     final id = _notificationId(instance);
     for (final pending in await _plugin.pendingNotificationRequests()) {
@@ -150,6 +195,9 @@ class AndroidReminderPlatformAdapter
   @override
   Future<void> cancel(ReminderInstance instance) async {
     await initialize();
+    if (instance.delivery == ReminderDelivery.alarm) {
+      await _alarms.invokeMethod<void>('cancel', {'id': instance.id.value});
+    }
     for (final pending in await _plugin.pendingNotificationRequests()) {
       if (_instanceOwner(pending.payload) == instance.id.value) {
         await _plugin.cancel(id: pending.id);

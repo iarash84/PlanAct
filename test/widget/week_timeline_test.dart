@@ -135,7 +135,7 @@ void main() {
             find.byKey(ValueKey('week-card-${occurrences.first.id.value}')),
             findsOneWidget,
           );
-          await tester.tap(find.text('بازگشت به امروز'));
+          await tester.tap(find.byKey(const ValueKey('calendar-return-today')));
           await tester.pumpAndSettle();
           await tester.pump(const Duration(minutes: 2));
           expect(tester.takeException(), isNull);
@@ -300,7 +300,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final day = WeekTimeline.startOfWeek(JalaliDate(1406, 1, 1));
+      final day = WeekTimeline.startOfWeek(JalaliDate(1407, 1, 1));
       final item = Commitment.create(
         title: 'عنوان بلند فارسی برای یک برنامه خوانا بدون کوتاه‌سازی',
       );
@@ -357,7 +357,17 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester.getTopLeft(find.text(PersianDateFormatter.date(day))).dy,
-        lessThan(220),
+        // Sticky to the agenda viewport, independently of the shared header's
+        // text-scale-aware height above it.
+        inInclusiveRange(
+          tester
+              .getTopLeft(find.byKey(const ValueKey('week-agenda-scroll')))
+              .dy,
+          tester
+                  .getTopLeft(find.byKey(const ValueKey('week-agenda-scroll')))
+                  .dy +
+              48,
+        ),
       );
       await tester.tap(find.byTooltip('هفته بعد'));
       await tester.pumpAndSettle();
@@ -396,7 +406,7 @@ void main() {
     final initialOffset = before.offset;
     before.jumpTo(initialOffset + 120);
     await tester.pump();
-    await tester.tap(find.text('بازگشت به امروز'));
+    await tester.tap(find.byKey(const ValueKey('calendar-return-today')));
     await tester.pumpAndSettle();
     final after = tester
         .widget<CustomScrollView>(

@@ -157,6 +157,7 @@ class EditCommitmentSchedule {
         version: plan.schedule.version + 1,
         generationHorizonDays: plan.schedule.generationHorizonDays,
         generationReminderOffsets: plan.schedule.generationReminderOffsets,
+        generationReminderDelivery: plan.schedule.generationReminderDelivery,
         generationFinancialExpectation:
             plan.schedule.generationFinancialExpectation,
         localTime: scheduledAt is DateTime

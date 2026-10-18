@@ -1,0 +1,340 @@
+{
+  "year": 1409,
+  "revision": 1,
+  "source": "https://www.time.ir/",
+  "provenance": {
+    "retrievedUtc": "2026-10-14",
+    "retrievalMethod": "Public website monthly calendar action (fetchEventCalendarAction); hashes cover original text/x-component response bytes. Secondary-source published calendar display; independent official PDF verification unavailable. No local lunar prediction.",
+    "months": [
+      {
+        "month": 1,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=1&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "92dcc015b1430230181f4f5874849472f8465cc073fed39aef2037a9811626c9"
+      },
+      {
+        "month": 2,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=2&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "53c4b8435afb1e56c90fdf32a60084bdc9a1f5a905bed30dee85dccb693f7539"
+      },
+      {
+        "month": 3,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=3&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "d3902c4181373e4b3caa5ebe3ce6cdd14e42001306debdaa3e57f9354fe83d8f"
+      },
+      {
+        "month": 4,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=4&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "0ba313a9aa2dda4393b0510b100498d3d674e346f24f29c846ef01698116abf2"
+      },
+      {
+        "month": 5,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=5&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "093e7627f23576f9e52eea51d337a78c5451ed80deddaac627060693373a16f1"
+      },
+      {
+        "month": 6,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=6&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "bb075da2bb9c68fd5bc55759a127e0f37eb20b7da5a06466ddf222d488a8a131"
+      },
+      {
+        "month": 7,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=7&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "5d526d4fdaf6faf059f56f7648d16503589d9dd171d2b3c81be60da0b3017575"
+      },
+      {
+        "month": 8,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=8&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "88a081a25559d58f497cbfe01da1501f707771eb8d1bcbf4a5c6b39bc431bd4e"
+      },
+      {
+        "month": 9,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=9&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "c6c6fa4de3ba530159ea77f9fd5951f2e2c796631550b8987043ef9981ed34f2"
+      },
+      {
+        "month": 10,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=10&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "116410cac9d247d495a04fa23552a958a5821ba7c50573af2ad3cd18baa12592"
+      },
+      {
+        "month": 11,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=11&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "77724d7e1539940cac4ec1d584d29ac92addee2d7a4f74a85dbc549da0e2af68"
+      },
+      {
+        "month": 12,
+        "sourceUrl": "https://api.time.ir/v1/event/fa/events/calendar?year=1409&month=12&day=0&base1=0&base2=1&base3=2",
+        "responseSha256": "939e05a660e48c2e1981d0f5d04411f9440c73fb6675eca98a842093cefe2888"
+      }
+    ]
+  },
+  "months": [
+    {
+      "month": 1,
+      "dayCount": 31,
+      "officialDays": [
+        1,
+        2,
+        3,
+        4,
+        12,
+        13,
+        25
+      ]
+    },
+    {
+      "month": 2,
+      "dayCount": 31,
+      "officialDays": [
+        2,
+        22,
+        23
+      ]
+    },
+    {
+      "month": 3,
+      "dayCount": 31,
+      "officialDays": [
+        14,
+        15
+      ]
+    },
+    {
+      "month": 4,
+      "dayCount": 31,
+      "officialDays": [
+        1,
+        9,
+        10,
+        19,
+        28
+      ]
+    },
+    {
+      "month": 5,
+      "dayCount": 31,
+      "officialDays": []
+    },
+    {
+      "month": 6,
+      "dayCount": 31,
+      "officialDays": []
+    },
+    {
+      "month": 7,
+      "dayCount": 30,
+      "officialDays": [
+        10
+      ]
+    },
+    {
+      "month": 8,
+      "dayCount": 30,
+      "officialDays": [
+        19
+      ]
+    },
+    {
+      "month": 9,
+      "dayCount": 30,
+      "officialDays": [
+        3,
+        20
+      ]
+    },
+    {
+      "month": 10,
+      "dayCount": 30,
+      "officialDays": [
+        26
+      ]
+    },
+    {
+      "month": 11,
+      "dayCount": 30,
+      "officialDays": [
+        5,
+        6,
+        22,
+        29
+      ]
+    },
+    {
+      "month": 12,
+      "dayCount": 29,
+      "officialDays": [
+        29
+      ]
+    }
+  ],
+  "holidays": [
+    {
+      "month": 1,
+      "day": 1,
+      "title": "آغاز نوروز",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 2,
+      "title": "عید نوروز",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 3,
+      "title": "عید نوروز",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 4,
+      "title": "عید نوروز",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 12,
+      "title": "روز جمهوری اسلامی ایران",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 13,
+      "title": "روز طبیعت",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 1,
+      "day": 25,
+      "title": "عید سعید قربان",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 2,
+      "day": 2,
+      "title": "عید سعید غدیر خم (۱۰ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 2,
+      "day": 22,
+      "title": "تاسوعای حسینی",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 2,
+      "day": 23,
+      "title": "عاشورای حسینی",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 3,
+      "day": 14,
+      "title": "رحلت حضرت امام خمینی (ره) رهبر کبیر انقلاب و بنیان‌گذار جمهوری اسلامی ایران (۱۳۶۸ ه‍.ق)",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 3,
+      "day": 15,
+      "title": "قیام خونین ۱۵ خرداد (۱۳۴۲ ه‍.ش)",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 4,
+      "day": 1,
+      "title": "اربعین حسینی",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 4,
+      "day": 9,
+      "title": "رحلت حضرت رسول اکرم (ص) (۱۱ ه‍.ق) – شهادت حضرت امام حسن مجتبی (ع) (۵۰ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 4,
+      "day": 10,
+      "title": "شهادت حضرت امام رضا (ع) (۲۰۳ ه‍.ق) (۳۰ صَفَر یا انتهای ماه)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 4,
+      "day": 19,
+      "title": "شهادت حضرت امام حسن عسکری (ع) (۲۶۰ ه‍.ق) و آغاز امامت حضرت ولی عصر (عج)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 4,
+      "day": 28,
+      "title": "ولادت حضرت رسول اکرم (ص) (۵۳ سال قبل از هجرت) و روز اخلاق و مهرورزی",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 4,
+      "day": 28,
+      "title": "ولادت حضرت امام جعفر صادق (ع) مؤسس مذهب جعفری (۸۳ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 7,
+      "day": 10,
+      "title": "شهادت حضرت فاطمهٔ زهرا (س) (۱۱ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 8,
+      "day": 19,
+      "title": "ولادت حضرت امام علی (ع) (۲۳ سال قبل از هجرت)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 9,
+      "day": 3,
+      "title": "مبعث حضرت رسول اکرم (ص) (۱۳ سال قبل از هجرت)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 9,
+      "day": 20,
+      "title": "ولادت حضرت قائم (عج) (۲۵۵ ه‍.ق) و روز جهانی مستضعفان",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 10,
+      "day": 26,
+      "title": "شهادت حضرت امام علی (ع) (۴۰ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 11,
+      "day": 5,
+      "title": "عید سعید فطر",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 11,
+      "day": 6,
+      "title": "تعطیل به مناسبت عید سعید فطر",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 11,
+      "day": 22,
+      "title": "پیروزی انقلاب اسلامی ایران و سقوط نظام شاهنشاهی (۱۳۵۷ ه‍.ش)",
+      "kind": "officialFixed"
+    },
+    {
+      "month": 11,
+      "day": 29,
+      "title": "شهادت حضرت امام جعفر صادق (ع) (۱۴۸ ه‍.ق)",
+      "kind": "officialVariable"
+    },
+    {
+      "month": 12,
+      "day": 29,
+      "title": "روز ملی‌شدن صنعت نفت ایران (۱۳۲۹ ه‍.ش)",
+      "kind": "officialFixed"
+    }
+  ]
+}

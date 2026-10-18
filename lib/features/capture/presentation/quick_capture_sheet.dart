@@ -1,7 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
-import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
@@ -16,6 +15,9 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/application/commitment_draft.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
+import 'package:planact/features/reminders/presentation/reminder_options.dart';
+import 'package:planact/features/reminders/presentation/reminder_delivery_picker.dart';
+import 'package:planact/features/reminders/domain/reminder.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
   const QuickCaptureSheet({super.key, this.onSave, this.tagRepository});
@@ -29,10 +31,16 @@ class QuickCaptureSheet extends StatefulWidget {
 }
 
 class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
+  static const _reminderPresetMinutes = [
+    5,
+    15,
+    30,
+    60,
+    ...reminderDayPresetMinutes,
+  ];
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _count = TextEditingController();
-  final _entitlementUnits = TextEditingController();
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -46,19 +54,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   CommitmentDraft _draft = const CommitmentDraft();
   bool _dateSelected = false;
   bool _timeSelected = false;
-  final _creditController = ExpansibleController();
   final _financeController = ExpansibleController();
   String? _error;
   bool _saving = false;
 
   @override
   void dispose() {
-    _creditController.dispose();
     _financeController.dispose();
     _title.dispose();
     _description.dispose();
     _count.dispose();
-    _entitlementUnits.dispose();
     _financialAmount.dispose();
     super.dispose();
   }
@@ -73,10 +78,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         MoneyInputFormatter.normalize(_count.text.trim()),
       ),
       clearOccurrenceCount: _count.text.trim().isEmpty,
-      entitlementUnits: int.tryParse(
-        MoneyInputFormatter.normalize(_entitlementUnits.text.trim()),
-      ),
-      clearEntitlementUnits: _entitlementUnits.text.trim().isEmpty,
       financialAmount: _moneyInput.parse(_financialAmount.text),
       clearFinancialAmount: _moneyInput.parse(_financialAmount.text) == null,
     );
@@ -93,10 +94,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         _draft.validateForStep(3);
     if (error != null) {
       setState(() => _error = error);
-      if (_draft.entitlement == EntitlementDraft.fixedUnits &&
-          (_draft.entitlementUnits == null || _draft.entitlementUnits! <= 0)) {
-        _creditController.expand();
-      }
       if (_draft.financialMeaning != CommitmentFinancialMeaning.none &&
           (_draft.financialAmount == null || _draft.financialAmount! <= 0)) {
         _financeController.expand();
@@ -215,18 +212,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                             .map((offset) => _reminderLabel(offset.inMinutes))
                             .join(planActL10n(context).commonListSeparator),
                   child: _reminderPicker(),
-                ),
-                _section(
-                  key: 'commitment-credit-section',
-                  title: planActL10n(context).quickCaptureSheetBuildTitle2,
-                  subtitle: _draft.entitlement == EntitlementDraft.none
-                      ? planActL10n(context).quickCaptureSheetBuildSubtitle2
-                      : planActL10n(context).quickCaptureSheetBuildSubtitle3(
-                          (PersianNumbers.format(_draft.entitlementUnits ?? 0))
-                              .toString(),
-                        ),
-                  controller: _creditController,
-                  child: _entitlementFields(),
                 ),
                 _section(
                   key: 'commitment-finance-section',
@@ -567,11 +552,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       const SizedBox(height: PlanActSpacing.xs),
       const Text(PersianCopy.quickCaptureSheetReminderPickerChildren2),
       const SizedBox(height: PlanActSpacing.sm),
+      ReminderDeliveryPicker(
+        value: _draft.reminderDelivery,
+        onChanged: (value) =>
+            setState(() => _draft = _draft.copyWith(reminderDelivery: value)),
+      ),
       Wrap(
         spacing: PlanActSpacing.sm,
         runSpacing: PlanActSpacing.sm,
         children: [
-          for (final minutes in const [5, 15, 30, 60, 1440])
+          for (final minutes in _reminderPresetMinutes)
             FilterChip(
               label: Text(_reminderLabel(minutes)),
               selected: _draft.reminderOffsets.contains(
@@ -587,13 +577,11 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ],
       ),
       if (_draft.reminderOffsets
-          .where(
-            (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
-          )
+          .where((offset) => !_reminderPresetMinutes.contains(offset.inMinutes))
           .isNotEmpty) ...[
         const SizedBox(height: PlanActSpacing.sm),
         for (final offset in _draft.reminderOffsets.where(
-          (offset) => !const [5, 15, 30, 60, 1440].contains(offset.inMinutes),
+          (offset) => !_reminderPresetMinutes.contains(offset.inMinutes),
         ))
           ListTile(
             dense: true,
@@ -638,62 +626,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     setState(() => _draft = _draft.copyWith(reminderOffsets: offsets));
   }
 
-  static String _reminderLabel(int minutes) {
-    if (minutes >= 1440 && minutes % 1440 == 0) {
-      final days = minutes ~/ 1440;
-      return PersianCopy.quickCaptureSheetReminderLabelMessage(
-        (PersianNumbers.format(days)).toString(),
-      );
-    }
-    if (minutes >= 60 && minutes % 60 == 0) {
-      return PersianCopy.quickCaptureSheetReminderLabelMessage2(
-        (PersianNumbers.format(minutes ~/ 60)).toString(),
-      );
-    }
-    return PersianCopy.quickCaptureSheetReminderLabelMessage3(
-      (PersianNumbers.format(minutes)).toString(),
-    );
-  }
-
-  Widget _entitlementFields() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      DropdownButtonFormField<EntitlementDraft>(
-        isExpanded: true,
-        initialValue: _draft.entitlement,
-        decoration: const InputDecoration(
-          labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText,
-        ),
-        items: const [
-          DropdownMenuItem(
-            value: EntitlementDraft.none,
-            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems),
-          ),
-          DropdownMenuItem(
-            value: EntitlementDraft.fixedUnits,
-            child: Text(PersianCopy.quickCaptureSheetEntitlementFieldsItems2),
-          ),
-        ],
-        onChanged: (value) =>
-            setState(() => _draft = _draft.copyWith(entitlement: value)),
-      ),
-      if (_draft.entitlement == EntitlementDraft.fixedUnits) ...[
-        const SizedBox(height: PlanActSpacing.md),
-        TextField(
-          enabled: !_saving,
-          controller: _entitlementUnits,
-          keyboardType: TextInputType.number,
-          inputFormatters: const [MoneyInputFormatter()],
-          decoration: const InputDecoration(
-            labelText: PersianCopy.quickCaptureSheetEntitlementFieldsLabelText2,
-          ),
-          onChanged: (_) => setState(_syncDraft),
-        ),
-      ],
-      const SizedBox(height: PlanActSpacing.sm),
-      const Text(PersianCopy.quickCaptureSheetEntitlementFieldsChildren),
-    ],
-  );
+  String _reminderLabel(int minutes) =>
+      reminderOffsetLabel(planActL10n(context), minutes);
 
   Widget _financialFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -802,9 +736,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       if (_draft.reminderOffsets.isNotEmpty)
         Text(
           PersianCopy.quickCaptureSheetSummaryChildren6(
-            (_draft.reminderOffsets
-                    .map((offset) => _reminderLabel(offset.inMinutes))
-                    .join(PersianCopy.commonListSeparator))
+            ('${_draft.reminderDelivery == ReminderDelivery.alarm ? planActL10n(context).reminderDeliveryAlarm : planActL10n(context).reminderDeliveryNotification}: ${_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join(PersianCopy.commonListSeparator)}')
                 .toString(),
           ),
         ),

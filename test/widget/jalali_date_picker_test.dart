@@ -64,6 +64,78 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  for (final dark in [false, true]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets(
+        'shared month gesture, year boundary, staged selection/cancel dark=$dark scale=$scale',
+        (tester) async {
+          tester.view.physicalSize = const Size(320, 1100);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          const initial = JalaliDate(1405, 12, 20);
+          DateTime? result;
+          var returned = false;
+          await open(
+            tester,
+            date: initial,
+            dark: dark,
+            scale: scale,
+            onResult: (value) {
+              returned = true;
+              result = value;
+            },
+          );
+          final day = find.byKey(const ValueKey('capture-date-10'));
+          await tester.ensureVisible(day);
+          await tester.drag(day, const Offset(0, -30));
+          await tester.pumpAndSettle();
+          expect(find.text('اسفند ۱۴۰۵'), findsOneWidget);
+          await tester.ensureVisible(day);
+          await tester.drag(day, const Offset(30, 0));
+          await tester.pumpAndSettle();
+          expect(find.text('اسفند ۱۴۰۵'), findsOneWidget);
+          await tester.drag(day, const Offset(110, 0));
+          await tester.pumpAndSettle();
+          expect(find.text('فروردین ۱۴۰۶'), findsOneWidget);
+          expect(returned, isFalse);
+          await tester.drag(day, const Offset(-110, 0));
+          await tester.pumpAndSettle();
+          expect(find.text('اسفند ۱۴۰۵'), findsOneWidget);
+          await tester.ensureVisible(find.text('اسفند ۱۴۰۵'));
+          await tester.drag(find.text('اسفند ۱۴۰۵'), const Offset(110, 0));
+          await tester.pumpAndSettle();
+          expect(find.text('اسفند ۱۴۰۵'), findsOneWidget);
+          await tester.ensureVisible(find.byTooltip('ماه بعد'));
+          await tester.tap(find.byTooltip('ماه بعد'));
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(day);
+          await tester.tap(day);
+          await tester.pumpAndSettle();
+          expect(returned, isFalse);
+          await tester.ensureVisible(find.text('تأیید تاریخ'));
+          await tester.tap(find.text('تأیید تاریخ'));
+          await tester.pumpAndSettle();
+          expect(result, const JalaliDate(1406, 1, 10).toDateTime());
+          returned = false;
+          await tester.tap(find.text('انتخاب تاریخ'));
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(day);
+          await tester.drag(day, const Offset(110, 0));
+          await tester.pumpAndSettle();
+          await tester.tap(day);
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(find.text('انصراف'));
+          await tester.tap(find.text('انصراف'));
+          await tester.pumpAndSettle();
+          expect(returned, isTrue);
+          expect(result, isNull);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
   testWidgets('full weekday titles RTL and explicit holiday date selection', (
     tester,
   ) async {
@@ -202,7 +274,7 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        await open(tester, date: JalaliDate(1406, 1, 1), dark: dark, scale: 2);
+        await open(tester, date: JalaliDate(1407, 1, 1), dark: dark, scale: 2);
         expect(
           find.textContaining('نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست'),
           findsOneWidget,
@@ -232,5 +304,31 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+  }
+
+  for (final dark in [false, true]) {
+    testWidgets('bundled 1406 lunar holiday in pushed picker dark=$dark', (
+      tester,
+    ) async {
+      DateTime? result;
+      final date = JalaliDate(1406, 5, 29);
+      await open(
+        tester,
+        date: date,
+        dark: dark,
+        onResult: (value) => result = value,
+      );
+      expect(find.textContaining('ولادت حضرت رسول'), findsOneWidget);
+      expect(find.textContaining('ولادت حضرت امام جعفر'), findsOneWidget);
+      expect(
+        find.textContaining('نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست'),
+        findsNothing,
+      );
+      await tester.ensureVisible(find.text('تأیید تاریخ'));
+      await tester.tap(find.text('تأیید تاریخ'));
+      await tester.pumpAndSettle();
+      expect(result, date.toDateTime());
+      expect(tester.takeException(), isNull);
+    });
   }
 }

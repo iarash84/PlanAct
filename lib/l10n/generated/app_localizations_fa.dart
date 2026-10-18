@@ -174,6 +174,16 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
+  String get commitmentBrowseExpand => 'نمایش تمام‌صفحه';
+
+  @override
+  String get commitmentBrowseOpenError =>
+      'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.';
+
+  @override
+  String get commitmentBrowseCollapse => 'نمایش کوچک‌تر';
+
+  @override
   String get commonClose => 'بستن';
 
   @override
@@ -795,7 +805,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get calendarPageDateButtonLabel => 'رفتن به تاریخ';
 
   @override
-  String get calendarPageTodayButtonLabel => 'بازگشت به امروز';
+  String get calendarPageTodayButtonLabel => 'امروز';
 
   @override
   String get calendarPageBuildTooltip => 'هفته قبل';
@@ -919,11 +929,39 @@ class AppLocalizationsFa extends AppLocalizations {
       'ورود بسته انجام نشد. فایل و فضای ذخیره‌سازی را بررسی کنید؛ دادهٔ قبلی حفظ شده است.';
 
   @override
+  String get holidayDataCoverageTitle => 'سال‌ها و منابع تعطیلات';
+
+  @override
+  String holidayDataCoveredYears(String years) {
+    return 'سال‌های دارای پوشش کامل: $years';
+  }
+
+  @override
+  String holidayDataYearOrigin(String year, String origin) {
+    return 'سال $year؛ $origin';
+  }
+
+  @override
+  String get holidayDataOriginBundled => 'همراه برنامه';
+
+  @override
+  String get holidayDataOriginImported => 'بستهٔ واردشده';
+
+  @override
+  String holidayDataRevision(String revision) {
+    return 'بازبینی $revision';
+  }
+
+  @override
+  String get holidayDataMissingCoverage =>
+      'برای سال‌هایی که در این فهرست نیستند، پوشش کامل تعطیلات رسمی نداریم؛ نبود نشانهٔ تعطیلی به معنی روز کاری قطعی نیست.';
+
+  @override
   String get holidayPackageSettingsCardBuildTitle => 'دادهٔ تعطیلات';
 
   @override
   String get holidayPackageSettingsCardBuildSubtitle =>
-      'دادهٔ پایه تا سال ۱۴۰۵؛ ورود سال‌های جدید بدون به‌روزرسانی برنامه';
+      'ورود سال‌های جدید بدون به‌روزرسانی برنامه';
 
   @override
   String holidayPackageSettingsCardBuildSubtitle2(String value1) {
@@ -4432,4 +4470,344 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get actualReopenMessage =>
       'نتیجه بازگشایی می‌شود و سابقه می‌ماند. این عملیات مبلغ، ارتباط مالی یا اعتبار مصرف‌شده را برنمی‌گرداند.';
+
+  @override
+  String inboxDefaultUnitProposalAmount(String amount, String unit) {
+    return '$amount $unit (پیشنهاد پیش‌فرض برنامه)';
+  }
+
+  @override
+  String inboxDefaultUnitAmount(String amount, String unit) {
+    return '$amount $unit';
+  }
+
+  @override
+  String get inboxDefaultUnitConfirmationNotice =>
+      'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.';
+
+  @override
+  String get inboxDefaultUnitEditorNotice =>
+      'واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. ذخیره، مبلغ را با واحد انتخابی ثبت می‌کند.';
+
+  @override
+  String get inboxDefaultUnitReviewNotice =>
+      'واحد پیامک نامشخص است؛ واحد پیش‌فرض برنامه هنگام تأیید قابل تغییر است.';
+
+  @override
+  String get inboxCurrencyAlreadyResolved => 'واحد مبلغ قبلاً مشخص شده است.';
+
+  @override
+  String get smsAutomaticTitle => 'دریافت خودکار پیامک‌های جدید';
+
+  @override
+  String get smsAutomaticDescription =>
+      'با فعال‌سازی، فقط پیامک‌های دریافتی از همین لحظه هنگام بازشدن یا بازگشت به برنامه، دریافت پیامک و کشیدن صفحه به پایین بررسی می‌شوند. ثبت مالی با تأیید شماست. هنگام بسته‌بودن برنامه دریافت انجام نمی‌شود.';
+
+  @override
+  String get smsAutomaticSyncFailed =>
+      'بررسی پیامک‌های جدید کامل نشد؛ در صندوق بررسی دوباره تلاش کنید.';
+
+  @override
+  String get smsAutomaticPermissionRequired =>
+      'برای دریافت پیامک‌های جدید، دسترسی پیامک را در صندوق بررسی فعال کنید.';
+
+  @override
+  String get smsAutomaticSettingFailed =>
+      'تنظیم دریافت خودکار ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
+  String get smsPermissionHelpTitle => 'راهنمای دسترسی پیامک در تنظیمات گوشی';
+
+  @override
+  String get smsPermissionHelpBody =>
+      'اگر گوشی پیام «دسترسی برنامه به پیامک رد شد» یا «تنظیمات محدودشده» نشان می‌دهد، ممکن است دسترسی به‌دلیل روش نصب یا سیاست امنیتی گوشی محدود شده باشد.\n\n۱. تنظیمات همین برنامه (App info) را باز کنید.\n۲. فقط اگر به برنامه و منبع نصب آن اعتماد دارید، گزینهٔ «اجازهٔ تنظیمات محدودشده» (Allow restricted settings) را فعال کنید. در بعضی گوشی‌ها این گزینه در منوی سه‌نقطه و در شیائومی/پوکو ممکن است در پایین صفحه باشد.\n۳. سپس در «مجوزها» (App permissions)، «پیامک» (SMS) را روی «مجاز» (Allow) بگذارید و به برنامه برگردید.\n\nاگر این گزینه وجود ندارد، مجوز پیامک را در همان بخش مجوزها بررسی کنید یا به برنامه برگردید و دوباره درخواست دهید. محدودیت سازمانی یا گوشی ممکن است مانع باشد؛ برنامه نمی‌تواند آن را خودکار بردارد. سایر بخش‌ها و ورود دستی بدون این مجوز در دسترس‌اند. فعال‌شدن مجوز به‌تنهایی تاریخچه را وارد یا دریافت خودکار را روشن نمی‌کند.';
+
+  @override
+  String get smsPermissionOpenSettings => 'بازکردن تنظیمات همین برنامه';
+
+  @override
+  String get smsPermissionNotGranted =>
+      'دسترسی پیامک فعال نشد. می‌توانید دوباره درخواست دهید یا راهنمای تنظیمات گوشی را دنبال کنید.';
+
+  @override
+  String get smsPermissionRequestFailed =>
+      'درخواست دسترسی پیامک کامل نشد. وضعیت را تازه کنید، دوباره تلاش کنید یا تنظیمات همین برنامه را بررسی کنید.';
+
+  @override
+  String get smsPermissionSettingsFailed =>
+      'تنظیمات باز نشد؛ دوباره تلاش کنید یا از تنظیمات گوشی، برنامه‌ها، پلن‌اکت وارد شوید.';
+
+  @override
+  String get inboxCurrencyRevisionRequired =>
+      'برای انتخاب واحد، ابتدا پیشنهاد را بازخوانی کنید.';
+
+  @override
+  String get reminderDeliveryLabel => 'روش یادآوری';
+
+  @override
+  String get reminderDeliveryNotification => 'اعلان';
+
+  @override
+  String get reminderDeliveryAlarm => 'آلارم';
+
+  @override
+  String get reminderAlarmHelp =>
+      'آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.';
+
+  @override
+  String get reminderAlarmTitle => 'آلارم پلن‌اکت';
+
+  @override
+  String get reminderAlarmBody =>
+      'زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.';
+
+  @override
+  String get reminderAlarmStop => 'قطع';
+
+  @override
+  String get reminderAlarmSnooze => 'تعویق ۱۰ دقیقه';
+
+  @override
+  String get reminderAlarmChannel => 'آلارم‌های تعهد';
+
+  @override
+  String get reminderAlarmChannelDescription =>
+      'زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.';
+
+  @override
+  String get reminderAlarmRetry =>
+      'اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.';
+
+  @override
+  String get calendarNoteLabel => 'یادداشت';
+
+  @override
+  String get calendarNoteColorLabel => 'رنگ یادداشت';
+
+  @override
+  String get calendarNoteColorHint =>
+      'یادداشت در تقویم با این رنگ نمایش داده می‌شود.';
+
+  @override
+  String get calendarNoteAddSubtitle => 'عنوان و توضیحات روی تقویم، بدون اعلان';
+
+  @override
+  String get calendarNoteCreateTitle => 'افزودن یادداشت';
+
+  @override
+  String get calendarNoteEditTitle => 'ویرایش یادداشت';
+
+  @override
+  String get calendarNoteTitleField => 'عنوان';
+
+  @override
+  String get calendarNoteDescriptionField => 'توضیحات (اختیاری)';
+
+  @override
+  String get calendarNoteChooseDate => 'انتخاب تاریخ';
+
+  @override
+  String get calendarNoteTitleRequired => 'عنوان یادداشت را وارد کنید.';
+
+  @override
+  String get calendarNoteDateRequired => 'تاریخ یادداشت را انتخاب کنید.';
+
+  @override
+  String get calendarNoteSaveFailed => 'یادداشت ذخیره نشد. دوباره تلاش کنید.';
+
+  @override
+  String get calendarNoteStale =>
+      'این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.';
+
+  @override
+  String get calendarNoteNoDelivery =>
+      'این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.';
+
+  @override
+  String get calendarNoteSaved => 'یادداشت ذخیره شد.';
+
+  @override
+  String get searchTitle => 'جست‌وجو';
+
+  @override
+  String get searchFieldLabel => 'عبارت جست‌وجو';
+
+  @override
+  String get searchAll => 'همه';
+
+  @override
+  String get searchCommitments => 'تعهدات';
+
+  @override
+  String get searchTransactions => 'تراکنش‌ها';
+
+  @override
+  String get searchNotes => 'یادداشت‌ها';
+
+  @override
+  String get searchAccounts => 'حساب‌ها';
+
+  @override
+  String get searchClear => 'پاک‌کردن عبارت جست‌وجو';
+
+  @override
+  String get searchRefresh => 'تازه‌سازی نتایج';
+
+  @override
+  String get searchGuidance =>
+      'برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.';
+
+  @override
+  String get searchNoResults =>
+      'موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.';
+
+  @override
+  String get searchReadError =>
+      'خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.';
+
+  @override
+  String get searchOpenError =>
+      'بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.';
+
+  @override
+  String get searchCancelled => 'لغوشده';
+
+  @override
+  String searchResultCount(String count) {
+    return '$count نتیجه';
+  }
+
+  @override
+  String get searchFinancialReadOnly =>
+      'این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.';
+
+  @override
+  String get progressOutcomesTitle => 'پیشرفت انجام نوبت‌ها';
+
+  @override
+  String get progressPaymentsTitle => 'پیشرفت پرداخت‌ها';
+
+  @override
+  String progressTotal(String count) {
+    return 'از مجموع $count نوبت';
+  }
+
+  @override
+  String progressPaymentSummary(String paid, String unsettled) {
+    return '$paid٪ تسویه‌شده، $unsettled٪ بدون تسویهٔ تأییدشده';
+  }
+
+  @override
+  String get progressCompleted => 'انجام‌شده';
+
+  @override
+  String get progressPaid => 'پرداخت‌شده';
+
+  @override
+  String get progressPartPaid => 'پرداخت جزئی';
+
+  @override
+  String get progressCancelled => 'لغوشده';
+
+  @override
+  String get progressSkipped => 'انجام‌نشده';
+
+  @override
+  String get progressRemaining => 'باقی‌مانده';
+
+  @override
+  String get progressUnpaid => 'پرداخت‌نشده';
+
+  @override
+  String get progressUnknownPayment => 'وضعیت پرداخت نامشخص';
+
+  @override
+  String progressLegend(String label, String count, String percent) {
+    return '$label: $count نوبت ($percent٪)';
+  }
+
+  @override
+  String get progressCountBasis =>
+      'مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.';
+
+  @override
+  String get progressPaymentBasis =>
+      'مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.';
+
+  @override
+  String get progressLoading => 'در حال خواندن پیشرفت تعهد';
+
+  @override
+  String get progressReadError =>
+      'پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.';
+
+  @override
+  String get progressAmbiguous =>
+      'تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.';
+
+  @override
+  String progressExcludedCancellations(String count) {
+    return '$count لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.';
+  }
+
+  @override
+  String get checklistTitle => 'فهرست کارها';
+
+  @override
+  String get checklistScope =>
+      'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.';
+
+  @override
+  String get checklistAdd => 'افزودن کار';
+
+  @override
+  String get checklistEdit => 'ویرایش کار';
+
+  @override
+  String get checklistItemTitle => 'عنوان کار';
+
+  @override
+  String get checklistEmptyTitle => 'عنوان کار را وارد کنید.';
+
+  @override
+  String get checklistSaveError =>
+      'تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.';
+
+  @override
+  String get checklistReadError =>
+      'فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.';
+
+  @override
+  String get checklistReadOnly =>
+      'فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.';
+
+  @override
+  String checklistProgress(String checked, String total) {
+    return '$checked از $total کار انجام شده';
+  }
+
+  @override
+  String get checklistEmpty =>
+      'هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.';
+
+  @override
+  String get checklistActions => 'اقدام‌های این کار';
+
+  @override
+  String get checklistRemove => 'کنار گذاشتن کار';
+
+  @override
+  String get checklistRemoveConfirm =>
+      'این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.';
+
+  @override
+  String get checklistRemoved => 'کارهای کنارگذاشته‌شده';
+
+  @override
+  String get checklistRestore => 'بازگرداندن کار';
+
+  @override
+  String calendarNoteDaySummary(String count, String titles) {
+    return '$count یادداشت: $titles';
+  }
 }

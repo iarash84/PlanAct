@@ -14,6 +14,11 @@ abstract interface class ReminderRepository {
   Future<void> saveInstance(ReminderInstance instance);
 }
 
+/// Native alarm controls may commit while Flutter is not running or is resuming.
+abstract interface class ReminderFreshInstance {
+  Future<ReminderInstance?> findInstance(StableId id);
+}
+
 /// Atomically commits reminder intent before any external platform effects.
 abstract interface class ReminderIntentTransaction {
   Future<T> runReminderTransaction<T>(Future<T> Function() action);
@@ -103,6 +108,11 @@ class ReminderService {
           item.scheduledAt.toUtc() == scheduled.scheduledAt.toUtc(),
     );
     final previous = duplicate.isEmpty ? scheduled : duplicate.first;
+    if (previous.delivery != rule.delivery) {
+      throw StateError(
+        'Changing delivery requires a replacement reminder rule.',
+      );
+    }
     final effective = previous.status == ReminderInstanceStatus.delivered
         ? previous
         : !rule.enabled || !eligible
@@ -121,7 +131,19 @@ class ReminderService {
     }
     return _ReminderSchedulingIntent(
       instance: effective,
-      cancelled: stale,
+      cancelled: [
+        ...stale,
+        // A delivered alarm may still be sounding. Stop its platform playback
+        // after a time change without rewriting delivery history.
+        ...existing.where(
+          (item) =>
+              item.ruleId == rule.id &&
+              item.status == ReminderInstanceStatus.delivered &&
+              (item.scheduledAt.toUtc() != scheduled.scheduledAt.toUtc() ||
+                  !eligible ||
+                  !rule.enabled),
+        ),
+      ],
       enabled: rule.enabled && eligible,
     );
   }
@@ -176,6 +198,7 @@ class ReminderService {
         rule.title,
         rule.body,
         rule.enabled,
+        rule.delivery,
       );
       final before = current.map(fingerprint).toSet();
       if (before.length != expected.length ||
@@ -242,9 +265,12 @@ class ReminderService {
   }) => CommandGate.runFor(repository, () async {
     if (resolved) {
       for (final instance in await repository.listInstances()) {
-        if (instance.occurrenceId == occurrenceId &&
-            instance.status != ReminderInstanceStatus.delivered) {
-          await cancel(instance);
+        if (instance.occurrenceId == occurrenceId) {
+          if (instance.status == ReminderInstanceStatus.delivered) {
+            await platform.cancel(instance);
+          } else {
+            await cancel(instance);
+          }
         }
       }
       return;
@@ -390,28 +416,37 @@ class ReminderService {
           .toSet();
       final activeIds = <String>{};
       var permissionUnavailable = false;
-      for (final instance in instances) {
-        final active =
-            instance.status == ReminderInstanceStatus.scheduled ||
-            instance.status == ReminderInstanceStatus.snoozed;
-        final effectiveAt = instance.status == ReminderInstanceStatus.snoozed
-            ? instance.snoozedUntil ?? instance.scheduledAt
-            : instance.scheduledAt;
-        if (!active) {
-          // Platform cleanup must not rewrite delivered notification history.
-          await platform.cancel(instance);
-          continue;
-        }
-        final eligible =
-            repository is! ReminderOccurrenceEligibility ||
-            await (repository as ReminderOccurrenceEligibility).canRemind(
-              instance.occurrenceId,
-            );
-        if (!enabledRuleIds.contains(instance.ruleId) ||
-            !eligible ||
-            !effectiveAt.isAfter(now)) {
-          final persisted = instance.cancel();
-          await repository.saveInstance(persisted);
+      for (final snapshot in instances) {
+        final decision = await _persistIntent(() async {
+          final instance = repository is ReminderFreshInstance
+              ? await (repository as ReminderFreshInstance).findInstance(
+                  snapshot.id,
+                )
+              : snapshot;
+          if (instance == null) return (snapshot, false);
+          final active =
+              instance.status == ReminderInstanceStatus.scheduled ||
+              instance.status == ReminderInstanceStatus.snoozed;
+          final effectiveAt = instance.status == ReminderInstanceStatus.snoozed
+              ? instance.snoozedUntil ?? instance.scheduledAt
+              : instance.scheduledAt;
+          if (!active) return (instance, false);
+          final eligible =
+              repository is! ReminderOccurrenceEligibility ||
+              await (repository as ReminderOccurrenceEligibility).canRemind(
+                instance.occurrenceId,
+              );
+          if (!enabledRuleIds.contains(instance.ruleId) ||
+              !eligible ||
+              !effectiveAt.isAfter(now)) {
+            final persisted = instance.cancel();
+            await repository.saveInstance(persisted);
+            return (persisted, false);
+          }
+          return (instance, true);
+        });
+        final (instance, shouldSchedule) = decision;
+        if (!shouldSchedule) {
           await platform.cancel(instance);
         } else {
           activeIds.add(instance.id.value);

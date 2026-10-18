@@ -10,10 +10,14 @@ class CommitmentColorPicker extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     this.enabled = true,
+    this.label,
+    this.helperText,
   });
   final CommitmentColor? selected;
   final ValueChanged<CommitmentColor?> onChanged;
   final bool enabled;
+  final String? label;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +26,7 @@ class CommitmentColorPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          planActL10n(context).commitmentColorPickerBuildChildren,
+          label ?? planActL10n(context).commitmentColorPickerBuildChildren,
           style: Theme.of(context).textTheme.labelLarge,
         ),
         const SizedBox(height: PlanActSpacing.sm),
@@ -52,7 +56,10 @@ class CommitmentColorPicker extends StatelessWidget {
           ],
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        Text(planActL10n(context).commitmentColorPickerBuildChildren2),
+        Text(
+          helperText ??
+              planActL10n(context).commitmentColorPickerBuildChildren2,
+        ),
       ],
     );
   }

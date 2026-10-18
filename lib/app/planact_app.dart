@@ -1,4 +1,14 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/commitments/application/commitment_progress_reader.dart';
+import 'package:planact/features/commitments/data/drift_commitment_progress_reader.dart';
+import 'package:planact/features/commitments/presentation/commitment_progress_section.dart';
+import 'package:planact/features/search/application/search_reader.dart';
+import 'package:planact/features/search/data/drift_search_reader.dart';
+import 'package:planact/features/search/presentation/search_page.dart';
+import 'package:planact/features/notes/application/calendar_note_repository.dart';
+import 'package:planact/features/notes/data/drift_calendar_note_repository.dart';
+import 'package:planact/features/notes/domain/calendar_note.dart';
+import 'package:planact/features/notes/presentation/calendar_note_editor.dart';
 import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/features/scheduling/application/schedule_undo.dart';
@@ -8,6 +18,7 @@ import 'package:planact/features/commitments/data/drift_commitment_correction_re
 import 'package:planact/features/commitments/presentation/commitment_correction_card.dart';
 import 'package:planact/features/scheduling/application/extend_recurring_schedules.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
+import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
@@ -31,6 +42,7 @@ import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
+import 'package:planact/features/inbox/presentation/sms_sync_controller.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -40,6 +52,10 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
+import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
+import 'package:planact/features/commitments/presentation/checklist_page.dart';
+import 'package:planact/features/search/domain/search.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
@@ -91,7 +107,9 @@ class PlanActApp extends StatefulWidget {
     this.holidayPackages,
     this.backupActions,
     this.backupMessage,
+    this.smsSource,
   });
+  final AndroidSmsSource? smsSource;
   final HolidayPackageService? holidayPackages;
   final BackupActions? backupActions;
   final String? backupMessage;
@@ -259,6 +277,7 @@ class _PlanActAppState extends State<PlanActApp> {
               ),
             )
           : HomeShell(
+              smsSource: widget.smsSource,
               holidayPackages: widget.holidayPackages,
               backupActions: widget.backupActions,
               backupMessage: widget.backupMessage,
@@ -289,6 +308,7 @@ class HomeShell extends StatefulWidget {
     this.holidayPackages,
     this.backupActions,
     this.backupMessage,
+    this.smsSource,
     this.themeMode = ThemeMode.system,
     this.appLockEnabled = false,
     this.appLockController,
@@ -300,6 +320,7 @@ class HomeShell extends StatefulWidget {
   static Future<void> _ignoreAppLockChange(bool _) async {}
 
   final CommitmentRepository? repository;
+  final AndroidSmsSource? smsSource;
   final TagRepository? tagRepository;
   final CommitmentPlanRepository? planRepository;
   final AppSettings? settings;
@@ -317,6 +338,11 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
+  late final CalendarNoteRepository _noteRepository =
+      _repository is DriftCommitmentRepository
+      ? DriftCalendarNoteRepository(_repository.database)
+      : InMemoryCalendarNoteRepository();
+  int _notesRevision = 0;
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
@@ -341,6 +367,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     return CommandGate.runFor(repository, () async {
       if (!await platform.requestPermission()) return false;
       if (!await platform.requestExactAlarmPermission()) return false;
+      final rules = await DriftReminderRepository(repository.database)
+          .listRules();
+      if (rules.any((r) => r.enabled && r.delivery == ReminderDelivery.alarm) &&
+          !await platform.requestAlarmChannelPermission()) {
+        return false;
+      }
       await ReminderService(
         repository: DriftReminderRepository(repository.database),
         platform: platform,
@@ -369,6 +401,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ? DriftFinanceRepository(_repository.database)
       : InMemoryFinanceRepository();
   List<Commitment> _commitments = const [];
+  final _commitmentViewsRevision = ValueNotifier<int>(0);
   final Map<String, List<DateTime>> _scheduledDates = {};
   Map<String, List<Occurrence>> _calendarOccurrences = {};
   List<ReminderRule> _calendarReminderRules = [];
@@ -388,11 +421,31 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ? DriftInboxRepository(_repository.database)
         : InMemoryInboxRepository(),
   );
+  late final AndroidSmsSource _smsSource =
+      widget.smsSource ?? AndroidSmsSource();
+  SmsSyncController? _smsSync;
+
+  void _smsSyncChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _refreshWithSms() async {
+    await _smsSync?.refresh();
+    await _refresh();
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (_repository is DriftCommitmentRepository) {
+      _smsSync = SmsSyncController(
+        inbox: _inboxUseCases,
+        source: _smsSource,
+        onChanged: _refresh,
+      )..addListener(_smsSyncChanged);
+      _smsSync!.start();
+    }
     _maintainSchedules();
   }
 
@@ -524,10 +577,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _todayActionCenter = actionCenter;
           _todayError = null;
         });
+        _commitmentViewsRevision.value++;
       }
     } catch (_) {
       if (mounted) {
         setState(() => _todayError = PersianCopy.planactAppRefreshMessage);
+        _commitmentViewsRevision.value++;
       }
       if (throwOnFailure) rethrow;
     }
@@ -598,7 +653,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             },
             finance: _financeRepository,
             onDetermineRelationship: _openRelationship,
-            smsSource: AndroidSmsSource(),
+            smsSource: _smsSource,
+            smsSync: _smsSync,
           ),
         ),
       ),
@@ -639,6 +695,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           ? draft.endDate
           : null,
       reminderOffsets: draft.reminderOffsets,
+      reminderDelivery: draft.reminderDelivery,
       entitlementUnits: draft.entitlement == EntitlementDraft.fixedUnits
           ? draft.entitlementUnits
           : null,
@@ -666,6 +723,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final action = await QuickAddSheet.show(context);
     if (!mounted || action == null) return;
     switch (action) {
+      case QuickAddAction.note:
+        await _showNote();
       case QuickAddAction.commitment:
         await _showCapture();
       case QuickAddAction.expense:
@@ -674,6 +733,17 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       case QuickAddAction.transfer:
         await _showQuickTransfer();
     }
+  }
+
+  Future<void> _showNote([CalendarNote? note]) async {
+    final result = await CalendarNoteEditor.show(
+      context,
+      _noteRepository,
+      note: note,
+    );
+    if (!mounted) return;
+    setState(() => _notesRevision++);
+    if (result != null) _showMessage(planActL10n(context).calendarNoteSaved);
   }
 
   Future<void> _showQuickFinancialEntry({required bool income}) async {
@@ -785,6 +855,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
+    final fresh = await _repository.findById(commitment.id);
+    if (fresh == null) throw StateError('Commitment no longer exists');
+    commitment = fresh;
     final lifecycle = _repository;
     final undo = lifecycle is CommitmentLifecycleRepository
         ? await (lifecycle as CommitmentLifecycleRepository).statusUndo(
@@ -792,7 +865,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           )
         : null;
     if (!mounted) return;
-    await showModalBottomSheet<void>(
+    final action = await showModalBottomSheet<Future<void> Function()>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
@@ -816,8 +889,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.completed);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(
+                          commitment,
+                          CommitmentStatus.completed,
+                        ),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.active)
@@ -827,8 +905,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle2,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.paused);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(commitment, CommitmentStatus.paused),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.paused)
@@ -838,8 +918,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle3,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.active);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(commitment, CommitmentStatus.active),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.active ||
@@ -850,8 +932,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle4,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.cancelled);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(
+                          commitment,
+                          CommitmentStatus.cancelled,
+                        ),
+                      );
                     },
                   ),
                 if (commitment.status != CommitmentStatus.archived)
@@ -861,8 +948,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle5,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.archived);
+                      Navigator.pop(
+                        sheetContext,
+                        () =>
+                            _applyStatus(commitment, CommitmentStatus.archived),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.archived)
@@ -872,8 +962,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle6,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _restoreCommitment(commitment);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _restoreCommitment(commitment),
+                      );
                     },
                   ),
                 if (undo != null)
@@ -881,21 +973,29 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     leading: const Icon(Icons.undo),
                     title: Text(planActL10n(sheetContext).undoStatusAction),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _undoCommitmentStatus(commitment, undo);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _undoCommitmentStatus(commitment, undo),
+                      );
                     },
                   ),
+                ListTile(
+                  leading: const Icon(Icons.checklist),
+                  title: Text(planActL10n(sheetContext).checklistTitle),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    () => _openChecklist(commitment),
+                  ),
+                ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text(
                     PersianCopy.planactAppShowCommitmentDetailsTitle7,
                   ),
                   onTap: () {
-                    Navigator.pop(sheetContext);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => _detailsPage(commitment),
-                      ),
+                    Navigator.pop(
+                      sheetContext,
+                      () => _openReportCommitment(commitment),
                     );
                   },
                 ),
@@ -906,7 +1006,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ),
       ),
     );
+    if (mounted && action != null) await action();
   }
+
+  late final ChecklistRepository _checklists =
+      _repository is DriftCommitmentRepository
+      ? DriftChecklistRepository(_repository.database)
+      : InMemoryChecklistRepository(_repository);
+
+  Future<void> _openChecklist(Commitment commitment) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => ChecklistPage(
+            repository: _checklists,
+            commitmentId: commitment.id,
+            title: commitment.title,
+          ),
+        ),
+      );
 
   Future<void> _applyStatus(
     Commitment commitment,
@@ -1036,7 +1153,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _showTimeline({bool includeHistory = false}) async {
+  List<Commitment> _timelineItems(bool includeHistory) {
     final items =
         _commitments
             .where(
@@ -1058,55 +1175,37 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             }
             return first.compareTo(second);
           });
-    await showDialog<void>(
+    return items;
+  }
+
+  Future<void> _showTimeline({bool includeHistory = false}) async {
+    await showModalBottomSheet<void>(
       context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(
-            includeHistory
-                ? planActL10n(context).commitmentHistoryTitle
-                : PersianCopy.planactAppShowTimelineTitle,
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: items.isEmpty
-                ? const Text(PersianCopy.planactAppShowTimelineContent)
-                : ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: items.length,
-                    separatorBuilder: (_, _) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          child: Text(PersianNumbers.format(index + 1)),
-                        ),
-                        title: Text(item.title),
-                        subtitle: Text(
-                          PersianCopy.planactAppShowTimelineSubtitle2(
-                            (_firstScheduledDate(item) == null
-                                    ? PersianCopy.planactAppShowTimelineSubtitle
-                                    : _formatDate(_firstScheduledDate(item)!))
-                                .toString(),
-                            (_statusLabel(item.status)).toString(),
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          _showCommitmentDetails(item);
-                        },
-                      );
-                    },
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(PersianCopy.commonClose),
-            ),
-          ],
+      sheetAnimationStyle: AnimationStyle(
+        duration: PlanActMotion.duration(context),
+        reverseDuration: PlanActMotion.duration(context, PlanActMotion.short),
+      ),
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: false,
+      enableDrag: false,
+      builder: (context) => ValueListenableBuilder<int>(
+        valueListenable: _commitmentViewsRevision,
+        builder: (context, revision, _) => CommitmentBrowseSheet(
+          title: includeHistory
+              ? planActL10n(context).commitmentHistoryTitle
+              : planActL10n(context).planactAppShowTimelineTitle,
+          items: _timelineItems(includeHistory),
+          subtitle: (item) =>
+              planActL10n(context).planactAppShowTimelineSubtitle2(
+                _firstScheduledDate(item) == null
+                    ? planActL10n(context).planactAppShowTimelineSubtitle
+                    : _formatDate(_firstScheduledDate(item)!),
+                _statusLabel(item.status),
+              ),
+          onOpen: _showCommitmentDetails,
+          error: _todayError,
+          onRetry: _refresh,
         ),
       ),
     );
@@ -1156,7 +1255,32 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               : null,
         ),
         onSaved: _tagsChanged,
+        checklistRepository: _checklists,
       );
+
+  Future<void> _openSearch() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => SearchPage(
+          reader: _repository is DriftCommitmentRepository
+              ? DriftSearchReader(_repository.database)
+              : RepositorySearchReader(
+                  commitments: _repository,
+                  finance: _financeRepository,
+                  notes: _noteRepository,
+                  tags: _tagRepository,
+                ),
+          onOpenCommitment: _showCommitmentDetails,
+          onOpenNote: _showNote,
+          onOpenFinancial: _openSearchFinancial,
+          refreshListenable: _commitmentViewsRevision,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _refresh();
+    await _financePageKey.currentState?.refreshData();
+  }
 
   Future<void> _openReportCommitment(Commitment commitment) async {
     await Navigator.of(
@@ -1164,6 +1288,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
     if (mounted) await _refresh();
   }
+
+  Future<void> _openSearchFinancial(SearchTarget target) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => FinancePage(
+            repository: _financeRepository,
+            expectationRepository: _expectationRepository,
+            tagRepository: _tagRepository,
+            onTagsChanged: _tagsChanged,
+            onDataChanged: _refresh,
+            onDetermineRelationship: _openRelationship,
+            focusedRecordId: target.id,
+            focusedKind: target is AccountSearchTarget
+                ? FinanceRecordKind.account
+                : FinanceRecordKind.entry,
+          ),
+        ),
+      );
 
   String _formatDate(DateTime value) {
     final local = value.toLocal();
@@ -1185,7 +1327,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _smsSync?.removeListener(_smsSyncChanged);
+    _smsSync?.dispose();
     _pageController.dispose();
+    _commitmentViewsRevision.dispose();
     super.dispose();
   }
 
@@ -1202,8 +1347,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         dashboard: _todayDashboard,
         actionCenter: _todayActionCenter,
         error: _todayError,
-        onRetry: _refresh,
-        onRefresh: _refresh,
+        smsSyncError: _smsSync?.error,
+        onRetry: _refreshWithSms,
+        onRefresh: _refreshWithSms,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
@@ -1226,6 +1372,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         },
       ),
       CalendarPage(
+        noteLoader: _noteRepository.loadRange,
+        notesRevision: _notesRevision,
+        onNoteTap: _showNote,
         holidayProvider:
             widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
         commitments: _commitments,
@@ -1300,6 +1449,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           child: Text(titles[_selectedIndex], key: ValueKey(_selectedIndex)),
         ),
         actions: [
+          IconButton(
+            key: const ValueKey('shell-search'),
+            tooltip: planActL10n(context).searchTitle,
+            onPressed: _openSearch,
+            icon: const Icon(Icons.search),
+          ),
           PopupMenuButton<_AppMenuAction>(
             tooltip: planActL10n(context).planactAppBuildTooltip,
             icon: const Icon(Icons.more_horiz),
@@ -1386,43 +1541,40 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               .toList(),
         ),
       ),
-      floatingActionButton: _selectedIndex == 2
-          ? null
-          : FloatingActionButton(
-              tooltip: planActL10n(context).commonQuickAdd,
-              onPressed: _showQuickAdd,
-              child: const Icon(Icons.add),
-            ),
-      // Finance's last operations target must never sit behind Quick Add.
-      // Let Scaffold reserve the measured action + navigation height instead
-      // of guessing FAB or system-bar dimensions in the transaction list.
+      // One persistent action host across tabs. Its measured height reserves
+      // space for every page, including Finance's final operations target.
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_selectedIndex == 2)
-            SafeArea(
-              top: false,
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.all(PlanActSpacing.lg),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  heightFactor: 1,
-                  child: FloatingActionButton(
-                    tooltip: planActL10n(context).commonQuickAdd,
-                    onPressed: _showQuickAdd,
-                    child: const Icon(Icons.add),
-                  ),
+          SafeArea(
+            top: false,
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.all(PlanActSpacing.lg),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                heightFactor: 1,
+                child: FloatingActionButton(
+                  key: const ValueKey('shell-quick-add'),
+                  tooltip: planActL10n(context).commonQuickAdd,
+                  onPressed: _showQuickAdd,
+                  child: const Icon(Icons.add),
                 ),
               ),
             ),
+          ),
           NavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: (index) {
               setState(() => _selectedIndex = index);
+              final duration = PlanActMotion.duration(context);
+              if (duration == Duration.zero) {
+                _pageController.jumpToPage(index);
+                return;
+              }
               _pageController.animateToPage(
                 index,
-                duration: PlanActMotion.duration(context),
+                duration: duration,
                 curve: PlanActMotion.curve,
               );
             },
@@ -1466,7 +1618,9 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.occurrenceExecutor,
     required this.onSaved,
     this.tagRepository,
+    this.checklistRepository,
   });
+  final ChecklistRepository? checklistRepository;
   final TagRepository? tagRepository;
   final Commitment commitment;
   final CommitmentRepository repository;
@@ -1479,6 +1633,43 @@ class CommitmentDetailsPage extends StatefulWidget {
 }
 
 class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
+  int _progressRevision = 0;
+  late CommitmentProgressReader _progressReader = _createProgressReader();
+
+  CommitmentProgressReader _createProgressReader() =>
+      widget.planRepository is DriftCommitmentPlanRepository &&
+          widget.expectationRepository is DriftFinancialExpectationRepository &&
+          identical(
+            (widget.planRepository as DriftCommitmentPlanRepository).database,
+            (widget.expectationRepository
+                    as DriftFinancialExpectationRepository)
+                .database,
+          )
+      ? DriftCommitmentProgressReader(
+          (widget.planRepository as DriftCommitmentPlanRepository).database,
+        )
+      : RepositoryCommitmentProgressReader(
+          widget.planRepository,
+          widget.expectationRepository,
+        );
+
+  @override
+  void didUpdateWidget(CommitmentDetailsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.planRepository != widget.planRepository ||
+        oldWidget.expectationRepository != widget.expectationRepository) {
+      _progressReader = _createProgressReader();
+    }
+  }
+
+  Future<void> _refreshDetails() async {
+    try {
+      await widget.onSaved();
+    } finally {
+      if (mounted) setState(() => _progressRevision++);
+    }
+  }
+
   late final _title = TextEditingController(text: widget.commitment.title);
   late final _description = TextEditingController(
     text: widget.commitment.description ?? '',
@@ -1566,6 +1757,11 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          CommitmentProgressSection(
+            reader: _progressReader,
+            commitmentId: widget.commitment.id,
+            revision: _progressRevision,
+          ),
           Text(
             planActL10n(context).planactAppBuildChildren(
               (_statusLabel(widget.commitment.status)).toString(),
@@ -1573,6 +1769,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
+          if (widget.checklistRepository
+              case final ChecklistRepository repository)
+            ListTile(
+              leading: const Icon(Icons.checklist),
+              title: Text(planActL10n(context).checklistTitle),
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => ChecklistPage(
+                    repository: repository,
+                    commitmentId: widget.commitment.id,
+                    title: widget.commitment.title,
+                  ),
+                ),
+              ),
+            ),
           Text(
             planActL10n(context).planactAppBuildChildren2(
               (_kindLabel(widget.commitment.kind)).toString(),
@@ -1626,8 +1837,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               onChanged: () async {
                 // Re-read durable state before any later metadata/status command.
                 await widget.repository.findById(widget.commitment.id);
-                await widget.onSaved();
-                if (mounted) setState(() {});
+                await _refreshDetails();
               },
             )
           else
@@ -1643,10 +1853,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             as PersistedOccurrenceActionExecutor)
                         .reminders
                   : null,
-              onChanged: () async {
-                await widget.onSaved();
-                if (mounted) setState(() {});
-              },
+              onChanged: _refreshDetails,
             ),
           if (widget.planRepository
               case final DriftCommitmentPlanRepository plans)
@@ -1659,15 +1866,12 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             as PersistedOccurrenceActionExecutor)
                         .reminders
                   : null,
-              onSaved: () async {
-                await widget.onSaved();
-                if (mounted) setState(() {});
-              },
+              onSaved: _refreshDetails,
             ),
           PlannedDetailsRange(
             commitment: widget.commitment,
             repository: widget.planRepository,
-            onSaved: widget.onSaved,
+            onSaved: _refreshDetails,
             synchronizeReminders:
                 widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
                 ? () async =>
@@ -1690,10 +1894,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       key: ValueKey(
                         '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
-                      onChanged: () async {
-                        await widget.onSaved();
-                        if (mounted) setState(() {});
-                      },
+                      onChanged: _refreshDetails,
                       onEdit: widget.planRepository is CommitmentPlanTransaction
                           ? (selected) async {
                               final selection =
@@ -1724,7 +1925,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                       scope: selection.scope,
                                       now: DateTime.now(),
                                     );
-                                await widget.onSaved();
+                                await _refreshDetails();
                                 if (!context.mounted) return;
                                 setState(() {});
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1772,6 +1973,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                       for (final occurrence in occurrences)
                         _FinancialExpectationOccurrenceRow(
                           occurrence: occurrence,
+                          onSaved: () => setState(() => _progressRevision++),
                           useCases: FinancialExpectationUseCases(
                             widget.expectationRepository,
                           ),
@@ -1799,10 +2001,12 @@ class _FinancialExpectationOccurrenceRow extends StatefulWidget {
   const _FinancialExpectationOccurrenceRow({
     required this.occurrence,
     required this.useCases,
+    required this.onSaved,
   });
 
   final Occurrence occurrence;
   final FinancialExpectationUseCases useCases;
+  final VoidCallback onSaved;
 
   @override
   State<_FinancialExpectationOccurrenceRow> createState() =>
@@ -1849,6 +2053,7 @@ class _FinancialExpectationOccurrenceRowState
                       occurrenceId: widget.occurrence.id,
                       useCases: widget.useCases,
                       accounts: _accounts,
+                      onSaved: widget.onSaved,
                     ),
             ),
         ],
