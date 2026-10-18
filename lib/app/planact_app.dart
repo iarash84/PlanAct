@@ -1273,6 +1273,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           onOpenCommitment: _showCommitmentDetails,
           onOpenNote: _showNote,
           onOpenFinancial: _openSearchFinancial,
+          refreshListenable: _commitmentViewsRevision,
         ),
       ),
     );

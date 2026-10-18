@@ -26,11 +26,16 @@ class SearchPage extends StatefulWidget {
     required this.onOpenCommitment,
     required this.onOpenNote,
     this.onOpenFinancial,
+    this.refreshListenable,
   });
   final SearchReader reader;
   final Future<void> Function(Commitment) onOpenCommitment;
   final Future<void> Function(CalendarNote) onOpenNote;
   final Future<void> Function(SearchTarget target)? onOpenFinancial;
+
+  /// Invalidates the transient snapshot after commands outside result opening,
+  /// such as the shell's delayed snackbar Undo.
+  final Listenable? refreshListenable;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -52,11 +57,27 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    widget.refreshListenable?.addListener(_refreshIfIdle);
     _load();
   }
 
   @override
+  void didUpdateWidget(SearchPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshListenable != widget.refreshListenable) {
+      oldWidget.refreshListenable?.removeListener(_refreshIfIdle);
+      widget.refreshListenable?.addListener(_refreshIfIdle);
+    }
+  }
+
+  void _refreshIfIdle() {
+    // An open result already reloads on return, after its command completes.
+    if (!_opening) unawaited(_load());
+  }
+
+  @override
   void dispose() {
+    widget.refreshListenable?.removeListener(_refreshIfIdle);
     _readRevision++;
     _debounce?.cancel();
     _query.dispose();

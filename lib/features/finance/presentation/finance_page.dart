@@ -137,7 +137,14 @@ class FinancePageState extends State<FinancePage> {
       final tags = await widget.tagRepository?.list() ?? <Tag>[];
       final memberships = <String, Set<StableId>>{};
       if (widget.tagRepository case final TagRepository repository) {
-        for (final entry in entries) {
+        // Keep the full ledger for balance/reversal rules; only memberships
+        // depend on which records this route actually presents.
+        final entriesWithTags = widget.focusedRecordId == null
+            ? entries
+            : widget.focusedKind == FinanceRecordKind.entry
+            ? entries.where((entry) => entry.id.value == widget.focusedRecordId)
+            : const <AccountEntry>[];
+        for (final entry in entriesWithTags) {
           memberships[entry.id.value] = await repository.tagsFor(
             entry.id.value,
             TaggableType.accountEntry,

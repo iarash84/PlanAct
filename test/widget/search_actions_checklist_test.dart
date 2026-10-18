@@ -45,6 +45,61 @@ class SlowFinance extends InMemoryFinanceRepository {
 }
 
 void main() {
+  for (final confirm in [false, true]) {
+    testWidgets(
+      'search refreshes snackbar Undo only after confirmation ($confirm)',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 1200));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final db = AppDatabase.forTesting(NativeDatabase.memory());
+        addTearDown(db.close);
+        final owners = DriftCommitmentRepository(db);
+        final owner = Commitment.create(title: 'خرید');
+        await owners.save(owner);
+        await tester.pumpWidget(PlanActApp(repository: owners));
+        await settleIo(tester);
+        await tester.tap(find.byKey(const ValueKey('shell-search')));
+        await settleIo(tester);
+        await query(tester, 'خرید');
+        await tester.tap(
+          find.byKey(const ValueKey('search-filter-commitment')),
+        );
+        await openResult(tester, 'commitment', owner.id.value);
+        await tester.tap(find.text('توقف موقت'));
+        await settleIo(tester);
+        expect(find.textContaining('متوقف‌شده'), findsOneWidget);
+        await tester.tap(find.byType(SnackBarAction));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          confirm
+              ? find.widgetWithText(FilledButton, 'تأیید')
+              : find.widgetWithText(TextButton, 'انصراف'),
+        );
+        await settleIo(tester);
+        expect(
+          (await owners.findById(owner.id))!.status,
+          confirm ? CommitmentStatus.active : CommitmentStatus.paused,
+        );
+        expect(
+          find.textContaining('متوقف‌شده'),
+          confirm ? findsNothing : findsOneWidget,
+        );
+        expect(
+          tester.widget<TextField>(find.byKey(queryKey)).controller!.text,
+          'خرید',
+        );
+        expect(
+          tester
+              .widget<FilterChip>(
+                find.byKey(const ValueKey('search-filter-commitment')),
+              )
+              .selected,
+          isTrue,
+        );
+      },
+    );
+  }
+
   testWidgets(
     'shell search → lifecycle actions and durable Undo → checklist tasks without parent completion',
     (tester) async {

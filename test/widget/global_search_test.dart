@@ -59,6 +59,7 @@ Widget app(
   Brightness brightness = Brightness.light,
   double scale = 1,
   Future<void> Function(Commitment)? onOpen,
+  Listenable? refreshListenable,
 }) => MaterialApp(
   locale: const Locale('fa'),
   supportedLocales: AppLocalizations.supportedLocales,
@@ -74,6 +75,7 @@ Widget app(
     reader: reader,
     onOpenCommitment: onOpen ?? (_) async {},
     onOpenNote: (_) async {},
+    refreshListenable: refreshListenable,
   ),
 );
 
@@ -291,6 +293,8 @@ void main() {
   testWidgets(
     'reloading after result selection preserves scroll, query and filter',
     (tester) async {
+      final changes = ValueNotifier<int>(0);
+      addTearDown(changes.dispose);
       final documents = List.generate(80, (i) => doc('زبان $i'));
       final last = searchDocuments(documents, 'زبان').last;
       var reads = 0;
@@ -300,6 +304,8 @@ void main() {
             reads++;
             return documents;
           }),
+          refreshListenable: changes,
+          onOpen: (_) async => changes.value++,
         ),
       );
       await tester.pumpAndSettle();
@@ -321,6 +327,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(reads, 2);
       expect(position.pixels, before);
+      changes.value++;
+      await tester.pumpAndSettle();
+      expect(reads, 3);
+      expect(position.pixels, before);
       expect(
         tester.widget<TextField>(find.byKey(queryKey)).controller!.text,
         'زبان',
@@ -336,6 +346,48 @@ void main() {
             .selected,
         isTrue,
       );
+      await tester.pumpWidget(const SizedBox());
+      changes.value++;
+      await tester.pumpAndSettle();
+      expect(reads, 3);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'external refresh retries failed reads and detaches a replaced source',
+    (tester) async {
+      final first = ValueNotifier<int>(0);
+      final second = ValueNotifier<int>(0);
+      addTearDown(first.dispose);
+      addTearDown(second.dispose);
+      var reads = 0;
+      var fail = false;
+      final reader = Reader(() async {
+        reads++;
+        if (fail) throw StateError('read failure');
+        return [doc('کلاس زبان')];
+      });
+      await tester.pumpWidget(app(reader, refreshListenable: first));
+      await tester.pumpAndSettle();
+      await query(tester, 'زبان');
+      fail = true;
+      first.value++;
+      await tester.pumpAndSettle();
+      expect(find.textContaining('خواندن اطلاعات'), findsOneWidget);
+      expect(reads, 2);
+      fail = false;
+      await tester.tap(find.text('تلاش دوباره'));
+      await tester.pumpAndSettle();
+      expect(find.text('کلاس زبان'), findsOneWidget);
+      expect(reads, 3);
+      await tester.pumpWidget(app(reader, refreshListenable: second));
+      first.value++;
+      await tester.pumpAndSettle();
+      expect(reads, 3);
+      second.value++;
+      await tester.pumpAndSettle();
+      expect(reads, 4);
     },
   );
 
