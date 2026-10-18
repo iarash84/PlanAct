@@ -4751,6 +4751,62 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
+  String get checklistTitle => 'فهرست کارها';
+
+  @override
+  String get checklistScope =>
+      'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.';
+
+  @override
+  String get checklistAdd => 'افزودن کار';
+
+  @override
+  String get checklistEdit => 'ویرایش کار';
+
+  @override
+  String get checklistItemTitle => 'عنوان کار';
+
+  @override
+  String get checklistEmptyTitle => 'عنوان کار را وارد کنید.';
+
+  @override
+  String get checklistSaveError =>
+      'تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.';
+
+  @override
+  String get checklistReadError =>
+      'فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.';
+
+  @override
+  String get checklistReadOnly =>
+      'فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.';
+
+  @override
+  String checklistProgress(String checked, String total) {
+    return '$checked از $total کار انجام شده';
+  }
+
+  @override
+  String get checklistEmpty =>
+      'هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.';
+
+  @override
+  String get checklistActions => 'اقدام‌های این کار';
+
+  @override
+  String get checklistRemove => 'کنار گذاشتن کار';
+
+  @override
+  String get checklistRemoveConfirm =>
+      'این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.';
+
+  @override
+  String get checklistRemoved => 'کارهای کنارگذاشته‌شده';
+
+  @override
+  String get checklistRestore => 'بازگرداندن کار';
+
+  @override
   String calendarNoteDaySummary(String count, String titles) {
     return '$count یادداشت: $titles';
   }

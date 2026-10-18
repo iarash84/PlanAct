@@ -104,6 +104,15 @@ A UI event must call an application/domain command or use case. **UI code must n
 
 ## 6. Domain model invariants
 
+User-approved 2026-10-14 checklist scope: a commitment may own one shared checklist
+(for example shopping tasks), independent from cycles and occurrences. Preserve
+stable item identity, checked state, reversible removal and append-only revisions;
+admit writes against fresh owner status and revision transactionally. Checking all
+items never completes an occurrence/commitment, records money or consumes credit.
+Keep heads and retained snapshots in personal backups. Search exposes existing
+type-specific commands with their confirmation/Undo rules; browsing remains read-only.
+See docs/adr/0024-commitment-checklists.md and docs/CHECKLIST_VERIFICATION.md.
+
 ### 6.1 Commitment hierarchy
 
 ```text

@@ -135,6 +135,9 @@ void main() {
         find.byKey(ValueKey('search-result-commitment-${commitment.id.value}')),
       );
       await settleIo(tester);
+      expect(find.byType(CommitmentDetailsPage), findsNothing);
+      await tester.tap(find.text('جزئیات و ویرایش'));
+      await settleIo(tester);
       expect(find.byType(CommitmentDetailsPage), findsOneWidget);
       await tester.binding.handlePopRoute();
       await settleIo(tester);

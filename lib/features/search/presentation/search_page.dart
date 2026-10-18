@@ -25,10 +25,12 @@ class SearchPage extends StatefulWidget {
     required this.reader,
     required this.onOpenCommitment,
     required this.onOpenNote,
+    this.onOpenFinancial,
   });
   final SearchReader reader;
   final Future<void> Function(Commitment) onOpenCommitment;
   final Future<void> Function(CalendarNote) onOpenNote;
+  final Future<void> Function(SearchTarget target)? onOpenFinancial;
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -109,11 +111,15 @@ class _SearchPageState extends State<SearchPage> {
         case NoteSearchTarget(:final value):
           await widget.onOpenNote(value);
         case TransactionSearchTarget() || AccountSearchTarget():
-          await Navigator.of(context).push<void>(
-            MaterialPageRoute(
-              builder: (_) => _FinancialSearchDetails(document: document),
-            ),
-          );
+          if (widget.onOpenFinancial case final open?) {
+            await open(document.target);
+          } else {
+            await Navigator.of(context).push<void>(
+              MaterialPageRoute(
+                builder: (_) => _FinancialSearchDetails(document: document),
+              ),
+            );
+          }
       }
       if (mounted) await _load();
     } catch (_) {

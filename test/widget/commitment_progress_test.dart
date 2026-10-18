@@ -199,7 +199,7 @@ void main() {
   );
 
   testWidgets(
-    'real shell search → Details → confirmed outcome → fresh chart and durable history',
+    'real shell search → actions → Details → confirmed outcome → fresh chart and durable history',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -225,6 +225,9 @@ void main() {
           ValueKey('search-result-commitment-${plan.commitment.id.value}'),
         ),
       );
+      await settleIo(tester);
+      expect(find.byType(CommitmentDetailsPage), findsNothing);
+      await tester.tap(find.text('جزئیات و ویرایش'));
       await settleIo(tester);
       expect(find.byType(CommitmentDetailsPage), findsOneWidget);
       expect(find.text('باقی‌مانده: ۴ نوبت (۱۰۰٪)'), findsOneWidget);

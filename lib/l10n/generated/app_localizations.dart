@@ -7955,6 +7955,102 @@ abstract class AppLocalizations {
   /// **'{count} لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.'**
   String progressExcludedCancellations(String count);
 
+  /// Commitment checklist route and action.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست کارها'**
+  String get checklistTitle;
+
+  /// Shared list scope and absence of automatic lifecycle or financial effects.
+  ///
+  /// In fa, this message translates to:
+  /// **'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.'**
+  String get checklistScope;
+
+  /// Add a checklist item.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن کار'**
+  String get checklistAdd;
+
+  /// Explicit checklist item rename.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش کار'**
+  String get checklistEdit;
+
+  /// Required task name field.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان کار'**
+  String get checklistItemTitle;
+
+  /// Empty checklist item validation.
+  ///
+  /// In fa, this message translates to:
+  /// **'عنوان کار را وارد کنید.'**
+  String get checklistEmptyTitle;
+
+  /// Failed write retains dialog draft and requires reload before another write.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.'**
+  String get checklistSaveError;
+
+  /// Read failure distinct from committed save failure.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.'**
+  String get checklistReadError;
+
+  /// Resolved and archived commitments retain readable checklists.
+  ///
+  /// In fa, this message translates to:
+  /// **'فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.'**
+  String get checklistReadOnly;
+
+  /// Checked versus visible task count using formatted Persian integers.
+  ///
+  /// In fa, this message translates to:
+  /// **'{checked} از {total} کار انجام شده'**
+  String checklistProgress(String checked, String total);
+
+  /// Empty checklist guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.'**
+  String get checklistEmpty;
+
+  /// Accessible item action menu tooltip.
+  ///
+  /// In fa, this message translates to:
+  /// **'اقدام‌های این کار'**
+  String get checklistActions;
+
+  /// Reversible item removal retaining history.
+  ///
+  /// In fa, this message translates to:
+  /// **'کنار گذاشتن کار'**
+  String get checklistRemove;
+
+  /// Explicit removal confirmation with restoration disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.'**
+  String get checklistRemoveConfirm;
+
+  /// Expandable retained removed tasks.
+  ///
+  /// In fa, this message translates to:
+  /// **'کارهای کنارگذاشته‌شده'**
+  String get checklistRemoved;
+
+  /// Restore task with original identity and checked state.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازگرداندن کار'**
+  String get checklistRestore;
+
   /// Accessible month day note summary, separate from commitment counts.
   ///
   /// In fa, this message translates to:

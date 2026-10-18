@@ -1,5 +1,23 @@
 # Global local search — 2026-10-14
 
+## Requested action extension — 2026-10-14
+
+The later user request supersedes direct commitment editing/read-only production
+financial navigation below: selecting a commitment now opens its existing action
+sheet (complete/pause/resume/cancel/archive/restore/durable Undo, according to fresh
+status), Details/edit and commitment checklist. The sheet returns an awaited action;
+Search reloads only after it completes. Selecting a financial entry/account opens
+the existing Finance controls scoped to that exact ID, with fresh repository reads,
+correction/cancellation, tags/relationship review or account edit/archive/restore.
+Notes retain revision-checked explicit editing, their existing supported action.
+No generic archive/status is invented for notes or financial ledger history.
+
+Browsing remains read-only; only explicit existing commands mutate. Query, filter
+and scroll survive return, and root surfaces refresh. See the before-implementation
+[contract and final evidence](CHECKLIST_VERIFICATION.md) and route regressions in
+`test/widget/search_actions_checklist_test.dart`. Historical evidence below describes
+the original search checkpoint; it is not evidence for this extension.
+
 ## Acceptance contract (before implementation)
 
 - Outcome/entry: the shared shell AppBar opens Persian RTL search from every root tab, without permissions, internet or account. Search current durable commitments (including archived/resolved), financial entries of every type, independent calendar notes and accounts. Search title/name, description/note, category, linked account name and classification labels. All words must match; Arabic/Persian Yeh/Kaf, diacritics, whitespace/half-space, letter case and Persian/Arabic/Latin digits are equivalent for matching only.

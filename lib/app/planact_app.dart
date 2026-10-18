@@ -52,6 +52,10 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
+import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
+import 'package:planact/features/commitments/presentation/checklist_page.dart';
+import 'package:planact/features/search/domain/search.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
@@ -851,6 +855,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   Future<void> _showCommitmentDetails(Commitment commitment) async {
+    final fresh = await _repository.findById(commitment.id);
+    if (fresh == null) throw StateError('Commitment no longer exists');
+    commitment = fresh;
     final lifecycle = _repository;
     final undo = lifecycle is CommitmentLifecycleRepository
         ? await (lifecycle as CommitmentLifecycleRepository).statusUndo(
@@ -858,7 +865,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           )
         : null;
     if (!mounted) return;
-    await showModalBottomSheet<void>(
+    final action = await showModalBottomSheet<Future<void> Function()>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
@@ -882,8 +889,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.completed);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(
+                          commitment,
+                          CommitmentStatus.completed,
+                        ),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.active)
@@ -893,8 +905,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle2,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.paused);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(commitment, CommitmentStatus.paused),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.paused)
@@ -904,8 +918,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle3,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.active);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(commitment, CommitmentStatus.active),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.active ||
@@ -916,8 +932,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle4,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.cancelled);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _applyStatus(
+                          commitment,
+                          CommitmentStatus.cancelled,
+                        ),
+                      );
                     },
                   ),
                 if (commitment.status != CommitmentStatus.archived)
@@ -927,8 +948,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle5,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _applyStatus(commitment, CommitmentStatus.archived);
+                      Navigator.pop(
+                        sheetContext,
+                        () =>
+                            _applyStatus(commitment, CommitmentStatus.archived),
+                      );
                     },
                   ),
                 if (commitment.status == CommitmentStatus.archived)
@@ -938,8 +962,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                       PersianCopy.planactAppShowCommitmentDetailsTitle6,
                     ),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _restoreCommitment(commitment);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _restoreCommitment(commitment),
+                      );
                     },
                   ),
                 if (undo != null)
@@ -947,21 +973,29 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     leading: const Icon(Icons.undo),
                     title: Text(planActL10n(sheetContext).undoStatusAction),
                     onTap: () {
-                      Navigator.pop(sheetContext);
-                      _undoCommitmentStatus(commitment, undo);
+                      Navigator.pop(
+                        sheetContext,
+                        () => _undoCommitmentStatus(commitment, undo),
+                      );
                     },
                   ),
+                ListTile(
+                  leading: const Icon(Icons.checklist),
+                  title: Text(planActL10n(sheetContext).checklistTitle),
+                  onTap: () => Navigator.pop(
+                    sheetContext,
+                    () => _openChecklist(commitment),
+                  ),
+                ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text(
                     PersianCopy.planactAppShowCommitmentDetailsTitle7,
                   ),
                   onTap: () {
-                    Navigator.pop(sheetContext);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => _detailsPage(commitment),
-                      ),
+                    Navigator.pop(
+                      sheetContext,
+                      () => _openReportCommitment(commitment),
                     );
                   },
                 ),
@@ -972,7 +1006,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ),
       ),
     );
+    if (mounted && action != null) await action();
   }
+
+  late final ChecklistRepository _checklists =
+      _repository is DriftCommitmentRepository
+      ? DriftChecklistRepository(_repository.database)
+      : InMemoryChecklistRepository(_repository);
+
+  Future<void> _openChecklist(Commitment commitment) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => ChecklistPage(
+            repository: _checklists,
+            commitmentId: commitment.id,
+            title: commitment.title,
+          ),
+        ),
+      );
 
   Future<void> _applyStatus(
     Commitment commitment,
@@ -1204,6 +1255,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               : null,
         ),
         onSaved: _tagsChanged,
+        checklistRepository: _checklists,
       );
 
   Future<void> _openSearch() async {
@@ -1218,8 +1270,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   notes: _noteRepository,
                   tags: _tagRepository,
                 ),
-          onOpenCommitment: _openReportCommitment,
+          onOpenCommitment: _showCommitmentDetails,
           onOpenNote: _showNote,
+          onOpenFinancial: _openSearchFinancial,
         ),
       ),
     );
@@ -1234,6 +1287,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
     if (mounted) await _refresh();
   }
+
+  Future<void> _openSearchFinancial(SearchTarget target) =>
+      Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => FinancePage(
+            repository: _financeRepository,
+            expectationRepository: _expectationRepository,
+            tagRepository: _tagRepository,
+            onTagsChanged: _tagsChanged,
+            onDataChanged: _refresh,
+            onDetermineRelationship: _openRelationship,
+            focusedRecordId: target.id,
+            focusedKind: target is AccountSearchTarget
+                ? FinanceRecordKind.account
+                : FinanceRecordKind.entry,
+          ),
+        ),
+      );
 
   String _formatDate(DateTime value) {
     final local = value.toLocal();
@@ -1546,7 +1617,9 @@ class CommitmentDetailsPage extends StatefulWidget {
     required this.occurrenceExecutor,
     required this.onSaved,
     this.tagRepository,
+    this.checklistRepository,
   });
+  final ChecklistRepository? checklistRepository;
   final TagRepository? tagRepository;
   final Commitment commitment;
   final CommitmentRepository repository;
@@ -1695,6 +1768,21 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
+          if (widget.checklistRepository
+              case final ChecklistRepository repository)
+            ListTile(
+              leading: const Icon(Icons.checklist),
+              title: Text(planActL10n(context).checklistTitle),
+              onTap: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => ChecklistPage(
+                    repository: repository,
+                    commitmentId: widget.commitment.id,
+                    title: widget.commitment.title,
+                  ),
+                ),
+              ),
+            ),
           Text(
             planActL10n(context).planactAppBuildChildren2(
               (_kindLabel(widget.commitment.kind)).toString(),
