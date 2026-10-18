@@ -63,8 +63,10 @@ class WeekTimelineView extends StatefulWidget {
     this.noteLoader,
     this.notesRevision = 0,
     this.onNoteTap,
+    this.bottomContentPadding = 0,
   });
   final JalaliDate date;
+  final double bottomContentPadding;
   final List<Commitment> commitments;
   final Map<String, List<Occurrence>> occurrences;
   final IranianHolidayProvider holidays;
@@ -437,6 +439,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
                         child: SingleChildScrollView(
                           key: const ValueKey('week-hour-scroll'),
                           controller: _vertical,
+                          padding: EdgeInsets.only(
+                            bottom: widget.bottomContentPadding,
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

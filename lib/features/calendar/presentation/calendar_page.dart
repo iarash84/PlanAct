@@ -44,9 +44,11 @@ class CalendarPage extends StatefulWidget {
     this.notesRevision = 0,
     this.onNoteTap,
     this.holidayProvider = const IranianHolidayProvider(),
+    this.bottomContentPadding = 0,
   });
 
   final List<Commitment> commitments;
+  final double bottomContentPadding;
   final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
   final int notesRevision;
   final ValueChanged<CalendarNote>? onNoteTap;
@@ -304,6 +306,7 @@ class _CalendarPageState extends State<CalendarPage> {
           child: _week
               ? WeekTimelineView(
                   key: ValueKey(_weekPositionRevision),
+                  bottomContentPadding: widget.bottomContentPadding,
                   date: _selectedDay,
                   commitments: widget.commitments,
                   occurrences: widget.occurrences,
@@ -318,11 +321,11 @@ class _CalendarPageState extends State<CalendarPage> {
                 )
               : ListView(
                   controller: _monthScroll,
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     PlanActSpacing.md,
                     0,
                     PlanActSpacing.md,
-                    PlanActSpacing.xl,
+                    PlanActSpacing.xl + widget.bottomContentPadding,
                   ),
                   children: [
                     if (!_holidayProvider.hasCompleteOfficialCoverage(

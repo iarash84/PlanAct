@@ -77,6 +77,7 @@ class FinancePage extends StatefulWidget {
     this.onDataChanged,
     this.onDetermineRelationship,
     this.embedded = false,
+    this.bottomContentPadding = 0,
     this.focusedRecordId,
     this.focusedKind = FinanceRecordKind.entry,
   });
@@ -87,6 +88,7 @@ class FinancePage extends StatefulWidget {
   final Future<void> Function()? onDataChanged;
   final FinanceRepository repository;
   final bool embedded;
+  final double bottomContentPadding;
 
   /// Search opens the existing controls for exactly one durable record.
   final String? focusedRecordId;
@@ -774,7 +776,12 @@ class FinancePageState extends State<FinancePage> {
             : RefreshIndicator(
                 onRefresh: _refresh,
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(
+                    PlanActSpacing.lg,
+                    PlanActSpacing.lg,
+                    PlanActSpacing.lg,
+                    PlanActSpacing.lg + widget.bottomContentPadding,
+                  ),
                   children: [
                     if (_loadError != null)
                       Card(

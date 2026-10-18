@@ -338,6 +338,11 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
+  static const _quickAddSize = 56.0;
+  // Reserve the floating footprint inside scroll content, never the viewport.
+  static const _quickAddScrollClearance =
+      _quickAddSize + kFloatingActionButtonMargin;
+
   late final CalendarNoteRepository _noteRepository =
       _repository is DriftCommitmentRepository
       ? DriftCalendarNoteRepository(_repository.database)
@@ -1338,6 +1343,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       TodayPage(
+        bottomContentPadding: _quickAddScrollClearance,
         onOpenRelationshipQueue:
             _reconciliation.repository is RelationshipReviewRepository
             ? _openRelationshipQueue
@@ -1372,6 +1378,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         },
       ),
       CalendarPage(
+        bottomContentPadding: _quickAddScrollClearance,
         noteLoader: _noteRepository.loadRange,
         notesRevision: _notesRevision,
         onNoteTap: _showNote,
@@ -1400,6 +1407,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       FinancePage(
         key: _financePageKey,
+        bottomContentPadding: _quickAddScrollClearance,
         embedded: true,
         repository: _financeRepository,
         onDetermineRelationship: _openRelationship,
@@ -1409,6 +1417,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
+        bottomContentPadding: _quickAddScrollClearance,
         onInbox: _openInbox,
         onReports: _openReports,
         holidayPackages: widget.holidayPackages,
@@ -1541,64 +1550,50 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               .toList(),
         ),
       ),
-      // One persistent action host across tabs. Its measured height reserves
-      // space for every page, including Finance's final operations target.
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SafeArea(
-            top: false,
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.all(PlanActSpacing.lg),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                heightFactor: 1,
-                child: FloatingActionButton(
-                  key: const ValueKey('shell-quick-add'),
-                  tooltip: planActL10n(context).commonQuickAdd,
-                  onPressed: _showQuickAdd,
-                  child: const Icon(Icons.add),
-                ),
-              ),
-            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SizedBox.square(
+        dimension: _quickAddSize,
+        child: FloatingActionButton(
+          key: const ValueKey('shell-quick-add'),
+          tooltip: planActL10n(context).commonQuickAdd,
+          onPressed: _showQuickAdd,
+          child: const Icon(Icons.add),
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+          final duration = PlanActMotion.duration(context);
+          if (duration == Duration.zero) {
+            _pageController.jumpToPage(index);
+            return;
+          }
+          _pageController.animateToPage(
+            index,
+            duration: duration,
+            curve: PlanActMotion.curve,
+          );
+        },
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.today_outlined),
+            selectedIcon: Icon(Icons.today),
+            label: planActL10n(context).commonToday,
           ),
-          NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() => _selectedIndex = index);
-              final duration = PlanActMotion.duration(context);
-              if (duration == Duration.zero) {
-                _pageController.jumpToPage(index);
-                return;
-              }
-              _pageController.animateToPage(
-                index,
-                duration: duration,
-                curve: PlanActMotion.curve,
-              );
-            },
-            destinations: [
-              NavigationDestination(
-                icon: Icon(Icons.today_outlined),
-                selectedIcon: Icon(Icons.today),
-                label: planActL10n(context).commonToday,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.calendar_month_outlined),
-                selectedIcon: Icon(Icons.calendar_month),
-                label: planActL10n(context).navigationCalendar,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                selectedIcon: Icon(Icons.account_balance_wallet),
-                label: planActL10n(context).navigationFinance,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.more_horiz),
-                label: planActL10n(context).navigationMore,
-              ),
-            ],
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: planActL10n(context).navigationCalendar,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: planActL10n(context).navigationFinance,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.more_horiz),
+            label: planActL10n(context).navigationMore,
           ),
         ],
       ),
@@ -2091,6 +2086,7 @@ class _MorePage extends StatelessWidget {
     this.onHolidaysChanged,
     this.backupActions,
     this.backupMessage,
+    this.bottomContentPadding = 0,
   });
 
   final VoidCallback onInbox;
@@ -2100,10 +2096,16 @@ class _MorePage extends StatelessWidget {
   final VoidCallback? onHolidaysChanged;
   final BackupActions? backupActions;
   final String? backupMessage;
+  final double bottomContentPadding;
 
   @override
   Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(16),
+    padding: EdgeInsets.fromLTRB(
+      PlanActSpacing.lg,
+      PlanActSpacing.lg,
+      PlanActSpacing.lg,
+      PlanActSpacing.lg + bottomContentPadding,
+    ),
     children: [
       Card(
         child: ListTile(

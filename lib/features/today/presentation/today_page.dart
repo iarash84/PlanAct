@@ -29,6 +29,7 @@ class TodayPage extends StatelessWidget {
     required this.onCommitmentArchive,
     required this.onReview,
     this.onOpenRelationshipQueue,
+    this.bottomContentPadding = 0,
   });
 
   final List<Commitment> commitments;
@@ -44,6 +45,7 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<Commitment> onCommitmentArchive;
   final ValueChanged<TodayActionItem> onReview;
   final VoidCallback? onOpenRelationshipQueue;
+  final double bottomContentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +53,11 @@ class TodayPage extends StatelessWidget {
     final center = actionCenter;
     final content = ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         PlanActSpacing.lg,
         PlanActSpacing.md,
         PlanActSpacing.lg,
-        100,
+        PlanActSpacing.lg + bottomContentPadding,
       ),
       children: [
         Text(
