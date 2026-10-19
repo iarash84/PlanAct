@@ -49,6 +49,99 @@ void main() {
       expect(parsed.quality, ParseQuality.high);
     });
   }
+  test('Sina account bidi marks from Android do not block parsing', () {
+    const body =
+        'بانک سينا\n'
+        'برداشت از \u202A111-222-3334444-5\u202C\n'
+        'مبلغ  123,456 ريال\n'
+        'مانده 7,654,321 ريال\n'
+        'زمان : 1405/7/27 ; 07:18:24';
+    final parsed = parser.parse(text: body, currency: 'IRR');
+
+    expect(parsed.bank, 'سینا');
+    expect(parsed.accountHint, '111-222-3334444-5');
+    expect(parsed.amount.minorUnits, 123456);
+    expect(parsed.direction, TransactionDirection.outgoing);
+    expect(parsed.occurredAt, DateTime(2026, 10, 19, 7, 18, 24));
+  });
+  test('device bank transaction layouts remain conservative but readable', () {
+    final cases =
+        <
+          ({
+            String name,
+            String text,
+            int amount,
+            TransactionDirection direction,
+            String? bank,
+            String? account,
+            DateTime? occurredAt,
+          })
+        >[
+          (
+            name: 'رسالت با خطوط خالی',
+            text: '12.3456789.0\n\n-98,765,432 \n\n07/18_20:20\n\nمانده: 12,345,678',
+            amount: 98765432,
+            direction: TransactionDirection.outgoing,
+            bank: null,
+            account: '12.3456789.0',
+            occurredAt: null,
+          ),
+          (
+            name: 'مهر ایران با ساعت تک‌رقمی',
+            text: '\u202A123456789012345678\u202C\n43,210,000-\n1405/7/7-6:47\nمانده:98,765,432',
+            amount: 43210000,
+            direction: TransactionDirection.outgoing,
+            bank: null,
+            account: '123456789012345678',
+            occurredAt: DateTime(2026, 9, 29, 6, 47),
+          ),
+          (
+            name: 'ایران‌زمین با مانده پیش از تاریخ',
+            text: '\u202A123-45-6789012-3\u202C\n+12,345,000\nمانده 98,765,432\n1405/7/5-19:47',
+            amount: 12345000,
+            direction: TransactionDirection.incoming,
+            bank: null,
+            account: '123-45-6789012-3',
+            occurredAt: DateTime(2026, 9, 27, 19, 47),
+          ),
+          (
+            name: 'پارسیان با تاریخ و ساعت جدا',
+            text:
+                '12345678901234\nمبلغ:12,345,678-\nمانده:8,765,432\n10/10\n17:26',
+            amount: 12345678,
+            direction: TransactionDirection.outgoing,
+            bank: null,
+            account: '12345678901234',
+            occurredAt: null,
+          ),
+          (
+            name: 'مسکن با پرداخت قسط',
+            text: 'بانک مسکن\nواریز قسط به مبلغ:1234000ریال\nزمان:1405/07/09 09:16:16\nاز کارت:1111222233334444\nبه کارت:5555666677778888\nتعداد اقساط پرداختی :12\nمانده معوق :0\nمانده جریمه :0\nشماره پیگیری:54321',
+            amount: 1234000,
+            direction: TransactionDirection.outgoing,
+            bank: 'مسکن',
+            account: '1111222233334444',
+            occurredAt: DateTime(2026, 10, 1, 9, 16, 16),
+          ),
+        ];
+    for (final sample in cases) {
+      final parsed = parser.tryParse(text: sample.text, currency: 'IRR');
+      expect(parsed, isNotNull, reason: sample.name);
+      final value = parsed!;
+      expect(value.amount.minorUnits, sample.amount, reason: sample.name);
+      expect(value.direction, sample.direction, reason: sample.name);
+      expect(value.bank, sample.bank, reason: sample.name);
+      expect(value.accountHint, sample.account, reason: sample.name);
+      expect(value.occurredAt, sample.occurredAt, reason: sample.name);
+    }
+    expect(
+      parser.tryParse(
+        text: 'محرمانه\nخرید\nاسنپ\n600,000\nرمز:91968\n1405/07/26-14:21:51',
+        currency: 'IRR',
+      ),
+      isNull,
+    );
+  });
   for (var i = 0; i < realBankSms.length; i++) {
     test('redacted actual corpus ${i + 1}', () {
       final parsed = parser.parse(text: realBankSms[i], currency: 'USD');

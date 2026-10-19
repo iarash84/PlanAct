@@ -4,7 +4,7 @@ import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
-/// Whole-message recognition for the bounded, redacted 18-message corpus.
+/// Whole-message recognition for the bounded corpus and verified device layouts.
 /// Unknown senders/accounts are not bank identity or currency evidence.
 class RealBankSmsParser implements SmsFormatParser {
   const RealBankSmsParser();
@@ -16,7 +16,7 @@ class RealBankSmsParser implements SmsFormatParser {
   static const _balance =
       '(?:مانده|موجودی)\\s*:?\\s*(?<balance>$_number)\\s*(?<balanceUnit>ریال|تومان)?';
   static const _stamp =
-      r'(?<date>(?:[0-9]{4}|[0-9]{2})/[0-9]{1,2}/[0-9]{1,2}|[0-9]{2}/[0-9]{2}|[0-9]{4})\s*[-_; ]\s*(?<time>[0-9]{2}:[0-9]{2}(?::[0-9]{2})?)';
+      r'(?<date>(?:[0-9]{4}|[0-9]{2})/[0-9]{1,2}/[0-9]{1,2}|[0-9]{2}/[0-9]{2}|[0-9]{4})\s*[-_; ]\s*(?<time>[0-9]{1,2}:[0-9]{2}(?::[0-9]{2})?)';
 
   static final _templates = <(String?, RegExp)>[
     (
@@ -32,6 +32,13 @@ class RealBankSmsParser implements SmsFormatParser {
       ),
     ),
     (null, RegExp('^$_account\n$_amount\n$_stamp\n$_balance\$')),
+    (null, RegExp('^$_account\n$_amount\n$_balance\n$_stamp\$')),
+    (
+      null,
+      RegExp(
+        '^$_account\nمبلغ\\s*:\\s*$_amount\n$_balance\n(?<date>[0-9]{2}/[0-9]{2})\n(?<time>[0-9]{1,2}:[0-9]{2}(?::[0-9]{2})?)\$',
+      ),
+    ),
     (
       'رفاه',
       RegExp(
@@ -56,12 +63,28 @@ class RealBankSmsParser implements SmsFormatParser {
         '^\\*بانک گردشگری\\*\n[\u0600-\u06ff\u200c ]{1,80}\n(?<direction>واریز به)\\s*:\\s*$_account\nمبلغ\\s*:\\s*$_amount\n$_stamp\n$_balance\$',
       ),
     ),
+    (
+      'مسکن',
+      RegExp(
+        '^بانک مسکن\n(?<installment>واریز قسط به)\\s*مبلغ\\s*:\\s*$_amount\nزمان\\s*:\\s*$_stamp\nاز کارت\\s*:\\s*(?<account>[0-9]{16})\nبه کارت\\s*:\\s*[0-9]{16}\nتعداد اقساط پرداختی\\s*:\\s*[0-9]+\nمانده معوق\\s*:\\s*[0-9]+\nمانده جریمه\\s*:\\s*[0-9]+\nشماره پیگیری\\s*:\\s*[0-9]+\$',
+      ),
+    ),
   ];
 
   @override
   ParsedSms? tryParse({required String text, required String currency}) {
     if (text.length > 4096) return null;
     final normalized = text
+        // Some Android SMS providers wrap account numbers in bidi formatting
+        // marks (for example U+202A/U+202C). They are presentation metadata,
+        // not part of the bank message grammar, and must not make a valid
+        // account fail the whole-message match.
+        .replaceAll(
+          RegExp(
+            r'[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]',
+          ),
+          '',
+        )
         .replaceAll('ي', 'ی')
         .replaceAll('ك', 'ک')
         .replaceAllMapped(RegExp(r'[۰-۹٠-٩]'), (m) {
@@ -72,6 +95,7 @@ class RealBankSmsParser implements SmsFormatParser {
         })
         .split(RegExp(r'\r?\n'))
         .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
         .join('\n')
         .trim();
     if (RegExp(
@@ -93,17 +117,21 @@ class RealBankSmsParser implements SmsFormatParser {
       final label = field('direction');
       final incoming = label?.startsWith('واریز') == true;
       final outgoing =
-          label?.startsWith('برداشت') == true || label == 'خریداینترنتی';
+          label?.startsWith('برداشت') == true ||
+          label == 'خریداینترنتی' ||
+          field('installment') != null;
       if ((incoming && sign == '-') || (outgoing && sign == '+')) return null;
       if (!incoming && !outgoing && sign == null) return null;
       final description = field('description');
       if (description != null && (description == 'واریز یارانه') != incoming) {
         return null;
       }
-      // Unbranded signed layouts require a dotted account, not arbitrary prose.
+      // Unbranded signed layouts require a structured/long account, not prose.
       if (template.$1 == null &&
           label == null &&
-          !field('account')!.contains('.')) {
+          field('account')!.length < 10 &&
+          !field('account')!.contains('.') &&
+          !field('account')!.contains('-')) {
         return null;
       }
       SmsMoneyUnit? unit(String? value) => value == null
@@ -112,10 +140,19 @@ class RealBankSmsParser implements SmsFormatParser {
           ? SmsMoneyUnit.toman
           : SmsMoneyUnit.rial;
       final amountUnit = unit(field('unit'));
-      final balanceUnit = unit(field('balanceUnit')) ?? amountUnit;
+      final balanceText = field('balance');
+      final balanceUnit = balanceText == null
+          ? null
+          : unit(field('balanceUnit')) ?? amountUnit;
       final amount = _integer(field('amount')!, amountUnit);
-      final balance = _integer(field('balance')!, balanceUnit);
-      if (amount == null || amount <= 0 || balance == null) return null;
+      final balance = balanceText == null
+          ? null
+          : _integer(balanceText, balanceUnit);
+      if (amount == null ||
+          amount <= 0 ||
+          (balanceText != null && balance == null)) {
+        return null;
+      }
       final dateText = field('date')!;
       final timeText = field('time')!;
       final time = timeText.split(':').map(int.parse).toList();
@@ -143,7 +180,7 @@ class RealBankSmsParser implements SmsFormatParser {
           minorUnits: amountUnit?.canonicalIrr(amount) ?? amount,
           currency: 'IRR',
         ),
-        balance: balanceUnit == null
+        balance: balance == null || balanceUnit == null
             ? null
             : Money(
                 minorUnits: balanceUnit.canonicalIrr(balance),
