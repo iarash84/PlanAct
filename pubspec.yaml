@@ -81,6 +81,7 @@ flutter:
     - assets/licenses/planact.txt
     - assets/icons/app_icon.png
     - assets/banks/
+    - assets/backgrounds/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

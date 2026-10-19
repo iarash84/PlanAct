@@ -125,6 +125,9 @@ class PlanActApp extends StatefulWidget {
 
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  AppBackground _background = AppBackground.none;
+  bool _backgroundLoaded = true;
+  bool _backgroundLoadFailed = false;
   AppSettings? _settings;
   late MoneyUnitController _moneyUnits;
   String? _moneyUnitError;
@@ -144,6 +147,8 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
+      _backgroundLoaded = false;
+      _loadBackground();
       _loadAppLockSetting();
     }
     _moneyUnits = MoneyUnitController(_settings);
@@ -190,6 +195,39 @@ class _PlanActAppState extends State<PlanActApp> {
     }
   }
 
+  Future<void> _loadBackground() async {
+    if (_backgroundLoadFailed && mounted) {
+      setState(() {
+        _backgroundLoaded = false;
+        _backgroundLoadFailed = false;
+      });
+    }
+    try {
+      final background = await _settings!.readBackground();
+      if (mounted) {
+        setState(() {
+          _background = background;
+          _backgroundLoaded = true;
+          _backgroundLoadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _backgroundLoaded = true;
+          _backgroundLoadFailed = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _setBackground(AppBackground background) async {
+    final settings = _settings;
+    if (settings == null) throw StateError('Persistent settings unavailable');
+    await settings.writeBackground(background);
+    if (mounted) setState(() => _background = background);
+  }
+
   bool _changingAppLock = false;
 
   Future<void> _setAppLock(bool enabled) async {
@@ -223,8 +261,8 @@ class _PlanActAppState extends State<PlanActApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
-      theme: PlanActTheme.light(),
-      darkTheme: PlanActTheme.dark(),
+      theme: _themeWithBackground(PlanActTheme.light(), _background),
+      darkTheme: _themeWithBackground(PlanActTheme.dark(), _background),
       themeMode: _themeMode,
       builder: (context, child) => HolidayProviderScope(
         readProvider: () =>
@@ -233,34 +271,73 @@ class _PlanActAppState extends State<PlanActApp> {
           controller: _moneyUnits,
           child: Directionality(
             textDirection: TextDirection.rtl,
-            child: AppLockGate(
-              enabled: _appLockEnabled,
-              controller: _appLockController,
-              child: !_moneyUnits.ready
-                  ? Scaffold(
-                      body: Center(
-                        child: _moneyUnitError == null
-                            ? const CircularProgressIndicator()
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(_moneyUnitError!),
-                                  TextButton(
-                                    onPressed: _loadMoneyUnit,
-                                    child: Text(
-                                      planActL10n(context).commonRetry,
-                                    ),
-                                  ),
-                                ],
-                              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_background.assetPath case final assetPath?)
+                  ExcludeSemantics(
+                    child: IgnorePointer(
+                      child: Image.asset(
+                        assetPath,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
                       ),
-                    )
-                  : child ?? const SizedBox.shrink(),
+                    ),
+                  ),
+                if (_background.assetPath != null)
+                  IgnorePointer(
+                    child: ColoredBox(
+                      color: Theme.of(context).colorScheme.surface
+                          .withValues(alpha: 0.52),
+                    ),
+                  ),
+                AppLockGate(
+                  enabled: _appLockEnabled,
+                  controller: _appLockController,
+                  child: !_moneyUnits.ready
+                      ? Scaffold(
+                          body: Center(
+                            child: _moneyUnitError == null
+                                ? const CircularProgressIndicator()
+                                : Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(_moneyUnitError!),
+                                      TextButton(
+                                        onPressed: _loadMoneyUnit,
+                                        child: Text(
+                                          planActL10n(context).commonRetry,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        )
+                      : child ?? const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         ),
       ),
-      home: !_appLockSettingLoaded && _settings != null
+      home: _settings != null && !_backgroundLoaded
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : _backgroundLoadFailed
+          ? Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(planActL10n(context).settingsBackgroundLoadError),
+                    TextButton(
+                      onPressed: _loadBackground,
+                      child: Text(planActL10n(context).commonRetry),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : !_appLockSettingLoaded && _settings != null
           ? Scaffold(
               body: Center(
                 child: _appLockSettingError == null
@@ -294,10 +371,49 @@ class _PlanActAppState extends State<PlanActApp> {
                 setState(() => _themeMode = mode);
                 await _settings?.writeThemeMode(mode);
               },
+              background: _background,
+              onBackgroundChanged: _settings == null ? null : _setBackground,
             ),
     );
   }
 }
+
+ThemeData _themeWithBackground(ThemeData theme, AppBackground background) =>
+    theme.copyWith(
+      scaffoldBackgroundColor: background.assetPath == null
+          ? theme.colorScheme.surface
+          : Colors.transparent,
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.appBarTheme.backgroundColor
+            : theme.colorScheme.surface.withValues(alpha: 0.72),
+      ),
+      cardTheme: theme.cardTheme.copyWith(
+        color: background.assetPath == null
+            ? theme.cardTheme.color
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.62),
+      ),
+      navigationBarTheme: theme.navigationBarTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.navigationBarTheme.backgroundColor
+            : theme.colorScheme.surface.withValues(alpha: 0.72),
+      ),
+      bottomSheetTheme: theme.bottomSheetTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.bottomSheetTheme.backgroundColor
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+      dialogTheme: theme.dialogTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.dialogTheme.backgroundColor
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+      popupMenuTheme: theme.popupMenuTheme.copyWith(
+        color: background.assetPath == null
+            ? theme.popupMenuTheme.color
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+    );
 
 class HomeShell extends StatefulWidget {
   const HomeShell({
@@ -311,6 +427,8 @@ class HomeShell extends StatefulWidget {
     this.backupMessage,
     this.smsSource,
     this.themeMode = ThemeMode.system,
+    this.background = AppBackground.none,
+    this.onBackgroundChanged,
     this.appLockEnabled = false,
     this.appLockController,
     this.onAppLockChanged = _ignoreAppLockChange,
@@ -329,6 +447,8 @@ class HomeShell extends StatefulWidget {
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
+  final AppBackground background;
+  final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
   final AppLockController? appLockController;
   final Future<void> Function(bool enabled) onAppLockChanged;
@@ -1446,6 +1566,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           backupMessage: widget.backupMessage,
           settings: widget.settings,
           themeMode: widget.themeMode,
+          background: widget.background,
+          onBackgroundChanged: widget.onBackgroundChanged,
           appLockEnabled: widget.appLockEnabled,
           appLockController: widget.appLockController,
           onAppLockChanged: widget.onAppLockChanged,

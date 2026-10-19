@@ -370,19 +370,19 @@ abstract class AppLocalizations {
   /// **'{value1} · {value2}'**
   String planactAppShowTimelineSubtitle2(String value1, String value2);
 
-  /// گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.
+  /// Expands the timeline or history panel to the page's full safe height.
   ///
   /// In fa, this message translates to:
   /// **'نمایش تمام‌صفحه'**
   String get commitmentBrowseExpand;
 
-  /// خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.
+  /// Retryable error while opening details from the timeline or history panel; the list remains available.
   ///
   /// In fa, this message translates to:
   /// **'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.'**
   String get commitmentBrowseOpenError;
 
-  /// بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.
+  /// Returns the timeline or history panel to its middle height without closing it.
   ///
   /// In fa, this message translates to:
   /// **'نمایش کوچک‌تر'**
@@ -7144,6 +7144,54 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه'**
   String get settingsAppearanceDescription;
+
+  /// Application copy for the background selection setting.
+  ///
+  /// In fa, this message translates to:
+  /// **'تصویر پس‌زمینه'**
+  String get settingsBackground;
+
+  /// Explains that the selected image appears behind page content without changing cards or bars.
+  ///
+  /// In fa, this message translates to:
+  /// **'تصویر انتخابی پشت محتوای صفحه‌ها نمایش داده می‌شود؛ کارت‌ها و نوارها ظاهر فعلی را حفظ می‌کنند.'**
+  String get settingsBackgroundDescription;
+
+  /// Application copy for the default plain app background.
+  ///
+  /// In fa, this message translates to:
+  /// **'بدون تصویر'**
+  String get settingsBackgroundNone;
+
+  /// Application copy for the botanical background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگ‌های آرام'**
+  String get settingsBackgroundBotanical;
+
+  /// Application copy for the Persian waves background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'موج ایرانی'**
+  String get settingsBackgroundPersianWaves;
+
+  /// Application copy for the night waves background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'موج شب'**
+  String get settingsBackgroundNightWaves;
+
+  /// Shown when the stored background preference cannot be read.
+  ///
+  /// In fa, this message translates to:
+  /// **'بارگیری تنظیم پس‌زمینه انجام نشد.'**
+  String get settingsBackgroundLoadError;
+
+  /// Shown when saving the selected background preference fails.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ پس‌زمینه انجام نشد؛ دوباره انتخاب کنید.'**
+  String get settingsBackgroundSaveError;
 
   /// Application copy. Original usage: lib/features/settings/presentation/settings_page.dart:73.
   ///

@@ -4275,6 +4275,32 @@ class AppLocalizationsFa extends AppLocalizations {
       'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه';
 
   @override
+  String get settingsBackground => 'تصویر پس‌زمینه';
+
+  @override
+  String get settingsBackgroundDescription =>
+      'تصویر انتخابی پشت محتوای صفحه‌ها نمایش داده می‌شود؛ کارت‌ها و نوارها ظاهر فعلی را حفظ می‌کنند.';
+
+  @override
+  String get settingsBackgroundNone => 'بدون تصویر';
+
+  @override
+  String get settingsBackgroundBotanical => 'برگ‌های آرام';
+
+  @override
+  String get settingsBackgroundPersianWaves => 'موج ایرانی';
+
+  @override
+  String get settingsBackgroundNightWaves => 'موج شب';
+
+  @override
+  String get settingsBackgroundLoadError => 'بارگیری تنظیم پس‌زمینه انجام نشد.';
+
+  @override
+  String get settingsBackgroundSaveError =>
+      'ذخیرهٔ پس‌زمینه انجام نشد؛ دوباره انتخاب کنید.';
+
+  @override
   String get settingsThemeSystem => 'دستگاه';
 
   @override
