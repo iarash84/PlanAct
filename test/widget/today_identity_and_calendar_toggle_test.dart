@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
@@ -132,6 +134,64 @@ void main() {
         await tester.tap(find.text('اقدام').last);
         expect(reviewed, review);
         expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      '$brightness Today checklist preview strikes completed items and toggles in place',
+      (tester) async {
+        final commitment = Commitment.create(title: 'خرید');
+        final item = ChecklistItem(id: StableId.generate(), title: 'نان');
+        final list = CommitmentChecklist(
+          commitmentId: commitment.id,
+          revision: 1,
+          items: [item],
+        );
+        StableId? changedItem;
+        bool? changedValue;
+        await tester.pumpWidget(
+          host(
+            TodayPage(
+              commitments: [commitment],
+              scheduledDates: const {},
+              actionCenter: TodayActionCenter(
+                attention: const [],
+                today: [
+                  TodayActionItem(
+                    id: 'today-checklist',
+                    type: TodayActionItemType.occurrence,
+                    title: 'خرید',
+                    subtitle: 'امروز',
+                    urgency: 60,
+                    commitment: commitment,
+                  ),
+                ],
+                upcoming: const [],
+              ),
+              checklists: {commitment.id: list},
+              onChecklistChanged: (ownerId, itemId, value) async {
+                changedItem = itemId;
+                changedValue = value;
+              },
+              onAdd: () {},
+              onCommitmentTap: (_) {},
+              onCommitmentArchive: (_) {},
+              onReview: (_) {},
+            ),
+            1,
+          ),
+        );
+        final checkbox = find.byKey(
+          ValueKey('today-checklist-item-${item.id.value}'),
+        );
+        await tester.tap(checkbox);
+        await tester.pumpAndSettle();
+        expect(changedItem, item.id);
+        expect(changedValue, isTrue);
+        expect(
+          tester.widget<Text>(find.text('نان')).style?.decoration,
+          TextDecoration.lineThrough,
+        );
       },
     );
   }

@@ -8,7 +8,9 @@ import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
@@ -85,6 +87,7 @@ class CreateCommitmentPlan {
     this.reminderService,
     this.entitlements,
     this.financialExpectations,
+    this.checklists,
   });
 
   final CommitmentRepository commitments;
@@ -92,6 +95,7 @@ class CreateCommitmentPlan {
   final ReminderService? reminderService;
   final EntitlementPlanRepository? entitlements;
   final FinancialExpectationUseCases? financialExpectations;
+  final ChecklistRepository? checklists;
 
   Future<CommitmentPlan> call({
     required String title,
@@ -114,9 +118,13 @@ class CreateCommitmentPlan {
     DateTime? entitlementExpiry,
     FinancialExpectationDirection? financialDirection,
     int? financialAmount,
+    List<String> checklistTitles = const [],
     @Deprecated('Use reminderOffsets to support multiple reminders.')
     Duration? reminderOffset,
   }) => CommandGate.runFor(commitments, () async {
+    if (checklistTitles.any((title) => title.trim().isEmpty)) {
+      throw const ValidationError('Checklist item titles must not be empty');
+    }
     if (entitlementUnits != null && entitlementUnits <= 0) {
       throw const ValidationError('Entitlement units must be positive');
     }
@@ -238,6 +246,20 @@ class CreateCommitmentPlan {
     );
     Future<void> persist() => CommandGate.runFor(commitments, () async {
       await commitments.save(commitment);
+      if (checklistTitles.isNotEmpty) {
+        final repository = checklists;
+        if (repository == null) {
+          throw StateError(
+            'Checklist repository is required for checklist items.',
+          );
+        }
+        var list = CommitmentChecklist(commitmentId: commitment.id);
+        for (final title in checklistTitles) {
+          final next = list.add(title);
+          await repository.save(next, expectedRevision: list.revision);
+          list = next;
+        }
+      }
       await plans.save(plan);
       if (reminderService case final service?) {
         for (final rule in reminders) {

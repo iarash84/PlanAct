@@ -54,13 +54,14 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
-import 'package:planact/features/commitments/presentation/checklist_page.dart';
+import 'package:planact/features/commitments/presentation/commitment_checklist_section.dart';
 import 'package:planact/features/search/domain/search.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
@@ -391,6 +392,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     plans: _planRepository,
     entitlements: _entitlementRepository,
     financialExpectations: _expectationUseCases,
+    checklists: _checklists,
     reminderService: _repository is DriftCommitmentRepository
         ? ReminderService(
             repository: DriftReminderRepository(_repository.database),
@@ -409,6 +411,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   final _commitmentViewsRevision = ValueNotifier<int>(0);
   final Map<String, List<DateTime>> _scheduledDates = {};
   Map<String, List<Occurrence>> _calendarOccurrences = {};
+  Map<StableId, CommitmentChecklist> _checklistSnapshots = {};
   List<ReminderRule> _calendarReminderRules = [];
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
@@ -516,6 +519,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};
+      final checklists = <StableId, CommitmentChecklist>{};
       for (final item in items) {
         final plan = await _planRepository.findByCommitmentId(item.id);
         if (plan == null) continue;
@@ -527,6 +531,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             else if (occurrence.currentScheduledAt case final LocalDate date)
               DateTime(date.year, date.month, date.day),
         ];
+        try {
+          final snapshot = await _checklists.load(item.id);
+          checklists[item.id] = snapshot.list;
+        } catch (_) {
+          // A checklist read must not hide the commitment or block Today.
+        }
       }
       final reminderRules =
           await _createCommitmentPlan.reminderService?.repository.listRules() ??
@@ -574,6 +584,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _calendarOccurrences = {
             for (final entry in plans.entries) entry.key.value: entry.value,
           };
+          _checklistSnapshots = checklists;
           _calendarReminderRules = reminderRules;
           _scheduledDates
             ..clear()
@@ -591,6 +602,23 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       }
       if (throwOnFailure) rethrow;
     }
+  }
+
+  Future<void> _toggleChecklistItem(
+    StableId commitmentId,
+    StableId itemId,
+    bool checked,
+  ) async {
+    final snapshot = await _checklists.load(commitmentId);
+    final item = snapshot.list.items
+        .where((candidate) => candidate.id == itemId && !candidate.removed)
+        .firstOrNull;
+    if (item == null || !snapshot.editable) return;
+    await SaveChecklist(_checklists)(
+      snapshot.list.change(itemId, checked: checked),
+      expectedRevision: snapshot.list.revision,
+    );
+    await _refresh();
   }
 
   late final ReconciliationUseCases _reconciliation = ReconciliationUseCases(
@@ -706,6 +734,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           : null,
       financialDirection: draft.financialMeaning.expectationDirection,
       financialAmount: draft.financialAmount,
+      checklistTitles: draft.checklistTitles,
     );
     try {
       await _refresh();
@@ -985,14 +1014,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     },
                   ),
                 ListTile(
-                  leading: const Icon(Icons.checklist),
-                  title: Text(planActL10n(sheetContext).checklistTitle),
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    () => _openChecklist(commitment),
-                  ),
-                ),
-                ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text(
                     PersianCopy.planactAppShowCommitmentDetailsTitle7,
@@ -1018,17 +1039,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       _repository is DriftCommitmentRepository
       ? DriftChecklistRepository(_repository.database)
       : InMemoryChecklistRepository(_repository);
-
-  Future<void> _openChecklist(Commitment commitment) =>
-      Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) => ChecklistPage(
-            repository: _checklists,
-            commitmentId: commitment.id,
-            title: commitment.title,
-          ),
-        ),
-      );
 
   Future<void> _applyStatus(
     Commitment commitment,
@@ -1359,6 +1369,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
+        checklists: _checklistSnapshots,
+        onChecklistChanged: _toggleChecklistItem,
         onReview: (item) {
           if (item.attentionAction == AttentionAction.classifyTransaction &&
               item.sourceReference != null) {
@@ -1764,21 +1776,6 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
-          if (widget.checklistRepository
-              case final ChecklistRepository repository)
-            ListTile(
-              leading: const Icon(Icons.checklist),
-              title: Text(planActL10n(context).checklistTitle),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => ChecklistPage(
-                    repository: repository,
-                    commitmentId: widget.commitment.id,
-                    title: widget.commitment.title,
-                  ),
-                ),
-              ),
-            ),
           Text(
             planActL10n(context).planactAppBuildChildren2(
               (_kindLabel(widget.commitment.kind)).toString(),
@@ -1801,6 +1798,14 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             ),
           ),
           const SizedBox(height: 16),
+          if (widget.checklistRepository
+              case final ChecklistRepository repository)
+            CommitmentChecklistSection(
+              repository: repository,
+              commitmentId: widget.commitment.id,
+              onChanged: _refreshDetails,
+            ),
+          if (widget.checklistRepository != null) const SizedBox(height: 16),
           CommitmentColorPicker(
             selected: _color,
             enabled: !_saving,

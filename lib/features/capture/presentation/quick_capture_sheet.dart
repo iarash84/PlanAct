@@ -3,12 +3,14 @@ import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/commitments/presentation/commitment_color_picker.dart';
+import 'package:planact/features/commitments/presentation/draft_checklist_editor.dart';
 import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -328,6 +330,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         enabled: !_saving,
         onChanged: (tags) =>
             setState(() => _draft = _draft.copyWith(tags: tags)),
+      ),
+      const SizedBox(height: PlanActSpacing.md),
+      DraftChecklistEditor(
+        items: _draft.checklistTitles,
+        enabled: !_saving,
+        onChanged: (items) =>
+            setState(() => _draft = _draft.copyWith(checklistTitles: items)),
       ),
       const SizedBox(height: PlanActSpacing.md),
       RadioGroup<CommitmentCategory>(
@@ -738,6 +747,13 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           PersianCopy.quickCaptureSheetSummaryChildren6(
             ('${_draft.reminderDelivery == ReminderDelivery.alarm ? planActL10n(context).reminderDeliveryAlarm : planActL10n(context).reminderDeliveryNotification}: ${_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join(PersianCopy.commonListSeparator)}')
                 .toString(),
+          ),
+        ),
+      if (_draft.checklistTitles.isNotEmpty)
+        Text(
+          planActL10n(context).checklistProgress(
+            PersianNumbers.format(0),
+            PersianNumbers.format(_draft.checklistTitles.length),
           ),
         ),
       if (_draft.tags.isNotEmpty) TagLabels(labels: _draft.tags),

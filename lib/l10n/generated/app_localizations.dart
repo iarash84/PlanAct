@@ -7967,6 +7967,24 @@ abstract class AppLocalizations {
   /// **'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.'**
   String get checklistScope;
 
+  /// Draft checklist guidance in commitment creation.
+  ///
+  /// In fa, this message translates to:
+  /// **'کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.'**
+  String get checklistDraftScope;
+
+  /// Inline checklist composer hint.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن یک کار'**
+  String get checklistAddHint;
+
+  /// Collapsed checklist preview overflow label.
+  ///
+  /// In fa, this message translates to:
+  /// **'موارد بیشتر'**
+  String get checklistPreviewMore;
+
   /// Add a checklist item.
   ///
   /// In fa, this message translates to:

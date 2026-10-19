@@ -4758,6 +4758,16 @@ class AppLocalizationsFa extends AppLocalizations {
       'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.';
 
   @override
+  String get checklistDraftScope =>
+      'کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.';
+
+  @override
+  String get checklistAddHint => 'افزودن یک کار';
+
+  @override
+  String get checklistPreviewMore => 'موارد بیشتر';
+
+  @override
   String get checklistAdd => 'افزودن کار';
 
   @override

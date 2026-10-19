@@ -28,6 +28,7 @@ class CommitmentDraft {
     this.financialAmount,
     this.priority = CommitmentPriority.normal,
     this.tags = const {},
+    this.checklistTitles = const [],
     this.reminderOffsets = const [],
     this.reminderDelivery = ReminderDelivery.notification,
     this.attachmentIds = const [],
@@ -53,6 +54,7 @@ class CommitmentDraft {
   final int? financialAmount;
   final CommitmentPriority priority;
   final Set<String> tags;
+  final List<String> checklistTitles;
   final List<Duration> reminderOffsets;
   final ReminderDelivery reminderDelivery;
   final List<String> attachmentIds;
@@ -86,6 +88,7 @@ class CommitmentDraft {
     bool clearFinancialAmount = false,
     CommitmentPriority? priority,
     Set<String>? tags,
+    List<String>? checklistTitles,
     List<Duration>? reminderOffsets,
     ReminderDelivery? reminderDelivery,
     List<String>? attachmentIds,
@@ -116,6 +119,7 @@ class CommitmentDraft {
         : financialAmount ?? this.financialAmount,
     priority: priority ?? this.priority,
     tags: tags ?? this.tags,
+    checklistTitles: checklistTitles ?? this.checklistTitles,
     reminderOffsets: reminderOffsets ?? this.reminderOffsets,
     reminderDelivery: reminderDelivery ?? this.reminderDelivery,
     attachmentIds: attachmentIds ?? this.attachmentIds,

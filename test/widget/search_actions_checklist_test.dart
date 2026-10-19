@@ -11,7 +11,6 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
-import 'package:planact/features/commitments/presentation/checklist_page.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -151,9 +150,6 @@ void main() {
       await openResult(tester, 'commitment', owner.id.value);
       await tester.tap(find.text('جزئیات و ویرایش'));
       await settleIo(tester);
-      await tester.tap(find.text('فهرست کارها'));
-      await settleIo(tester);
-      expect(find.byType(ChecklistPage), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('checklist-add')));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -209,16 +205,13 @@ void main() {
       expect(find.text('نان سنگک'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await settleIo(tester);
-      expect(find.byType(CommitmentDetailsPage), findsOneWidget);
-      await tester.binding.handlePopRoute();
-      await settleIo(tester);
       expect(find.byType(SearchPage), findsOneWidget);
       expect(
         tester.widget<TextField>(find.byKey(queryKey)).controller!.text,
         'خرید',
       );
       await openResult(tester, 'commitment', owner.id.value);
-      await tester.tap(find.text('فهرست کارها'));
+      await tester.tap(find.text('جزئیات و ویرایش'));
       await settleIo(tester);
       expect(
         tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
