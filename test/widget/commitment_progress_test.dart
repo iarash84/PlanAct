@@ -13,6 +13,7 @@ import 'package:planact/features/commitments/data/drift_commitment_plan_reposito
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/domain/counted_commitment_progress.dart';
 import 'package:planact/features/commitments/presentation/commitment_progress_section.dart';
+import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
 
@@ -205,12 +206,20 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       final database = AppDatabase.forTesting(NativeDatabase.memory());
       addTearDown(database.close);
-      final plan = countedPlan(statuses: [OccurrenceStatus.scheduled]);
+      final plan = countedPlan(
+        start: LocalDate.fromDateTime(DateTime.now()),
+        statuses: [OccurrenceStatus.scheduled],
+      );
       final commitments = DriftCommitmentRepository(database);
       final plans = DriftCommitmentPlanRepository(database);
       await commitments.save(plan.commitment);
       await plans.save(plan);
-      await tester.pumpWidget(PlanActApp(repository: commitments));
+      await tester.pumpWidget(
+        PlanActApp(
+          repository: commitments,
+          planRepository: DriftCommitmentPlanRepository(database),
+        ),
+      );
       await settleIo(tester);
       await tester.tap(find.byKey(const ValueKey('shell-search')));
       await settleIo(tester);
@@ -231,6 +240,14 @@ void main() {
       await settleIo(tester);
       expect(find.byType(CommitmentDetailsPage), findsOneWidget);
       expect(find.text('باقی‌مانده: ۴ نوبت (۱۰۰٪)'), findsOneWidget);
+      final scheduleScope = find.text(
+        'محدودهٔ نمایش، تعداد کل یا پایان برنامه را تغییر نمی‌دهد.',
+      );
+      await tester.scrollUntilVisible(
+        scheduleScope,
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
       final actionMenu = find.descendant(
         of: find.byType(OccurrenceActionRow).first,
         matching: find.byWidgetPredicate((widget) => widget is PopupMenuButton),
@@ -248,11 +265,6 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
       await settleIo(tester);
-      await tester.scrollUntilVisible(
-        find.byType(CommitmentProgressSection),
-        -400,
-        scrollable: find.byType(Scrollable).first,
-      );
       expect(find.text('انجام‌شده: ۱ نوبت (۲۵٪)'), findsOneWidget);
       expect(find.text('باقی‌مانده: ۳ نوبت (۷۵٪)'), findsOneWidget);
       final saved = (await plans.findByCommitmentId(plan.commitment.id))!;

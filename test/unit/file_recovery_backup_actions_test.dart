@@ -127,7 +127,7 @@ void main() {
     exclusives = 0;
     service = BackupService(
       storage: storage,
-      validator: const BackupValidator(currentSchemaVersion: 18),
+      validator: const BackupValidator(currentSchemaVersion: 19),
       rebuildHook: _Rebuild(),
       keyStorage: keys,
       encryptor: AesGcmBackupEncryptor(),
