@@ -34,7 +34,7 @@ void main() {
   });
 
   test('creates the database and records its schema version', () async {
-    expect(await database.readMetadata('schema_version'), '18');
+    expect(await database.readMetadata('schema_version'), '19');
     expect(await database.select(database.transactionMatches).get(), isEmpty);
     expect(await database.select(database.matchAllocations).get(), isEmpty);
     expect(await database.select(database.financialAccounts).get(), isEmpty);
@@ -109,6 +109,42 @@ void main() {
     expect(restored.name, account.name);
     await second.close();
     await directory.delete(recursive: true);
+  });
+
+  test('persists account order and appends newly created accounts', () async {
+    final repository = DriftFinanceRepository(database);
+    final first = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 25)),
+      name: 'حساب اول',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    final second = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 26)),
+      name: 'حساب دوم',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    await repository.createAccount(first);
+    await repository.createAccount(second);
+    await repository.reorderAccounts([second.id, first.id]);
+    expect((await repository.listAccounts()).map((a) => a.id), [
+      second.id,
+      first.id,
+    ]);
+
+    final third = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 9, 27)),
+      name: 'حساب سوم',
+      currency: 'IRR',
+      type: FinancialAccountType.cash,
+    );
+    await repository.createAccount(third);
+    expect((await repository.listAccounts()).map((a) => a.id), [
+      second.id,
+      first.id,
+      third.id,
+    ]);
   });
 
   test('persists a newly created financial account through Drift', () async {

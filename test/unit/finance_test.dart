@@ -26,6 +26,49 @@ void main() {
     expect(IranianBank.detect('حساب شخصی'), isNull);
   });
 
+  test('includes the newly requested bank identities and logo codes', () {
+    expect(IranianBank.fromCode('resalat'), IranianBank.resalat);
+    expect(IranianBank.fromCode('mehr_iran'), IranianBank.mehrIran);
+    expect(IranianBank.resalat.label, 'رسالت');
+    expect(IranianBank.mehrIran.label, 'مهر ایران');
+    expect(
+      IranianBank.values.map((bank) => bank.code),
+      containsAll(<String>['resalat', 'mehr_iran']),
+    );
+  });
+
+  test('reorders accounts and rejects stale order', () async {
+    final localRepository = InMemoryFinanceRepository();
+    final first = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 2, 1)),
+      name: 'اول',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    final second = FinancialAccount(
+      id: StableId.generate(timestamp: DateTime.utc(2026, 2, 2)),
+      name: 'دوم',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    await localRepository.createAccount(first);
+    await localRepository.createAccount(second);
+
+    await localRepository.reorderAccounts([second.id, first.id]);
+    expect((await localRepository.listAccounts()).map((a) => a.id), [
+      second.id,
+      first.id,
+    ]);
+    await expectLater(
+      localRepository.reorderAccounts([first.id]),
+      throwsA(isA<ValidationError>()),
+    );
+    expect((await localRepository.listAccounts()).map((a) => a.id), [
+      second.id,
+      first.id,
+    ]);
+  });
+
   test('stores the selected bank on a financial account', () {
     final selected = FinancialAccount(
       id: StableId.generate(timestamp: DateTime.utc(2026, 1, 5)),

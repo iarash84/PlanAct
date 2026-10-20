@@ -2019,6 +2019,16 @@ class AppLocalizationsFa extends AppLocalizations {
   String get financePageBuildChildren2 => 'حساب‌ها';
 
   @override
+  String get financePageReorderAccounts => 'مرتب‌سازی حساب‌ها';
+
+  @override
+  String get financePageReorderAccountsDone => 'ترتیب حساب‌ها ذخیره شد.';
+
+  @override
+  String get financePageReorderAccountsError =>
+      'ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.';
+
+  @override
   String get financePageBuildTooltip => 'ثبت درآمد یا واریز';
 
   @override

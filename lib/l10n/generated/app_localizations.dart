@@ -3470,6 +3470,24 @@ abstract class AppLocalizations {
   /// **'حساب‌ها'**
   String get financePageBuildChildren2;
 
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'مرتب‌سازی حساب‌ها'**
+  String get financePageReorderAccounts;
+
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'ترتیب حساب‌ها ذخیره شد.'**
+  String get financePageReorderAccountsDone;
+
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.'**
+  String get financePageReorderAccountsError;
+
   /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:680.
   ///
   /// In fa, this message translates to:

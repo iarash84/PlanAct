@@ -2766,51 +2766,63 @@
   },
   "iranianBankAnsar": "انصار",
   "@iranianBankAnsar": {
-    "description": "Persian display name for the Ansar bank identity."
+    "description": "Persian display name for the Ansar bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankMehrIran": "مهر ایران",
   "@iranianBankMehrIran": {
-    "description": "Persian display name for the Mehr Iran bank identity."
+    "description": "Persian display name for the Mehr Iran bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankToseeTaavon": "توسعه تعاون",
   "@iranianBankToseeTaavon": {
-    "description": "Persian display name for the Tosee Taavon bank identity."
+    "description": "Persian display name for the Tosee Taavon bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankSarmayeh": "سرمایه",
   "@iranianBankSarmayeh": {
-    "description": "Persian display name for the Sarmayeh bank identity."
+    "description": "Persian display name for the Sarmayeh bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankToseeSaderat": "توسعه صادرات",
   "@iranianBankToseeSaderat": {
-    "description": "Persian display name for the Tosee Saderat bank identity."
+    "description": "Persian display name for the Tosee Saderat bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankPostBank": "پست بانک",
   "@iranianBankPostBank": {
-    "description": "Persian display name for the Post Bank identity."
+    "description": "Persian display name for the Post Bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankKhavarmianeh": "خاورمیانه",
   "@iranianBankKhavarmianeh": {
-    "description": "Persian display name for the Khavarmianeh bank identity."
+    "description": "Persian display name for the Khavarmianeh bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankHekmat": "حکمت ایرانیان",
   "@iranianBankHekmat": {
-    "description": "Persian display name for the Hekmat Iranian bank identity."
+    "description": "Persian display name for the Hekmat Iranian bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankIranVenezuela": "ایران و ونزوئلا",
   "@iranianBankIranVenezuela": {
-    "description": "Persian display name for the Iran and Venezuela bank identity."
+    "description": "Persian display name for the Iran and Venezuela bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankResalat": "رسالت",
   "@iranianBankResalat": {
-    "description": "Persian display name for the Resalat bank identity."
+    "description": "Persian display name for the Resalat bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankMelal": "ملل",
   "@iranianBankMelal": {
-    "description": "Persian display name for the Melal bank identity."
+    "description": "Persian display name for the Melal bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "iranianBankSanatMadan": "صنعت و معدن",
   "@iranianBankSanatMadan": {
-    "description": "Persian display name for the Sanat and Madan bank identity."
+    "description": "Persian display name for the Sanat and Madan bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "accountIdentityIconBuildSemanticLabel": "نشان بانک {value1}",
   "@accountIdentityIconBuildSemanticLabel": {
@@ -3098,6 +3110,18 @@
   "financePageBuildChildren2": "حساب‌ها",
   "@financePageBuildChildren2": {
     "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:671."
+  },
+  "financePageReorderAccounts": "مرتب‌سازی حساب‌ها",
+  "@financePageReorderAccounts": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
+  },
+  "financePageReorderAccountsDone": "ترتیب حساب‌ها ذخیره شد.",
+  "@financePageReorderAccountsDone": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
+  },
+  "financePageReorderAccountsError": "ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.",
+  "@financePageReorderAccountsError": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
   },
   "financePageBuildTooltip": "ثبت درآمد یا واریز",
   "@financePageBuildTooltip": {

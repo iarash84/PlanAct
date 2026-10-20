@@ -122,9 +122,34 @@ class DriftFinanceRepository
   @override
   Future<List<FinancialAccount>> listAccounts() =>
       CommandGate.runFor(this, () async {
-        final rows = await database.select(database.financialAccounts).get();
+        final rows =
+            await (database.select(database.financialAccounts)..orderBy([
+                  (table) => OrderingTerm.asc(table.displayOrder),
+                  (table) => OrderingTerm.asc(table.id),
+                ]))
+                .get();
         return Future.wait(rows.map(_readAccount));
       });
+
+  @override
+  Future<void> reorderAccounts(List<StableId> orderedIds) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final rows = await database.select(database.financialAccounts).get();
+      final existing = rows.map((row) => row.id).toSet();
+      final ids = orderedIds.map((id) => id.value).toList(growable: false);
+      if (ids.length != existing.length ||
+          ids.toSet().length != ids.length ||
+          !ids.every(existing.contains)) {
+        throw const ValidationError('Account order is stale');
+      }
+      for (var index = 0; index < ids.length; index++) {
+        await (database.update(database.financialAccounts)
+              ..where((table) => table.id.equals(ids[index])))
+            .write(db.FinancialAccountsCompanion(displayOrder: Value(index)));
+      }
+    }),
+  );
 
   @override
   Future<List<AccountEntry>> listEntries() => CommandGate.runFor(
@@ -258,9 +283,20 @@ class DriftFinanceRepository
           'Existing accounts require fresh edit admission',
         );
       }
+      final maxOrder =
+          await (database.selectOnly(database.financialAccounts)
+                ..addColumns([database.financialAccounts.displayOrder.max()]))
+              .map(
+                (row) =>
+                    row.read(database.financialAccounts.displayOrder.max()),
+              )
+              .getSingle();
       await database
           .into(database.financialAccounts)
-          .insert(_accountCompanion(account));
+          .insert(
+            _accountCompanion(account)
+                .copyWith(displayOrder: Value((maxOrder ?? -1) + 1)),
+          );
       await _writeIdentifiers(account);
     }),
   );
@@ -272,9 +308,20 @@ class DriftFinanceRepository
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      final maxOrder =
+          await (database.selectOnly(database.financialAccounts)
+                ..addColumns([database.financialAccounts.displayOrder.max()]))
+              .map(
+                (row) =>
+                    row.read(database.financialAccounts.displayOrder.max()),
+              )
+              .getSingle();
       await database
           .into(database.financialAccounts)
-          .insert(_accountCompanion(account));
+          .insert(
+            _accountCompanion(account)
+                .copyWith(displayOrder: Value((maxOrder ?? -1) + 1)),
+          );
       await _writeIdentifiers(account);
       if (openingBalance != null) {
         await database

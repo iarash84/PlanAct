@@ -205,6 +205,7 @@ class FinancialAccounts extends Table {
   IntColumn get type => integer()();
   TextColumn get bankCode => text().nullable()();
   IntColumn get status => integer()();
+  IntColumn get displayOrder => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -400,7 +401,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -561,6 +562,14 @@ class AppDatabase extends _$AppDatabase {
       if (from < 16) {
         await customStatement(
           'ALTER TABLE financial_accounts ADD COLUMN bank_code TEXT',
+        );
+      }
+      if (from < 19) {
+        await customStatement(
+          'ALTER TABLE financial_accounts ADD COLUMN display_order INTEGER NOT NULL DEFAULT 0',
+        );
+        await customStatement(
+          'UPDATE financial_accounts SET display_order = rowid - 1',
         );
       }
       if (from < 17) {

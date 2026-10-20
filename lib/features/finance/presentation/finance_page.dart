@@ -613,6 +613,37 @@ class FinancePageState extends State<FinancePage> {
   String _money(Money money) =>
       PersianMoneyText.money(money, unit: MoneyUnitScope.of(context));
 
+  Future<void> _reorderAccounts() async {
+    final ordered = List<FinancialAccount>.from(_accounts);
+    final result = await showModalBottomSheet<List<FinancialAccount>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _AccountReorderSheet(accounts: ordered),
+    );
+    if (!mounted || result == null) return;
+    try {
+      await _finance.reorderAccounts(
+        result.map((account) => account.id).toList(),
+      );
+      await _refresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(planActL10n(context).financePageReorderAccountsDone),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(planActL10n(context).financePageReorderAccountsError),
+          ),
+        );
+      }
+    }
+  }
+
   List<AccountEntry> get _filteredEntries {
     final byId = {for (final e in _entries) e.id.value: e};
     AccountEntry classification(AccountEntry e) =>
@@ -844,6 +875,14 @@ class FinancePageState extends State<FinancePage> {
                                 tooltip: planActL10n(context)
                                     .accountFormSheetBuildTitle,
                                 icon: const Icon(Icons.add_card),
+                              ),
+                              IconButton(
+                                onPressed: _accounts.length < 2
+                                    ? null
+                                    : _reorderAccounts,
+                                tooltip: planActL10n(context)
+                                    .financePageReorderAccounts,
+                                icon: const Icon(Icons.swap_vert),
                               ),
                             ],
                           ),
@@ -1158,4 +1197,71 @@ class FinancePageState extends State<FinancePage> {
       if (mounted) setState(() => _pendingAccounts.remove(id));
     }
   }
+}
+
+class _AccountReorderSheet extends StatefulWidget {
+  const _AccountReorderSheet({required this.accounts});
+
+  final List<FinancialAccount> accounts;
+
+  @override
+  State<_AccountReorderSheet> createState() => _AccountReorderSheetState();
+}
+
+class _AccountReorderSheetState extends State<_AccountReorderSheet> {
+  late final List<FinancialAccount> _accounts = List.of(widget.accounts);
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.all(PlanActSpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            planActL10n(context).financePageReorderAccounts,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: PlanActSpacing.md),
+          Flexible(
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              itemCount: _accounts.length,
+              onReorderItem: (oldIndex, newIndex) {
+                setState(() {
+                  final account = _accounts.removeAt(oldIndex);
+                  _accounts.insert(newIndex, account);
+                });
+              },
+              itemBuilder: (context, index) {
+                final account = _accounts[index];
+                return ListTile(
+                  key: ValueKey(account.id),
+                  leading: const Icon(Icons.drag_handle),
+                  title: Text(account.name),
+                  subtitle: Text(account.bank?.label ?? account.currency),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: PlanActSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(planActL10n(context).commonCancel),
+              ),
+              const SizedBox(width: PlanActSpacing.sm),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(_accounts),
+                child: Text(planActL10n(context).commonSave),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }
