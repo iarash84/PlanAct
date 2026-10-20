@@ -1804,6 +1804,42 @@ class AppLocalizationsFa extends AppLocalizations {
   String get accountFormSheetFinancialAccountTypeCredit => 'اعتباری';
 
   @override
+  String get iranianBankAnsar => 'انصار';
+
+  @override
+  String get iranianBankMehrIran => 'مهر ایران';
+
+  @override
+  String get iranianBankToseeTaavon => 'توسعه تعاون';
+
+  @override
+  String get iranianBankSarmayeh => 'سرمایه';
+
+  @override
+  String get iranianBankToseeSaderat => 'توسعه صادرات';
+
+  @override
+  String get iranianBankPostBank => 'پست بانک';
+
+  @override
+  String get iranianBankKhavarmianeh => 'خاورمیانه';
+
+  @override
+  String get iranianBankHekmat => 'حکمت ایرانیان';
+
+  @override
+  String get iranianBankIranVenezuela => 'ایران و ونزوئلا';
+
+  @override
+  String get iranianBankResalat => 'رسالت';
+
+  @override
+  String get iranianBankMelal => 'ملل';
+
+  @override
+  String get iranianBankSanatMadan => 'صنعت و معدن';
+
+  @override
   String accountIdentityIconBuildSemanticLabel(String value1) {
     return 'نشان بانک $value1';
   }

@@ -3092,6 +3092,78 @@ abstract class AppLocalizations {
   /// **'اعتباری'**
   String get accountFormSheetFinancialAccountTypeCredit;
 
+  /// Persian display name for the Ansar bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'انصار'**
+  String get iranianBankAnsar;
+
+  /// Persian display name for the Mehr Iran bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'مهر ایران'**
+  String get iranianBankMehrIran;
+
+  /// Persian display name for the Tosee Taavon bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'توسعه تعاون'**
+  String get iranianBankToseeTaavon;
+
+  /// Persian display name for the Sarmayeh bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'سرمایه'**
+  String get iranianBankSarmayeh;
+
+  /// Persian display name for the Tosee Saderat bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'توسعه صادرات'**
+  String get iranianBankToseeSaderat;
+
+  /// Persian display name for the Post Bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'پست بانک'**
+  String get iranianBankPostBank;
+
+  /// Persian display name for the Khavarmianeh bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'خاورمیانه'**
+  String get iranianBankKhavarmianeh;
+
+  /// Persian display name for the Hekmat Iranian bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'حکمت ایرانیان'**
+  String get iranianBankHekmat;
+
+  /// Persian display name for the Iran and Venezuela bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'ایران و ونزوئلا'**
+  String get iranianBankIranVenezuela;
+
+  /// Persian display name for the Resalat bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'رسالت'**
+  String get iranianBankResalat;
+
+  /// Persian display name for the Melal bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'ملل'**
+  String get iranianBankMelal;
+
+  /// Persian display name for the Sanat and Madan bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'صنعت و معدن'**
+  String get iranianBankSanatMadan;
+
   /// Application copy. Original usage: lib/features/finance/presentation/account_identity_icon.dart:25.
   ///
   /// In fa, this message translates to:

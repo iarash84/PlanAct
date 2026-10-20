@@ -42,7 +42,19 @@ enum IranianBank {
   iranZamin('ایران‌زمین', 'iran_zamin'),
   karafarin('کارآفرین', 'karafarin'),
   sina('سینا', 'sina'),
-  ghavamin('قوامین', 'ghavamin');
+  ghavamin('قوامین', 'ghavamin'),
+  ansar('انصار', 'ansar'),
+  mehrIran('مهر ایران', 'mehr_iran'),
+  toseeTaavon('توسعه تعاون', 'tosee_taavon'),
+  sarmayeh('سرمایه', 'sarmayeh'),
+  toseeSaderat('توسعه صادرات', 'tosee_saderat'),
+  postBank('پست بانک', 'post_bank'),
+  khavarmianeh('خاورمیانه', 'khavarmianeh'),
+  hekmat('حکمت ایرانیان', 'hekmat'),
+  iranVenezuela('ایران و ونزوئلا', 'iran_venezuela'),
+  resalat('رسالت', 'resalat'),
+  melal('ملل', 'melal'),
+  sanatMadan('صنعت و معدن', 'sanat_madan');
 
   const IranianBank(this.label, this.code);
   final String label;

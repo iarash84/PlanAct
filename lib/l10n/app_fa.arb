@@ -2764,6 +2764,54 @@
     "description": "Application copy. Original usage: lib/features/finance/presentation/account_form_sheet.dart:284.",
     "x-planact-default": true
   },
+  "iranianBankAnsar": "انصار",
+  "@iranianBankAnsar": {
+    "description": "Persian display name for the Ansar bank identity."
+  },
+  "iranianBankMehrIran": "مهر ایران",
+  "@iranianBankMehrIran": {
+    "description": "Persian display name for the Mehr Iran bank identity."
+  },
+  "iranianBankToseeTaavon": "توسعه تعاون",
+  "@iranianBankToseeTaavon": {
+    "description": "Persian display name for the Tosee Taavon bank identity."
+  },
+  "iranianBankSarmayeh": "سرمایه",
+  "@iranianBankSarmayeh": {
+    "description": "Persian display name for the Sarmayeh bank identity."
+  },
+  "iranianBankToseeSaderat": "توسعه صادرات",
+  "@iranianBankToseeSaderat": {
+    "description": "Persian display name for the Tosee Saderat bank identity."
+  },
+  "iranianBankPostBank": "پست بانک",
+  "@iranianBankPostBank": {
+    "description": "Persian display name for the Post Bank identity."
+  },
+  "iranianBankKhavarmianeh": "خاورمیانه",
+  "@iranianBankKhavarmianeh": {
+    "description": "Persian display name for the Khavarmianeh bank identity."
+  },
+  "iranianBankHekmat": "حکمت ایرانیان",
+  "@iranianBankHekmat": {
+    "description": "Persian display name for the Hekmat Iranian bank identity."
+  },
+  "iranianBankIranVenezuela": "ایران و ونزوئلا",
+  "@iranianBankIranVenezuela": {
+    "description": "Persian display name for the Iran and Venezuela bank identity."
+  },
+  "iranianBankResalat": "رسالت",
+  "@iranianBankResalat": {
+    "description": "Persian display name for the Resalat bank identity."
+  },
+  "iranianBankMelal": "ملل",
+  "@iranianBankMelal": {
+    "description": "Persian display name for the Melal bank identity."
+  },
+  "iranianBankSanatMadan": "صنعت و معدن",
+  "@iranianBankSanatMadan": {
+    "description": "Persian display name for the Sanat and Madan bank identity."
+  },
   "accountIdentityIconBuildSemanticLabel": "نشان بانک {value1}",
   "@accountIdentityIconBuildSemanticLabel": {
     "description": "Application copy. Original usage: lib/features/finance/presentation/account_identity_icon.dart:25.",
