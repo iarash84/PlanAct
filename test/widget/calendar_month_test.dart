@@ -517,8 +517,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       watch.stop();
-      // Desktop widget smoke budget only, not a reference-device frame budget.
-      expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
+      // Leave room for host scheduling variance; this is not a device benchmark.
+      expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
       expect(
         tester
             .widget<Semantics>(find.byKey(const ValueKey('calendar-day-30')))

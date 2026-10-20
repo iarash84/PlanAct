@@ -1,8 +1,11 @@
 import 'dart:async';
 
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:planact/app/planact_app.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
@@ -19,10 +22,77 @@ import 'package:planact/features/search/presentation/search_page.dart';
 
 import 'global_search_test.dart' show query, settleIo, queryKey;
 
+const _notificationsChannel = MethodChannel(
+  'dexterous.com/flutter/local_notifications',
+);
+const _alarmsChannel = MethodChannel('planact/alarms');
+const _timezoneChannel = MethodChannel('flutter_timezone');
+
+Future<void> withStubbedReminderPlatform(
+  WidgetTester tester,
+  Future<void> Function() run,
+) async {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  final previousPlatform = debugDefaultTargetPlatformOverride;
+  debugDefaultTargetPlatformOverride = TargetPlatform.android;
+  AndroidFlutterLocalNotificationsPlugin.registerWith();
+  messenger.setMockMethodCallHandler(
+    _timezoneChannel,
+    (_) async => 'Asia/Tehran',
+  );
+  messenger.setMockMethodCallHandler(_notificationsChannel, (call) async {
+    return switch (call.method) {
+      'initialize' ||
+      'areNotificationsEnabled' ||
+      'canScheduleExactNotifications' => true,
+      'pendingNotificationRequests' => <Object>[],
+      _ => null,
+    };
+  });
+  messenger.setMockMethodCallHandler(_alarmsChannel, (call) async {
+    return call.method == 'available'
+        ? true
+        : call.method == 'schedule'
+        ? true
+        : null;
+  });
+  try {
+    await run();
+  } finally {
+    debugDefaultTargetPlatformOverride = previousPlatform;
+    for (final channel in [
+      _notificationsChannel,
+      _alarmsChannel,
+      _timezoneChannel,
+    ]) {
+      messenger.setMockMethodCallHandler(channel, null);
+    }
+  }
+}
+
 Future<void> openResult(WidgetTester tester, String type, String id) async {
   await tester.tap(find.byKey(ValueKey('search-result-$type-$id')));
   await settleIo(tester);
 }
+
+Future<void> waitForFinder(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  final watch = Stopwatch()..start();
+  while (finder.evaluate().isEmpty && watch.elapsed < timeout) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+  }
+  expect(finder, findsOneWidget);
+}
+
+Future<void> waitForSearchText(WidgetTester tester, String text) =>
+    waitForFinder(tester, find.textContaining(text));
 
 class SlowFinance extends InMemoryFinanceRepository {
   final commit = Completer<void>();
@@ -48,53 +118,61 @@ void main() {
     testWidgets(
       'search refreshes snackbar Undo only after confirmation ($confirm)',
       (tester) async {
-        await tester.binding.setSurfaceSize(const Size(800, 1200));
-        addTearDown(() => tester.binding.setSurfaceSize(null));
-        final db = AppDatabase.forTesting(NativeDatabase.memory());
-        addTearDown(db.close);
-        final owners = DriftCommitmentRepository(db);
-        final owner = Commitment.create(title: 'خرید');
-        await owners.save(owner);
-        await tester.pumpWidget(PlanActApp(repository: owners));
-        await settleIo(tester);
-        await tester.tap(find.byKey(const ValueKey('shell-search')));
-        await settleIo(tester);
-        await query(tester, 'خرید');
-        await tester.tap(
-          find.byKey(const ValueKey('search-filter-commitment')),
-        );
-        await openResult(tester, 'commitment', owner.id.value);
-        await tester.tap(find.text('توقف موقت'));
-        await settleIo(tester);
-        expect(find.textContaining('متوقف‌شده'), findsOneWidget);
-        await tester.tap(find.byType(SnackBarAction));
-        await tester.pumpAndSettle();
-        await tester.tap(
-          confirm
-              ? find.widgetWithText(FilledButton, 'تأیید')
-              : find.widgetWithText(TextButton, 'انصراف'),
-        );
-        await settleIo(tester);
-        expect(
-          (await owners.findById(owner.id))!.status,
-          confirm ? CommitmentStatus.active : CommitmentStatus.paused,
-        );
-        expect(
-          find.textContaining('متوقف‌شده'),
-          confirm ? findsNothing : findsOneWidget,
-        );
-        expect(
-          tester.widget<TextField>(find.byKey(queryKey)).controller!.text,
-          'خرید',
-        );
-        expect(
-          tester
-              .widget<FilterChip>(
-                find.byKey(const ValueKey('search-filter-commitment')),
-              )
-              .selected,
-          isTrue,
-        );
+        await withStubbedReminderPlatform(tester, () async {
+          await tester.binding.setSurfaceSize(const Size(800, 1200));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          final db = AppDatabase.forTesting(NativeDatabase.memory());
+          addTearDown(db.close);
+          final owners = DriftCommitmentRepository(db);
+          final owner = Commitment.create(title: 'خرید');
+          await owners.save(owner);
+          await tester.pumpWidget(PlanActApp(repository: owners));
+          await settleIo(tester);
+          await tester.tap(find.byKey(const ValueKey('shell-search')));
+          await settleIo(tester);
+          await query(tester, 'خرید');
+          await tester.tap(
+            find.byKey(const ValueKey('search-filter-commitment')),
+          );
+          await openResult(tester, 'commitment', owner.id.value);
+          await tester.tap(find.text('توقف موقت'));
+          final undo = find.byType(SnackBarAction);
+          await waitForFinder(tester, undo);
+          await tester.pump(const Duration(milliseconds: 500));
+          await tester.tap(undo);
+          await tester.pumpAndSettle();
+          expect(
+            (await owners.findById(owner.id))!.status,
+            CommitmentStatus.paused,
+          );
+          await tester.tap(
+            confirm
+                ? find.widgetWithText(FilledButton, 'تأیید')
+                : find.widgetWithText(TextButton, 'انصراف'),
+          );
+          await settleIo(tester);
+          expect(
+            (await owners.findById(owner.id))!.status,
+            confirm ? CommitmentStatus.active : CommitmentStatus.paused,
+          );
+          await waitForSearchText(tester, confirm ? 'فعال' : 'متوقف‌شده');
+          expect(
+            find.textContaining('متوقف‌شده'),
+            confirm ? findsNothing : findsOneWidget,
+          );
+          expect(
+            tester.widget<TextField>(find.byKey(queryKey)).controller!.text,
+            'خرید',
+          );
+          expect(
+            tester
+                .widget<FilterChip>(
+                  find.byKey(const ValueKey('search-filter-commitment')),
+                )
+                .selected,
+            isTrue,
+          );
+        });
       },
     );
   }
