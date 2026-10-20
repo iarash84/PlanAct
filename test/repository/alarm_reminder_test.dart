@@ -199,7 +199,7 @@ void main() {
     await create();
     final instance = (await reminders.listInstances()).single;
     final until = DateTime(2030, 1, 1, 18, 10).toUtc();
-    // The native command uses these same v18 epoch-second columns.
+    // The native command uses these same v19 epoch-second columns.
     await db.customStatement(
       'UPDATE reminder_instances SET status=3, snoozed_until=? WHERE id=?',
       [until.millisecondsSinceEpoch ~/ 1000, instance.id.value],

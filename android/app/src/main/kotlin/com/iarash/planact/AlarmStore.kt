@@ -14,7 +14,7 @@ import java.time.ZoneId
 
 /** Native persistence adapter for the alarm commands; no Flutter engine is needed.
  * All admissions take the SQLite writer lock and compare fresh durable ownership.
- * Enum indices and epoch-second timestamps are the v18 Drift storage contract.
+ * Enum indices and epoch-second timestamps are the v19 Drift storage contract.
  */
 internal class AlarmStore(private val context: Context) {
     companion object {
@@ -32,7 +32,10 @@ internal class AlarmStore(private val context: Context) {
         val file = File(path).canonicalFile
         val root = File(context.applicationInfo.dataDir).canonicalFile
         require(file.path.startsWith(root.path + File.separator) && file.name == "planact.sqlite")
-        require(version == 18)
+        // The Dart database currently writes schema metadata version 19. Keep
+        // this admission check strict: the native adapter issues SQL against
+        // that exact layout and must never operate on an unknown schema.
+        require(version == 19)
         recoveryAccess = File(file.path + ".restore-marker").exists()
         check(prefs.edit().putString("path", file.path).putBoolean("paused", false).commit())
     }
@@ -47,7 +50,7 @@ internal class AlarmStore(private val context: Context) {
             db.beginTransaction()
             try {
                 db.rawQuery("SELECT value FROM schema_metadata WHERE key='schema_version'", null).use {
-                    check(it.moveToFirst() && it.getString(0) == "18")
+                    check(it.moveToFirst() && it.getString(0) == "19")
                 }
                 // Explicit writer admission, shared with the Dart commands.
                 db.execSQL("UPDATE schema_metadata SET value=value WHERE key='schema_version'")
