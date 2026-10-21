@@ -224,7 +224,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "_firstScheduledDate(item) == null ? 'زمان‌بندی در دسترس نیست' : _formatDate(_firstScheduledDate(item)!)"
+        "description": "Displays the scheduled date, or 'Schedule unavailable' when no date exists."
       },
       "value2": {
         "type": "String",
@@ -235,17 +235,17 @@
   },
   "commitmentBrowseExpand": "نمایش تمام‌صفحه",
   "@commitmentBrowseExpand": {
-    "description": "گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.",
+    "description": "Expands the timeline or history panel to the page's full safe height.",
     "x-planact-introduced": "interaction-2026-10-14"
   },
   "commitmentBrowseOpenError": "نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.",
   "@commitmentBrowseOpenError": {
-    "description": "خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.",
+    "description": "Retryable error while opening details from the timeline or history panel; the list remains available.",
     "x-planact-introduced": "interaction-2026-10-14"
   },
   "commitmentBrowseCollapse": "نمایش کوچک‌تر",
   "@commitmentBrowseCollapse": {
-    "description": "بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.",
+    "description": "Returns the timeline or history panel to its middle height without closing it.",
     "x-planact-introduced": "interaction-2026-10-14"
   },
   "commonClose": "بستن",
@@ -1166,7 +1166,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "rules.map(reminderRuleLabel).join('، ')"
+        "description": "Comma-separated reminder rule labels."
       }
     },
     "x-planact-default": true
@@ -1272,7 +1272,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "holidays.map(_holidayLabel).join('، ')"
+        "description": "Comma-separated holiday labels."
       }
     }
   },
@@ -1316,7 +1316,7 @@
       },
       "value6": {
         "type": "String",
-        "description": "commitments.map((item) => item.title).join('، ')"
+        "description": "Comma-separated commitment titles."
       }
     }
   },
@@ -1462,7 +1462,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "widget.service.packages.map((p) => PersianNumbers.format(p.year)).join('، ')"
+        "description": "Comma-separated package years formatted with Persian digits."
       }
     }
   },
@@ -1492,7 +1492,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "commitment == null ? '' : 'پیش‌نمایش برنامه · '"
+        "description": "Optional schedule preview prefix; empty when no commitment is selected."
       },
       "value2": {
         "type": "String",
@@ -1660,7 +1660,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "days[index] == JalaliDate.now() ? ' · امروز' : ''"
+        "description": "Appends a Today marker when the day is today."
       }
     },
     "x-planact-default": true
@@ -1693,7 +1693,7 @@
       },
       "value4": {
         "type": "String",
-        "description": "minute == null ? '' : 'زمان پایان ثبت نشده'"
+        "description": "Displays an end-time placeholder when the minute is missing."
       }
     },
     "x-planact-default": true
@@ -2024,7 +2024,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "[for (final day in const [(6, 'شنبه'), (7, 'یکشنبه'), (1, 'دوشنبه'), (2, 'سه‌شنبه'), (3, 'چهارشنبه'), (4, 'پنجشنبه'), (5, 'جمعه')]) if (_draft.weekdays.contains(day.$1)) day.$2].join('، ')"
+        "description": "Selected weekday names joined by comma and space."
       }
     },
     "x-planact-default": true
@@ -2046,7 +2046,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "_draft.reminderOffsets.map((offset) => _reminderLabel(offset.inMinutes)).join('، ')"
+        "description": "Reminder offsets formatted as labels and joined by comma and space."
       }
     },
     "x-planact-default": true
@@ -2276,7 +2276,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "startAt == null ? 'زمان انتخاب‌شده' : 'تاریخ انتخاب‌شده'"
+        "description": "Displays the selected time or date, depending on the available value."
       }
     },
     "x-planact-default": true
@@ -2317,11 +2317,11 @@
       },
       "value2": {
         "type": "String",
-        "description": "recurrenceCalendar == RecurrenceCalendar.jalali ? 'تقویم شمسی' : 'تقویم میلادی'"
+        "description": "The selected recurrence calendar name: Jalali or Gregorian."
       },
       "value3": {
         "type": "String",
-        "description": "switch (termination) {RecurrenceTermination.open => 'بدون پایان', RecurrenceTermination.count => '${PersianNumbers.format(occurrenceCount ?? 0)} نوبت', RecurrenceTermination.endDate => 'تا تاریخ پایان انتخاب‌شده'}"
+        "description": "The termination label: no end, an occurrence count, or a selected end date."
       }
     },
     "x-planact-default": true
@@ -2364,7 +2364,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'"
+        "description": "Formatted financial amount, or the amount formatted in IRR when no preformatted value exists."
       }
     },
     "x-planact-default": true
@@ -2375,7 +2375,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "formattedFinancialAmount ?? '${PersianNumbers.format(financialAmount ?? 0)} ریال'"
+        "description": "Formatted financial amount, or the amount formatted in IRR when no preformatted value exists."
       }
     },
     "x-planact-default": true
@@ -2735,7 +2735,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "_revealed.contains(key) ? 'پنهان کردن' : 'نمایش'"
+        "description": "Displays Hide or Show depending on whether the item is revealed."
       },
       "value2": {
         "type": "String",
@@ -2763,6 +2763,66 @@
   "@accountFormSheetFinancialAccountTypeCredit": {
     "description": "Application copy. Original usage: lib/features/finance/presentation/account_form_sheet.dart:284.",
     "x-planact-default": true
+  },
+  "iranianBankAnsar": "انصار",
+  "@iranianBankAnsar": {
+    "description": "Persian display name for the Ansar bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankMehrIran": "مهر ایران",
+  "@iranianBankMehrIran": {
+    "description": "Persian display name for the Mehr Iran bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankToseeTaavon": "توسعه تعاون",
+  "@iranianBankToseeTaavon": {
+    "description": "Persian display name for the Tosee Taavon bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankSarmayeh": "سرمایه",
+  "@iranianBankSarmayeh": {
+    "description": "Persian display name for the Sarmayeh bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankToseeSaderat": "توسعه صادرات",
+  "@iranianBankToseeSaderat": {
+    "description": "Persian display name for the Tosee Saderat bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankPostBank": "پست بانک",
+  "@iranianBankPostBank": {
+    "description": "Persian display name for the Post Bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankKhavarmianeh": "خاورمیانه",
+  "@iranianBankKhavarmianeh": {
+    "description": "Persian display name for the Khavarmianeh bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankHekmat": "حکمت ایرانیان",
+  "@iranianBankHekmat": {
+    "description": "Persian display name for the Hekmat Iranian bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankIranVenezuela": "ایران و ونزوئلا",
+  "@iranianBankIranVenezuela": {
+    "description": "Persian display name for the Iran and Venezuela bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankResalat": "رسالت",
+  "@iranianBankResalat": {
+    "description": "Persian display name for the Resalat bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankMelal": "ملل",
+  "@iranianBankMelal": {
+    "description": "Persian display name for the Melal bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
+  },
+  "iranianBankSanatMadan": "صنعت و معدن",
+  "@iranianBankSanatMadan": {
+    "description": "Persian display name for the Sanat and Madan bank identity.",
+    "x-planact-introduced": "bank-catalog-2026-10-20"
   },
   "accountIdentityIconBuildSemanticLabel": "نشان بانک {value1}",
   "@accountIdentityIconBuildSemanticLabel": {
@@ -3051,6 +3111,18 @@
   "@financePageBuildChildren2": {
     "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:671."
   },
+  "financePageReorderAccounts": "مرتب‌سازی حساب‌ها",
+  "@financePageReorderAccounts": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
+  },
+  "financePageReorderAccountsDone": "ترتیب حساب‌ها ذخیره شد.",
+  "@financePageReorderAccountsDone": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
+  },
+  "financePageReorderAccountsError": "ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.",
+  "@financePageReorderAccountsError": {
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart."
+  },
   "financePageBuildTooltip": "ثبت درآمد یا واریز",
   "@financePageBuildTooltip": {
     "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:680."
@@ -3216,7 +3288,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "incoming ? 'ورودی به حساب' : 'خروجی از حساب'"
+        "description": "Displays Inflow or Outflow depending on the transaction direction."
       }
     }
   },
@@ -3765,7 +3837,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "widget.item.suggestion.draft.type == 'income' ? 'درآمد' : 'هزینه'"
+        "description": "Displays Income or Expense based on the suggested transaction type."
       }
     }
   },
@@ -3795,7 +3867,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "widget.item.account?.name ?? 'نیازمند انتخاب'"
+        "description": "Account name, or a prompt to select an account when none is available."
       }
     }
   },
@@ -3891,7 +3963,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "draft.bank ?? 'نامشخص'"
+        "description": "Bank name, or Unknown when unavailable."
       }
     }
   },
@@ -3921,7 +3993,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "draft.currencyEvidence!.selectedUnit == null ? 'شواهد پیامک' : 'انتخاب شما'"
+        "description": "Displays SMS evidence or Your selection depending on whether a unit has been selected."
       }
     }
   },
@@ -3931,7 +4003,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "widget.item.account?.name ?? 'نیازمند انتخاب'"
+        "description": "Account name, or a prompt to select an account when none is available."
       }
     }
   },
@@ -3983,7 +4055,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "draft.merchant ?? 'نامشخص'"
+        "description": "Merchant name, or Unknown when unavailable."
       }
     }
   },
@@ -4075,7 +4147,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "original.currencyEvidence == null ? PersianMoneyText.money(original.amount, unit: MoneyUnitScope.of(context)) : '${PersianNumbers.format(MoneyInputFormatter.groupText(original.currencyEvidence!.sourceAmount.toString()))} ${original.currencyEvidence!.effectiveUnit?.label ?? 'واحد نامشخص'}'"
+        "description": "Formatted amount with its effective unit, or an Unknown unit label when evidence lacks a unit."
       }
     }
   },
@@ -4089,7 +4161,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "evidence!.isTransfer ? 'انتقال' : smsDirectionLabel(original.direction)"
+        "description": "Displays Transfer for transfers; otherwise displays the SMS direction label."
       }
     }
   },
@@ -4099,7 +4171,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "original.merchant ?? 'نامشخص'"
+        "description": "Merchant name, or Unknown when unavailable."
       }
     }
   },
@@ -4109,7 +4181,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "original.bank ?? 'نامشخص'"
+        "description": "Bank name, or Unknown when unavailable."
       }
     }
   },
@@ -4149,7 +4221,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "evidence.sourceTime == null ? 'نامشخص' : PersianNumbers.format(evidence.sourceTime!)"
+        "description": "Source time, or Unknown when unavailable."
       }
     }
   },
@@ -4159,7 +4231,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "original.receivedAt == null ? 'نامشخص' : smsReviewTimestamp(original.receivedAt!)"
+        "description": "Received timestamp, or Unknown when unavailable."
       }
     }
   },
@@ -4552,7 +4624,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "retry ? 'ناموفق از انتخاب قبلی' : 'انتخاب‌شده از صفحهٔ نمایش‌داده‌شده'"
+        "description": "Displays a failure label for the previous selection or a label for the selected item shown on the page."
       }
     },
     "x-planact-default": true
@@ -4671,7 +4743,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "item.transaction.note ?? 'تراکنش بدون شرح'"
+        "description": "Transaction note, or a no-description transaction label when absent."
       }
     }
   },
@@ -4685,7 +4757,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "item.transaction.type == AccountEntryType.income ? 'درآمد' : 'هزینه'"
+        "description": "Displays Income or Expense based on transaction type."
       },
       "value2": {
         "type": "String",
@@ -4693,7 +4765,7 @@
       },
       "value3": {
         "type": "String",
-        "description": "item.review.isIndependent ? ' · مستقل' : ''"
+        "description": "Appends an Independent marker when the review is independent."
       }
     }
   },
@@ -4768,7 +4840,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "data.account?.name ?? 'حساب در دسترس نیست'"
+        "description": "Account name, or Account unavailable when no account is available."
       }
     }
   },
@@ -4944,7 +5016,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "rule.offset.isNegative ? 'قبل' : 'بعد'"
+        "description": "Displays Before or After based on the reminder offset."
       }
     },
     "x-planact-default": true
@@ -5104,7 +5176,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "labels.join('، ')"
+        "description": "Labels joined by comma and space."
       }
     }
   },
@@ -5152,7 +5224,7 @@
       },
       "value4": {
         "type": "String",
-        "description": "positive > 0 && series.first.values[i] > 0 ? '؛ ${PersianNumbers.format((series.first.values[i] * 100 / positive).toStringAsFixed(1))}٪' : ''"
+        "description": "Optional donut-chart share suffix with a percentage."
       }
     }
   },
@@ -5178,7 +5250,7 @@
       },
       "value3": {
         "type": "String",
-        "description": "style == FinancialChartStyle.donut && positive > 0 && s.values[i] > 0 ? '؛ ${PersianNumbers.format((s.values[i] * 100 / positive).toStringAsFixed(1))}٪' : ''"
+        "description": "Optional donut-chart share suffix with a percentage."
       }
     }
   },
@@ -5192,7 +5264,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "[for (final s in series) '${s.label} ${format(s.values[i])}${style == FinancialChartStyle.donut && positive > 0 && s.values[i] > 0 ? '؛ ${PersianNumbers.format((s.values[i] * 100 / positive).toStringAsFixed(1))}٪' : ''}'].join('؛ ')"
+        "description": "Chart series labels and values, with an optional donut-chart share percentage, joined by semicolons."
       }
     }
   },
@@ -5300,7 +5372,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "_query.isEmpty ? 'بدون جست‌وجو' : _query"
+        "description": "Displays No search when the query is empty; otherwise displays the query."
       }
     },
     "x-planact-default": true
@@ -5362,7 +5434,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "data.commitments.where((o) => o.id == c.commitmentId).firstOrNull?.title ?? 'تعهد'"
+        "description": "Commitment title, or Commitment when unavailable."
       },
       "value2": {
         "type": "String",
@@ -5488,11 +5560,11 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "data.tags.where((t) => _tags.contains(t.id)).map((t) => t.displayLabel).join('، ')"
+        "description": "Included tags joined by comma and space."
       },
       "value2": {
         "type": "String",
-        "description": "data.tags.where((t) => _excludedTags.contains(t.id)).map((t) => t.displayLabel).join('، ')"
+        "description": "Excluded tags joined by comma and space."
       }
     }
   },
@@ -5654,7 +5726,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "switch (state) {FinancialDueState.settled => 'تسویه‌شده', FinancialDueState.partial => 'تسویهٔ جزئی در انتظار', FinancialDueState.pending => 'در انتظار', FinancialDueState.overdue => 'سررسیدگذشته'}"
+        "description": "Displays the financial due status: Settled, Partial settlement pending, Pending, or Overdue."
       },
       "value2": {
         "type": "String",
@@ -5735,7 +5807,7 @@
       },
       "value5": {
         "type": "String",
-        "description": "s.excess > 0 ? '\\nمازاد: ${_money(s.excess, currency)}' : ''"
+        "description": "Appends an Excess amount line when the excess is positive."
       }
     },
     "x-planact-default": true
@@ -5840,7 +5912,7 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "p.plan.plannedExpiry == null ? 'تاریخ تعیین نشده' : _date(p.plan.plannedExpiry!)"
+        "description": "Planned expiry date, or Date not set when unavailable."
       }
     },
     "x-planact-default": true
@@ -5866,11 +5938,11 @@
     "placeholders": {
       "value1": {
         "type": "String",
-        "description": "p.cycle.plannedEndDate == null ? 'تعیین نشده' : _date(p.cycle.plannedEndDate!)"
+        "description": "Planned end date, or Not set when unavailable."
       },
       "value2": {
         "type": "String",
-        "description": "p.cycle.actualEndDate == null ? 'ثبت نشده' : _date(p.cycle.actualEndDate!)"
+        "description": "Actual end date, or Not recorded when unavailable."
       }
     },
     "x-planact-default": true
@@ -6179,15 +6251,15 @@
       },
       "value3": {
         "type": "String",
-        "description": "r.actual == null || r.actual!.outcome == ActualOutcome.reopened ? '\\nنتیجهٔ واقعی ثبت نشده است.' : '\\n${_outcome(r.actual!.outcome)}'"
+        "description": "Actual outcome, or Actual outcome not recorded when absent or reopened."
       },
       "value4": {
         "type": "String",
-        "description": "_kind == PersonalReportKind.changes ? '\\nتاریخ اولیه: ${_date(r.occurrence.originalScheduledAt)}' : ''"
+        "description": "Original date line shown for change reports."
       },
       "value5": {
         "type": "String",
-        "description": "r.commitment.status == CommitmentStatus.archived ? '؛ تعهد بایگانی‌شده' : ''"
+        "description": "Appends an Archived commitment marker when the commitment is archived."
       }
     },
     "x-planact-default": true
@@ -6210,7 +6282,7 @@
       },
       "value4": {
         "type": "String",
-        "description": "data.accounts.where((a) => a.id == m.entry.accountId).firstOrNull?.name ?? 'حساب'"
+        "description": "Account name, or Account when unavailable."
       }
     },
     "x-planact-default": true
@@ -6627,7 +6699,7 @@
       },
       "value2": {
         "type": "String",
-        "description": "info.buildNumber.isEmpty ? 'نامشخص' : PersianNumbers.format(info.buildNumber)"
+        "description": "Build number, or Unknown when empty."
       }
     }
   },
@@ -6690,6 +6762,38 @@
   "settingsAppearanceDescription": "انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه",
   "@settingsAppearanceDescription": {
     "description": "Application copy. Original usage: lib/features/settings/presentation/settings_page.dart:65."
+  },
+  "settingsBackground": "تصویر پس‌زمینه",
+  "@settingsBackground": {
+    "description": "Application copy for the background selection setting."
+  },
+  "settingsBackgroundDescription": "تصویر انتخابی پشت محتوای صفحه‌ها نمایش داده می‌شود؛ کارت‌ها و نوارها ظاهر فعلی را حفظ می‌کنند.",
+  "@settingsBackgroundDescription": {
+    "description": "Explains that the selected image appears behind page content without changing cards or bars."
+  },
+  "settingsBackgroundNone": "بدون تصویر",
+  "@settingsBackgroundNone": {
+    "description": "Application copy for the default plain app background."
+  },
+  "settingsBackgroundBotanical": "برگ‌های آرام",
+  "@settingsBackgroundBotanical": {
+    "description": "Application copy for the botanical background option."
+  },
+  "settingsBackgroundPersianWaves": "موج ایرانی",
+  "@settingsBackgroundPersianWaves": {
+    "description": "Application copy for the Persian waves background option."
+  },
+  "settingsBackgroundNightWaves": "موج شب",
+  "@settingsBackgroundNightWaves": {
+    "description": "Application copy for the night waves background option."
+  },
+  "settingsBackgroundLoadError": "بارگیری تنظیم پس‌زمینه انجام نشد.",
+  "@settingsBackgroundLoadError": {
+    "description": "Shown when the stored background preference cannot be read."
+  },
+  "settingsBackgroundSaveError": "ذخیرهٔ پس‌زمینه انجام نشد؛ دوباره انتخاب کنید.",
+  "@settingsBackgroundSaveError": {
+    "description": "Shown when saving the selected background preference fails."
   },
   "settingsThemeSystem": "دستگاه",
   "@settingsThemeSystem": {
@@ -7329,6 +7433,12 @@
     "@checklistTitle": {"description": "Commitment checklist route and action.", "x-planact-introduced": "checklist-2026-10-14"},
     "checklistScope": "این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.",
     "@checklistScope": {"description": "Shared list scope and absence of automatic lifecycle or financial effects.", "x-planact-introduced": "checklist-2026-10-14"},
+    "checklistDraftScope": "کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.",
+    "@checklistDraftScope": {"description": "Draft checklist guidance in commitment creation.", "x-planact-introduced": "checklist-2026-10-18"},
+    "checklistAddHint": "افزودن یک کار",
+    "@checklistAddHint": {"description": "Inline checklist composer hint.", "x-planact-introduced": "checklist-2026-10-18"},
+    "checklistPreviewMore": "موارد بیشتر",
+    "@checklistPreviewMore": {"description": "Collapsed checklist preview overflow label.", "x-planact-introduced": "checklist-2026-10-18"},
     "checklistAdd": "افزودن کار",
     "@checklistAdd": {"description": "Add a checklist item.", "x-planact-introduced": "checklist-2026-10-14"},
     "checklistEdit": "ویرایش کار",

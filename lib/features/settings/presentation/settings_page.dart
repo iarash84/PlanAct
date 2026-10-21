@@ -7,6 +7,7 @@ import 'package:planact/features/backup/application/backup_actions.dart';
 import 'package:planact/app/app_lock.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/features/settings/presentation/app_lock_settings_card.dart';
+import 'package:planact/features/settings/presentation/background_settings_card.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -18,6 +19,8 @@ class SettingsPage extends StatefulWidget {
     this.backupMessage,
     required this.themeMode,
     required this.onThemeModeChanged,
+    this.background = AppBackground.none,
+    this.onBackgroundChanged,
     this.appLockEnabled = false,
     this.appLockController,
     this.onAppLockChanged,
@@ -31,6 +34,8 @@ class SettingsPage extends StatefulWidget {
   final String? backupMessage;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final AppBackground background;
+  final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
   final AppLockController? appLockController;
   final Future<void> Function(bool enabled)? onAppLockChanged;
@@ -97,6 +102,13 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
+      if (widget.onBackgroundChanged != null) ...[
+        const SizedBox(height: 12),
+        BackgroundSettingsCard(
+          value: widget.background,
+          onChanged: widget.onBackgroundChanged!,
+        ),
+      ],
       const SizedBox(height: 20),
       Text(
         planActL10n(context).settingsSecurity,

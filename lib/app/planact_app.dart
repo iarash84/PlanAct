@@ -54,13 +54,14 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
-import 'package:planact/features/commitments/presentation/checklist_page.dart';
+import 'package:planact/features/commitments/presentation/commitment_checklist_section.dart';
 import 'package:planact/features/search/domain/search.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/application/commitment_use_cases.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
@@ -124,6 +125,9 @@ class PlanActApp extends StatefulWidget {
 
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  AppBackground _background = AppBackground.none;
+  bool _backgroundLoaded = true;
+  bool _backgroundLoadFailed = false;
   AppSettings? _settings;
   late MoneyUnitController _moneyUnits;
   String? _moneyUnitError;
@@ -143,6 +147,8 @@ class _PlanActAppState extends State<PlanActApp> {
       _settings!.readThemeMode().then((mode) {
         if (mounted) setState(() => _themeMode = mode);
       });
+      _backgroundLoaded = false;
+      _loadBackground();
       _loadAppLockSetting();
     }
     _moneyUnits = MoneyUnitController(_settings);
@@ -189,6 +195,39 @@ class _PlanActAppState extends State<PlanActApp> {
     }
   }
 
+  Future<void> _loadBackground() async {
+    if (_backgroundLoadFailed && mounted) {
+      setState(() {
+        _backgroundLoaded = false;
+        _backgroundLoadFailed = false;
+      });
+    }
+    try {
+      final background = await _settings!.readBackground();
+      if (mounted) {
+        setState(() {
+          _background = background;
+          _backgroundLoaded = true;
+          _backgroundLoadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _backgroundLoaded = true;
+          _backgroundLoadFailed = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _setBackground(AppBackground background) async {
+    final settings = _settings;
+    if (settings == null) throw StateError('Persistent settings unavailable');
+    await settings.writeBackground(background);
+    if (mounted) setState(() => _background = background);
+  }
+
   bool _changingAppLock = false;
 
   Future<void> _setAppLock(bool enabled) async {
@@ -222,8 +261,8 @@ class _PlanActAppState extends State<PlanActApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
-      theme: PlanActTheme.light(),
-      darkTheme: PlanActTheme.dark(),
+      theme: _themeWithBackground(PlanActTheme.light(), _background),
+      darkTheme: _themeWithBackground(PlanActTheme.dark(), _background),
       themeMode: _themeMode,
       builder: (context, child) => HolidayProviderScope(
         readProvider: () =>
@@ -232,34 +271,73 @@ class _PlanActAppState extends State<PlanActApp> {
           controller: _moneyUnits,
           child: Directionality(
             textDirection: TextDirection.rtl,
-            child: AppLockGate(
-              enabled: _appLockEnabled,
-              controller: _appLockController,
-              child: !_moneyUnits.ready
-                  ? Scaffold(
-                      body: Center(
-                        child: _moneyUnitError == null
-                            ? const CircularProgressIndicator()
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(_moneyUnitError!),
-                                  TextButton(
-                                    onPressed: _loadMoneyUnit,
-                                    child: Text(
-                                      planActL10n(context).commonRetry,
-                                    ),
-                                  ),
-                                ],
-                              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_background.assetPath case final assetPath?)
+                  ExcludeSemantics(
+                    child: IgnorePointer(
+                      child: Image.asset(
+                        assetPath,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
                       ),
-                    )
-                  : child ?? const SizedBox.shrink(),
+                    ),
+                  ),
+                if (_background.assetPath != null)
+                  IgnorePointer(
+                    child: ColoredBox(
+                      color: Theme.of(context).colorScheme.surface
+                          .withValues(alpha: 0.52),
+                    ),
+                  ),
+                AppLockGate(
+                  enabled: _appLockEnabled,
+                  controller: _appLockController,
+                  child: !_moneyUnits.ready
+                      ? Scaffold(
+                          body: Center(
+                            child: _moneyUnitError == null
+                                ? const CircularProgressIndicator()
+                                : Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(_moneyUnitError!),
+                                      TextButton(
+                                        onPressed: _loadMoneyUnit,
+                                        child: Text(
+                                          planActL10n(context).commonRetry,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        )
+                      : child ?? const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         ),
       ),
-      home: !_appLockSettingLoaded && _settings != null
+      home: _settings != null && !_backgroundLoaded
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : _backgroundLoadFailed
+          ? Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(planActL10n(context).settingsBackgroundLoadError),
+                    TextButton(
+                      onPressed: _loadBackground,
+                      child: Text(planActL10n(context).commonRetry),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : !_appLockSettingLoaded && _settings != null
           ? Scaffold(
               body: Center(
                 child: _appLockSettingError == null
@@ -293,10 +371,49 @@ class _PlanActAppState extends State<PlanActApp> {
                 setState(() => _themeMode = mode);
                 await _settings?.writeThemeMode(mode);
               },
+              background: _background,
+              onBackgroundChanged: _settings == null ? null : _setBackground,
             ),
     );
   }
 }
+
+ThemeData _themeWithBackground(ThemeData theme, AppBackground background) =>
+    theme.copyWith(
+      scaffoldBackgroundColor: background.assetPath == null
+          ? theme.colorScheme.surface
+          : Colors.transparent,
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.appBarTheme.backgroundColor
+            : theme.colorScheme.surface.withValues(alpha: 0.72),
+      ),
+      cardTheme: theme.cardTheme.copyWith(
+        color: background.assetPath == null
+            ? theme.cardTheme.color
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.62),
+      ),
+      navigationBarTheme: theme.navigationBarTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.navigationBarTheme.backgroundColor
+            : theme.colorScheme.surface.withValues(alpha: 0.72),
+      ),
+      bottomSheetTheme: theme.bottomSheetTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.bottomSheetTheme.backgroundColor
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+      dialogTheme: theme.dialogTheme.copyWith(
+        backgroundColor: background.assetPath == null
+            ? theme.dialogTheme.backgroundColor
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+      popupMenuTheme: theme.popupMenuTheme.copyWith(
+        color: background.assetPath == null
+            ? theme.popupMenuTheme.color
+            : theme.colorScheme.surfaceContainer.withValues(alpha: 0.84),
+      ),
+    );
 
 class HomeShell extends StatefulWidget {
   const HomeShell({
@@ -310,6 +427,8 @@ class HomeShell extends StatefulWidget {
     this.backupMessage,
     this.smsSource,
     this.themeMode = ThemeMode.system,
+    this.background = AppBackground.none,
+    this.onBackgroundChanged,
     this.appLockEnabled = false,
     this.appLockController,
     this.onAppLockChanged = _ignoreAppLockChange,
@@ -328,6 +447,8 @@ class HomeShell extends StatefulWidget {
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
+  final AppBackground background;
+  final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
   final AppLockController? appLockController;
   final Future<void> Function(bool enabled) onAppLockChanged;
@@ -338,6 +459,11 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
+  static const _quickAddSize = 56.0;
+  // Reserve the floating footprint inside scroll content, never the viewport.
+  static const _quickAddScrollClearance =
+      _quickAddSize + kFloatingActionButtonMargin;
+
   late final CalendarNoteRepository _noteRepository =
       _repository is DriftCommitmentRepository
       ? DriftCalendarNoteRepository(_repository.database)
@@ -386,6 +512,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     plans: _planRepository,
     entitlements: _entitlementRepository,
     financialExpectations: _expectationUseCases,
+    checklists: _checklists,
     reminderService: _repository is DriftCommitmentRepository
         ? ReminderService(
             repository: DriftReminderRepository(_repository.database),
@@ -404,6 +531,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   final _commitmentViewsRevision = ValueNotifier<int>(0);
   final Map<String, List<DateTime>> _scheduledDates = {};
   Map<String, List<Occurrence>> _calendarOccurrences = {};
+  Map<StableId, CommitmentChecklist> _checklistSnapshots = {};
   List<ReminderRule> _calendarReminderRules = [];
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
@@ -511,6 +639,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};
+      final checklists = <StableId, CommitmentChecklist>{};
       for (final item in items) {
         final plan = await _planRepository.findByCommitmentId(item.id);
         if (plan == null) continue;
@@ -522,6 +651,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             else if (occurrence.currentScheduledAt case final LocalDate date)
               DateTime(date.year, date.month, date.day),
         ];
+        try {
+          final snapshot = await _checklists.load(item.id);
+          checklists[item.id] = snapshot.list;
+        } catch (_) {
+          // A checklist read must not hide the commitment or block Today.
+        }
       }
       final reminderRules =
           await _createCommitmentPlan.reminderService?.repository.listRules() ??
@@ -569,6 +704,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _calendarOccurrences = {
             for (final entry in plans.entries) entry.key.value: entry.value,
           };
+          _checklistSnapshots = checklists;
           _calendarReminderRules = reminderRules;
           _scheduledDates
             ..clear()
@@ -586,6 +722,23 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       }
       if (throwOnFailure) rethrow;
     }
+  }
+
+  Future<void> _toggleChecklistItem(
+    StableId commitmentId,
+    StableId itemId,
+    bool checked,
+  ) async {
+    final snapshot = await _checklists.load(commitmentId);
+    final item = snapshot.list.items
+        .where((candidate) => candidate.id == itemId && !candidate.removed)
+        .firstOrNull;
+    if (item == null || !snapshot.editable) return;
+    await SaveChecklist(_checklists)(
+      snapshot.list.change(itemId, checked: checked),
+      expectedRevision: snapshot.list.revision,
+    );
+    await _refresh();
   }
 
   late final ReconciliationUseCases _reconciliation = ReconciliationUseCases(
@@ -701,6 +854,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           : null,
       financialDirection: draft.financialMeaning.expectationDirection,
       financialAmount: draft.financialAmount,
+      checklistTitles: draft.checklistTitles,
     );
     try {
       await _refresh();
@@ -980,14 +1134,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     },
                   ),
                 ListTile(
-                  leading: const Icon(Icons.checklist),
-                  title: Text(planActL10n(sheetContext).checklistTitle),
-                  onTap: () => Navigator.pop(
-                    sheetContext,
-                    () => _openChecklist(commitment),
-                  ),
-                ),
-                ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text(
                     PersianCopy.planactAppShowCommitmentDetailsTitle7,
@@ -1013,17 +1159,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       _repository is DriftCommitmentRepository
       ? DriftChecklistRepository(_repository.database)
       : InMemoryChecklistRepository(_repository);
-
-  Future<void> _openChecklist(Commitment commitment) =>
-      Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) => ChecklistPage(
-            repository: _checklists,
-            commitmentId: commitment.id,
-            title: commitment.title,
-          ),
-        ),
-      );
 
   Future<void> _applyStatus(
     Commitment commitment,
@@ -1338,6 +1473,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       TodayPage(
+        bottomContentPadding: _quickAddScrollClearance,
         onOpenRelationshipQueue:
             _reconciliation.repository is RelationshipReviewRepository
             ? _openRelationshipQueue
@@ -1353,6 +1489,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentDetails,
         onCommitmentArchive: _archiveCommitment,
+        checklists: _checklistSnapshots,
+        onChecklistChanged: _toggleChecklistItem,
         onReview: (item) {
           if (item.attentionAction == AttentionAction.classifyTransaction &&
               item.sourceReference != null) {
@@ -1372,6 +1510,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         },
       ),
       CalendarPage(
+        bottomContentPadding: _quickAddScrollClearance,
         noteLoader: _noteRepository.loadRange,
         notesRevision: _notesRevision,
         onNoteTap: _showNote,
@@ -1400,6 +1539,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       FinancePage(
         key: _financePageKey,
+        bottomContentPadding: _quickAddScrollClearance,
         embedded: true,
         repository: _financeRepository,
         onDetermineRelationship: _openRelationship,
@@ -1409,6 +1549,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         expectationRepository: _expectationRepository,
       ),
       _MorePage(
+        bottomContentPadding: _quickAddScrollClearance,
         onInbox: _openInbox,
         onReports: _openReports,
         holidayPackages: widget.holidayPackages,
@@ -1425,6 +1566,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           backupMessage: widget.backupMessage,
           settings: widget.settings,
           themeMode: widget.themeMode,
+          background: widget.background,
+          onBackgroundChanged: widget.onBackgroundChanged,
           appLockEnabled: widget.appLockEnabled,
           appLockController: widget.appLockController,
           onAppLockChanged: widget.onAppLockChanged,
@@ -1541,64 +1684,50 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               .toList(),
         ),
       ),
-      // One persistent action host across tabs. Its measured height reserves
-      // space for every page, including Finance's final operations target.
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SafeArea(
-            top: false,
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.all(PlanActSpacing.lg),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                heightFactor: 1,
-                child: FloatingActionButton(
-                  key: const ValueKey('shell-quick-add'),
-                  tooltip: planActL10n(context).commonQuickAdd,
-                  onPressed: _showQuickAdd,
-                  child: const Icon(Icons.add),
-                ),
-              ),
-            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: SizedBox.square(
+        dimension: _quickAddSize,
+        child: FloatingActionButton(
+          key: const ValueKey('shell-quick-add'),
+          tooltip: planActL10n(context).commonQuickAdd,
+          onPressed: _showQuickAdd,
+          child: const Icon(Icons.add),
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+          final duration = PlanActMotion.duration(context);
+          if (duration == Duration.zero) {
+            _pageController.jumpToPage(index);
+            return;
+          }
+          _pageController.animateToPage(
+            index,
+            duration: duration,
+            curve: PlanActMotion.curve,
+          );
+        },
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.today_outlined),
+            selectedIcon: Icon(Icons.today),
+            label: planActL10n(context).commonToday,
           ),
-          NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() => _selectedIndex = index);
-              final duration = PlanActMotion.duration(context);
-              if (duration == Duration.zero) {
-                _pageController.jumpToPage(index);
-                return;
-              }
-              _pageController.animateToPage(
-                index,
-                duration: duration,
-                curve: PlanActMotion.curve,
-              );
-            },
-            destinations: [
-              NavigationDestination(
-                icon: Icon(Icons.today_outlined),
-                selectedIcon: Icon(Icons.today),
-                label: planActL10n(context).commonToday,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.calendar_month_outlined),
-                selectedIcon: Icon(Icons.calendar_month),
-                label: planActL10n(context).navigationCalendar,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                selectedIcon: Icon(Icons.account_balance_wallet),
-                label: planActL10n(context).navigationFinance,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.more_horiz),
-                label: planActL10n(context).navigationMore,
-              ),
-            ],
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: planActL10n(context).navigationCalendar,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: planActL10n(context).navigationFinance,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.more_horiz),
+            label: planActL10n(context).navigationMore,
           ),
         ],
       ),
@@ -1769,21 +1898,6 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             textAlign: TextAlign.start,
           ),
           const SizedBox(height: 16),
-          if (widget.checklistRepository
-              case final ChecklistRepository repository)
-            ListTile(
-              leading: const Icon(Icons.checklist),
-              title: Text(planActL10n(context).checklistTitle),
-              onTap: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => ChecklistPage(
-                    repository: repository,
-                    commitmentId: widget.commitment.id,
-                    title: widget.commitment.title,
-                  ),
-                ),
-              ),
-            ),
           Text(
             planActL10n(context).planactAppBuildChildren2(
               (_kindLabel(widget.commitment.kind)).toString(),
@@ -1806,6 +1920,14 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
             ),
           ),
           const SizedBox(height: 16),
+          if (widget.checklistRepository
+              case final ChecklistRepository repository)
+            CommitmentChecklistSection(
+              repository: repository,
+              commitmentId: widget.commitment.id,
+              onChanged: _refreshDetails,
+            ),
+          if (widget.checklistRepository != null) const SizedBox(height: 16),
           CommitmentColorPicker(
             selected: _color,
             enabled: !_saving,
@@ -1869,6 +1991,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               onSaved: _refreshDetails,
             ),
           PlannedDetailsRange(
+            key: ValueKey('planned-details-$_progressRevision'),
             commitment: widget.commitment,
             repository: widget.planRepository,
             onSaved: _refreshDetails,
@@ -2091,6 +2214,7 @@ class _MorePage extends StatelessWidget {
     this.onHolidaysChanged,
     this.backupActions,
     this.backupMessage,
+    this.bottomContentPadding = 0,
   });
 
   final VoidCallback onInbox;
@@ -2100,10 +2224,16 @@ class _MorePage extends StatelessWidget {
   final VoidCallback? onHolidaysChanged;
   final BackupActions? backupActions;
   final String? backupMessage;
+  final double bottomContentPadding;
 
   @override
   Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.all(16),
+    padding: EdgeInsets.fromLTRB(
+      PlanActSpacing.lg,
+      PlanActSpacing.lg,
+      PlanActSpacing.lg,
+      PlanActSpacing.lg + bottomContentPadding,
+    ),
     children: [
       Card(
         child: ListTile(

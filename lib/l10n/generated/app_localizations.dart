@@ -370,19 +370,19 @@ abstract class AppLocalizations {
   /// **'{value1} · {value2}'**
   String planactAppShowTimelineSubtitle2(String value1, String value2);
 
-  /// گسترش همان پنل خط زمانی یا تاریخچه تا تمام ارتفاع امن صفحه.
+  /// Expands the timeline or history panel to the page's full safe height.
   ///
   /// In fa, this message translates to:
   /// **'نمایش تمام‌صفحه'**
   String get commitmentBrowseExpand;
 
-  /// خطای قابل تلاش مجدد در بازکردن جزئیات از پنل خط زمانی یا تاریخچه؛ خود فهرست حفظ می‌شود.
+  /// Retryable error while opening details from the timeline or history panel; the list remains available.
   ///
   /// In fa, this message translates to:
   /// **'نمایش جزئیات انجام نشد؛ برای تلاش دوباره تعهد را انتخاب کنید.'**
   String get commitmentBrowseOpenError;
 
-  /// بازگرداندن پنل خط زمانی یا تاریخچه به ارتفاع میانی بدون بستن آن.
+  /// Returns the timeline or history panel to its middle height without closing it.
   ///
   /// In fa, this message translates to:
   /// **'نمایش کوچک‌تر'**
@@ -3092,6 +3092,78 @@ abstract class AppLocalizations {
   /// **'اعتباری'**
   String get accountFormSheetFinancialAccountTypeCredit;
 
+  /// Persian display name for the Ansar bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'انصار'**
+  String get iranianBankAnsar;
+
+  /// Persian display name for the Mehr Iran bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'مهر ایران'**
+  String get iranianBankMehrIran;
+
+  /// Persian display name for the Tosee Taavon bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'توسعه تعاون'**
+  String get iranianBankToseeTaavon;
+
+  /// Persian display name for the Sarmayeh bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'سرمایه'**
+  String get iranianBankSarmayeh;
+
+  /// Persian display name for the Tosee Saderat bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'توسعه صادرات'**
+  String get iranianBankToseeSaderat;
+
+  /// Persian display name for the Post Bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'پست بانک'**
+  String get iranianBankPostBank;
+
+  /// Persian display name for the Khavarmianeh bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'خاورمیانه'**
+  String get iranianBankKhavarmianeh;
+
+  /// Persian display name for the Hekmat Iranian bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'حکمت ایرانیان'**
+  String get iranianBankHekmat;
+
+  /// Persian display name for the Iran and Venezuela bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'ایران و ونزوئلا'**
+  String get iranianBankIranVenezuela;
+
+  /// Persian display name for the Resalat bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'رسالت'**
+  String get iranianBankResalat;
+
+  /// Persian display name for the Melal bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'ملل'**
+  String get iranianBankMelal;
+
+  /// Persian display name for the Sanat and Madan bank identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'صنعت و معدن'**
+  String get iranianBankSanatMadan;
+
   /// Application copy. Original usage: lib/features/finance/presentation/account_identity_icon.dart:25.
   ///
   /// In fa, this message translates to:
@@ -3397,6 +3469,24 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'حساب‌ها'**
   String get financePageBuildChildren2;
+
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'مرتب‌سازی حساب‌ها'**
+  String get financePageReorderAccounts;
+
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'ترتیب حساب‌ها ذخیره شد.'**
+  String get financePageReorderAccountsDone;
+
+  /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.'**
+  String get financePageReorderAccountsError;
 
   /// Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:680.
   ///
@@ -7145,6 +7235,54 @@ abstract class AppLocalizations {
   /// **'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه'**
   String get settingsAppearanceDescription;
 
+  /// Application copy for the background selection setting.
+  ///
+  /// In fa, this message translates to:
+  /// **'تصویر پس‌زمینه'**
+  String get settingsBackground;
+
+  /// Explains that the selected image appears behind page content without changing cards or bars.
+  ///
+  /// In fa, this message translates to:
+  /// **'تصویر انتخابی پشت محتوای صفحه‌ها نمایش داده می‌شود؛ کارت‌ها و نوارها ظاهر فعلی را حفظ می‌کنند.'**
+  String get settingsBackgroundDescription;
+
+  /// Application copy for the default plain app background.
+  ///
+  /// In fa, this message translates to:
+  /// **'بدون تصویر'**
+  String get settingsBackgroundNone;
+
+  /// Application copy for the botanical background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگ‌های آرام'**
+  String get settingsBackgroundBotanical;
+
+  /// Application copy for the Persian waves background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'موج ایرانی'**
+  String get settingsBackgroundPersianWaves;
+
+  /// Application copy for the night waves background option.
+  ///
+  /// In fa, this message translates to:
+  /// **'موج شب'**
+  String get settingsBackgroundNightWaves;
+
+  /// Shown when the stored background preference cannot be read.
+  ///
+  /// In fa, this message translates to:
+  /// **'بارگیری تنظیم پس‌زمینه انجام نشد.'**
+  String get settingsBackgroundLoadError;
+
+  /// Shown when saving the selected background preference fails.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ پس‌زمینه انجام نشد؛ دوباره انتخاب کنید.'**
+  String get settingsBackgroundSaveError;
+
   /// Application copy. Original usage: lib/features/settings/presentation/settings_page.dart:73.
   ///
   /// In fa, this message translates to:
@@ -7966,6 +8104,24 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.'**
   String get checklistScope;
+
+  /// Draft checklist guidance in commitment creation.
+  ///
+  /// In fa, this message translates to:
+  /// **'کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.'**
+  String get checklistDraftScope;
+
+  /// Inline checklist composer hint.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن یک کار'**
+  String get checklistAddHint;
+
+  /// Collapsed checklist preview overflow label.
+  ///
+  /// In fa, this message translates to:
+  /// **'موارد بیشتر'**
+  String get checklistPreviewMore;
 
   /// Add a checklist item.
   ///

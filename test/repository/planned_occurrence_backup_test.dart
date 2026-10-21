@@ -143,7 +143,11 @@ Future<void> _history(AppDatabase db, CommitmentPlan plan) async {
   await db.transaction(() async {
     for (final table in rows.entries) {
       for (final row in table.value) {
-        await db.customStatement('INSERT INTO ${table.key} VALUES $row');
+        final statement = table.key == 'financial_accounts'
+            ? 'INSERT INTO financial_accounts '
+                  '(id, name, currency, type, bank_code, status) VALUES $row'
+            : 'INSERT INTO ${table.key} VALUES $row';
+        await db.customStatement(statement);
       }
     }
   });

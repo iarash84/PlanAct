@@ -12,8 +12,10 @@ import 'package:planact/features/backup/data/sqlite_backup_storage.dart';
 import 'package:planact/features/backup/domain/backup_encryption.dart';
 import 'package:planact/features/backup/domain/backup_package.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
+import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
+import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -21,6 +23,30 @@ import 'package:sqlite3/sqlite3.dart';
 import 'sqlite_backup_restore_test.dart' show Keys, Rebuild;
 
 void main() {
+  test(
+    'creation stores draft checklist in the same plan transaction',
+    () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final owners = DriftCommitmentRepository(db);
+      final plans = DriftCommitmentPlanRepository(db);
+      final checklists = DriftChecklistRepository(db);
+      final plan =
+          await CreateCommitmentPlan(
+            commitments: owners,
+            plans: plans,
+            checklists: checklists,
+          ).call(
+            title: 'لیست خرید',
+            startAt: DateTime(2026, 9, 22, 9),
+            checklistTitles: const ['نان', 'شیر'],
+          );
+      final list = (await checklists.load(plan.commitment.id)).list;
+      expect(list.items.map((item) => item.title), ['نان', 'شیر']);
+      expect(list.revision, 2);
+    },
+  );
+
   test('fresh transactional admission, isolated owners, retained revisions, rollback and restart', () async {
     final dir = await Directory.systemTemp.createTemp('planact-checklist-');
     final file = File('${dir.path}/live.sqlite');
@@ -171,14 +197,14 @@ void main() {
     inspect.close();
     final storage = SqliteBackupStorage(
       live: live,
-      schemaVersion: 18,
+      schemaVersion: 19,
       expectedSchema: schema,
       snapshot: live.readAsBytes,
       closeLive: () async {},
     );
     final service = BackupService(
       storage: storage,
-      validator: BackupValidator(currentSchemaVersion: 18),
+      validator: BackupValidator(currentSchemaVersion: 19),
       rebuildHook: Rebuild(),
       keyStorage: Keys(),
       encryptor: AesGcmBackupEncryptor(),

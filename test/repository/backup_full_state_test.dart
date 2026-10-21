@@ -133,9 +133,11 @@ void main() {
           await database.transaction(() async {
             for (final table in _rows.entries) {
               for (final row in table.value) {
-                await database.customStatement(
-                  'INSERT INTO ${table.key} VALUES $row',
-                );
+                final statement = table.key == 'financial_accounts'
+                    ? 'INSERT INTO financial_accounts '
+                          '(id,name,currency,type,bank_code,status) VALUES $row'
+                    : 'INSERT INTO ${table.key} VALUES $row';
+                await database.customStatement(statement);
               }
             }
             await database.writeMetadata('theme_mode', 'dark');
@@ -163,7 +165,7 @@ void main() {
           sql.close();
           final storage = SqliteBackupStorage(
             live: live,
-            schemaVersion: 18,
+            schemaVersion: 19,
             expectedSchema: schema,
             snapshot: live.readAsBytes,
             closeLive: () async {},
@@ -171,7 +173,7 @@ void main() {
           final rebuild = _Rebuild()..failOnce = rollback;
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 18),
+            validator: const BackupValidator(currentSchemaVersion: 19),
             rebuildHook: rebuild,
             keyStorage: _Keys(),
             encryptor: AesGcmBackupEncryptor(),

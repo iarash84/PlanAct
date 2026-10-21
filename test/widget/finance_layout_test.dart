@@ -151,6 +151,9 @@ void main() {
               final add = find.byTooltip('افزودن سریع');
               final addRect = tester.getRect(add);
               final navigationRect = tester.getRect(find.byType(NavigationBar));
+              // The list viewport reaches navigation beside the floating +.
+              expect(listRect.bottom, navigationRect.top);
+              expect(listRect.overlaps(addRect), isTrue);
               expect(rowRect.top, greaterThanOrEqualTo(listRect.top));
               expect(rowRect.bottom, lessThanOrEqualTo(listRect.bottom));
               expect(rowRect.bottom, lessThanOrEqualTo(addRect.top));

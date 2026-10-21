@@ -92,14 +92,14 @@ void main() {
       sql.close();
       final storage = SqliteBackupStorage(
         live: live,
-        schemaVersion: 18,
+        schemaVersion: 19,
         expectedSchema: schema,
         snapshot: live.readAsBytes,
         closeLive: () async {},
       );
       final service = BackupService(
         storage: storage,
-        validator: BackupValidator(currentSchemaVersion: 18),
+        validator: BackupValidator(currentSchemaVersion: 19),
         rebuildHook: Rebuild(),
         keyStorage: Keys(),
         encryptor: AesGcmBackupEncryptor(),

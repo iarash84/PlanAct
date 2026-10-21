@@ -114,6 +114,7 @@ void main() {
                     'holiday-data-2026-10-14',
                     'calendar-note-2026-10-14',
                     'checklist-2026-10-14',
+                    'checklist-2026-10-18',
                     'search-2026-10-14',
                     'counted-progress-2026-10-14',
                   }.contains(
@@ -128,7 +129,7 @@ void main() {
     expect(
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
       // User-approved 2026-10-14: Today label and removal of stale fixed holiday coverage.
-      '2ff5958f826b430234383923df25f0477e43dd9bf9a1b02d23c6b179ea1cfff3',
+      '5d7a7860202664412828e85236ad849fce903f4baa0965fb0cf578b3e2f7275e',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;

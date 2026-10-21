@@ -40,7 +40,7 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
       .toList();
 
   // Exact sqlite_master signatures from committed historical Drift schemas,
-  // upgraded by AppDatabase's real migrations to v18. Full declarations live in
+  // upgraded by AppDatabase's real migrations. Full declarations live in
   // test/fixtures/backup_schema; never add a signature from an incoming payload.
   // These approve whole historical constraint sets, not arbitrary missing FKs,
   // CHECKs, indexes, or a mixture of individually permitted table variants.
@@ -52,14 +52,24 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
     'dd3600cc3391af9887b9029ff38df789ef83f9df2d3133786cb64a55b5795261',
     'fa1e95043f6062b6346fddd66823b407ee9e0c156fcb28a961b29c7346727b7e',
   };
+  static const _trustedMigratedV19 = {
+    'ca24709e1128f0d837ed373a0b421bde62f6583d1e92f77d49cb292d0a5e1853',
+    'cf875cb5ab9c54b058d135a2525239082c783a4c7ccb6209cb891f47583ada51',
+    '1602c6bc3aa8eca6685f592d5f059626f3a010d972859f10e04f108b7075bc88',
+    'c4fad531af2ced628d068e73101539fa9f31ad2088fc3d6eb91a9d2a88a38809',
+    'a7907d566f89ab2133281c142a78a55316ea4a1f25f6cf95a405c76614344d54',
+    '742a4ff85d8fa0141bceaa2b72629d537d66cf47b9d984bc532a8472cfa065b8',
+  };
 
   bool _matchesSchema(Database db) {
     final declarations = schema(db).join('\n');
     if (declarations == expectedSchema.join('\n')) return true;
-    return schemaVersion == 18 &&
-        _trustedMigratedV18.contains(
-          sha256.convert(utf8.encode(declarations)).toString(),
-        );
+    final fingerprint = sha256.convert(utf8.encode(declarations)).toString();
+    return switch (schemaVersion) {
+      18 => _trustedMigratedV18.contains(fingerprint),
+      19 => _trustedMigratedV19.contains(fingerprint),
+      _ => false,
+    };
   }
 
   /// Legacy migrations retained some tables without current FK declarations.

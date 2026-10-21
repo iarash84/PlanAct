@@ -47,16 +47,51 @@ void main() {
         (await repository.listImports()).single.retentionStatus,
         RawTextRetentionStatus.expired,
       );
+      final separateMessage = await inbox.stageSms(
+        rawText: 'برداشت مبلغ ۲۵۰۰',
+        sourceKey: 'android-sms:43',
+        currency: 'IRR',
+        importedAt: at,
+      );
+      expect(separateMessage.id, isNot(original.id));
+      expect(separateMessage.draft.id, isNot(original.draft.id));
+      expect(await repository.listSuggestions(), hasLength(2));
+      final separateReplay = await inbox.stageSms(
+        rawText: 'برداشت مبلغ ۲۵۰۰',
+        sourceKey: 'android-sms:43',
+        currency: 'IRR',
+        importedAt: at,
+      );
+      expect(separateReplay.id, separateMessage.id);
+      expect(await repository.listSuggestions(), hasLength(2));
+      expect(
+        (await repository.listSuggestions())
+            .singleWhere((item) => item.id == original.id)
+            .status,
+        SuggestionStatus.rejected,
+      );
+      final fingerprint = (await repository.listImports()).first.fingerprint;
+      await repository.saveImport(
+        StagedImport(
+          id: StableId.generate(),
+          rawText: '',
+          fingerprint: fingerprint,
+          provenance: ImportProvenance(
+            source: ImportSource.file,
+            sourceKey: 'file:1',
+            importedAt: at,
+          ),
+        ),
+      );
       await expectLater(
         inbox.stageSms(
           rawText: 'برداشت مبلغ ۲۵۰۰',
-          sourceKey: 'android-sms:restored',
+          sourceKey: 'android-sms:44',
           currency: 'IRR',
           importedAt: at,
         ),
         throwsA(isA<DuplicateSmsImport>()),
       );
-      expect(await repository.listSuggestions(), hasLength(1));
       expect(await DriftFinanceRepository(database).listEntries(), isEmpty);
     },
   );

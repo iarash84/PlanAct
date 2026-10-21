@@ -35,6 +35,18 @@ void main() {
         'karafarin': 'kar',
         'sina': 'sina',
         'ghavamin': 'ghbi',
+        'ansar': 'ansar',
+        'mehr_iran': 'mehriran',
+        'tosee_taavon': 'tt',
+        'sarmayeh': 'sarmayeh',
+        'tosee_saderat': 'edbi',
+        'post_bank': 'post',
+        'khavarmianeh': 'me',
+        'hekmat': 'hi',
+        'iran_venezuela': 'ivbb',
+        'resalat': 'resalat',
+        'melal': 'melal',
+        'sanat_madan': 'bim',
       };
       final manifest = jsonDecode(
         await rootBundle.loadString('assets/banks/manifest.json'),
@@ -42,6 +54,11 @@ void main() {
       expect(
         sources.keys.toSet(),
         IranianBank.values.map((b) => b.code).toSet(),
+      );
+      expect(manifest.keys, contains('refah_legacy'));
+      expect(
+        IranianBank.values.map((b) => b.code),
+        isNot(contains('refah_legacy')),
       );
       for (final entry in sources.entries) {
         expect(manifest[entry.key]['source'], '${entry.value}-300-wc.png');
@@ -67,6 +84,15 @@ void main() {
       frame.image.dispose();
       codec.dispose();
     }
+  });
+
+  test('complete bank names and identity codes include added banks', () {
+    expect(IranianBank.ansar.label, 'انصار');
+    expect(IranianBank.mehrIran.label, 'مهر ایران');
+    expect(IranianBank.resalat.label, 'رسالت');
+    expect(IranianBank.ansar.code, 'ansar');
+    expect(IranianBank.mehrIran.code, 'mehr_iran');
+    expect(IranianBank.resalat.code, 'resalat');
   });
 
   testWidgets('saved bank controls image and Persian semantics', (

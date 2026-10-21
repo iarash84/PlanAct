@@ -31,6 +31,7 @@ The product is **not** primarily a calendar, to-do list, reminder app, expense t
 - **User-controlled backup.** Offline-first must not mean data-loss-prone.
 - **Persian-first experience.** The primary product language is Persian; user-facing labels, actions, statuses, errors, empty states, accessibility text, and onboarding copy must be Persian unless a documented exception exists.
 - **RTL by default.** The application UI must use right-to-left layout semantics correctly. Do not achieve RTL by manually reversing lists or hard-coding directional padding/icons; use Flutter directionality and start/end-aware layout APIs.
+  User-approved 2026-10-18 quick-add repair: keep one stationary floating + at logical end above root navigation. Root content continues to navigation; protect final targets with scroll-content clearance instead of a full-width reserved action row. Standalone pages without + retain ordinary padding. See docs/UI_MIGRATION_VERIFICATION.md.
   User-approved 2026-10-14 Android subpage motion enters from logical end and exits there on Back (left in RTL), through the shared theme and inherited directionality; honor reduced motion. See docs/DESIGN_SYSTEM.md and docs/UI_MIGRATION_VERIFICATION.md.
 - **Jalali calendar for users.** User-facing dates, date pickers, calendar views, recurrence editing, and date-related summaries must use the Persian (Jalali) calendar and Persian locale conventions. Domain persistence must retain unambiguous, testable date/time semantics and must not conflate display-calendar conversion with stored instants or local dates.
 - **Locale-aware formatting.** Persian digits, weekday/month names, number formatting, and pluralization must be handled through locale-aware presentation code, not scattered string replacements.
@@ -952,7 +953,9 @@ starts a fresh boundary. Revoked permission prevents reads, never prompts silent
 and must not hide other Today content. No permanent native service is implied.
 See ADR 0021. Native provider compatibility, delayed insertions, permission
 revocation and reference-device responsiveness require independent device evidence.
-Existing global fingerprint identity limitations are not proof of lossless imports.
+Distinct provider SMS row IDs must remain distinct even when message bodies match;
+replay of one row ID remains idempotent. Global fingerprint behavior is not proof of
+lossless imports or of Inbox UI/device acceptance.
 See [SMS verification](docs/SMS_VERIFICATION.md).
 
 ## Inbox review safeguards

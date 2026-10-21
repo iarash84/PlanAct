@@ -635,7 +635,7 @@ erDiagram
 
 | کلید / الگو | قالب و محتوای اصلی | مالک قرارداد |
 | ---: | ---: | ---: |
-| <span dir="ltr">`schema_version`</span> | رشتهٔ <span dir="ltr">`18`</span>؛ باید با <span dir="ltr">`PRAGMA user_version`</span> سازگار باشد | <span dir="ltr">AppDatabase</span> |
+| <span dir="ltr">`schema_version`</span> | رشتهٔ <span dir="ltr">`19`</span>؛ باید با <span dir="ltr">`PRAGMA user_version`</span> سازگار باشد | <span dir="ltr">AppDatabase</span> |
 | <span dir="ltr">`theme_mode`</span> | <span dir="ltr">`light`</span>, <span dir="ltr">`dark`</span>, <span dir="ltr">`system`</span> | <span dir="ltr">AppSettings</span> |
 | <span dir="ltr">`app_lock_enabled`</span> | رشتهٔ منطقی، <span dir="ltr">`true`</span> / <span dir="ltr">`false`</span> | <span dir="ltr">AppSettings</span> و مسیر تأیید احراز هویت |
 | <span dir="ltr">`iranian_money_unit_v1`</span> | <span dir="ltr">`rial`</span> / <span dir="ltr">`toman`</span>؛ فقط واحد ورودی و نمایش | <span dir="ltr">AppSettings</span> |

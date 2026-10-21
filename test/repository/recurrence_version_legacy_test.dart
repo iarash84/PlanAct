@@ -368,7 +368,7 @@ void main() {
         fixture.addOccurrence(scenario.start, offsets: [30, 5]);
         var db = fixture.open();
         try {
-          expect(await db.readMetadata('schema_version'), '18');
+          expect(await db.readMetadata('schema_version'), '19');
           final initial = await db.select(db.scheduleDefinitions).getSingle();
           expect(initial.recurrenceRule, scenario.payload);
           final before = await _stored(db);

@@ -10,6 +10,7 @@ abstract interface class FinanceRepository {
   Future<List<FinancialAccount>> listAccounts();
   Future<List<AccountEntry>> listEntries();
   Future<void> saveAccount(FinancialAccount account);
+  Future<void> reorderAccounts(List<StableId> orderedIds);
   Future<void> saveEntry(AccountEntry entry);
   Future<void> saveTransfer({
     required AccountEntry outgoing,
@@ -122,6 +123,24 @@ class InMemoryFinanceRepository
   @override
   Future<List<AccountEntry>> listEntries() async =>
       List.unmodifiable(_entries.values);
+
+  @override
+  Future<void> reorderAccounts(List<StableId> orderedIds) async {
+    final existing = _accounts.keys.toSet();
+    if (orderedIds.length != existing.length ||
+        orderedIds.toSet().length != orderedIds.length ||
+        !orderedIds.every(existing.contains)) {
+      throw const ValidationError('Account order is stale');
+    }
+    final reordered = <StableId, FinancialAccount>{};
+    for (final id in orderedIds) {
+      reordered[id] = _accounts[id]!;
+    }
+    _accounts
+      ..clear()
+      ..addAll(reordered);
+  }
+
   @override
   Future<void> saveAccount(FinancialAccount account) async =>
       _accounts[account.id] = account;
@@ -161,6 +180,9 @@ class InMemoryFinanceRepository
 class FinanceUseCases {
   FinanceUseCases(this.repository);
   final FinanceRepository repository;
+
+  Future<void> reorderAccounts(List<StableId> orderedIds) =>
+      repository.reorderAccounts(orderedIds);
 
   Future<void> createAccount(
     FinancialAccount account, {

@@ -18,9 +18,12 @@ Inbox; permission prompts require explicit user action.
 Automatic and historical scans have separate versioned metadata and share serial
 admission within a repository. Each run fixes its upper bound, pages by timestamp
 and row ID, and checkpoints only handled rows. New-message retries replay the
-consented window to recover delayed provider insertion. Existing source-key and
-fingerprint deduplication preserves confirmed/rejected suggestions; its known
-identical-body limitations remain open. No financial entry is automatic.
+consented window to recover delayed provider insertion. The stable provider row ID
+is the SMS source key: replay of that key returns the existing suggestion and
+preserves its decision, while different SMS row IDs remain distinct even when body
+and receipt time are identical. Exact-fingerprint deduplication against non-SMS
+imports remains in force. This avoids silently losing separate provider messages
+without changing schema or automatically creating financial entries.
 
 Automatic consent/progress survives cold restart and logical backup/restore in
 schema_metadata. An enabled automatic new-only scan may resume on app opening

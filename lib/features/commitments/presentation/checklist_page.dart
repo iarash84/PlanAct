@@ -215,7 +215,19 @@ class _ChecklistPageState extends State<ChecklistPage> {
                               : (value) => _save(
                                   snapshot.list.change(item.id, checked: value),
                                 ),
-                          title: Text(item.title),
+                          title: Text(
+                            item.title,
+                            style: TextStyle(
+                              decoration: item.checked
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: item.checked
+                                  ? Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant
+                                  : null,
+                            ),
+                          ),
                           controlAffinity: ListTileControlAffinity.leading,
                         ),
                       ),

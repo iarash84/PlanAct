@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 void main() {
@@ -51,5 +52,24 @@ void main() {
     expect(plan.schedule.mode, ScheduleMode.oneOff);
     expect(plan.schedule.recurrenceRule, isNull);
     expect(plan.occurrences, hasLength(1));
+  });
+
+  test('persists draft checklist items with the new commitment', () async {
+    final commitments = InMemoryCommitmentRepository();
+    final checklists = InMemoryChecklistRepository(commitments);
+    final plan =
+        await CreateCommitmentPlan(
+          commitments: commitments,
+          plans: InMemoryCommitmentPlanRepository(),
+          checklists: checklists,
+        ).call(
+          title: 'لیست خرید',
+          startAt: DateTime(2026, 9, 22, 9),
+          checklistTitles: const ['نان', 'شیر'],
+        );
+
+    final snapshot = await checklists.load(plan.commitment.id);
+    expect(snapshot.list.items.map((item) => item.title), ['نان', 'شیر']);
+    expect(snapshot.list.items.every((item) => !item.checked), isTrue);
   });
 }

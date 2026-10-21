@@ -19,7 +19,7 @@ Native AlarmStore is a bounded persistence/application adapter. It takes SQLite
 writer admission, verifies fresh rule/instance method, active owner/cycle, unresolved
 occurrence, current timing and delivery token, then claims delivery or commits user
 snooze. It never writes occurrence, actual, money, entitlement or recurrence state.
-Native status indices and epoch-second storage are explicitly coupled to schema 18;
+Native status indices and epoch-second storage are explicitly coupled to schema 19;
 another schema requires updating the adapter and database/device evidence. Domain
 calculations remain Dart-only. Native Java time conversion only checks fresh intent;
 local/DST/fixed/absolute cases require independent evidence.

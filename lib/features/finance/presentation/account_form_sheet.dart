@@ -11,6 +11,7 @@ import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/account_identifiers.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 
 Future<bool?> showAccountForm(
   BuildContext context,
@@ -217,8 +218,10 @@ class _AccountFormSheetState extends State<AccountFormSheet>
                     child: Text(planActL10n(context).commonNoSelection),
                   ),
                   ...IranianBank.values.map(
-                    (bank) =>
-                        DropdownMenuItem(value: bank, child: Text(bank.label)),
+                    (bank) => DropdownMenuItem(
+                      value: bank,
+                      child: Text(iranianBankLabel(context, bank)),
+                    ),
                   ),
                 ],
                 onChanged: _saving

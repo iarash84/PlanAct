@@ -108,7 +108,7 @@ void main() {
     raw.close();
     storage = SqliteBackupStorage(
       live: fresh,
-      schemaVersion: 18,
+      schemaVersion: 19,
       expectedSchema: expected,
       snapshot: fresh.readAsBytes,
       closeLive: () async {},
@@ -128,7 +128,7 @@ void main() {
         final file = File('${directory.path}/legacy.sqlite');
         await createHistorical(file, fixture);
         var database = AppDatabase.forTesting(NativeDatabase(file));
-        expect(await database.readMetadata('schema_version'), '18');
+        expect(await database.readMetadata('schema_version'), '19');
         await database.close();
         final raw = sqlite.sqlite3.open(file.path);
         try {
@@ -167,7 +167,7 @@ void main() {
           await storage.validatePayload(bytes);
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 18),
+            validator: const BackupValidator(currentSchemaVersion: 19),
             rebuildHook: _Rebuild(),
             keyStorage: _NoKeys(),
             encryptor: AesGcmBackupEncryptor(),

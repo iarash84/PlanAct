@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/planact_app.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/features/calendar/presentation/calendar_page.dart';
+import 'package:planact/features/calendar/presentation/week_timeline_view.dart';
+import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
 import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
+import 'package:planact/features/today/presentation/today_page.dart';
 
 class _Repository extends InMemoryCommitmentRepository {
   int writes = 0;
@@ -29,8 +33,11 @@ Future<void> _host(
   bool dark = false,
   double scale = 1,
   bool reducedMotion = false,
+  Size size = const Size(320, 1000),
+  TextDirection direction = TextDirection.rtl,
+  CommitmentPlanRepository? plans,
 }) async {
-  tester.view.physicalSize = const Size(320, 1000);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -44,11 +51,38 @@ Future<void> _host(
           padding: const EdgeInsets.only(top: 24, bottom: 24),
           viewPadding: const EdgeInsets.only(top: 24, bottom: 24),
         ),
-        child: Directionality(textDirection: TextDirection.rtl, child: child!),
+        child: Directionality(textDirection: direction, child: child!),
       ),
-      home: HomeShell(repository: repository),
+      home: HomeShell(repository: repository, planRepository: plans),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _scrollToEnd(WidgetTester tester, Finder scrollable) async {
+  for (var attempt = 0; attempt < 30; attempt++) {
+    final position = tester.state<ScrollableState>(scrollable).position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    if (position.extentAfter == 0 &&
+        (position.pixels - position.maxScrollExtent).abs() < 0.01) {
+      return;
+    }
+  }
+  fail('The end of the bounded fixture was not reached.');
+}
+
+Future<void> _dismissCommitmentActions(
+  WidgetTester tester,
+  String title,
+) async {
+  final sheet = find.byType(BottomSheet);
+  expect(sheet, findsOneWidget);
+  expect(
+    find.descendant(of: sheet, matching: find.text(title)),
+    findsOneWidget,
+  );
+  Navigator.of(tester.element(sheet)).pop();
   await tester.pumpAndSettle();
 }
 
@@ -60,6 +94,23 @@ Future<void> _open(WidgetTester tester, String title) async {
 }
 
 void main() {
+  for (final direction in TextDirection.values) {
+    testWidgets('floating Add follows logical end in $direction', (
+      tester,
+    ) async {
+      await _host(tester, _Repository(), direction: direction);
+      final add = tester.getRect(find.byKey(const ValueKey('shell-quick-add')));
+      final page = tester.getRect(find.byType(PageView));
+      if (direction == TextDirection.rtl) {
+        expect(add.center.dx, lessThan(page.center.dx));
+      } else {
+        expect(add.center.dx, greaterThan(page.center.dx));
+      }
+      expect(page.bottom, tester.getRect(find.byType(NavigationBar)).top);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets(
     'detail opening failure is visible inside the retained panel and row tap retries',
     (tester) async {
@@ -110,14 +161,165 @@ void main() {
 
   for (final dark in [false, true]) {
     for (final scale in [1.0, 2.0]) {
+      // Populated narrow/large-text journeys have existing row-layout gaps.
+      // Keep this data-filled journey at 430dp; shell geometry and Finance
+      // separately cover 320dp / doubled text. See the verification record.
+      if (scale == 1) {
+        testWidgets(
+          'last Today, Month, Week and More targets clear floating Add dark=$dark scale=$scale',
+          (tester) async {
+            final repository = _Repository();
+            final plans = InMemoryCommitmentPlanRepository();
+            final create = CreateCommitmentPlan(
+              commitments: repository,
+              plans: plans,
+            );
+            final now = DateTime.now();
+            late Commitment last;
+            for (var index = 0; index < 12; index++) {
+              last = (await create(
+                title: 'تعهد چیدمان $index',
+                startAt: DateTime(now.year, now.month, now.day, 12, index),
+              )).commitment;
+            }
+            repository.writes = 0;
+            await _host(
+              tester,
+              repository,
+              plans: plans,
+              dark: dark,
+              scale: scale,
+              reducedMotion: true,
+              size: const Size(430, 640),
+            );
+            final add = find.byKey(const ValueKey('shell-quick-add'));
+            final addRect = tester.getRect(add);
+            void expectClear(Finder target) {
+              final rect = tester.getRect(target);
+              expect(rect.bottom, lessThanOrEqualTo(addRect.top));
+              expect(
+                rect.top,
+                greaterThanOrEqualTo(tester.getRect(find.byType(PageView)).top),
+              );
+              expect(target.hitTestable(), findsOneWidget);
+            }
+
+            final today = find.byType(TodayPage);
+            await _scrollToEnd(
+              tester,
+              find
+                  .descendant(of: today, matching: find.byType(Scrollable))
+                  .first,
+            );
+            final todayRow = find
+                .ancestor(
+                  of: find.descendant(
+                    of: today,
+                    matching: find.text(last.title),
+                  ),
+                  matching: find.byType(ListTile),
+                )
+                .last;
+            final todayAction = find.descendant(
+              of: todayRow,
+              matching: find.byType(TextButton),
+            );
+            expectClear(todayAction);
+            await tester.tap(todayAction);
+            await tester.pumpAndSettle();
+            await _dismissCommitmentActions(tester, last.title);
+
+            await tester.tap(find.text('تقویم').last);
+            await tester.pumpAndSettle();
+            final calendar = find.byType(CalendarPage);
+            await _scrollToEnd(
+              tester,
+              find
+                  .descendant(of: calendar, matching: find.byType(Scrollable))
+                  .first,
+            );
+            final monthCard = find.byKey(
+              ValueKey('calendar-commitment-${last.id.value}'),
+            );
+            expectClear(monthCard);
+            await tester.tap(monthCard);
+            await tester.pumpAndSettle();
+            await _dismissCommitmentActions(tester, last.title);
+
+            await tester.tap(find.text('هفته'));
+            await tester.pumpAndSettle();
+            final agenda = find.byKey(const ValueKey('week-agenda-scroll'));
+            final weekRow = find.descendant(
+              of: find.byType(WeekTimelineView),
+              matching: find.text(last.title),
+            );
+            await tester.scrollUntilVisible(
+              weekRow,
+              200,
+              scrollable: find
+                  .descendant(of: agenda, matching: find.byType(Scrollable))
+                  .first,
+            );
+            await Scrollable.ensureVisible(
+              tester.element(weekRow),
+              alignment: 0.2,
+            );
+            await tester.pumpAndSettle();
+            expectClear(weekRow);
+            await tester.tap(weekRow);
+            await tester.pumpAndSettle();
+            await _dismissCommitmentActions(tester, last.title);
+
+            await tester.tap(find.text('بیشتر').last);
+            await tester.pumpAndSettle();
+            final settings = find.text('تنظیمات');
+            final moreList = find.ancestor(
+              of: settings,
+              matching: find.byType(ListView),
+            );
+            await _scrollToEnd(
+              tester,
+              find
+                  .descendant(of: moreList, matching: find.byType(Scrollable))
+                  .first,
+            );
+            expectClear(settings);
+            await tester.tap(settings);
+            await tester.pumpAndSettle();
+            expect(find.byType(PageView), findsNothing);
+            await tester.pageBack();
+            await tester.pumpAndSettle();
+            expect(tester.getRect(add), addRect);
+            expect(repository.writes, 0);
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
+
       testWidgets(
         'Quick Add stays mounted, stationary and usable across all tabs dark=$dark scale=$scale',
         (tester) async {
           final repository = _Repository();
-          await _host(tester, repository, dark: dark, scale: scale);
+          await _host(
+            tester,
+            repository,
+            dark: dark,
+            scale: scale,
+            reducedMotion: scale == 2,
+          );
           final fab = find.byKey(const ValueKey('shell-quick-add'));
           final element = tester.element(fab);
           final rect = tester.getRect(fab);
+          void expectFloatingContent() {
+            final pageRect = tester.getRect(find.byType(PageView));
+            final navigationRect = tester.getRect(find.byType(NavigationBar));
+            // Content beside + must continue to navigation, without a reserved
+            // full-width action row shortening every tab's viewport.
+            expect(pageRect.bottom, navigationRect.top);
+            expect(pageRect.overlaps(tester.getRect(fab)), isTrue);
+          }
+
+          expectFloatingContent();
           for (final label in ['بیشتر', 'تقویم', 'مالی', 'امروز']) {
             await tester.tap(find.text(label).last);
             for (var frame = 0; frame < 6; frame++) {
@@ -125,6 +327,7 @@ void main() {
               expect(tester.element(fab), same(element));
               expect(tester.getRect(fab), rect);
               expect(find.byType(FloatingActionButton), findsOneWidget);
+              expectFloatingContent();
             }
             await tester.pumpAndSettle();
           }

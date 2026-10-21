@@ -1,4 +1,5 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
 
 class TodayPage extends StatelessWidget {
@@ -28,7 +31,10 @@ class TodayPage extends StatelessWidget {
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
     required this.onReview,
+    this.checklists = const {},
+    this.onChecklistChanged,
     this.onOpenRelationshipQueue,
+    this.bottomContentPadding = 0,
   });
 
   final List<Commitment> commitments;
@@ -43,7 +49,15 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
   final ValueChanged<TodayActionItem> onReview;
+  final Map<StableId, CommitmentChecklist> checklists;
+  final Future<void> Function(
+    StableId commitmentId,
+    StableId itemId,
+    bool checked,
+  )?
+  onChecklistChanged;
   final VoidCallback? onOpenRelationshipQueue;
+  final double bottomContentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +65,11 @@ class TodayPage extends StatelessWidget {
     final center = actionCenter;
     final content = ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         PlanActSpacing.lg,
         PlanActSpacing.md,
         PlanActSpacing.lg,
-        100,
+        PlanActSpacing.lg + bottomContentPadding,
       ),
       children: [
         Text(
@@ -106,6 +120,8 @@ class TodayPage extends StatelessWidget {
               items: center.attention,
               onOpen: onCommitmentTap,
               onReview: onReview,
+              checklists: checklists,
+              onChecklistChanged: onChecklistChanged,
             ),
             const SizedBox(height: PlanActSpacing.xl),
           ],
@@ -120,6 +136,10 @@ class TodayPage extends StatelessWidget {
                 item: item,
                 onOpen: onCommitmentTap,
                 onReview: () => onReview(item),
+                checklist: item.commitment == null
+                    ? null
+                    : checklists[item.commitment!.id],
+                onChecklistChanged: onChecklistChanged,
               ),
             ),
             const SizedBox(height: PlanActSpacing.xl),
@@ -135,6 +155,10 @@ class TodayPage extends StatelessWidget {
                 item: item,
                 onOpen: onCommitmentTap,
                 onReview: () => onReview(item),
+                checklist: item.commitment == null
+                    ? null
+                    : checklists[item.commitment!.id],
+                onChecklistChanged: onChecklistChanged,
               ),
             ),
           ],
@@ -203,11 +227,15 @@ class _AttentionGroups extends StatelessWidget {
     required this.items,
     required this.onOpen,
     required this.onReview,
+    required this.checklists,
+    required this.onChecklistChanged,
   });
 
   final List<TodayActionItem> items;
   final ValueChanged<Commitment> onOpen;
   final ValueChanged<TodayActionItem> onReview;
+  final Map<StableId, CommitmentChecklist> checklists;
+  final Future<void> Function(StableId, StableId, bool)? onChecklistChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +264,10 @@ class _AttentionGroups extends StatelessWidget {
                     grouped: true,
                     onOpen: onOpen,
                     onReview: () => onReview(item),
+                    checklist: item.commitment == null
+                        ? null
+                        : checklists[item.commitment!.id],
+                    onChecklistChanged: onChecklistChanged,
                   ),
               ],
             ),
@@ -251,12 +283,16 @@ class _ActionItemCard extends StatelessWidget {
     required this.onOpen,
     required this.onReview,
     this.grouped = false,
+    this.checklist,
+    this.onChecklistChanged,
   });
 
   final TodayActionItem item;
   final ValueChanged<Commitment> onOpen;
   final VoidCallback onReview;
   final bool grouped;
+  final CommitmentChecklist? checklist;
+  final Future<void> Function(StableId, StableId, bool)? onChecklistChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +338,8 @@ class _ActionItemCard extends StatelessWidget {
           ),
           if (item.commitment case final Commitment commitment)
             TagLabels(labels: commitment.tags),
+          if (checklist case final list?)
+            _ChecklistPreview(list: list, onChanged: onChecklistChanged),
         ],
       ),
       trailing: TextButton(
@@ -317,6 +355,109 @@ class _ActionItemCard extends StatelessWidget {
       ),
     );
     return grouped ? row : Card(child: row);
+  }
+}
+
+class _ChecklistPreview extends StatefulWidget {
+  const _ChecklistPreview({required this.list, this.onChanged});
+
+  final CommitmentChecklist list;
+  final Future<void> Function(StableId, StableId, bool)? onChanged;
+
+  @override
+  State<_ChecklistPreview> createState() => _ChecklistPreviewState();
+}
+
+class _ChecklistPreviewState extends State<_ChecklistPreview> {
+  late List<ChecklistItem> _items = _active(widget.list);
+  final _busy = <StableId>{};
+
+  static List<ChecklistItem> _active(CommitmentChecklist list) =>
+      list.items.where((item) => !item.removed).toList();
+
+  @override
+  void didUpdateWidget(_ChecklistPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.list.revision != widget.list.revision) {
+      _items = _active(widget.list);
+      _busy.clear();
+    }
+  }
+
+  Future<void> _toggle(ChecklistItem item, bool checked) async {
+    if (_busy.contains(item.id) || widget.onChanged == null) return;
+    final index = _items.indexWhere((candidate) => candidate.id == item.id);
+    if (index < 0) return;
+    setState(() {
+      _busy.add(item.id);
+      _items[index] = ChecklistItem(
+        id: item.id,
+        title: item.title,
+        checked: checked,
+      );
+    });
+    try {
+      await widget.onChanged!(widget.list.commitmentId, item.id, checked);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _items[index] = item;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(planActL10n(context).checklistSaveError)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy.remove(item.id));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = _items.take(3).toList();
+    final remaining = _items.length - visible.length;
+    return Padding(
+      padding: const EdgeInsets.only(top: PlanActSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            planActL10n(context).checklistProgress(
+              PersianNumbers.format(
+                _items.where((item) => item.checked).length,
+              ),
+              PersianNumbers.format(_items.length),
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          for (final item in visible)
+            CheckboxListTile(
+              key: ValueKey('today-checklist-item-${item.id.value}'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              value: item.checked,
+              onChanged: widget.onChanged == null || _busy.contains(item.id)
+                  ? null
+                  : (value) => _toggle(item, value ?? false),
+              title: Text(
+                item.title,
+                style: TextStyle(
+                  decoration: item.checked ? TextDecoration.lineThrough : null,
+                  color: item.checked
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : null,
+                ),
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+          if (remaining > 0)
+            Text(
+              '${planActL10n(context).checklistPreviewMore} (${PersianNumbers.format(remaining)})',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+        ],
+      ),
+    );
   }
 }
 

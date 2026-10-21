@@ -1,9 +1,27 @@
 # Commitment checklists and search actions — 2026-10-14
 
+## Integrated authoring acceptance — 2026-10-18
+
+- Add Commitment keeps checklist items in the same draft and saves them with the
+  commitment plan; cancelling or failing the commitment save leaves no orphan list.
+- Details and editing expose the checklist inline. The action sheet does not expose
+  a separate checklist route. Add, rename, reversible removal and restore retain
+  the existing revision and owner checks.
+- Today commitment cards show checklist progress and up to three active items.
+  Checking or unchecking an item works from the card, visibly strikes completed
+  text, and never changes commitment, occurrence, financial or entitlement state.
+- Existing full checklist route remains a compatibility surface for direct links;
+  it shares the same checked-item presentation and durable commands.
+
+Evidence: `test/repository/commitment_checklist_test.dart`,
+`test/unit/commitment_plan_use_case_test.dart`,
+`test/widget/search_actions_checklist_test.dart`,
+`test/widget/checklist_page_test.dart`, and focused Today/widget checks.
+
 ## Acceptance contract (before implementation)
 
 - Entry/outcome: offline shell Search opens the existing commitment action sheet, including lifecycle, archive, durable Undo and Details; financial results open the existing Finance controls scoped to the selected record. Notes keep their sole existing action, revision-checked editing. Search query/filter/scroll survive returning; durable results reload after completed actions. Opening/cancelling does not write.
-- Checklist entry: commitment actions and Details → «فهرست کارها». Create an ordinary commitment (for example a shopping list), then add named items, edit names, check/uncheck, remove with confirmation and restore removed items. The list belongs to the commitment, shared across its cycles/occurrences; there is no automatic recurrence reset, parent completion, attendance, reminder, financial or entitlement effect.
+- Checklist entry: Add Commitment → Details section, then Details/editing inline. Create an ordinary commitment (for example a shopping list), then add named items, edit names, check/uncheck, remove with confirmation and restore removed items. The list belongs to the commitment, shared across its cycles/occurrences; there is no automatic recurrence reset, parent completion, attendance, reminder, financial or entitlement effect.
 - Durable behavior: stable item IDs, monotonic list revisions and append-only snapshots in the existing metadata extension store. Fresh SQLite writer admission precedes owner/status/revision checks and atomic snapshot/head writes. Active/paused owners are editable; resolved/archived owners retain readable lists/history. Stale edits fail visibly and require reloading, without losing the visible failed draft. Closing an unsaved item dialog writes nothing. Each edit is an explicit save; checking is reversible by unchecking, removal by restoration.
 - Errors: loading and retry, empty guidance, explicit save error/conflict and refresh. After a committed write, a read failure must be described as refresh pending rather than failed saving. No private text is logged.
 - Compatibility: no schema/persisted-enum/dependency change. Legacy databases have an empty list. Personal SQLite backup preserves heads and all revisions; cold reopen and production backup validation/restore must retain logical state. Older readers ignore the extension; older writers do not enforce checklist semantics and are not approved for downgrade use.
@@ -11,13 +29,13 @@
 
 ## Path and minimum implementation
 
-Search row → awaited existing action sheet / focused Finance route → existing commands → transactional durable write → refresh Search and root consumers. Checklist route → application commands → pure item/list transition → transactional repository admission and append snapshot/head → route reload. Keep checklist outside scheduling/accounting models.
+Add/Details or Search row → existing commands → transactional durable write → refresh the parent surface and root consumers. The full checklist route remains a compatibility surface; keep checklist outside scheduling/accounting models.
 
 ## Status
 
 Implementation: **complete capability in the bounded scope above**. User confirmed
 the shared commitment-owned list explicitly. Creation uses the existing Add flow,
-followed by commitment actions or Details → checklist; no new commitment kind or
+followed by the inline Details checklist editor; no new commitment kind or
 automatic lifecycle effect was introduced.
 
 Changed files: shell/Details wiring in `lib/app/planact_app.dart`, Search presentation,
@@ -40,7 +58,7 @@ inside the repository sandbox.
 | Independent task identity, trim/validation, checked/uncheck, rename/removal/restoration, immutable earlier states | `test/unit/commitment_checklist_test.dart` | Passed |
 | Owner isolation, fresh status/revision, competing writers, rejection of physical item removal, atomic rollback after history insert, cold reopen and unchanged occurrence/reminder/financial/credit tables | `test/repository/commitment_checklist_test.dart` | Passed |
 | Legacy v17 migration into unchanged v18, production SQLite snapshot, encrypted BackupService + strict SqliteBackupStorage validation/restore, identical metadata and task identity | Same repository test | Passed |
-| Shell Search → status/pause/archive → durable Undo restoring paused state; Details and direct checklist routes; add/cancel/empty validation/check/rename/confirmed removal/restore/reopen; unchanged parent status | `test/widget/search_actions_checklist_test.dart` | Passed |
+| Shell Search → status/pause/archive → durable Undo restoring paused state; Details inline checklist editor; add/cancel/empty validation/check/rename/confirmed removal/restore/reopen; unchanged parent status | `test/widget/search_actions_checklist_test.dart` | Passed |
 | Search → exact transaction/account controls (including equal IDs in separate account/entry tables) → cancelled confirmation makes no write; confirmed reversal; repeated cancellation unavailable; confirmed account archive; return refresh | Same widget file | Passed |
 | Back cannot return a focused financial result while its admitted cancellation is still pending | Same widget file, delayed writer | Passed in focused run |
 | Read failure/retry, a competing edit while dialog is open, retained failed draft, post-commit read failure shown distinctly without duplicate creation | `test/widget/checklist_page_test.dart` | Passed |

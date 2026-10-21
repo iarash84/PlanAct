@@ -1804,6 +1804,42 @@ class AppLocalizationsFa extends AppLocalizations {
   String get accountFormSheetFinancialAccountTypeCredit => 'اعتباری';
 
   @override
+  String get iranianBankAnsar => 'انصار';
+
+  @override
+  String get iranianBankMehrIran => 'مهر ایران';
+
+  @override
+  String get iranianBankToseeTaavon => 'توسعه تعاون';
+
+  @override
+  String get iranianBankSarmayeh => 'سرمایه';
+
+  @override
+  String get iranianBankToseeSaderat => 'توسعه صادرات';
+
+  @override
+  String get iranianBankPostBank => 'پست بانک';
+
+  @override
+  String get iranianBankKhavarmianeh => 'خاورمیانه';
+
+  @override
+  String get iranianBankHekmat => 'حکمت ایرانیان';
+
+  @override
+  String get iranianBankIranVenezuela => 'ایران و ونزوئلا';
+
+  @override
+  String get iranianBankResalat => 'رسالت';
+
+  @override
+  String get iranianBankMelal => 'ملل';
+
+  @override
+  String get iranianBankSanatMadan => 'صنعت و معدن';
+
+  @override
   String accountIdentityIconBuildSemanticLabel(String value1) {
     return 'نشان بانک $value1';
   }
@@ -1981,6 +2017,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get financePageBuildChildren2 => 'حساب‌ها';
+
+  @override
+  String get financePageReorderAccounts => 'مرتب‌سازی حساب‌ها';
+
+  @override
+  String get financePageReorderAccountsDone => 'ترتیب حساب‌ها ذخیره شد.';
+
+  @override
+  String get financePageReorderAccountsError =>
+      'ذخیرهٔ ترتیب حساب‌ها انجام نشد؛ دوباره تلاش کنید.';
 
   @override
   String get financePageBuildTooltip => 'ثبت درآمد یا واریز';
@@ -4275,6 +4321,32 @@ class AppLocalizationsFa extends AppLocalizations {
       'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه';
 
   @override
+  String get settingsBackground => 'تصویر پس‌زمینه';
+
+  @override
+  String get settingsBackgroundDescription =>
+      'تصویر انتخابی پشت محتوای صفحه‌ها نمایش داده می‌شود؛ کارت‌ها و نوارها ظاهر فعلی را حفظ می‌کنند.';
+
+  @override
+  String get settingsBackgroundNone => 'بدون تصویر';
+
+  @override
+  String get settingsBackgroundBotanical => 'برگ‌های آرام';
+
+  @override
+  String get settingsBackgroundPersianWaves => 'موج ایرانی';
+
+  @override
+  String get settingsBackgroundNightWaves => 'موج شب';
+
+  @override
+  String get settingsBackgroundLoadError => 'بارگیری تنظیم پس‌زمینه انجام نشد.';
+
+  @override
+  String get settingsBackgroundSaveError =>
+      'ذخیرهٔ پس‌زمینه انجام نشد؛ دوباره انتخاب کنید.';
+
+  @override
   String get settingsThemeSystem => 'دستگاه';
 
   @override
@@ -4756,6 +4828,16 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get checklistScope =>
       'این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.';
+
+  @override
+  String get checklistDraftScope =>
+      'کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.';
+
+  @override
+  String get checklistAddHint => 'افزودن یک کار';
+
+  @override
+  String get checklistPreviewMore => 'موارد بیشتر';
 
   @override
   String get checklistAdd => 'افزودن کار';
