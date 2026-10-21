@@ -468,7 +468,12 @@ class InboxUseCases {
           (item) => item.stagedImportId == stagedId,
         );
       }
-      if (existing.any((item) => item.fingerprint == fingerprint)) {
+      if (existing.any(
+        (item) =>
+            item.fingerprint == fingerprint &&
+            !(item.provenance.source == ImportSource.sms &&
+                item.provenance.sourceKey != sourceKey),
+      )) {
         throw const DuplicateSmsImport();
       }
     }

@@ -102,28 +102,27 @@ void main() {
   });
 
   test(
-    'rejects duplicate raw source without creating a second suggestion',
+    'allows identical raw text from distinct source rows as separate suggestions',
     () async {
       final inbox = InMemoryInboxRepository();
       final useCases = InboxUseCases(inbox);
       const raw =
           'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30';
 
-      await useCases.stageSms(
+      final first = await useCases.stageSms(
         rawText: raw,
         sourceKey: 'sms-1',
         currency: 'IRR',
       );
-
-      expect(
-        () => useCases.stageSms(
-          rawText: raw,
-          sourceKey: 'sms-2',
-          currency: 'IRR',
-        ),
-        throwsA(isA<ValidationError>()),
+      final second = await useCases.stageSms(
+        rawText: raw,
+        sourceKey: 'sms-2',
+        currency: 'IRR',
       );
-      expect(await inbox.listSuggestions(), hasLength(1));
+
+      expect(second.id, isNot(first.id));
+      expect(second.stagedImportId, isNot(first.stagedImportId));
+      expect(await inbox.listSuggestions(), hasLength(2));
     },
   );
 
