@@ -1991,6 +1991,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               onSaved: _refreshDetails,
             ),
           PlannedDetailsRange(
+            key: ValueKey('planned-details-$_progressRevision'),
             commitment: widget.commitment,
             repository: widget.planRepository,
             onSaved: _refreshDetails,
