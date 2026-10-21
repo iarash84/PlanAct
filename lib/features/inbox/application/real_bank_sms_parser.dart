@@ -180,9 +180,8 @@ class RealBankSmsParser implements SmsFormatParser {
     final amountMatch = _compactSinaAmount.firstMatch(compact);
     final depositMatch = _compactSinaDeposit.firstMatch(compact);
     final bankMatch = _compactSinaBank.firstMatch(compact);
-    if (RegExp(r'برداشت|خرید|پرداخت|انتقال|کارت\s*به\s*کارت').hasMatch(
-          compact,
-        ) ||
+    if (RegExp(r'برداشت|خرید|پرداخت|انتقال|کارت\s*به\s*کارت')
+            .hasMatch(compact) ||
         RegExp('مبلغ').allMatches(compact).length != 1 ||
         RegExp('واریز').allMatches(compact).length != 1 ||
         RegExp('حساب').allMatches(compact).length != 1 ||

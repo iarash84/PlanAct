@@ -468,66 +468,65 @@ void main() {
     },
   );
 
-  testWidgets(
-    'legacy fixture fallback and realistic 3000 recorded Month rows',
-    (tester) async {
-      size(tester, height: 1600);
-      const date = JalaliDate(1405, 1, 1);
-      final item = Commitment.create(title: 'ثبت قدیمی');
-      await tester.pumpWidget(
-        host(
-          CalendarPage(
-            commitments: [item],
-            scheduledDates: {
-              item.id.value: [date.toDateTime()],
-            },
-            initialDate: date,
-          ),
+  testWidgets('legacy fixture fallback and realistic 3000 recorded Month rows', (
+    tester,
+  ) async {
+    size(tester, height: 1600);
+    const date = JalaliDate(1405, 1, 1);
+    final item = Commitment.create(title: 'ثبت قدیمی');
+    await tester.pumpWidget(
+      host(
+        CalendarPage(
+          commitments: [item],
+          scheduledDates: {
+            item.id.value: [date.toDateTime()],
+          },
+          initialDate: date,
         ),
-      );
-      expect(
-        tester
-            .widget<Semantics>(find.byKey(const ValueKey('calendar-day-1')))
-            .properties
-            .label,
-        contains(item.title),
-      );
-      final items = List.generate(
-        100,
-        (i) => Commitment.create(title: 'تعهد $i'),
-      );
-      final records = {
-        for (final item in items)
-          item.id.value: List.generate(
-            30,
-            (d) => occurrence(JalaliDate(1405, 1, d + 1).toDateTime()),
-          ),
-      };
-      final watch = Stopwatch()..start();
-      await tester.pumpWidget(
-        host(
-          CalendarPage(
-            key: const ValueKey('volume'),
-            commitments: items,
-            scheduledDates: const {},
-            initialDate: date,
-            monthLoader: (_, _) async => records,
-          ),
+      ),
+    );
+    expect(
+      tester
+          .widget<Semantics>(find.byKey(const ValueKey('calendar-day-1')))
+          .properties
+          .label,
+      contains(item.title),
+    );
+    final items = List.generate(
+      100,
+      (i) => Commitment.create(title: 'تعهد $i'),
+    );
+    final records = {
+      for (final item in items)
+        item.id.value: List.generate(
+          30,
+          (d) => occurrence(JalaliDate(1405, 1, d + 1).toDateTime()),
         ),
-      );
-      await tester.pumpAndSettle();
-      watch.stop();
-      // Leave room for host scheduling variance; this is not a device benchmark.
-      expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
-      expect(
-        tester
-            .widget<Semantics>(find.byKey(const ValueKey('calendar-day-30')))
-            .properties
-            .label,
-        contains('۱۰۰ تعهد'),
-      );
-      expect(find.text('+۹۸'), findsWidgets);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    };
+    final watch = Stopwatch()..start();
+    await tester.pumpWidget(
+      host(
+        CalendarPage(
+          key: const ValueKey('volume'),
+          commitments: items,
+          scheduledDates: const {},
+          initialDate: date,
+          monthLoader: (_, _) async => records,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    watch.stop();
+    // Leave room for host scheduling variance; this is not a device benchmark.
+    expect(watch.elapsed, lessThan(const Duration(seconds: 10)));
+    expect(
+      tester
+          .widget<Semantics>(find.byKey(const ValueKey('calendar-day-30')))
+          .properties
+          .label,
+      contains('۱۰۰ تعهد'),
+    );
+    expect(find.text('+۹۸'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
 }

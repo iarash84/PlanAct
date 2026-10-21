@@ -101,30 +101,27 @@ void main() {
     expect(await inbox.listSuggestions(), hasLength(1));
   });
 
-  test(
-    'allows identical raw text from distinct source rows as separate suggestions',
-    () async {
-      final inbox = InMemoryInboxRepository();
-      final useCases = InboxUseCases(inbox);
-      const raw =
-          'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30';
+  test('allows identical raw text from distinct source rows as separate suggestions', () async {
+    final inbox = InMemoryInboxRepository();
+    final useCases = InboxUseCases(inbox);
+    const raw =
+        'type: withdrawal\namount: 1000 rial\ndate: 2026-09-20\ntime: 12:30';
 
-      final first = await useCases.stageSms(
-        rawText: raw,
-        sourceKey: 'sms-1',
-        currency: 'IRR',
-      );
-      final second = await useCases.stageSms(
-        rawText: raw,
-        sourceKey: 'sms-2',
-        currency: 'IRR',
-      );
+    final first = await useCases.stageSms(
+      rawText: raw,
+      sourceKey: 'sms-1',
+      currency: 'IRR',
+    );
+    final second = await useCases.stageSms(
+      rawText: raw,
+      sourceKey: 'sms-2',
+      currency: 'IRR',
+    );
 
-      expect(second.id, isNot(first.id));
-      expect(second.stagedImportId, isNot(first.stagedImportId));
-      expect(await inbox.listSuggestions(), hasLength(2));
-    },
-  );
+    expect(second.id, isNot(first.id));
+    expect(second.stagedImportId, isNot(first.stagedImportId));
+    expect(await inbox.listSuggestions(), hasLength(2));
+  });
 
   test('confirm mutates the finance ledger only after explicit confirmation', () async {
     final inbox = InMemoryInboxRepository();
