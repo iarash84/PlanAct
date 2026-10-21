@@ -178,7 +178,13 @@ class DriftInboxRepository
           (item) => item.stagedImportId == sourceDuplicate.first.id,
         );
       }
-      if (imports.any((item) => item.fingerprint == staged.fingerprint)) {
+      if (imports.any(
+        (item) =>
+            item.fingerprint == staged.fingerprint &&
+            !(item.provenance.source == ImportSource.sms &&
+                staged.provenance.source == ImportSource.sms &&
+                item.provenance.sourceKey != staged.provenance.sourceKey),
+      )) {
         throw const DuplicateSmsImport();
       }
       await saveImport(staged);

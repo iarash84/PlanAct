@@ -453,15 +453,26 @@ class InboxUseCases {
     if (repository is! AtomicInboxStaging) {
       final existing = await repository.listImports();
       final sourceDuplicate = existing.where(
-        (item) => item.provenance.sourceKey == sourceKey,
+        (item) =>
+            item.provenance.source == ImportSource.sms &&
+            item.provenance.sourceKey == sourceKey,
       );
       if (sourceDuplicate.isNotEmpty) {
+        if (sourceDuplicate.first.fingerprint != fingerprint) {
+          throw const ValidationError(
+            'Source key belongs to different content',
+          );
+        }
         final stagedId = sourceDuplicate.first.id;
         return (await repository.listSuggestions()).firstWhere(
           (item) => item.stagedImportId == stagedId,
         );
       }
-      if (existing.any((item) => item.fingerprint == fingerprint)) {
+      if (existing.any(
+        (item) =>
+            item.fingerprint == fingerprint &&
+            item.provenance.source != ImportSource.sms,
+      )) {
         throw const DuplicateSmsImport();
       }
     }
@@ -485,8 +496,9 @@ class InboxUseCases {
       isUtc: true,
     );
     final retentionUntil = imported.add(const Duration(days: 30));
+    final identity = '$fingerprint:sms:$sourceKey';
     final staged = StagedImport(
-      id: _stableImportId(fingerprint, importedAt),
+      id: _stableImportId(identity, importedAt),
       rawText: normalized,
       fingerprint: fingerprint,
       provenance: ImportProvenance(
@@ -497,7 +509,7 @@ class InboxUseCases {
       retentionUntil: retentionUntil,
     );
     final draft = TransactionDraft(
-      id: _stableImportId('$fingerprint:draft', occurredAt),
+      id: _stableImportId('$identity:draft', occurredAt),
       stagedImportId: staged.id,
       amount: parsed.amount,
       currencyEvidence: parsed.currencyEvidence,
@@ -523,7 +535,7 @@ class InboxUseCases {
           : TransactionDateSource.unknown,
     );
     final suggestion = InboxSuggestion(
-      id: _stableImportId('$fingerprint:suggestion', importedAt),
+      id: _stableImportId('$identity:suggestion', importedAt),
       stagedImportId: staged.id,
       draft: draft,
       extractedEvidence: SmsExtractionEvidence(

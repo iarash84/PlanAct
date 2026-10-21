@@ -10,13 +10,19 @@ class RealBankSmsParser implements SmsFormatParser {
   const RealBankSmsParser();
 
   static const _number = r'(?:[0-9]{1,3}(?:[,،٬][0-9]{3})+|[0-9]+)';
-  static const _account = r'(?<account>[0-9]{1,32}(?:[.-][0-9]{1,32})*)';
+  static const _accountValue = r'[0-9]{1,32}(?:[.-][0-9]{1,32})*';
+  static const _account = '(?<account>$_accountValue)';
   static const _amount =
       '(?<prefix>[+-])?(?<amount>$_number)(?<suffix>[+-])?\\s*(?<unit>ریال|تومان)?';
   static const _balance =
       '(?:مانده|موجودی)\\s*:?\\s*(?<balance>$_number)\\s*(?<balanceUnit>ریال|تومان)?';
   static const _stamp =
       r'(?<date>(?:[0-9]{4}|[0-9]{2})/[0-9]{1,2}/[0-9]{1,2}|[0-9]{2}/[0-9]{2}|[0-9]{4})\s*[-_; ]\s*(?<time>[0-9]{2}:[0-9]{2}(?::[0-9]{2})?)';
+  static final _compactSinaAmount = RegExp(
+    'مبلغ\\s*[:：]?\\s*($_number)\\s*(ریال|تومان)',
+  );
+  static final _compactSinaDeposit = RegExp(r'واریز\s+به\s+حساب');
+  static final _compactSinaBank = RegExp(r'بانک\s*سینا');
 
   static final _templates = <(String?, RegExp)>[
     (
@@ -62,6 +68,7 @@ class RealBankSmsParser implements SmsFormatParser {
   ParsedSms? tryParse({required String text, required String currency}) {
     if (text.length > 4096) return null;
     final normalized = text
+        .replaceAll(RegExp(r'[\u200e\u200f\u202a-\u202e\u2066-\u2069]'), '')
         .replaceAll('ي', 'ی')
         .replaceAll('ك', 'ک')
         .replaceAllMapped(RegExp(r'[۰-۹٠-٩]'), (m) {
@@ -165,7 +172,55 @@ class RealBankSmsParser implements SmsFormatParser {
         bank: template.$1,
       );
     }
-    return null;
+    return normalized.contains('\n') ? null : _tryParseCompactSina(normalized);
+  }
+
+  ParsedSms? _tryParseCompactSina(String text) {
+    final compact = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final amountMatch = _compactSinaAmount.firstMatch(compact);
+    final depositMatch = _compactSinaDeposit.firstMatch(compact);
+    final bankMatch = _compactSinaBank.firstMatch(compact);
+    if (RegExp(r'برداشت|خرید|پرداخت|انتقال|کارت\s*به\s*کارت').hasMatch(
+          compact,
+        ) ||
+        RegExp('مبلغ').allMatches(compact).length != 1 ||
+        RegExp('واریز').allMatches(compact).length != 1 ||
+        RegExp('حساب').allMatches(compact).length != 1 ||
+        RegExp('بانک\\s*سینا').allMatches(compact).length != 1 ||
+        RegExp('ریال|تومان').allMatches(compact).length != 1 ||
+        RegExp('مانده|موجودی|زمان|تاریخ').hasMatch(compact) ||
+        amountMatch == null ||
+        depositMatch == null ||
+        bankMatch == null ||
+        amountMatch.end > depositMatch.start ||
+        depositMatch.end > bankMatch.start ||
+        depositMatch.start - amountMatch.end > 160 ||
+        bankMatch.start - depositMatch.end > 200) {
+      return null;
+    }
+    final unit = amountMatch.group(2) == 'تومان'
+        ? SmsMoneyUnit.toman
+        : SmsMoneyUnit.rial;
+    final sourceAmount = _integer(amountMatch.group(1)!, unit);
+    if (sourceAmount == null || sourceAmount <= 0) return null;
+    final evidence = SmsCurrencyEvidence(
+      sourceAmount: sourceAmount,
+      detectedUnit: unit,
+    );
+    return ParsedSms(
+      amount: Money(
+        minorUnits: unit.canonicalIrr(sourceAmount),
+        currency: 'IRR',
+      ),
+      occurredAt: null,
+      sourceDate: null,
+      sourceTime: null,
+      direction: TransactionDirection.incoming,
+      quality: ParseQuality.medium,
+      confidence: 70,
+      bank: 'سینا',
+      currencyEvidence: evidence,
+    );
   }
 
   int? _integer(String value, SmsMoneyUnit? unit) {

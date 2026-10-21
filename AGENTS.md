@@ -953,7 +953,9 @@ starts a fresh boundary. Revoked permission prevents reads, never prompts silent
 and must not hide other Today content. No permanent native service is implied.
 See ADR 0021. Native provider compatibility, delayed insertions, permission
 revocation and reference-device responsiveness require independent device evidence.
-Existing global fingerprint identity limitations are not proof of lossless imports.
+Distinct provider SMS row IDs must remain distinct even when message bodies match;
+replay of one row ID remains idempotent. Global fingerprint behavior is not proof of
+lossless imports or of Inbox UI/device acceptance.
 See [SMS verification](docs/SMS_VERIFICATION.md).
 
 ## Inbox review safeguards

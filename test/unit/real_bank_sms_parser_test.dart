@@ -49,6 +49,105 @@ void main() {
       expect(parsed.quality, ParseQuality.high);
     });
   }
+  test(
+    'Sina account bidi controls still stage a bank transaction suggestion',
+    () async {
+      const message =
+          'بانک سينا\r\n'
+          'برداشت از  \u202a123-456-7890123-4\u202c \r\n'
+          'مبلغ  123,450 ريال\r\n'
+          'مانده 987,650 ريال\r\n'
+          'زمان : 1405/7/23 ; 17:46:44';
+      final parsed = parser.parse(text: message, currency: 'IRR');
+      expect(parsed.amount.minorUnits, 123450);
+      expect(parsed.balance!.minorUnits, 987650);
+      expect(parsed.direction, TransactionDirection.outgoing);
+      expect(parsed.bank, 'سینا');
+      expect(parsed.accountHint, '123-456-7890123-4');
+      expect(parsed.occurredAt, DateTime(2026, 10, 15, 17, 46, 44));
+      expect(parsed.quality, ParseQuality.high);
+      final suggestion = await InboxUseCases(InMemoryInboxRepository())
+          .stageSms(
+            rawText: message,
+            sourceKey: 'synthetic-bidi-sina',
+            currency: 'IRR',
+            importedAt: DateTime.utc(2026, 10, 21),
+          );
+      expect(suggestion.draft.amount.minorUnits, 123450);
+      expect(suggestion.draft.bank, 'سینا');
+      expect(suggestion.draft.accountHint, '123-456-7890123-4');
+      expect(suggestion.draft.direction, TransactionDirection.outgoing);
+    },
+  );
+  test('one-line Sina deposit stages with explicit receipt-date fallback', () async {
+    const message =
+        'اعلام تراکنش مبلغ 200,000 ریال بابت واریز به حساب 1234567890 از بانک سینا ثبت شد.';
+    final parsed = parser.parse(text: message, currency: 'IRR');
+    expect(parsed.amount.minorUnits, 200000);
+    expect(parsed.currencyEvidence!.sourceAmount, 200000);
+    expect(parsed.currencyEvidence!.detectedUnit, SmsMoneyUnit.rial);
+    expect(parsed.direction, TransactionDirection.incoming);
+    expect(parsed.bank, 'سینا');
+    expect(parsed.accountHint, isNull);
+    expect(parsed.balance, isNull);
+    expect(parsed.occurredAt, isNull);
+    expect(parsed.sourceDate, isNull);
+    expect(parsed.sourceTime, isNull);
+    expect(parsed.quality, ParseQuality.medium);
+
+    final suggestion = await InboxUseCases(InMemoryInboxRepository()).stageSms(
+      rawText: message,
+      sourceKey: 'synthetic-one-line-sina-deposit',
+      currency: 'IRR',
+      importedAt: DateTime.utc(2026, 10, 21, 8, 30),
+    );
+    expect(suggestion.draft.amount.minorUnits, 200000);
+    expect(suggestion.draft.type, 'income');
+    expect(suggestion.draft.bank, 'سینا');
+    expect(suggestion.draft.accountHint, isNull);
+    expect(suggestion.draft.dateSource, TransactionDateSource.receipt);
+    expect(suggestion.draft.occurredAt, DateTime.utc(2026, 10, 21, 8, 30));
+  });
+  test('one-line Sina grammar rejects ambiguous and conflicting messages', () {
+    const message =
+        'اعلام تراکنش مبلغ 200,000 ریال بابت واریز به حساب 1234567890 از بانک سینا ثبت شد.';
+    final invalidMessages = [
+      message.replaceFirst('واریز به حساب', 'برداشت از حساب'),
+      message.replaceFirst(' از بانک سینا', ''),
+      message.replaceFirst(' ریال', ''),
+      message.replaceFirst(' به حساب 1234567890', ' به'),
+      message.replaceFirst(' ثبت شد.', ' و مبلغ 100 ریال ثبت شد.'),
+    ];
+    for (var i = 0; i < invalidMessages.length; i++) {
+      expect(
+        parser.tryParse(text: invalidMessages[i], currency: 'IRR'),
+        isNull,
+        reason: 'counterexample $i',
+      );
+    }
+  });
+  test(
+    'identical SMS bodies with distinct provider keys remain separate',
+    () async {
+      final inbox = InboxUseCases(InMemoryInboxRepository());
+      const message = 'برداشت مبلغ ۲۵۰۰';
+      final receivedAt = DateTime.utc(2026, 10, 21, 8, 30);
+      final first = await inbox.stageSms(
+        rawText: message,
+        sourceKey: 'android-sms:synthetic-1',
+        currency: 'IRR',
+        importedAt: receivedAt,
+      );
+      final second = await inbox.stageSms(
+        rawText: message,
+        sourceKey: 'android-sms:synthetic-2',
+        currency: 'IRR',
+        importedAt: receivedAt,
+      );
+      expect(second.id, isNot(first.id));
+      expect(second.draft.id, isNot(first.draft.id));
+    },
+  );
   for (var i = 0; i < realBankSms.length; i++) {
     test('redacted actual corpus ${i + 1}', () {
       final parsed = parser.parse(text: realBankSms[i], currency: 'USD');
