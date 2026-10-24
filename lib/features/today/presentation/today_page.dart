@@ -31,6 +31,7 @@ class TodayPage extends StatelessWidget {
     required this.onCommitmentTap,
     required this.onCommitmentArchive,
     required this.onReview,
+    this.onOccurrenceTap,
     this.checklists = const {},
     this.onChecklistChanged,
     this.onOpenRelationshipQueue,
@@ -49,6 +50,7 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<Commitment> onCommitmentTap;
   final ValueChanged<Commitment> onCommitmentArchive;
   final ValueChanged<TodayActionItem> onReview;
+  final ValueChanged<TodayActionItem>? onOccurrenceTap;
   final Map<StableId, CommitmentChecklist> checklists;
   final Future<void> Function(
     StableId commitmentId,
@@ -119,6 +121,7 @@ class TodayPage extends StatelessWidget {
             _AttentionGroups(
               items: center.attention,
               onOpen: onCommitmentTap,
+              onOccurrenceTap: onOccurrenceTap,
               onReview: onReview,
               checklists: checklists,
               onChecklistChanged: onChecklistChanged,
@@ -135,6 +138,9 @@ class TodayPage extends StatelessWidget {
               (item) => _ActionItemCard(
                 item: item,
                 onOpen: onCommitmentTap,
+                onOccurrenceTap: onOccurrenceTap == null
+                    ? null
+                    : () => onOccurrenceTap!(item),
                 onReview: () => onReview(item),
                 checklist: item.commitment == null
                     ? null
@@ -154,6 +160,9 @@ class TodayPage extends StatelessWidget {
               (item) => _ActionItemCard(
                 item: item,
                 onOpen: onCommitmentTap,
+                onOccurrenceTap: onOccurrenceTap == null
+                    ? null
+                    : () => onOccurrenceTap!(item),
                 onReview: () => onReview(item),
                 checklist: item.commitment == null
                     ? null
@@ -226,6 +235,7 @@ class _AttentionGroups extends StatelessWidget {
   const _AttentionGroups({
     required this.items,
     required this.onOpen,
+    this.onOccurrenceTap,
     required this.onReview,
     required this.checklists,
     required this.onChecklistChanged,
@@ -233,6 +243,7 @@ class _AttentionGroups extends StatelessWidget {
 
   final List<TodayActionItem> items;
   final ValueChanged<Commitment> onOpen;
+  final ValueChanged<TodayActionItem>? onOccurrenceTap;
   final ValueChanged<TodayActionItem> onReview;
   final Map<StableId, CommitmentChecklist> checklists;
   final Future<void> Function(StableId, StableId, bool)? onChecklistChanged;
@@ -263,6 +274,9 @@ class _AttentionGroups extends StatelessWidget {
                     item: item,
                     grouped: true,
                     onOpen: onOpen,
+                    onOccurrenceTap: onOccurrenceTap == null
+                        ? null
+                        : () => onOccurrenceTap!(item),
                     onReview: () => onReview(item),
                     checklist: item.commitment == null
                         ? null
@@ -281,6 +295,7 @@ class _ActionItemCard extends StatelessWidget {
   const _ActionItemCard({
     required this.item,
     required this.onOpen,
+    this.onOccurrenceTap,
     required this.onReview,
     this.grouped = false,
     this.checklist,
@@ -289,6 +304,7 @@ class _ActionItemCard extends StatelessWidget {
 
   final TodayActionItem item;
   final ValueChanged<Commitment> onOpen;
+  final VoidCallback? onOccurrenceTap;
   final VoidCallback onReview;
   final bool grouped;
   final CommitmentChecklist? checklist;
@@ -343,7 +359,11 @@ class _ActionItemCard extends StatelessWidget {
         ],
       ),
       trailing: TextButton(
-        onPressed: item.commitment == null
+        onPressed:
+            item.type == TodayActionItemType.occurrence &&
+                onOccurrenceTap != null
+            ? onOccurrenceTap
+            : item.commitment == null
             ? onReview
             : () => onOpen(item.commitment!),
         child: Text(

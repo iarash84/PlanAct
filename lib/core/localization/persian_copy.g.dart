@@ -69,6 +69,8 @@ abstract final class PersianCopy {
   static const planactAppCommitmentPriorityNormal = "عادی";
   static const planactAppCommitmentPriorityHigh = "زیاد";
   static const planactAppCommitmentPriorityUrgent = "فوری";
+  static const helpFaqPageTitle = "راهنما و سوالات متداول";
+  static const helpFaqPageSubtitle = "پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت";
   static const commitmentIdentityPaletteCommitmentColorTeal = "سبزآبی";
   static const commitmentIdentityPaletteCommitmentColorBlue = "آبی";
   static const commitmentIdentityPaletteCommitmentColorIndigo = "نیلی";

@@ -36,6 +36,7 @@ class CalendarPage extends StatefulWidget {
     this.onAdd,
     this.occurrences = const {},
     this.reminderRules = const [],
+    this.onOccurrenceTap,
     this.initialDate,
     this.weekLoader,
     this.monthLoader,
@@ -63,6 +64,7 @@ class CalendarPage extends StatefulWidget {
   final Map<String, List<Occurrence>> occurrences;
   final List<ReminderRule> reminderRules;
   final ValueChanged<Commitment>? onCommitmentTap;
+  final ValueChanged<Occurrence>? onOccurrenceTap;
   final VoidCallback? onAdd;
 
   @override
@@ -314,6 +316,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   loader: widget.weekLoader,
                   plannedLoader: widget.plannedLoader,
                   onTap: widget.onCommitmentTap,
+                  onOccurrenceTap: widget.onOccurrenceTap,
                   onAdd: widget.onAdd,
                   noteLoader: widget.noteLoader,
                   notesRevision: widget.notesRevision,
@@ -417,13 +420,15 @@ class _CalendarPageState extends State<CalendarPage> {
                           textScaler: scaler,
                         )..layout(maxWidth: cellWidth - 8);
                         final markerHeight =
-                            markerPainter.preferredLineHeight * 2 + 4;
+                            markerPainter.preferredLineHeight * 2 + 8;
                         markerPainter.dispose();
                         final holidayHeight = textHeight(
                           planActL10n(context).calendarPageHolidayHeightMessage,
                           theme.textTheme.labelSmall,
                         );
                         double weekHeight(int week) {
+                          const cellVerticalPadding = 8.0;
+                          const todayBorderExtent = 4.0;
                           var height = 48.0;
                           for (var column = 0; column < 7; column++) {
                             final day = week * 7 + column - leading + 1;
@@ -452,7 +457,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                   math.min(itemCount, 2) * (markerHeight + 2) +
                                   overflowHeight +
                                   PlanActSpacing.sm +
-                                  (date == today ? 4 : 0),
+                                  (itemCount > 0 ? cellVerticalPadding : 0) +
+                                  (date == today ? todayBorderExtent : 0),
                             );
                           }
                           return height;
@@ -592,6 +598,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                   )
                                   .toList(),
                           reminderRules: widget.reminderRules,
+                          onOccurrenceTap: widget.onOccurrenceTap,
                           onTap: widget.onCommitmentTap == null
                               ? null
                               : () => widget.onCommitmentTap!(item),

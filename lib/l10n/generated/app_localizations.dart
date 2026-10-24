@@ -289,7 +289,7 @@ abstract class AppLocalizations {
   /// Application copy. Original usage: lib/app/planact_app.dart:796.
   ///
   /// In fa, this message translates to:
-  /// **'انجام شد'**
+  /// **'تکمیل تعهد'**
   String get planactAppShowCommitmentDetailsTitle;
 
   /// Application copy. Original usage: lib/app/planact_app.dart:805.

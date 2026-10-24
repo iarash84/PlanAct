@@ -1,5 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
+import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/actuals/domain/actual.dart';
@@ -9,6 +10,7 @@ import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
+import 'package:planact/features/sessions/domain/session_policy.dart';
 
 /// Presents only the actions supported by the current occurrence command seam.
 class OccurrenceActionRow extends StatefulWidget {
@@ -18,12 +20,17 @@ class OccurrenceActionRow extends StatefulWidget {
     required this.executor,
     required this.onChanged,
     this.onEdit,
+    this.useActionsMenu = false,
   });
 
   final Occurrence occurrence;
   final OccurrenceActionExecutor executor;
   final Future<void> Function() onChanged;
   final Future<void> Function(Occurrence)? onEdit;
+
+  /// Keeps the compact presentation local to the Commitment Details route.
+  /// Today and Calendar intentionally keep the expanded action rows.
+  final bool useActionsMenu;
 
   @override
   State<OccurrenceActionRow> createState() => _OccurrenceActionRowState();
@@ -32,6 +39,36 @@ class OccurrenceActionRow extends StatefulWidget {
 class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
   bool _busy = false;
   Occurrence? _updated;
+
+  Future<void> _undo(
+    Occurrence occurrence,
+    ScaffoldMessengerState messenger, {
+    required String successMessage,
+    required String pendingMessage,
+    required String conflictMessage,
+  }) async {
+    if (mounted && _busy) return;
+    if (mounted) setState(() => _busy = true);
+    try {
+      await widget.executor.restore(occurrence);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(successMessage)));
+      await widget.onChanged();
+    } on OccurrenceReminderDeliveryPending catch (pending) {
+      if (mounted) _updated = pending.occurrence;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(pendingMessage)));
+      await widget.onChanged();
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(conflictMessage)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   Future<void> _perform(OccurrenceAction action) async {
     if (_busy) return;
@@ -45,70 +82,11 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       }
       return;
     }
-    ActualOutcome result = ActualOutcome.completed;
-    if (action.type == OccurrenceActionType.complete &&
-        widget.executor is PersistedOccurrenceActionExecutor &&
-        (widget.executor as PersistedOccurrenceActionExecutor).actuals !=
-            null) {
-      final selected = await showDialog<ActualOutcome>(
-        context: context,
-        builder: (context) => SimpleDialog(
-          title: const Text(PersianCopy.occurrenceActionRowSelectedTitle),
-          children: [
-            for (final entry in {
-              ActualOutcome.completed:
-                  PersianCopy.planactAppShowCommitmentDetailsTitle,
-              ActualOutcome.attended:
-                  PersianCopy.occurrenceActionRowSelectedChildren,
-              ActualOutcome.cancelled:
-                  PersianCopy.occurrenceActionRowSelectedChildren2,
-              ActualOutcome.noShow: PersianCopy.occurrenceSkipped,
-              ActualOutcome.partial:
-                  PersianCopy.occurrenceActionRowSelectedChildren3,
-            }.entries)
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, entry.key),
-                child: Text(entry.value),
-              ),
-          ],
-        ),
-      );
-      if (selected == null || !mounted) return;
-      result = selected;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(action.label),
-          content: Text(
-            action.type == OccurrenceActionType.restore
-                ? planActL10n(context).actualReopenMessage
-                : PersianCopy.occurrenceActionRowConfirmedContent(
-                    (action.consequence).toString(),
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text(
-                PersianCopy.occurrenceActionRowConfirmedActions,
-              ),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text(PersianCopy.financePageConfirmedActions),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
     try {
       switch (action.type) {
         case OccurrenceActionType.complete:
+          final result = ActualOutcome.completed;
           final executor = widget.executor;
           if (executor is PersistedOccurrenceActionExecutor &&
               executor.actuals != null) {
@@ -132,39 +110,91 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
             isManualOverride: occurrence.isManualOverride,
             resultRevision: occurrence.resultRevision + 1,
           );
-        default:
+        case OccurrenceActionType.providerCancelled:
+          await widget.executor.cancel(
+            occurrence,
+            outcome: SessionOutcome.providerCancelled,
+          );
+          _updated = _withResult(occurrence, OccurrenceStatus.cancelled);
+        case OccurrenceActionType.userCancelled:
+        case OccurrenceActionType.cancel:
+          await widget.executor.cancel(
+            occurrence,
+            outcome: SessionOutcome.userCancelled,
+          );
+          _updated = _withResult(occurrence, OccurrenceStatus.cancelled);
+        case OccurrenceActionType.noShow:
+          await widget.executor.cancel(
+            occurrence,
+            outcome: SessionOutcome.noShow,
+          );
+          _updated = _withResult(occurrence, OccurrenceStatus.skipped);
+        case OccurrenceActionType.makeup:
+          return;
+        case OccurrenceActionType.reschedule:
           return;
       }
       await widget.onChanged();
+      final changed = _updated;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(PersianCopy.occurrenceActionRowPerformContent),
-          ),
+        final messenger = ScaffoldMessenger.of(context);
+        final l10n = planActL10n(context);
+        showRecordedActionFeedback(
+          context,
+          l10n.occurrenceActionRowPerformContent,
+          onUndo: changed == null
+              ? null
+              : () => _undo(
+                  changed,
+                  messenger,
+                  successMessage: l10n.undoSuccess,
+                  pendingMessage: l10n.undoRefreshPending,
+                  conflictMessage: l10n.undoConflict,
+                ),
         );
       }
     } on OccurrenceReminderDeliveryPending catch (pending) {
       _updated = pending.occurrence;
       await widget.onChanged();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(PersianCopy.occurrenceActionRowPerformContent2),
+        final messenger = ScaffoldMessenger.of(context);
+        final l10n = planActL10n(context);
+        showRecordedActionFeedback(
+          context,
+          l10n.occurrenceActionRowPerformContent2,
+          onUndo: () => _undo(
+            pending.occurrence,
+            messenger,
+            successMessage: l10n.undoSuccess,
+            pendingMessage: l10n.undoRefreshPending,
+            conflictMessage: l10n.undoConflict,
           ),
         );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(PersianCopy.occurrenceActionRowPerformContent3),
-          ),
+        showRecordedActionFeedback(
+          context,
+          planActL10n(context).occurrenceActionRowPerformContent3,
         );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
+
+  Occurrence _withResult(Occurrence occurrence, OccurrenceStatus status) =>
+      Occurrence(
+        id: occurrence.id,
+        cycleId: occurrence.cycleId,
+        scheduleDefinitionId: occurrence.scheduleDefinitionId,
+        occurrenceKey: occurrence.occurrenceKey,
+        originalScheduledAt: occurrence.originalScheduledAt,
+        currentScheduledAt: occurrence.currentScheduledAt,
+        status: status,
+        isManualOverride: occurrence.isManualOverride,
+        resultRevision: occurrence.resultRevision + 1,
+      );
 
   Future<void> _showHistory() async {
     final executor = widget.executor;
@@ -254,38 +284,77 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     final actions = availableOccurrenceActions(occurrence)
         .where(
           (action) =>
-              action.type == OccurrenceActionType.complete ||
-              action.type == OccurrenceActionType.restore ||
-              (action.type == OccurrenceActionType.reschedule &&
+              action.type != OccurrenceActionType.makeup &&
+              (action.type != OccurrenceActionType.reschedule ||
                   widget.onEdit != null),
         )
         .toList();
     return Card(
-      child: ListTile(
-        title: Text(label),
-        subtitle: Text(
-          planActL10n(context).occurrenceActionRowBuildSubtitle(
-            (occurrenceStatusLabel(occurrence.status)).toString(),
-          ),
-        ),
-        onTap: _busy ? null : _showHistory,
-        trailing: _busy
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : actions.isEmpty
-            ? null
-            : PopupMenuButton<OccurrenceAction>(
-                tooltip: planActL10n(context).occurrenceActionRowBuildTooltip,
-                onSelected: _perform,
-                itemBuilder: (_) => [
-                  for (final action in actions)
-                    PopupMenuItem(value: action, child: Text(action.label)),
-                ],
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(label),
+            subtitle: Text(
+              planActL10n(context).occurrenceActionRowBuildSubtitle(
+                (occurrenceStatusLabel(occurrence.status)).toString(),
               ),
+            ),
+            onTap: _busy ? null : _showHistory,
+            trailing: _busy
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : widget.useActionsMenu
+                ? PopupMenuButton<OccurrenceActionType>(
+                    key: ValueKey(
+                      'occurrence-actions-menu-${occurrence.id.value}',
+                    ),
+                    tooltip: planActL10n(context)
+                        .occurrenceActionRowBuildTooltip,
+                    onSelected: (type) => _perform(
+                      actions.firstWhere((action) => action.type == type),
+                    ),
+                    itemBuilder: (context) => [
+                      for (final action in actions)
+                        PopupMenuItem<OccurrenceActionType>(
+                          value: action.type,
+                          child: Row(
+                            children: [
+                              Icon(_iconFor(action.type)),
+                              const SizedBox(width: 12),
+                              Flexible(child: Text(action.label)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  )
+                : null,
+          ),
+          if (!widget.useActionsMenu)
+            for (final action in actions)
+              ListTile(
+                key: ValueKey(
+                  'occurrence-action-${occurrence.id.value}-${action.type.name}',
+                ),
+                leading: Icon(_iconFor(action.type)),
+                title: Text(action.label),
+                onTap: _busy ? null : () => _perform(action),
+              ),
+        ],
       ),
     );
   }
+
+  IconData _iconFor(OccurrenceActionType type) => switch (type) {
+    OccurrenceActionType.complete => Icons.check_circle_outline,
+    OccurrenceActionType.providerCancelled => Icons.event_busy_outlined,
+    OccurrenceActionType.userCancelled => Icons.cancel_outlined,
+    OccurrenceActionType.cancel => Icons.cancel_outlined,
+    OccurrenceActionType.noShow => Icons.person_off_outlined,
+    OccurrenceActionType.reschedule => Icons.schedule_outlined,
+    OccurrenceActionType.restore => Icons.restore_outlined,
+    OccurrenceActionType.makeup => Icons.add_task_outlined,
+  };
 }

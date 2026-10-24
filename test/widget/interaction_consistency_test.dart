@@ -72,14 +72,11 @@ Future<void> _scrollToEnd(WidgetTester tester, Finder scrollable) async {
   fail('The end of the bounded fixture was not reached.');
 }
 
-Future<void> _dismissCommitmentActions(
-  WidgetTester tester,
-  String title,
-) async {
+Future<void> _dismissOccurrenceActions(WidgetTester tester) async {
   final sheet = find.byType(BottomSheet);
   expect(sheet, findsOneWidget);
   expect(
-    find.descendant(of: sheet, matching: find.text(title)),
+    find.descendant(of: sheet, matching: find.byType(Card)),
     findsOneWidget,
   );
   Navigator.of(tester.element(sheet)).pop();
@@ -227,7 +224,7 @@ void main() {
             expectClear(todayAction);
             await tester.tap(todayAction);
             await tester.pumpAndSettle();
-            await _dismissCommitmentActions(tester, last.title);
+            await _dismissOccurrenceActions(tester);
 
             await tester.tap(find.text('تقویم').last);
             await tester.pumpAndSettle();
@@ -244,14 +241,89 @@ void main() {
             expectClear(monthCard);
             await tester.tap(monthCard);
             await tester.pumpAndSettle();
-            await _dismissCommitmentActions(tester, last.title);
+            final manageCommitment = find.byKey(
+              const ValueKey('occurrence-manage-commitment'),
+            );
+            await tester.ensureVisible(manageCommitment);
+            await tester.pumpAndSettle();
+            await tester.tap(manageCommitment);
+            await tester.pumpAndSettle();
+            expect(find.byType(CommitmentDetailsPage), findsOneWidget);
+            await tester.enterText(
+              find.widgetWithText(TextField, 'عنوان'),
+              'تعهد تقویم ویرایش‌شده',
+            );
+            await tester.scrollUntilVisible(
+              find.widgetWithText(FilledButton, 'ذخیره'),
+              200,
+              scrollable: find.byType(Scrollable).first,
+            );
+            await tester.tap(
+              find.widgetWithText(FilledButton, 'ذخیره'),
+              warnIfMissed: true,
+            );
+            await tester.pumpAndSettle();
+            expect(
+              (await repository.findById(last.id))!.title,
+              'تعهد تقویم ویرایش‌شده',
+            );
 
             await tester.tap(find.text('هفته'));
+            await tester.pumpAndSettle();
+            final editedWeekRow = find.descendant(
+              of: find.byType(WeekTimelineView),
+              matching: find.text('تعهد تقویم ویرایش‌شده'),
+            );
+            final weekScroll = find
+                .descendant(
+                  of: find.byKey(const ValueKey('week-agenda-scroll')),
+                  matching: find.byType(Scrollable),
+                )
+                .first;
+            await tester.scrollUntilVisible(
+              editedWeekRow,
+              200,
+              scrollable: weekScroll,
+            );
+            await Scrollable.ensureVisible(
+              tester.element(editedWeekRow),
+              alignment: 0.2,
+            );
+            await tester.pumpAndSettle();
+            expect(editedWeekRow.hitTestable(), findsOneWidget);
+            await tester.tap(editedWeekRow);
+            await tester.pumpAndSettle();
+            final manageFromWeek = find.byKey(
+              const ValueKey('occurrence-manage-commitment'),
+            );
+            final sheetScroll = find.descendant(
+              of: find.byType(BottomSheet),
+              matching: find.byType(Scrollable),
+            );
+            if (sheetScroll.evaluate().isNotEmpty) {
+              await tester.scrollUntilVisible(
+                manageFromWeek,
+                200,
+                scrollable: sheetScroll.first,
+              );
+            }
+            await tester.ensureVisible(manageFromWeek);
+            await tester.pumpAndSettle();
+            await tester.tap(manageFromWeek);
+            await tester.pumpAndSettle();
+            expect(find.byType(CommitmentDetailsPage), findsOneWidget);
+            expect(
+              find.widgetWithText(TextField, 'تعهد تقویم ویرایش‌شده'),
+              findsOneWidget,
+            );
+            await tester.pageBack();
+            await tester.pumpAndSettle();
+
             await tester.pumpAndSettle();
             final agenda = find.byKey(const ValueKey('week-agenda-scroll'));
             final weekRow = find.descendant(
               of: find.byType(WeekTimelineView),
-              matching: find.text(last.title),
+              matching: find.text('تعهد تقویم ویرایش‌شده'),
             );
             await tester.scrollUntilVisible(
               weekRow,
@@ -268,7 +340,7 @@ void main() {
             expectClear(weekRow);
             await tester.tap(weekRow);
             await tester.pumpAndSettle();
-            await _dismissCommitmentActions(tester, last.title);
+            await _dismissOccurrenceActions(tester);
 
             await tester.tap(find.text('بیشتر').last);
             await tester.pumpAndSettle();
@@ -290,7 +362,7 @@ void main() {
             await tester.pageBack();
             await tester.pumpAndSettle();
             expect(tester.getRect(add), addRect);
-            expect(repository.writes, 0);
+            expect(repository.writes, 1);
             expect(tester.takeException(), isNull);
           },
         );

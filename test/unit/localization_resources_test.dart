@@ -128,8 +128,9 @@ void main() {
           ..sort();
     expect(
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
-      // User-approved 2026-10-14: Today label and removal of stale fixed holiday coverage.
-      '5d7a7860202664412828e85236ad849fce903f4baa0965fb0cf578b3e2f7275e',
+      // Reviewed baseline for the current Persian catalog, including the
+      // approved help/FAQ copy now used by the More page.
+      'd91ca3a0666849ba5974492b22430c75c4e36ff5d2d9a451043fdbb512906f52',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;

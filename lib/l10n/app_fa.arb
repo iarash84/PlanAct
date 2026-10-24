@@ -153,7 +153,7 @@
     "description": "Application copy. Original usage: lib/app/planact_app.dart:762.",
     "x-planact-default": true
   },
-  "planactAppShowCommitmentDetailsTitle": "انجام شد",
+  "planactAppShowCommitmentDetailsTitle": "تکمیل تعهد",
   "@planactAppShowCommitmentDetailsTitle": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:796.",
     "x-planact-default": true

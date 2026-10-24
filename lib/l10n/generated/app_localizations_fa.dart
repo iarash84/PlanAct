@@ -127,7 +127,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'ثبت انتقال انجام نشد؛ دوباره تلاش کنید.';
 
   @override
-  String get planactAppShowCommitmentDetailsTitle => 'انجام شد';
+  String get planactAppShowCommitmentDetailsTitle => 'تکمیل تعهد';
 
   @override
   String get planactAppShowCommitmentDetailsTitle2 => 'توقف موقت';

@@ -21,6 +21,7 @@ class CalendarCommitmentCard extends StatelessWidget {
     required this.occurrences,
     required this.reminderRules,
     this.onTap,
+    this.onOccurrenceTap,
     this.previews = const [],
   });
 
@@ -28,6 +29,7 @@ class CalendarCommitmentCard extends StatelessWidget {
   final List<Occurrence> occurrences;
   final List<ReminderRule> reminderRules;
   final VoidCallback? onTap;
+  final ValueChanged<Occurrence>? onOccurrenceTap;
   final List<PlannedOccurrenceSlot> previews;
 
   @override
@@ -37,7 +39,9 @@ class CalendarCommitmentCard extends StatelessWidget {
       key: ValueKey('calendar-commitment-${commitment.id.value}'),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap,
+        onTap: occurrences.isNotEmpty && onOccurrenceTap != null
+            ? () => onOccurrenceTap!(occurrences.first)
+            : onTap,
         borderRadius: PlanActRadius.card,
         child: Padding(
           padding: const EdgeInsets.all(PlanActSpacing.lg),
@@ -83,34 +87,51 @@ class CalendarCommitmentCard extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: PlanActSpacing.md),
                   child: Divider(height: 1),
                 ),
-                Wrap(
-                  spacing: PlanActSpacing.lg,
-                  runSpacing: PlanActSpacing.sm,
-                  children: [
-                    _Metadata(
-                      icon: Icons.schedule_outlined,
-                      text: occurrence.currentScheduledAt is DateTime
-                          ? planActL10n(context)
-                                .calendarCommitmentCardBuildText(
-                                  (reminderTimeLabel(
-                                    WeekTimeline.displayDate(
-                                      occurrence.currentScheduledAt,
-                                    ),
-                                  )).toString(),
-                                )
-                          : planActL10n(context)
-                                .calendarCommitmentCardBuildText2,
+                InkWell(
+                  key: ValueKey('calendar-occurrence-${occurrence.id.value}'),
+                  onTap: onOccurrenceTap == null
+                      ? null
+                      : () => onOccurrenceTap!(occurrence),
+                  borderRadius: PlanActRadius.input,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      vertical: PlanActSpacing.xs,
                     ),
-                    _Metadata(
-                      icon: calendarStatusIcon(occurrence.status),
-                      text: calendarStatusLabel(occurrence.status),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: PlanActSpacing.lg,
+                          runSpacing: PlanActSpacing.sm,
+                          children: [
+                            _Metadata(
+                              icon: Icons.schedule_outlined,
+                              text: occurrence.currentScheduledAt is DateTime
+                                  ? planActL10n(context)
+                                        .calendarCommitmentCardBuildText(
+                                          (reminderTimeLabel(
+                                            WeekTimeline.displayDate(
+                                              occurrence.currentScheduledAt,
+                                            ),
+                                          )).toString(),
+                                        )
+                                  : planActL10n(context)
+                                        .calendarCommitmentCardBuildText2,
+                            ),
+                            _Metadata(
+                              icon: calendarStatusIcon(occurrence.status),
+                              text: calendarStatusLabel(occurrence.status),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: PlanActSpacing.sm),
+                        _Metadata(
+                          icon: Icons.notifications_none_outlined,
+                          text: _reminders(occurrence),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: PlanActSpacing.sm),
-                _Metadata(
-                  icon: Icons.notifications_none_outlined,
-                  text: _reminders(occurrence),
+                  ),
                 ),
               ],
             ],

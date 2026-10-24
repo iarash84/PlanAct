@@ -1033,7 +1033,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _showCommitmentDetails(Commitment commitment) async {
+  Future<void> _showCommitmentActions(Commitment commitment) async {
     final fresh = await _repository.findById(commitment.id);
     if (fresh == null) throw StateError('Commitment no longer exists');
     commitment = fresh;
@@ -1166,7 +1166,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   onTap: () {
                     Navigator.pop(
                       sheetContext,
-                      () => _openReportCommitment(commitment),
+                      () => _openCommitmentDetails(commitment),
                     );
                   },
                 ),
@@ -1363,7 +1363,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     : _formatDate(_firstScheduledDate(item)!),
                 _statusLabel(item.status),
               ),
-          onOpen: _showCommitmentDetails,
+          onOpen: _showCommitmentActions,
           error: _todayError,
           onRetry: _refresh,
         ),
@@ -1388,11 +1388,109 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 expectations: _expectationRepository,
                 tags: _tagRepository,
               ),
-        onOpenCommitment: _openReportCommitment,
+        onOpenCommitment: _openCommitmentDetails,
         onOpenTransaction: _openRelationship,
       ),
     ),
   );
+
+  PersistedOccurrenceActionExecutor _occurrenceExecutor() =>
+      PersistedOccurrenceActionExecutor(
+        plans: _planRepository,
+        actuals: _repository is DriftCommitmentRepository
+            ? DriftActualRepository(_repository.database)
+            : null,
+        reminders: _createCommitmentPlan.reminderService,
+        replacements: _repository is DriftCommitmentRepository
+            ? DriftReplacementRepository(_repository.database)
+            : null,
+        policyRepository: _repository is DriftCommitmentRepository
+            ? DriftSessionPolicyRepository(_repository.database)
+            : null,
+      );
+
+  Future<void> _showOccurrenceAction(
+    Occurrence occurrence, {
+    Commitment? commitment,
+  }) async {
+    var resolvedCommitment = commitment;
+    if (resolvedCommitment == null) {
+      for (final entry in _calendarOccurrences.entries) {
+        if (entry.value.any((item) => item.id == occurrence.id)) {
+          resolvedCommitment = _commitments
+              .where((item) => item.id.value == entry.key)
+              .firstOrNull;
+          break;
+        }
+      }
+    }
+    if (!mounted) return;
+    Future<void> Function()? managementAction;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    PlanActSpacing.md,
+                    PlanActSpacing.sm,
+                    PlanActSpacing.md,
+                    0,
+                  ),
+                  child: Text(
+                    planActL10n(
+                      sheetContext,
+                    ).attentionEngineAttentionActionDetermineOccurrenceStatus,
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    PlanActSpacing.sm,
+                    PlanActSpacing.md,
+                    PlanActSpacing.sm,
+                    0,
+                  ),
+                  child: OccurrenceActionRow(
+                    occurrence: occurrence,
+                    executor: _occurrenceExecutor(),
+                    onChanged: () async {
+                      await _refresh(throwOnFailure: true);
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                    },
+                  ),
+                ),
+                if (resolvedCommitment != null) ...[
+                  const Divider(),
+                  ListTile(
+                    key: const ValueKey('occurrence-manage-commitment'),
+                    leading: const Icon(Icons.manage_search),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle7,
+                    ),
+                    subtitle: Text(resolvedCommitment.title),
+                    onTap: () {
+                      managementAction = () =>
+                          _openCommitmentDetails(resolvedCommitment!);
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (managementAction != null) await managementAction!();
+  }
 
   CommitmentDetailsPage _detailsPage(Commitment commitment) =>
       CommitmentDetailsPage(
@@ -1401,22 +1499,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         tagRepository: _tagRepository,
         planRepository: _planRepository,
         expectationRepository: _expectationRepository,
-        occurrenceExecutor: PersistedOccurrenceActionExecutor(
-          plans: _planRepository,
-          actuals: _repository is DriftCommitmentRepository
-              ? DriftActualRepository(_repository.database)
-              : null,
-          reminders: _createCommitmentPlan.reminderService,
-          replacements: _repository is DriftCommitmentRepository
-              ? DriftReplacementRepository(_repository.database)
-              : null,
-          policyRepository: _repository is DriftCommitmentRepository
-              ? DriftSessionPolicyRepository(_repository.database)
-              : null,
-        ),
+        occurrenceExecutor: _occurrenceExecutor(),
         onSaved: _tagsChanged,
         checklistRepository: _checklists,
       );
+
+  Future<void> _showTodayOccurrenceAction(TodayActionItem item) async {
+    final source = item.sourceReference;
+    final commitment = item.commitment;
+    if (source == null || commitment == null) return;
+    for (final occurrences in _calendarOccurrences.values) {
+      for (final occurrence in occurrences) {
+        if (occurrence.id.value == source) {
+          await _showOccurrenceAction(occurrence, commitment: commitment);
+          return;
+        }
+      }
+    }
+  }
 
   Future<void> _openSearch() async {
     await Navigator.of(context).push<void>(
@@ -1430,7 +1530,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   notes: _noteRepository,
                   tags: _tagRepository,
                 ),
-          onOpenCommitment: _showCommitmentDetails,
+          onOpenCommitment: _showCommitmentActions,
           onOpenNote: _showNote,
           onOpenFinancial: _openSearchFinancial,
           refreshListenable: _commitmentViewsRevision,
@@ -1442,7 +1542,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     await _financePageKey.currentState?.refreshData();
   }
 
-  Future<void> _openReportCommitment(Commitment commitment) async {
+  Future<void> _openCommitmentDetails(Commitment commitment) async {
     await Navigator.of(
       context,
     ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
@@ -1512,7 +1612,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onRetry: _refreshWithSms,
         onRefresh: _refreshWithSms,
         onAdd: _showCapture,
-        onCommitmentTap: _showCommitmentDetails,
+        onCommitmentTap: _showCommitmentActions,
+        onOccurrenceTap: _showTodayOccurrenceAction,
         onCommitmentArchive: _archiveCommitment,
         checklists: _checklistSnapshots,
         onChecklistChanged: _toggleChecklistItem,
@@ -1559,7 +1660,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             : null,
         reminderRules: _calendarReminderRules,
         scheduledDates: _scheduledDates,
-        onCommitmentTap: _showCommitmentDetails,
+        onCommitmentTap: _showCommitmentActions,
+        onOccurrenceTap: _showOccurrenceAction,
         onAdd: _showCapture,
       ),
       FinancePage(
@@ -2045,6 +2147,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                     OccurrenceActionRow(
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
+                      useActionsMenu: true,
                       key: ValueKey(
                         '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
