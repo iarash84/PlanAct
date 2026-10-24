@@ -686,6 +686,18 @@ abstract class AppLocalizations {
   /// **'نمایش، امنیت و مجوزهای برنامه'**
   String get planactAppBuildSubtitle4;
 
+  /// Application copy. Original usage: lib/app/planact_app.dart:1767.
+  ///
+  /// In fa, this message translates to:
+  /// **'راهنما و سوالات متداول'**
+  String get helpFaqPageTitle;
+
+  /// Application copy. Original usage: lib/app/planact_app.dart:1768.
+  ///
+  /// In fa, this message translates to:
+  /// **'پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت'**
+  String get helpFaqPageSubtitle;
+
   /// Application copy. Original usage: lib/app/theme/commitment_identity_palette.dart:37.
   ///
   /// In fa, this message translates to:

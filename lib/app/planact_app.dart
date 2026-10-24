@@ -72,6 +72,7 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/help/presentation/help_faq_page.dart';
 import 'package:planact/features/settings/presentation/about_page.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
@@ -1723,6 +1724,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
+        labelBehavior: MediaQuery.sizeOf(context).width < 360
+            ? NavigationDestinationLabelBehavior.onlyShowSelected
+            : NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
           final duration = PlanActMotion.duration(context);
@@ -2278,6 +2282,17 @@ class _MorePage extends StatelessWidget {
           subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
           trailing: const Icon(Icons.chevron_left),
           onTap: onInbox,
+        ),
+      ),
+      Card(
+        child: ListTile(
+          leading: const Icon(Icons.help_outline),
+          title: Text(planActL10n(context).helpFaqPageTitle),
+          subtitle: Text(planActL10n(context).helpFaqPageSubtitle),
+          trailing: const Icon(Icons.chevron_left),
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => const HelpFaqPage())),
         ),
       ),
       Card(

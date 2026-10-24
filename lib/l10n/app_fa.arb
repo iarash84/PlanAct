@@ -495,6 +495,16 @@
   "@planactAppBuildSubtitle4": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:1763."
   },
+  "helpFaqPageTitle": "راهنما و سوالات متداول",
+  "@helpFaqPageTitle": {
+    "description": "Application copy. Original usage: lib/app/planact_app.dart:1767.",
+    "x-planact-default": true
+  },
+  "helpFaqPageSubtitle": "پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت",
+  "@helpFaqPageSubtitle": {
+    "description": "Application copy. Original usage: lib/app/planact_app.dart:1768.",
+    "x-planact-default": true
+  },
   "commitmentIdentityPaletteCommitmentColorTeal": "سبزآبی",
   "@commitmentIdentityPaletteCommitmentColorTeal": {
     "description": "Application copy. Original usage: lib/app/theme/commitment_identity_palette.dart:37.",

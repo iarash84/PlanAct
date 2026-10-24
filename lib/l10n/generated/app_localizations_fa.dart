@@ -350,6 +350,13 @@ class AppLocalizationsFa extends AppLocalizations {
   String get planactAppBuildSubtitle4 => 'نمایش، امنیت و مجوزهای برنامه';
 
   @override
+  String get helpFaqPageTitle => 'راهنما و سوالات متداول';
+
+  @override
+  String get helpFaqPageSubtitle =>
+      'پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت';
+
+  @override
   String get commitmentIdentityPaletteCommitmentColorTeal => 'سبزآبی';
 
   @override
