@@ -7559,6 +7559,42 @@ abstract class AppLocalizations {
   /// **'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.'**
   String get financeArchiveAccountMessage;
 
+  /// Shows archived account cards in the ordinary finance page without making them selectable for new records.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش حساب‌های بایگانی‌شده'**
+  String get financeShowArchivedAccounts;
+
+  /// Explains the archived account display preference and active-only write selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.'**
+  String get financeShowArchivedAccountsDescription;
+
+  /// Explicit irreversible deletion action for an account without history or references.
+  ///
+  /// In fa, this message translates to:
+  /// **'حذف حساب'**
+  String get financeDeleteAccountAction;
+
+  /// Confirms irreversible deletion of an empty account.
+  ///
+  /// In fa, this message translates to:
+  /// **'حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟'**
+  String get financeDeleteAccountMessage;
+
+  /// Confirms successful account deletion.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب حذف شد.'**
+  String get financeDeleteAccountSuccess;
+
+  /// Explains why an account with history or references cannot be physically deleted.
+  ///
+  /// In fa, this message translates to:
+  /// **'این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.'**
+  String get financeDeleteAccountUnavailable;
+
   /// Undo repair: explicit operation feedback and confirmation.
   ///
   /// In fa, this message translates to:
@@ -8212,6 +8248,18 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'{count} یادداشت: {titles}'**
   String calendarNoteDaySummary(String count, String titles);
+
+  /// Financial account visibility and safe deletion feedback
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.'**
+  String get financeArchivedAccountsSaveError;
+
+  /// Financial account visibility and safe deletion feedback
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.'**
+  String get financeDeleteAccountFailed;
 }
 
 class _AppLocalizationsDelegate

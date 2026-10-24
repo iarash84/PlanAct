@@ -31,6 +31,7 @@ abstract interface class AtomicAccountEditing {
     required FinancialAccount replacement,
   });
   Future<void> setAccountStatus(StableId id, FinancialAccountStatus status);
+  Future<void> deleteAccount(StableId id);
 }
 
 abstract interface class TaggedFinanceCreation {
@@ -112,6 +113,17 @@ class InMemoryFinanceRepository
     _accounts[id] = status == FinancialAccountStatus.active
         ? fresh.restore()
         : fresh.archive();
+  }
+
+  @override
+  Future<void> deleteAccount(StableId id) async {
+    if (!_accounts.containsKey(id)) {
+      throw const ValidationError('Account missing');
+    }
+    if (_entries.values.any((entry) => entry.accountId == id)) {
+      throw const ValidationError('Account has financial history');
+    }
+    _accounts.remove(id);
   }
 
   final Map<StableId, FinancialAccount> _accounts = {};
@@ -317,6 +329,15 @@ class FinanceUseCases {
           );
         } else {
           await repository.saveAccount(account.restore());
+        }
+      });
+
+  Future<void> deleteAccount(StableId id) =>
+      CommandGate.runFor(repository, () async {
+        if (repository case final AtomicAccountEditing editor) {
+          await editor.deleteAccount(id);
+        } else {
+          throw const ValidationError('Account deletion unavailable');
         }
       });
 

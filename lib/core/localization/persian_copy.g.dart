@@ -762,6 +762,12 @@ abstract final class PersianCopy {
   static const financeArchivedAccountAction = "بایگانی حساب";
   static const financeRestoreAccountAction = "بازگردانی حساب";
   static const financeArchiveAccountMessage = "حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.";
+  static const financeShowArchivedAccounts = "نمایش حساب‌های بایگانی‌شده";
+  static const financeShowArchivedAccountsDescription = "حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.";
+  static const financeDeleteAccountAction = "حذف حساب";
+  static const financeDeleteAccountMessage = "حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟";
+  static const financeDeleteAccountSuccess = "حساب حذف شد.";
+  static const financeDeleteAccountUnavailable = "این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.";
   static const matchHistoryTitle = "ارتباط‌های ثبت‌شده";
   static const matchRemoveAction = "قطع ارتباط";
   static const matchCorrectAction = "اصلاح ارتباط";
@@ -787,4 +793,6 @@ abstract final class PersianCopy {
   static const reminderAlarmChannel = "آلارم‌های تعهد";
   static const reminderAlarmChannelDescription = "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.";
   static const reminderAlarmRetry = "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.";
+  static const financeArchivedAccountsSaveError = "تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.";
+  static const financeDeleteAccountFailed = "حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.";
 }

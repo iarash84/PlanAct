@@ -33,6 +33,7 @@ class AppSettings {
   static const _themeKey = 'theme_mode';
   static const _appLockKey = 'app_lock_enabled';
   static const _backgroundKey = 'app_background_v1';
+  static const _showArchivedAccountsKey = 'finance_show_archived_accounts_v1';
 
   Future<IranianMoneyUnit> readMoneyUnit() async =>
       await database.readMetadata('iranian_money_unit_v1') == 'toman'
@@ -71,4 +72,10 @@ class AppSettings {
 
   Future<void> writeAppLockEnabled(bool enabled) =>
       database.writeMetadata(_appLockKey, enabled.toString());
+
+  Future<bool> readShowArchivedAccounts() async =>
+      (await database.readMetadata(_showArchivedAccountsKey)) == 'true';
+
+  Future<void> writeShowArchivedAccounts(bool enabled) =>
+      database.writeMetadata(_showArchivedAccountsKey, enabled.toString());
 }

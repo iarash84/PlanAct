@@ -4510,6 +4510,27 @@ class AppLocalizationsFa extends AppLocalizations {
       'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.';
 
   @override
+  String get financeShowArchivedAccounts => 'نمایش حساب‌های بایگانی‌شده';
+
+  @override
+  String get financeShowArchivedAccountsDescription =>
+      'حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.';
+
+  @override
+  String get financeDeleteAccountAction => 'حذف حساب';
+
+  @override
+  String get financeDeleteAccountMessage =>
+      'حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟';
+
+  @override
+  String get financeDeleteAccountSuccess => 'حساب حذف شد.';
+
+  @override
+  String get financeDeleteAccountUnavailable =>
+      'این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.';
+
+  @override
   String get matchHistoryTitle => 'ارتباط‌های ثبت‌شده';
 
   @override
@@ -4892,4 +4913,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String calendarNoteDaySummary(String count, String titles) {
     return '$count یادداشت: $titles';
   }
+
+  @override
+  String get financeArchivedAccountsSaveError =>
+      'تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.';
+
+  @override
+  String get financeDeleteAccountFailed =>
+      'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.';
 }

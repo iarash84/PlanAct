@@ -7049,6 +7049,42 @@
     "x-planact-introduced": "undo-2026-10-14",
     "x-planact-default": true
   },
+  "financeShowArchivedAccounts": "نمایش حساب‌های بایگانی‌شده",
+  "@financeShowArchivedAccounts": {
+    "description": "Shows archived account cards in the ordinary finance page without making them selectable for new records.",
+    "x-planact-introduced": "finance-archived-accounts-2026-10-21",
+    "x-planact-default": true
+  },
+  "financeShowArchivedAccountsDescription": "حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.",
+  "@financeShowArchivedAccountsDescription": {
+    "description": "Explains the archived account display preference and active-only write selection.",
+    "x-planact-introduced": "finance-archived-accounts-2026-10-21",
+    "x-planact-default": true
+  },
+  "financeDeleteAccountAction": "حذف حساب",
+  "@financeDeleteAccountAction": {
+    "description": "Explicit irreversible deletion action for an account without history or references.",
+    "x-planact-introduced": "finance-account-delete-2026-10-21",
+    "x-planact-default": true
+  },
+  "financeDeleteAccountMessage": "حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟",
+  "@financeDeleteAccountMessage": {
+    "description": "Confirms irreversible deletion of an empty account.",
+    "x-planact-introduced": "finance-account-delete-2026-10-21",
+    "x-planact-default": true
+  },
+  "financeDeleteAccountSuccess": "حساب حذف شد.",
+  "@financeDeleteAccountSuccess": {
+    "description": "Confirms successful account deletion.",
+    "x-planact-introduced": "finance-account-delete-2026-10-21",
+    "x-planact-default": true
+  },
+  "financeDeleteAccountUnavailable": "این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.",
+  "@financeDeleteAccountUnavailable": {
+    "description": "Explains why an account with history or references cannot be physically deleted.",
+    "x-planact-introduced": "finance-account-delete-2026-10-21",
+    "x-planact-default": true
+  },
   "matchHistoryTitle": "ارتباط‌های ثبت‌شده",
   "@matchHistoryTitle": {
     "description": "Undo repair: explicit operation feedback and confirmation.",
@@ -7113,8 +7149,14 @@
     "description": "Visible app-unit proposal for an unresolved SMS amount; neither display nor cancellation persists it.",
     "x-planact-introduced": "inbox-default-2026-10-14",
     "placeholders": {
-      "amount": {"type": "String", "description": "Grouped Persian source integer."},
-      "unit": {"type": "String", "description": "Visible rial/toman proposal."}
+      "amount": {
+        "type": "String",
+        "description": "Grouped Persian source integer."
+      },
+      "unit": {
+        "type": "String",
+        "description": "Visible rial/toman proposal."
+      }
     }
   },
   "inboxDefaultUnitAmount": "{amount} {unit}",
@@ -7122,8 +7164,14 @@
     "description": "Amount and pinned unit shown for explicit financial confirmation.",
     "x-planact-introduced": "inbox-default-2026-10-14",
     "placeholders": {
-      "amount": {"type": "String", "description": "Grouped Persian source integer."},
-      "unit": {"type": "String", "description": "Selected rial/toman unit."}
+      "amount": {
+        "type": "String",
+        "description": "Grouped Persian source integer."
+      },
+      "unit": {
+        "type": "String",
+        "description": "Selected rial/toman unit."
+      }
     }
   },
   "inboxDefaultUnitConfirmationNotice": "واحد پیامک مشخص نیست؛ واحد پیش‌فرض برنامه پیشنهاد شده است. تأیید نهایی، مبلغ را با واحد انتخابی ثبت می‌کند.",
@@ -7211,273 +7259,487 @@
     "x-planact-introduced": "inbox-default-2026-10-14",
     "x-planact-default": true
   },
-    "reminderDeliveryLabel": "روش یادآوری",
-    "@reminderDeliveryLabel": {
-        "description": "Label for notification/alarm selection.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14"
-    },
-    "reminderDeliveryNotification": "اعلان",
-    "@reminderDeliveryNotification": {
-        "description": "Standard notification delivery choice.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14"
-    },
-    "reminderDeliveryAlarm": "آلارم",
-    "@reminderDeliveryAlarm": {
-        "description": "Audible alarm delivery choice.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14"
-    },
-    "reminderAlarmHelp": "آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.",
-    "@reminderAlarmHelp": {
-        "description": "Alarm behavior and permission disclosure.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14"
-    },
-    "reminderAlarmTitle": "آلارم پلن‌اکت",
-    "@reminderAlarmTitle": {
-        "description": "Private native alarm notification title.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_title"
-    },
-    "reminderAlarmBody": "زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.",
-    "@reminderAlarmBody": {
-        "description": "Private native alarm notification body without personal data.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_body"
-    },
-    "reminderAlarmStop": "قطع",
-    "@reminderAlarmStop": {
-        "description": "Native alarm dismiss action.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_stop"
-    },
-    "reminderAlarmSnooze": "تعویق ۱۰ دقیقه",
-    "@reminderAlarmSnooze": {
-        "description": "Native alarm action with fixed ten-minute snooze.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_snooze"
-    },
-    "reminderAlarmChannel": "آلارم‌های تعهد",
-    "@reminderAlarmChannel": {
-        "description": "Native alarm channel name.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_channel"
-    },
-    "reminderAlarmChannelDescription": "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.",
-    "@reminderAlarmChannelDescription": {
-        "description": "Alarm channel description.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_channel_description"
-    },
-    "reminderAlarmRetry": "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.",
-    "@reminderAlarmRetry": {
-        "description": "Native scheduling/playback failure notification.",
-        "x-planact-default": true,
-        "x-planact-introduced": "alarm-2026-10-14",
-        "x-planact-android-resource": "planact_alarm_retry"
-    },
-    "calendarNoteLabel": "یادداشت",
-    "calendarNoteColorLabel": "رنگ یادداشت",
-    "@calendarNoteColorLabel": {
-        "description": "Note identity color picker label.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteColorHint": "یادداشت در تقویم با این رنگ نمایش داده می‌شود.",
-    "@calendarNoteColorHint": {
-        "description": "Explains note identity color use.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "@calendarNoteLabel": {
-        "description": "Independent date-only calendar note action and type label.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteAddSubtitle": "عنوان و توضیحات روی تقویم، بدون اعلان",
-    "@calendarNoteAddSubtitle": {
-        "description": "Global Add note subtitle.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteCreateTitle": "افزودن یادداشت",
-    "@calendarNoteCreateTitle": {
-        "description": "Create note form title.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteEditTitle": "ویرایش یادداشت",
-    "@calendarNoteEditTitle": {
-        "description": "Edit note form title.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteTitleField": "عنوان",
-    "@calendarNoteTitleField": {
-        "description": "Required note title field label.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteDescriptionField": "توضیحات (اختیاری)",
-    "@calendarNoteDescriptionField": {
-        "description": "Optional note description label.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteChooseDate": "انتخاب تاریخ",
-    "@calendarNoteChooseDate": {
-        "description": "Explicit Jalali note date picker action.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteTitleRequired": "عنوان یادداشت را وارد کنید.",
-    "@calendarNoteTitleRequired": {
-        "description": "Empty note title validation error.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteDateRequired": "تاریخ یادداشت را انتخاب کنید.",
-    "@calendarNoteDateRequired": {
-        "description": "Missing note date validation error.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteSaveFailed": "یادداشت ذخیره نشد. دوباره تلاش کنید.",
-    "@calendarNoteSaveFailed": {
-        "description": "Save failed; input remains available for retry.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteStale": "این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.",
-    "@calendarNoteStale": {
-        "description": "Stale edit conflict; reopen to read fresh revision.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteNoDelivery": "این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.",
-    "@calendarNoteNoDelivery": {
-        "description": "Explanation of note delivery semantics.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "calendarNoteSaved": "یادداشت ذخیره شد.",
-    "@calendarNoteSaved": {
-        "description": "Successful durable note save.",
-        "x-planact-introduced": "calendar-note-2026-10-14"
-    },
-    "searchTitle": "جست‌وجو",
-    "@searchTitle": {"x-planact-introduced": "search-2026-10-14", "description": "Global search page title and shell accessibility label."},
-    "searchFieldLabel": "عبارت جست‌وجو",
-    "@searchFieldLabel": {"x-planact-introduced": "search-2026-10-14", "description": "Accessible label for the global text query."},
-    "searchAll": "همه",
-    "@searchAll": {"x-planact-introduced": "search-2026-10-14", "description": "Search all supported record types."},
-    "searchCommitments": "تعهدات",
-    "@searchCommitments": {"x-planact-introduced": "search-2026-10-14", "description": "Commitment search filter and result type."},
-    "searchTransactions": "تراکنش‌ها",
-    "@searchTransactions": {"x-planact-introduced": "search-2026-10-14", "description": "Financial entry search filter and result type, including transfers and corrections."},
-    "searchNotes": "یادداشت‌ها",
-    "@searchNotes": {"x-planact-introduced": "search-2026-10-14", "description": "Independent calendar note search filter and result type."},
-    "searchAccounts": "حساب‌ها",
-    "@searchAccounts": {"x-planact-introduced": "search-2026-10-14", "description": "Financial account search filter and result type."},
-    "searchClear": "پاک‌کردن عبارت جست‌وجو",
-    "@searchClear": {"x-planact-introduced": "search-2026-10-14", "description": "Clear only the transient query, never records."},
-    "searchRefresh": "تازه‌سازی نتایج",
-    "@searchRefresh": {"x-planact-introduced": "search-2026-10-14", "description": "Reload search data from durable local records."},
-    "searchGuidance": "برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.",
-    "@searchGuidance": {"x-planact-introduced": "search-2026-10-14", "description": "Empty query guidance disclosing supported fields and historical coverage."},
-    "searchNoResults": "موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.",
-    "@searchNoResults": {"x-planact-introduced": "search-2026-10-14", "description": "No text matches, with query/filter recovery guidance."},
-    "searchReadError": "خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.",
-    "@searchReadError": {"x-planact-introduced": "search-2026-10-14", "description": "Search snapshot read failure; paired with retry."},
-    "searchOpenError": "بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.",
-    "@searchOpenError": {"x-planact-introduced": "search-2026-10-14", "description": "Search result opening failure with recovery guidance."},
-    "searchCancelled": "لغوشده",
-    "@searchCancelled": {"x-planact-introduced": "search-2026-10-14", "description": "Historical cancelled commitment search status."},
-    "searchResultCount": "{count} نتیجه",
-    "@searchResultCount": {"x-planact-introduced": "search-2026-10-14", "description": "Matching result count; count is a Persian-formatted integer.", "placeholders": {"count": {"type": "String"}}},
-    "searchFinancialReadOnly": "این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.",
-    "@searchFinancialReadOnly": {"x-planact-introduced": "search-2026-10-14", "description": "Read-only financial search detail scope and existing management route."},
-    "progressOutcomesTitle": "پیشرفت انجام نوبت‌ها",
-    "@progressOutcomesTitle": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Count-based occurrence outcome chart in Commitment Details."},
-    "progressPaymentsTitle": "پیشرفت پرداخت‌ها",
-    "@progressPaymentsTitle": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Separate count-based financial settlement chart; never inferred from completion."},
-    "progressTotal": "از مجموع {count} نوبت",
-    "@progressTotal": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Explicit schedule target, independent of materialization horizon; Persian formatted integer.", "placeholders": {"count": {"type": "String"}}},
-    "progressPaymentSummary": "{paid}٪ تسویه‌شده، {unsettled}٪ بدون تسویهٔ تأییدشده",
-    "@progressPaymentSummary": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Fully paid count versus all other slots; preformatted integer percentages, not money ratios.", "placeholders": {"paid": {"type": "String"}, "unsettled": {"type": "String"}}},
-    "progressCompleted": "انجام‌شده",
-    "@progressCompleted": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Recorded completed occurrence progress segment."},
-    "progressPaid": "پرداخت‌شده",
-    "@progressPaid": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Fully settled outgoing expectation count."},
-    "progressPartPaid": "پرداخت جزئی",
-    "@progressPartPaid": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Partially settled count, never counted as fully paid."},
-    "progressCancelled": "لغوشده",
-    "@progressCancelled": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Cancelled progress segment, separate from completion."},
-    "progressSkipped": "انجام‌نشده",
-    "@progressSkipped": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Resolved skipped occurrence progress segment."},
-    "progressRemaining": "باقی‌مانده",
-    "@progressRemaining": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Unresolved or unprepared schedule slots, not remaining entitlement."},
-    "progressUnpaid": "پرداخت‌نشده",
-    "@progressUnpaid": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Outgoing slots without allocated payment, excluding partial payments; cancellation of attendance does not waive payment."},
-    "progressUnknownPayment": "وضعیت پرداخت نامشخص",
-    "@progressUnknownPayment": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Missing or ambiguous financial expectation evidence; never inferred paid or unpaid."},
-    "progressLegend": "{label}: {count} نوبت ({percent}٪)",
-    "@progressLegend": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Full text alternative for a chart segment, with Persian formatted count and integer percentage.", "placeholders": {"label": {"type": "String"}, "count": {"type": "String"}, "percent": {"type": "String"}}},
-    "progressCountBasis": "مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.",
-    "@progressCountBasis": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Discloses schedule count versus entitlement and operational generation horizon."},
-    "progressPaymentBasis": "مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.",
-    "@progressPaymentBasis": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Financial progress evidence and count-based percentage scope."},
-    "progressLoading": "در حال خواندن پیشرفت تعهد",
-    "@progressLoading": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Accessible label for progress snapshot loading."},
-    "progressReadError": "پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.",
-    "@progressReadError": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Progress read failure and stale-content disclosure, paired with retry."},
-    "progressAmbiguous": "تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.",
-    "@progressAmbiguous": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Suppresses misleading percentages for ambiguous duplicate or over-target history without rewriting it."},
-    "progressExcludedCancellations": "{count} لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.",
-    "@progressExcludedCancellations": {"x-planact-introduced": "counted-progress-2026-10-14", "description": "Count reduction cancellations outside current recurrence prefix, with preformatted integer.", "placeholders": {"count": {"type": "String"}}},
-    "checklistTitle": "فهرست کارها",
-    "@checklistTitle": {"description": "Commitment checklist route and action.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistScope": "این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.",
-    "@checklistScope": {"description": "Shared list scope and absence of automatic lifecycle or financial effects.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistDraftScope": "کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.",
-    "@checklistDraftScope": {"description": "Draft checklist guidance in commitment creation.", "x-planact-introduced": "checklist-2026-10-18"},
-    "checklistAddHint": "افزودن یک کار",
-    "@checklistAddHint": {"description": "Inline checklist composer hint.", "x-planact-introduced": "checklist-2026-10-18"},
-    "checklistPreviewMore": "موارد بیشتر",
-    "@checklistPreviewMore": {"description": "Collapsed checklist preview overflow label.", "x-planact-introduced": "checklist-2026-10-18"},
-    "checklistAdd": "افزودن کار",
-    "@checklistAdd": {"description": "Add a checklist item.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistEdit": "ویرایش کار",
-    "@checklistEdit": {"description": "Explicit checklist item rename.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistItemTitle": "عنوان کار",
-    "@checklistItemTitle": {"description": "Required task name field.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistEmptyTitle": "عنوان کار را وارد کنید.",
-    "@checklistEmptyTitle": {"description": "Empty checklist item validation.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistSaveError": "تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.",
-    "@checklistSaveError": {"description": "Failed write retains dialog draft and requires reload before another write.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistReadError": "فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.",
-    "@checklistReadError": {"description": "Read failure distinct from committed save failure.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistReadOnly": "فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.",
-    "@checklistReadOnly": {"description": "Resolved and archived commitments retain readable checklists.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistProgress": "{checked} از {total} کار انجام شده",
-    "@checklistProgress": {"description": "Checked versus visible task count using formatted Persian integers.", "x-planact-introduced": "checklist-2026-10-14", "placeholders": {"checked": {"type": "String"}, "total": {"type": "String"}}},
-    "checklistEmpty": "هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.",
-    "@checklistEmpty": {"description": "Empty checklist guidance.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistActions": "اقدام‌های این کار",
-    "@checklistActions": {"description": "Accessible item action menu tooltip.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistRemove": "کنار گذاشتن کار",
-    "@checklistRemove": {"description": "Reversible item removal retaining history.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistRemoveConfirm": "این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.",
-    "@checklistRemoveConfirm": {"description": "Explicit removal confirmation with restoration disclosure.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistRemoved": "کارهای کنارگذاشته‌شده",
-    "@checklistRemoved": {"description": "Expandable retained removed tasks.", "x-planact-introduced": "checklist-2026-10-14"},
-    "checklistRestore": "بازگرداندن کار",
-    "@checklistRestore": {"description": "Restore task with original identity and checked state.", "x-planact-introduced": "checklist-2026-10-14"},
-    "calendarNoteDaySummary": "{count} یادداشت: {titles}",
-    "@calendarNoteDaySummary": {
-        "description": "Accessible month day note summary, separate from commitment counts.",
-        "placeholders": {
-            "count": {
-                "type": "String"
-            },
-            "titles": {
-                "type": "String"
-            }
-        },
-        "x-planact-introduced": "calendar-note-2026-10-14"
+  "reminderDeliveryLabel": "روش یادآوری",
+  "@reminderDeliveryLabel": {
+    "description": "Label for notification/alarm selection.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14"
+  },
+  "reminderDeliveryNotification": "اعلان",
+  "@reminderDeliveryNotification": {
+    "description": "Standard notification delivery choice.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14"
+  },
+  "reminderDeliveryAlarm": "آلارم",
+  "@reminderDeliveryAlarm": {
+    "description": "Audible alarm delivery choice.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14"
+  },
+  "reminderAlarmHelp": "آلارم تا دو دقیقه زنگ می‌زند و قطع یا تعویق آن به معنی انجام تعهد نیست. به مجوز اعلان و آلارم دقیق نیاز دارد؛ برای فعال‌سازی یا تلاش دوباره به تنظیمات یادآورها بروید.",
+  "@reminderAlarmHelp": {
+    "description": "Alarm behavior and permission disclosure.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14"
+  },
+  "reminderAlarmTitle": "آلارم پلن‌اکت",
+  "@reminderAlarmTitle": {
+    "description": "Private native alarm notification title.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_title"
+  },
+  "reminderAlarmBody": "زمان یادآوری رسیده است. قطع زنگ به معنی انجام تعهد نیست.",
+  "@reminderAlarmBody": {
+    "description": "Private native alarm notification body without personal data.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_body"
+  },
+  "reminderAlarmStop": "قطع",
+  "@reminderAlarmStop": {
+    "description": "Native alarm dismiss action.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_stop"
+  },
+  "reminderAlarmSnooze": "تعویق ۱۰ دقیقه",
+  "@reminderAlarmSnooze": {
+    "description": "Native alarm action with fixed ten-minute snooze.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_snooze"
+  },
+  "reminderAlarmChannel": "آلارم‌های تعهد",
+  "@reminderAlarmChannel": {
+    "description": "Native alarm channel name.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_channel"
+  },
+  "reminderAlarmChannelDescription": "زنگ یادآورهای انتخاب‌شده؛ کنترل صدا از تنظیمات آلارم دستگاه است.",
+  "@reminderAlarmChannelDescription": {
+    "description": "Alarm channel description.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_channel_description"
+  },
+  "reminderAlarmRetry": "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.",
+  "@reminderAlarmRetry": {
+    "description": "Native scheduling/playback failure notification.",
+    "x-planact-default": true,
+    "x-planact-introduced": "alarm-2026-10-14",
+    "x-planact-android-resource": "planact_alarm_retry"
+  },
+  "calendarNoteLabel": "یادداشت",
+  "calendarNoteColorLabel": "رنگ یادداشت",
+  "@calendarNoteColorLabel": {
+    "description": "Note identity color picker label.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteColorHint": "یادداشت در تقویم با این رنگ نمایش داده می‌شود.",
+  "@calendarNoteColorHint": {
+    "description": "Explains note identity color use.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "@calendarNoteLabel": {
+    "description": "Independent date-only calendar note action and type label.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteAddSubtitle": "عنوان و توضیحات روی تقویم، بدون اعلان",
+  "@calendarNoteAddSubtitle": {
+    "description": "Global Add note subtitle.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteCreateTitle": "افزودن یادداشت",
+  "@calendarNoteCreateTitle": {
+    "description": "Create note form title.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteEditTitle": "ویرایش یادداشت",
+  "@calendarNoteEditTitle": {
+    "description": "Edit note form title.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteTitleField": "عنوان",
+  "@calendarNoteTitleField": {
+    "description": "Required note title field label.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteDescriptionField": "توضیحات (اختیاری)",
+  "@calendarNoteDescriptionField": {
+    "description": "Optional note description label.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteChooseDate": "انتخاب تاریخ",
+  "@calendarNoteChooseDate": {
+    "description": "Explicit Jalali note date picker action.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteTitleRequired": "عنوان یادداشت را وارد کنید.",
+  "@calendarNoteTitleRequired": {
+    "description": "Empty note title validation error.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteDateRequired": "تاریخ یادداشت را انتخاب کنید.",
+  "@calendarNoteDateRequired": {
+    "description": "Missing note date validation error.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteSaveFailed": "یادداشت ذخیره نشد. دوباره تلاش کنید.",
+  "@calendarNoteSaveFailed": {
+    "description": "Save failed; input remains available for retry.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteStale": "این یادداشت تغییر کرده است. فرم را ببندید و دوباره باز کنید.",
+  "@calendarNoteStale": {
+    "description": "Stale edit conflict; reopen to read fresh revision.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteNoDelivery": "این یادداشت فقط روی تقویم نمایش داده می‌شود و یادآور، آلارم یا اعلان ندارد.",
+  "@calendarNoteNoDelivery": {
+    "description": "Explanation of note delivery semantics.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "calendarNoteSaved": "یادداشت ذخیره شد.",
+  "@calendarNoteSaved": {
+    "description": "Successful durable note save.",
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "searchTitle": "جست‌وجو",
+  "@searchTitle": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Global search page title and shell accessibility label."
+  },
+  "searchFieldLabel": "عبارت جست‌وجو",
+  "@searchFieldLabel": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Accessible label for the global text query."
+  },
+  "searchAll": "همه",
+  "@searchAll": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Search all supported record types."
+  },
+  "searchCommitments": "تعهدات",
+  "@searchCommitments": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Commitment search filter and result type."
+  },
+  "searchTransactions": "تراکنش‌ها",
+  "@searchTransactions": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Financial entry search filter and result type, including transfers and corrections."
+  },
+  "searchNotes": "یادداشت‌ها",
+  "@searchNotes": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Independent calendar note search filter and result type."
+  },
+  "searchAccounts": "حساب‌ها",
+  "@searchAccounts": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Financial account search filter and result type."
+  },
+  "searchClear": "پاک‌کردن عبارت جست‌وجو",
+  "@searchClear": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Clear only the transient query, never records."
+  },
+  "searchRefresh": "تازه‌سازی نتایج",
+  "@searchRefresh": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Reload search data from durable local records."
+  },
+  "searchGuidance": "برای جست‌وجو در عنوان، توضیحات، دسته و برچسب تعهدات و تراکنش‌ها، یادداشت‌ها و نام حساب‌ها، عبارتی بنویسید. موارد بایگانی‌شده هم جست‌وجو می‌شوند.",
+  "@searchGuidance": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Empty query guidance disclosing supported fields and historical coverage."
+  },
+  "searchNoResults": "موردی پیدا نشد. عبارت دیگری بنویسید یا فیلتر «همه» را انتخاب کنید.",
+  "@searchNoResults": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "No text matches, with query/filter recovery guidance."
+  },
+  "searchReadError": "خواندن اطلاعات جست‌وجو انجام نشد. دوباره تلاش کنید.",
+  "@searchReadError": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Search snapshot read failure; paired with retry."
+  },
+  "searchOpenError": "بازکردن مورد انجام نشد. نتایج را تازه کنید و دوباره آن را انتخاب کنید.",
+  "@searchOpenError": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Search result opening failure with recovery guidance."
+  },
+  "searchCancelled": "لغوشده",
+  "@searchCancelled": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Historical cancelled commitment search status."
+  },
+  "searchResultCount": "{count} نتیجه",
+  "@searchResultCount": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Matching result count; count is a Persian-formatted integer.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
     }
+  },
+  "searchFinancialReadOnly": "این جزئیات فقط برای مشاهده است. مدیریت تراکنش از بخش مالی انجام می‌شود.",
+  "@searchFinancialReadOnly": {
+    "x-planact-introduced": "search-2026-10-14",
+    "description": "Read-only financial search detail scope and existing management route."
+  },
+  "progressOutcomesTitle": "پیشرفت انجام نوبت‌ها",
+  "@progressOutcomesTitle": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Count-based occurrence outcome chart in Commitment Details."
+  },
+  "progressPaymentsTitle": "پیشرفت پرداخت‌ها",
+  "@progressPaymentsTitle": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Separate count-based financial settlement chart; never inferred from completion."
+  },
+  "progressTotal": "از مجموع {count} نوبت",
+  "@progressTotal": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Explicit schedule target, independent of materialization horizon; Persian formatted integer.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "progressPaymentSummary": "{paid}٪ تسویه‌شده، {unsettled}٪ بدون تسویهٔ تأییدشده",
+  "@progressPaymentSummary": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Fully paid count versus all other slots; preformatted integer percentages, not money ratios.",
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "unsettled": {
+        "type": "String"
+      }
+    }
+  },
+  "progressCompleted": "انجام‌شده",
+  "@progressCompleted": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Recorded completed occurrence progress segment."
+  },
+  "progressPaid": "پرداخت‌شده",
+  "@progressPaid": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Fully settled outgoing expectation count."
+  },
+  "progressPartPaid": "پرداخت جزئی",
+  "@progressPartPaid": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Partially settled count, never counted as fully paid."
+  },
+  "progressCancelled": "لغوشده",
+  "@progressCancelled": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Cancelled progress segment, separate from completion."
+  },
+  "progressSkipped": "انجام‌نشده",
+  "@progressSkipped": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Resolved skipped occurrence progress segment."
+  },
+  "progressRemaining": "باقی‌مانده",
+  "@progressRemaining": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Unresolved or unprepared schedule slots, not remaining entitlement."
+  },
+  "progressUnpaid": "پرداخت‌نشده",
+  "@progressUnpaid": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Outgoing slots without allocated payment, excluding partial payments; cancellation of attendance does not waive payment."
+  },
+  "progressUnknownPayment": "وضعیت پرداخت نامشخص",
+  "@progressUnknownPayment": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Missing or ambiguous financial expectation evidence; never inferred paid or unpaid."
+  },
+  "progressLegend": "{label}: {count} نوبت ({percent}٪)",
+  "@progressLegend": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Full text alternative for a chart segment, with Persian formatted count and integer percentage.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "progressCountBasis": "مبنای نمودار تعداد نوبت‌های برنامه است، نه اعتبار جلسات. نوبت‌های بدون نتیجهٔ ثبت‌شده هم در باقی‌مانده هستند.",
+  "@progressCountBasis": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Discloses schedule count versus entitlement and operational generation horizon."
+  },
+  "progressPaymentBasis": "مبنای پرداخت، تطبیق‌های مالی تأییدشده است. درصدها بر اساس تعداد نوبت‌ها هستند، نه مبلغ؛ پرداخت جزئی تسویهٔ کامل نیست.",
+  "@progressPaymentBasis": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Financial progress evidence and count-based percentage scope."
+  },
+  "progressLoading": "در حال خواندن پیشرفت تعهد",
+  "@progressLoading": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Accessible label for progress snapshot loading."
+  },
+  "progressReadError": "پیشرفت به‌روز نشد. دوباره تلاش کنید؛ نمودار قبلی ممکن است قدیمی باشد.",
+  "@progressReadError": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Progress read failure and stale-content disclosure, paired with retry."
+  },
+  "progressAmbiguous": "تاریخچهٔ نوبت‌ها با تعداد فعلی برنامه هم‌خوان نیست؛ درصد قابل اتکا نیست. نوبت‌ها و سابقهٔ جابه‌جایی یا جایگزینی را بررسی کنید.",
+  "@progressAmbiguous": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Suppresses misleading percentages for ambiguous duplicate or over-target history without rewriting it."
+  },
+  "progressExcludedCancellations": "{count} لغو خارج از تعداد فعلی، در تاریخچه حفظ شده و در نمودار شمرده نمی‌شود.",
+  "@progressExcludedCancellations": {
+    "x-planact-introduced": "counted-progress-2026-10-14",
+    "description": "Count reduction cancellations outside current recurrence prefix, with preformatted integer.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistTitle": "فهرست کارها",
+  "@checklistTitle": {
+    "description": "Commitment checklist route and action.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistScope": "این فهرست متعلق به کل تعهد است. تیک‌زدن کارها وضعیت تعهد، نوبت‌ها یا پرداخت را تغییر نمی‌دهد.",
+  "@checklistScope": {
+    "description": "Shared list scope and absence of automatic lifecycle or financial effects.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistDraftScope": "کارها همراه با تعهد ذخیره می‌شوند و هنوز انجام‌شده نیستند.",
+  "@checklistDraftScope": {
+    "description": "Draft checklist guidance in commitment creation.",
+    "x-planact-introduced": "checklist-2026-10-18"
+  },
+  "checklistAddHint": "افزودن یک کار",
+  "@checklistAddHint": {
+    "description": "Inline checklist composer hint.",
+    "x-planact-introduced": "checklist-2026-10-18"
+  },
+  "checklistPreviewMore": "موارد بیشتر",
+  "@checklistPreviewMore": {
+    "description": "Collapsed checklist preview overflow label.",
+    "x-planact-introduced": "checklist-2026-10-18"
+  },
+  "checklistAdd": "افزودن کار",
+  "@checklistAdd": {
+    "description": "Add a checklist item.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistEdit": "ویرایش کار",
+  "@checklistEdit": {
+    "description": "Explicit checklist item rename.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistItemTitle": "عنوان کار",
+  "@checklistItemTitle": {
+    "description": "Required task name field.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistEmptyTitle": "عنوان کار را وارد کنید.",
+  "@checklistEmptyTitle": {
+    "description": "Empty checklist item validation.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistSaveError": "تغییر ذخیره نشد؛ ممکن است فهرست یا وضعیت تعهد تغییر کرده باشد. پیش‌نویس را نگه دارید و پس از بستن، فهرست را دوباره بخوانید.",
+  "@checklistSaveError": {
+    "description": "Failed write retains dialog draft and requires reload before another write.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistReadError": "فهرست به‌روز نشد. تغییر ذخیره‌شده از بین نرفته است؛ دوباره تلاش کنید.",
+  "@checklistReadError": {
+    "description": "Read failure distinct from committed save failure.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistReadOnly": "فهرست این تعهد فقط خواندنی است. برای تغییر کارها، ابتدا وضعیت تعهد را از اقدام‌های آن تغییر دهید.",
+  "@checklistReadOnly": {
+    "description": "Resolved and archived commitments retain readable checklists.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistProgress": "{checked} از {total} کار انجام شده",
+  "@checklistProgress": {
+    "description": "Checked versus visible task count using formatted Persian integers.",
+    "x-planact-introduced": "checklist-2026-10-14",
+    "placeholders": {
+      "checked": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "checklistEmpty": "هنوز کاری اضافه نشده است؛ مثلاً موارد لیست خرید را اینجا ثبت کنید.",
+  "@checklistEmpty": {
+    "description": "Empty checklist guidance.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistActions": "اقدام‌های این کار",
+  "@checklistActions": {
+    "description": "Accessible item action menu tooltip.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistRemove": "کنار گذاشتن کار",
+  "@checklistRemove": {
+    "description": "Reversible item removal retaining history.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistRemoveConfirm": "این کار از فهرست جاری کنار گذاشته شود؟ سابقه و امکان بازگرداندن آن حفظ می‌شود.",
+  "@checklistRemoveConfirm": {
+    "description": "Explicit removal confirmation with restoration disclosure.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistRemoved": "کارهای کنارگذاشته‌شده",
+  "@checklistRemoved": {
+    "description": "Expandable retained removed tasks.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "checklistRestore": "بازگرداندن کار",
+  "@checklistRestore": {
+    "description": "Restore task with original identity and checked state.",
+    "x-planact-introduced": "checklist-2026-10-14"
+  },
+  "calendarNoteDaySummary": "{count} یادداشت: {titles}",
+  "@calendarNoteDaySummary": {
+    "description": "Accessible month day note summary, separate from commitment counts.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "titles": {
+        "type": "String"
+      }
+    },
+    "x-planact-introduced": "calendar-note-2026-10-14"
+  },
+  "financeArchivedAccountsSaveError": "تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.",
+  "@financeArchivedAccountsSaveError": {
+    "description": "Financial account visibility and safe deletion feedback",
+    "x-planact-default": true
+  },
+  "financeDeleteAccountFailed": "حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.",
+  "@financeDeleteAccountFailed": {
+    "description": "Financial account visibility and safe deletion feedback",
+    "x-planact-default": true
+  }
 }

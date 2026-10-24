@@ -619,4 +619,10 @@ class AppDatabase extends _$AppDatabase {
     )..where((table) => table.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
+
+  Future<void> deleteMetadata(String key) async {
+    await (delete(
+      schemaMetadata,
+    )..where((table) => table.key.equals(key))).go();
+  }
 }

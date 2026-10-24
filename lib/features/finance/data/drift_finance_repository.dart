@@ -272,6 +272,35 @@ class DriftFinanceRepository
       );
 
   @override
+  Future<void> deleteAccount(StableId id) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final journal = UndoJournal(database);
+      await journal.admitWriter();
+      final row = await (database.select(
+        database.financialAccounts,
+      )..where((t) => t.id.equals(id.value))).getSingleOrNull();
+      if (row == null) throw const ValidationError('Account missing');
+
+      final entryCount =
+          await (database.select(database.accountEntries)
+                ..where((t) => t.accountId.equals(id.value)))
+              .get()
+              .then((rows) => rows.length);
+      final expectationCount =
+          await (database.select(database.financialExpectations)
+                ..where((t) => t.accountId.equals(id.value)))
+              .get()
+              .then((rows) => rows.length);
+      if (entryCount != 0 || expectationCount != 0) {
+        throw const ValidationError('Account has financial history');
+      }
+      await database.delete(database.financialAccounts).delete(row);
+      await database.deleteMetadata('account_identifiers_v1:${id.value}');
+    }),
+  );
+
+  @override
   Future<void> saveAccount(FinancialAccount account) => CommandGate.runFor(
     this,
     () => database.transaction(() async {

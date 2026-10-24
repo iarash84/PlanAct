@@ -78,6 +78,7 @@ class FinancePage extends StatefulWidget {
     this.onDetermineRelationship,
     this.embedded = false,
     this.bottomContentPadding = 0,
+    this.showArchivedAccounts = false,
     this.focusedRecordId,
     this.focusedKind = FinanceRecordKind.entry,
   });
@@ -89,6 +90,7 @@ class FinancePage extends StatefulWidget {
   final FinanceRepository repository;
   final bool embedded;
   final double bottomContentPadding;
+  final bool showArchivedAccounts;
 
   /// Search opens the existing controls for exactly one durable record.
   final String? focusedRecordId;
@@ -899,9 +901,12 @@ class FinancePageState extends State<FinancePage> {
                       ),
                     for (final account in _accounts.where(
                       (a) =>
-                          widget.focusedRecordId == null ||
-                          (widget.focusedKind == FinanceRecordKind.account &&
-                              a.id.value == widget.focusedRecordId),
+                          widget.focusedRecordId != null &&
+                              widget.focusedKind == FinanceRecordKind.account &&
+                              a.id.value == widget.focusedRecordId ||
+                          widget.focusedRecordId == null &&
+                              (widget.showArchivedAccounts ||
+                                  a.status == FinancialAccountStatus.active),
                     ))
                       AccountInformationCard(
                         key: ValueKey(account.id),
@@ -918,7 +923,7 @@ class FinancePageState extends State<FinancePage> {
                                   : () => _editAccount(account),
                               icon: const Icon(Icons.edit_outlined),
                             ),
-                            PopupMenuButton<FinancialAccountStatus>(
+                            PopupMenuButton<String>(
                               key: ValueKey('account-menu:${account.id.value}'),
                               tooltip:
                                   account.status ==
@@ -928,14 +933,16 @@ class FinancePageState extends State<FinancePage> {
                                   : planActL10n(context)
                                         .financeRestoreAccountAction,
                               enabled: !_pendingAccounts.contains(account.id),
-                              onSelected: (_) => _changeAccountStatus(account),
+                              onSelected: (action) {
+                                if (action == 'delete') {
+                                  _deleteAccount(account);
+                                } else {
+                                  _changeAccountStatus(account);
+                                }
+                              },
                               itemBuilder: (context) => [
                                 PopupMenuItem(
-                                  value:
-                                      account.status ==
-                                          FinancialAccountStatus.active
-                                      ? FinancialAccountStatus.archived
-                                      : FinancialAccountStatus.active,
+                                  value: 'status',
                                   child: Text(
                                     account.status ==
                                             FinancialAccountStatus.active
@@ -943,6 +950,13 @@ class FinancePageState extends State<FinancePage> {
                                               .financeArchivedAccountAction
                                         : planActL10n(context)
                                               .financeRestoreAccountAction,
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text(
+                                    planActL10n(context)
+                                        .financeDeleteAccountAction,
                                   ),
                                 ),
                               ],
@@ -1155,6 +1169,42 @@ class FinancePageState extends State<FinancePage> {
               ? null
               : () => _undoAccountStatus(account.id, token),
         );
+      }
+    } finally {
+      if (mounted) setState(() => _pendingAccounts.remove(account.id));
+    }
+  }
+
+  Future<void> _deleteAccount(FinancialAccount account) async {
+    if (!_pendingAccounts.add(account.id)) return;
+    setState(() {});
+    try {
+      if (!await confirmRecordedAction(
+            context,
+            planActL10n(context).financeDeleteAccountMessage,
+          ) ||
+          !mounted) {
+        return;
+      }
+      try {
+        await _finance.deleteAccount(account.id);
+      } catch (_) {
+        if (mounted) {
+          _showMessage(planActL10n(context).financeDeleteAccountFailed);
+        }
+        return;
+      }
+      await _refresh();
+      try {
+        await widget.onDataChanged?.call();
+      } catch (_) {
+        if (mounted) {
+          _showMessage(planActL10n(context).undoRefreshPending);
+        }
+        return;
+      }
+      if (mounted) {
+        _showMessage(planActL10n(context).financeDeleteAccountSuccess);
       }
     } finally {
       if (mounted) setState(() => _pendingAccounts.remove(account.id));

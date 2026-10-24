@@ -126,6 +126,7 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppBackground _background = AppBackground.none;
+  bool _showArchivedAccounts = false;
   bool _backgroundLoaded = true;
   bool _backgroundLoadFailed = false;
   AppSettings? _settings;
@@ -149,6 +150,7 @@ class _PlanActAppState extends State<PlanActApp> {
       });
       _backgroundLoaded = false;
       _loadBackground();
+      _loadShowArchivedAccounts();
       _loadAppLockSetting();
     }
     _moneyUnits = MoneyUnitController(_settings);
@@ -226,6 +228,22 @@ class _PlanActAppState extends State<PlanActApp> {
     if (settings == null) throw StateError('Persistent settings unavailable');
     await settings.writeBackground(background);
     if (mounted) setState(() => _background = background);
+  }
+
+  Future<void> _loadShowArchivedAccounts() async {
+    try {
+      final value = await _settings!.readShowArchivedAccounts();
+      if (mounted) setState(() => _showArchivedAccounts = value);
+    } catch (_) {
+      if (mounted) setState(() => _showArchivedAccounts = false);
+    }
+  }
+
+  Future<void> _setShowArchivedAccounts(bool enabled) async {
+    final settings = _settings;
+    if (settings == null) throw StateError('Persistent settings unavailable');
+    await settings.writeShowArchivedAccounts(enabled);
+    if (mounted) setState(() => _showArchivedAccounts = enabled);
   }
 
   bool _changingAppLock = false;
@@ -363,6 +381,8 @@ class _PlanActAppState extends State<PlanActApp> {
               tagRepository: widget.tagRepository,
               planRepository: widget.planRepository,
               settings: _settings,
+              showArchivedAccounts: _showArchivedAccounts,
+              onShowArchivedAccountsChanged: _setShowArchivedAccounts,
               themeMode: _themeMode,
               appLockEnabled: _appLockEnabled,
               appLockController: _appLockController,
@@ -427,6 +447,8 @@ class HomeShell extends StatefulWidget {
     this.backupMessage,
     this.smsSource,
     this.themeMode = ThemeMode.system,
+    this.showArchivedAccounts = false,
+    this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
     this.onBackgroundChanged,
     this.appLockEnabled = false,
@@ -447,6 +469,8 @@ class HomeShell extends StatefulWidget {
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
+  final bool showArchivedAccounts;
+  final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
   final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
@@ -1542,6 +1566,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         bottomContentPadding: _quickAddScrollClearance,
         embedded: true,
         repository: _financeRepository,
+        showArchivedAccounts: widget.showArchivedAccounts,
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
         onTagsChanged: _tagsChanged,
@@ -1565,6 +1590,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           backupActions: widget.backupActions,
           backupMessage: widget.backupMessage,
           settings: widget.settings,
+          showArchivedAccounts: widget.showArchivedAccounts,
+          onShowArchivedAccountsChanged: widget.onShowArchivedAccountsChanged,
           themeMode: widget.themeMode,
           background: widget.background,
           onBackgroundChanged: widget.onBackgroundChanged,

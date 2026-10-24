@@ -19,6 +19,8 @@ class SettingsPage extends StatefulWidget {
     this.backupMessage,
     required this.themeMode,
     required this.onThemeModeChanged,
+    this.showArchivedAccounts = false,
+    this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
     this.onBackgroundChanged,
     this.appLockEnabled = false,
@@ -34,6 +36,8 @@ class SettingsPage extends StatefulWidget {
   final String? backupMessage;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final bool showArchivedAccounts;
+  final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
   final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
@@ -48,11 +52,33 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   late ThemeMode _themeMode = widget.themeMode;
+  late bool _showArchivedAccounts = widget.showArchivedAccounts;
+  bool _savingAccounts = false;
+  bool _accountsSaveFailed = false;
+
+  Future<void> _changeArchivedAccounts(bool enabled) async {
+    if (_savingAccounts) return;
+    setState(() {
+      _savingAccounts = true;
+      _accountsSaveFailed = false;
+    });
+    try {
+      await widget.onShowArchivedAccountsChanged!(enabled);
+      if (mounted) setState(() => _showArchivedAccounts = enabled);
+    } catch (_) {
+      if (mounted) setState(() => _accountsSaveFailed = true);
+    } finally {
+      if (mounted) setState(() => _savingAccounts = false);
+    }
+  }
 
   @override
   void didUpdateWidget(covariant SettingsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.themeMode != widget.themeMode) _themeMode = widget.themeMode;
+    if (oldWidget.showArchivedAccounts != widget.showArchivedAccounts) {
+      _showArchivedAccounts = widget.showArchivedAccounts;
+    }
   }
 
   @override
@@ -108,6 +134,26 @@ class _SettingsPageState extends State<SettingsPage> {
           value: widget.background,
           onChanged: widget.onBackgroundChanged!,
         ),
+      ],
+      if (widget.onShowArchivedAccountsChanged != null) ...[
+        const SizedBox(height: 12),
+        Card(
+          child: SwitchListTile(
+            secondary: const Icon(Icons.inventory_2_outlined),
+            title: Text(planActL10n(context).financeShowArchivedAccounts),
+            subtitle: Text(
+              planActL10n(context).financeShowArchivedAccountsDescription,
+            ),
+            value: _showArchivedAccounts,
+            onChanged: _savingAccounts ? null : _changeArchivedAccounts,
+          ),
+        ),
+        if (_savingAccounts) const LinearProgressIndicator(),
+        if (_accountsSaveFailed)
+          Text(
+            planActL10n(context).financeArchivedAccountsSaveError,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
       ],
       const SizedBox(height: 20),
       Text(
