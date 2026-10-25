@@ -8177,6 +8177,24 @@ abstract class AppLocalizations {
   /// **'افزودن کار'**
   String get checklistAdd;
 
+  /// Edit the commitment from an inline Today card control.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش تعهد'**
+  String get commitmentEdit;
+
+  /// Expand inline commitment details in a Today card.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش جزئیات'**
+  String get detailsShow;
+
+  /// Collapse inline commitment details in a Today card.
+  ///
+  /// In fa, this message translates to:
+  /// **'بستن جزئیات'**
+  String get detailsHide;
+
   /// Explicit checklist item rename.
   ///
   /// In fa, this message translates to:

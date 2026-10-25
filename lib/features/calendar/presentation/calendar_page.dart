@@ -6,6 +6,7 @@ import 'package:planact/core/localization/persian_copy.g.dart';
 import 'dart:math' as math;
 
 import 'package:planact/features/scheduling/application/planned_occurrences.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 
 import 'package:planact/app/theme/commitment_identity_palette.dart';
@@ -44,6 +45,8 @@ class CalendarPage extends StatefulWidget {
     this.noteLoader,
     this.notesRevision = 0,
     this.onNoteTap,
+    this.checklistRepository,
+    this.onChecklistUpdated,
     this.holidayProvider = const IranianHolidayProvider(),
     this.bottomContentPadding = 0,
   });
@@ -53,6 +56,8 @@ class CalendarPage extends StatefulWidget {
   final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
   final int notesRevision;
   final ValueChanged<CalendarNote>? onNoteTap;
+  final ChecklistRepository? checklistRepository;
+  final Future<void> Function()? onChecklistUpdated;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate, LocalDate)?
   monthLoader;
@@ -598,6 +603,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                   )
                                   .toList(),
                           reminderRules: widget.reminderRules,
+                          checklistRepository: widget.checklistRepository,
+                          onChecklistUpdated: widget.onChecklistUpdated,
                           onOccurrenceTap: widget.onOccurrenceTap,
                           onTap: widget.onCommitmentTap == null
                               ? null

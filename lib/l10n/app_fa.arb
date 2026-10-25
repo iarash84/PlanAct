@@ -7656,6 +7656,21 @@
     "description": "Add a checklist item.",
     "x-planact-introduced": "checklist-2026-10-14"
   },
+  "commitmentEdit": "ویرایش تعهد",
+  "@commitmentEdit": {
+    "description": "Edit the commitment from an inline Today card control.",
+    "x-planact-introduced": "today-commitment-card-2026-10-25"
+  },
+  "detailsShow": "نمایش جزئیات",
+  "@detailsShow": {
+    "description": "Expand inline commitment details in a Today card.",
+    "x-planact-introduced": "today-commitment-card-2026-10-25"
+  },
+  "detailsHide": "بستن جزئیات",
+  "@detailsHide": {
+    "description": "Collapse inline commitment details in a Today card.",
+    "x-planact-introduced": "today-commitment-card-2026-10-25"
+  },
   "checklistEdit": "ویرایش کار",
   "@checklistEdit": {
     "description": "Explicit checklist item rename.",

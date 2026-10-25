@@ -4871,6 +4871,15 @@ class AppLocalizationsFa extends AppLocalizations {
   String get checklistAdd => 'افزودن کار';
 
   @override
+  String get commitmentEdit => 'ویرایش تعهد';
+
+  @override
+  String get detailsShow => 'نمایش جزئیات';
+
+  @override
+  String get detailsHide => 'بستن جزئیات';
+
+  @override
   String get checklistEdit => 'ویرایش کار';
 
   @override

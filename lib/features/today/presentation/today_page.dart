@@ -1,7 +1,9 @@
+import 'package:planact/features/commitments/presentation/commitment_card_layout.dart';
+import 'package:planact/features/commitments/presentation/commitment_checklist_disclosure.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
-import 'package:planact/core/localization/persian_numbers.dart';
-import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
+import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
@@ -33,7 +35,10 @@ class TodayPage extends StatelessWidget {
     required this.onReview,
     this.onOccurrenceTap,
     this.checklists = const {},
+    this.checklistRepository,
     this.onChecklistChanged,
+    this.onChecklistUpdated,
+    this.onEditCommitment,
     this.onOpenRelationshipQueue,
     this.bottomContentPadding = 0,
   });
@@ -52,6 +57,9 @@ class TodayPage extends StatelessWidget {
   final ValueChanged<TodayActionItem> onReview;
   final ValueChanged<TodayActionItem>? onOccurrenceTap;
   final Map<StableId, CommitmentChecklist> checklists;
+  final ChecklistRepository? checklistRepository;
+  final Future<void> Function()? onChecklistUpdated;
+  final ValueChanged<Commitment>? onEditCommitment;
   final Future<void> Function(
     StableId commitmentId,
     StableId itemId,
@@ -124,7 +132,10 @@ class TodayPage extends StatelessWidget {
               onOccurrenceTap: onOccurrenceTap,
               onReview: onReview,
               checklists: checklists,
+              checklistRepository: checklistRepository,
+              onEditCommitment: onEditCommitment,
               onChecklistChanged: onChecklistChanged,
+              onChecklistUpdated: onChecklistUpdated,
             ),
             const SizedBox(height: PlanActSpacing.xl),
           ],
@@ -145,7 +156,10 @@ class TodayPage extends StatelessWidget {
                 checklist: item.commitment == null
                     ? null
                     : checklists[item.commitment!.id],
+                checklistRepository: checklistRepository,
+                onEditCommitment: onEditCommitment,
                 onChecklistChanged: onChecklistChanged,
+                onChecklistUpdated: onChecklistUpdated,
               ),
             ),
             const SizedBox(height: PlanActSpacing.xl),
@@ -167,7 +181,10 @@ class TodayPage extends StatelessWidget {
                 checklist: item.commitment == null
                     ? null
                     : checklists[item.commitment!.id],
+                checklistRepository: checklistRepository,
+                onEditCommitment: onEditCommitment,
                 onChecklistChanged: onChecklistChanged,
+                onChecklistUpdated: onChecklistUpdated,
               ),
             ),
           ],
@@ -238,7 +255,10 @@ class _AttentionGroups extends StatelessWidget {
     this.onOccurrenceTap,
     required this.onReview,
     required this.checklists,
+    this.checklistRepository,
     required this.onChecklistChanged,
+    this.onChecklistUpdated,
+    this.onEditCommitment,
   });
 
   final List<TodayActionItem> items;
@@ -246,6 +266,9 @@ class _AttentionGroups extends StatelessWidget {
   final ValueChanged<TodayActionItem>? onOccurrenceTap;
   final ValueChanged<TodayActionItem> onReview;
   final Map<StableId, CommitmentChecklist> checklists;
+  final ChecklistRepository? checklistRepository;
+  final Future<void> Function()? onChecklistUpdated;
+  final ValueChanged<Commitment>? onEditCommitment;
   final Future<void> Function(StableId, StableId, bool)? onChecklistChanged;
 
   @override
@@ -281,7 +304,10 @@ class _AttentionGroups extends StatelessWidget {
                     checklist: item.commitment == null
                         ? null
                         : checklists[item.commitment!.id],
+                    checklistRepository: checklistRepository,
+                    onEditCommitment: onEditCommitment,
                     onChecklistChanged: onChecklistChanged,
+                    onChecklistUpdated: onChecklistUpdated,
                   ),
               ],
             ),
@@ -291,7 +317,7 @@ class _AttentionGroups extends StatelessWidget {
   }
 }
 
-class _ActionItemCard extends StatelessWidget {
+class _ActionItemCard extends StatefulWidget {
   const _ActionItemCard({
     required this.item,
     required this.onOpen,
@@ -299,7 +325,10 @@ class _ActionItemCard extends StatelessWidget {
     required this.onReview,
     this.grouped = false,
     this.checklist,
+    this.checklistRepository,
+    this.onEditCommitment,
     this.onChecklistChanged,
+    this.onChecklistUpdated,
   });
 
   final TodayActionItem item;
@@ -308,10 +337,21 @@ class _ActionItemCard extends StatelessWidget {
   final VoidCallback onReview;
   final bool grouped;
   final CommitmentChecklist? checklist;
+  final ChecklistRepository? checklistRepository;
+  final ValueChanged<Commitment>? onEditCommitment;
   final Future<void> Function(StableId, StableId, bool)? onChecklistChanged;
+  final Future<void> Function()? onChecklistUpdated;
+
+  @override
+  State<_ActionItemCard> createState() => _ActionItemCardState();
+}
+
+class _ActionItemCardState extends State<_ActionItemCard> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final item = widget.item;
     final details = item.attentionItem;
     final financial = details == null
         ? const <String>[]
@@ -328,11 +368,15 @@ class _ActionItemCard extends StatelessWidget {
               ),
             if (details.description != null) details.description!,
           ];
-    final row = ListTile(
-      leading: item.commitment != null
+    final commitment = item.commitment;
+    final row = CommitmentCardLayout(
+      grouped: widget.grouped,
+      expanded: _expanded,
+      details: _details(context, commitment),
+      leading: commitment != null
           ? CommitmentIdentityMarker(
               key: ValueKey('today-identity-${item.id}'),
-              commitment: item.commitment!,
+              commitment: commitment,
               icon: item.type == TodayActionItemType.occurrence
                   ? Icons.event_available
                   : Icons.priority_high,
@@ -342,8 +386,18 @@ class _ActionItemCard extends StatelessWidget {
                   ? Icons.event_available
                   : Icons.priority_high,
             ),
-      title: Text(item.title),
-      subtitle: Column(
+      title: item.title,
+      preview: commitment == null || widget.checklistRepository == null
+          ? null
+          : CommitmentChecklistDisclosure(
+              repository: widget.checklistRepository!,
+              commitmentId: commitment.id,
+              onChanged: widget.onChecklistUpdated,
+            ),
+      tags: commitment == null || commitment.tags.isEmpty
+          ? null
+          : TagLabels(labels: commitment.tags),
+      metadata: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -352,131 +406,59 @@ class _ActionItemCard extends StatelessWidget {
               if (financial.isNotEmpty) financial.first,
             ].join(' · '),
           ),
-          if (item.commitment case final Commitment commitment)
-            TagLabels(labels: commitment.tags),
-          if (checklist case final list?)
-            _ChecklistPreview(list: list, onChanged: onChecklistChanged),
         ],
       ),
-      trailing: TextButton(
-        onPressed:
-            item.type == TodayActionItemType.occurrence &&
-                onOccurrenceTap != null
-            ? onOccurrenceTap
-            : item.commitment == null
-            ? onReview
-            : () => onOpen(item.commitment!),
-        child: Text(
-          item.type == TodayActionItemType.occurrence
-              ? planActL10n(context)
-                    .attentionEngineAttentionActionDetermineOccurrenceStatus
-              : item.actionLabel,
-        ),
-      ),
-    );
-    return grouped ? row : Card(child: row);
-  }
-}
-
-class _ChecklistPreview extends StatefulWidget {
-  const _ChecklistPreview({required this.list, this.onChanged});
-
-  final CommitmentChecklist list;
-  final Future<void> Function(StableId, StableId, bool)? onChanged;
-
-  @override
-  State<_ChecklistPreview> createState() => _ChecklistPreviewState();
-}
-
-class _ChecklistPreviewState extends State<_ChecklistPreview> {
-  late List<ChecklistItem> _items = _active(widget.list);
-  final _busy = <StableId>{};
-
-  static List<ChecklistItem> _active(CommitmentChecklist list) =>
-      list.items.where((item) => !item.removed).toList();
-
-  @override
-  void didUpdateWidget(_ChecklistPreview oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.list.revision != widget.list.revision) {
-      _items = _active(widget.list);
-      _busy.clear();
-    }
-  }
-
-  Future<void> _toggle(ChecklistItem item, bool checked) async {
-    if (_busy.contains(item.id) || widget.onChanged == null) return;
-    final index = _items.indexWhere((candidate) => candidate.id == item.id);
-    if (index < 0) return;
-    setState(() {
-      _busy.add(item.id);
-      _items[index] = ChecklistItem(
-        id: item.id,
-        title: item.title,
-        checked: checked,
-      );
-    });
-    try {
-      await widget.onChanged!(widget.list.commitmentId, item.id, checked);
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _items[index] = item;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(planActL10n(context).checklistSaveError)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busy.remove(item.id));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final visible = _items.take(3).toList();
-    final remaining = _items.length - visible.length;
-    return Padding(
-      padding: const EdgeInsets.only(top: PlanActSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            planActL10n(context).checklistProgress(
-              PersianNumbers.format(
-                _items.where((item) => item.checked).length,
-              ),
-              PersianNumbers.format(_items.length),
-            ),
-            style: Theme.of(context).textTheme.bodySmall,
+      actions: [
+        if (commitment != null)
+          IconButton(
+            key: ValueKey('today-edit-${commitment.id.value}'),
+            tooltip: planActL10n(context).commitmentEdit,
+            onPressed: widget.onEditCommitment == null
+                ? null
+                : () => widget.onEditCommitment!(commitment),
+            icon: const Icon(Icons.edit_outlined),
           ),
-          for (final item in visible)
-            CheckboxListTile(
-              key: ValueKey('today-checklist-item-${item.id.value}'),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              value: item.checked,
-              onChanged: widget.onChanged == null || _busy.contains(item.id)
-                  ? null
-                  : (value) => _toggle(item, value ?? false),
-              title: Text(
-                item.title,
-                style: TextStyle(
-                  decoration: item.checked ? TextDecoration.lineThrough : null,
-                  color: item.checked
-                      ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : null,
-                ),
-              ),
-              controlAffinity: ListTileControlAffinity.leading,
-            ),
-          if (remaining > 0)
-            Text(
-              '${planActL10n(context).checklistPreviewMore} (${PersianNumbers.format(remaining)})',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-        ],
+        IconButton(
+          key: ValueKey('today-details-${item.id}'),
+          tooltip: _expanded
+              ? planActL10n(context).detailsHide
+              : planActL10n(context).detailsShow,
+          onPressed: () => setState(() => _expanded = !_expanded),
+          icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+        ),
+        TextButton(
+          onPressed:
+              item.type == TodayActionItemType.occurrence &&
+                  widget.onOccurrenceTap != null
+              ? widget.onOccurrenceTap
+              : commitment == null
+              ? widget.onReview
+              : () => widget.onOpen(commitment),
+          child: Text(
+            item.type == TodayActionItemType.occurrence
+                ? planActL10n(context)
+                      .attentionEngineAttentionActionDetermineOccurrenceStatus
+                : item.actionLabel,
+          ),
+        ),
+      ],
+    );
+    return row;
+  }
+
+  Widget _details(BuildContext context, Commitment? commitment) {
+    final description = commitment?.description?.trim();
+    if (description == null || description.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        PlanActSpacing.lg,
+        0,
+        PlanActSpacing.lg,
+        PlanActSpacing.md,
       ),
+      child: Text(description),
     );
   }
 }

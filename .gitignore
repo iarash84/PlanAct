@@ -72,5 +72,4 @@ app.*.map.json
 # Locally generated store/gallery exports (screenshots, feature graphics, ZIPs)
 /output/
 /tool/build_store_marketing.ps1
-run_flutter_tests.ps1
 test-reports/*

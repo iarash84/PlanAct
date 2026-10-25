@@ -179,6 +179,10 @@ class _CommitmentChecklistSectionState
     final snapshot = _snapshot;
     final items = snapshot?.list.items ?? const <ChecklistItem>[];
     final active = items.where((item) => !item.removed).toList();
+    final orderedActive = [
+      ...active.where((item) => !item.checked),
+      ...active.where((item) => item.checked),
+    ];
     final editable =
         snapshot?.editable == true &&
         !_busy &&
@@ -216,7 +220,7 @@ class _CommitmentChecklistSectionState
             ),
           ),
           if (active.isEmpty) Text(l10n.checklistEmpty),
-          for (final item in active) _itemRow(item, editable),
+          for (final item in orderedActive) _itemRow(item, editable),
           FilledButton.icon(
             key: const ValueKey('checklist-add'),
             onPressed: editable ? () => _edit() : null,

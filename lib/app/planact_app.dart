@@ -1613,10 +1613,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onRefresh: _refreshWithSms,
         onAdd: _showCapture,
         onCommitmentTap: _showCommitmentActions,
+        onEditCommitment: _openCommitmentDetails,
         onOccurrenceTap: _showTodayOccurrenceAction,
         onCommitmentArchive: _archiveCommitment,
+        checklistRepository: _checklists,
         checklists: _checklistSnapshots,
         onChecklistChanged: _toggleChecklistItem,
+        onChecklistUpdated: _refresh,
         onReview: (item) {
           if (item.attentionAction == AttentionAction.classifyTransaction &&
               item.sourceReference != null) {
@@ -1659,6 +1662,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             ? _planRepository.loadMonth
             : null,
         reminderRules: _calendarReminderRules,
+        checklistRepository: _checklists,
+        onChecklistUpdated: _refresh,
         scheduledDates: _scheduledDates,
         onCommitmentTap: _showCommitmentActions,
         onOccurrenceTap: _showOccurrenceAction,
