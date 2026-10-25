@@ -130,7 +130,7 @@ void main() {
       sha256.convert(utf8.encode(templates.join('\n'))).toString(),
       // Reviewed baseline for the current Persian catalog, including the
       // approved help/FAQ copy now used by the More page.
-      'd91ca3a0666849ba5974492b22430c75c4e36ff5d2d9a451043fdbb512906f52',
+      '22819f6107f3e9b2d23dd1e978e216fd361a3c72fcd19ca22f1541ee288fff39',
     );
     for (final entry in catalog.entries.where((e) => !e.key.startsWith('@'))) {
       final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;

@@ -149,10 +149,13 @@ class OccurrenceReminderDeliveryPending implements Exception {
 }
 
 abstract interface class OccurrenceActionExecutor {
-  Future<void> complete(Occurrence occurrence);
-  Future<void> cancel(Occurrence occurrence, {required SessionOutcome outcome});
+  Future<Occurrence> complete(Occurrence occurrence);
+  Future<Occurrence> cancel(
+    Occurrence occurrence, {
+    required SessionOutcome outcome,
+  });
   Future<void> reschedule(Occurrence occurrence, DateTime scheduledAt);
-  Future<void> restore(Occurrence occurrence);
+  Future<Occurrence> restore(Occurrence occurrence);
   Future<void> createMakeup(Occurrence occurrence, DateTime scheduledAt);
 }
 
@@ -252,30 +255,29 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
   });
 
   @override
-  Future<void> complete(Occurrence occurrence) =>
+  Future<Occurrence> complete(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
         if (actuals != null) {
-          await recordResult(occurrence, ActualOutcome.completed);
-          return;
+          return recordResult(occurrence, ActualOutcome.completed);
         }
         final updated = occurrence.withStatus(OccurrenceStatus.completed);
         await plans.saveOccurrence(updated);
         await _synchronize(updated);
+        return updated;
       });
 
   @override
-  Future<void> cancel(
+  Future<Occurrence> cancel(
     Occurrence occurrence, {
     required SessionOutcome outcome,
   }) => CommandGate.runFor(plans, () async {
     if (actuals != null) {
-      await recordResult(
+      return recordResult(
         occurrence,
         outcome == SessionOutcome.noShow
             ? ActualOutcome.noShow
             : ActualOutcome.cancelled,
       );
-      return;
     }
     final nextStatus = outcome == SessionOutcome.noShow
         ? OccurrenceStatus.skipped
@@ -283,6 +285,7 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
     final updated = occurrence.withStatus(nextStatus);
     await plans.saveOccurrence(updated);
     await _synchronize(updated);
+    return updated;
   });
 
   @override
@@ -294,15 +297,15 @@ class PersistedOccurrenceActionExecutor implements OccurrenceActionExecutor {
       });
 
   @override
-  Future<void> restore(Occurrence occurrence) =>
+  Future<Occurrence> restore(Occurrence occurrence) =>
       CommandGate.runFor(plans, () async {
         if (actuals != null) {
-          await recordResult(occurrence, ActualOutcome.reopened);
-          return;
+          return recordResult(occurrence, ActualOutcome.reopened);
         }
         final updated = occurrence.withStatus(OccurrenceStatus.scheduled);
         await plans.saveOccurrence(updated);
         await _synchronize(updated);
+        return updated;
       });
 
   @override

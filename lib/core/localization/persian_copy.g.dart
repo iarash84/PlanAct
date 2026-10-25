@@ -30,7 +30,7 @@ abstract final class PersianCopy {
   static const planactAppShowQuickTransferMessage = "برای انتقال، دست‌کم دو حساب فعال لازم است.";
   static const planactAppShowQuickTransferMessage2 = "انتقال ثبت شد.";
   static const planactAppShowQuickTransferMessage3 = "ثبت انتقال انجام نشد؛ دوباره تلاش کنید.";
-  static const planactAppShowCommitmentDetailsTitle = "انجام شد";
+  static const planactAppShowCommitmentDetailsTitle = "تکمیل تعهد";
   static const planactAppShowCommitmentDetailsTitle2 = "توقف موقت";
   static const planactAppShowCommitmentDetailsTitle3 = "ادامه";
   static const planactAppShowCommitmentDetailsTitle4 = "لغو تعهد";

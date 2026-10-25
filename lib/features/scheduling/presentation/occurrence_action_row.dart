@@ -50,7 +50,8 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     if (mounted && _busy) return;
     if (mounted) setState(() => _busy = true);
     try {
-      await widget.executor.restore(occurrence);
+      final restored = await widget.executor.restore(occurrence);
+      if (mounted) _updated = restored;
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(successMessage)));
@@ -86,49 +87,25 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     try {
       switch (action.type) {
         case OccurrenceActionType.complete:
-          final result = ActualOutcome.completed;
-          final executor = widget.executor;
-          if (executor is PersistedOccurrenceActionExecutor &&
-              executor.actuals != null) {
-            _updated = await executor.recordResult(occurrence, result);
-          } else {
-            await executor.complete(occurrence);
-            _updated = occurrence.withStatus(OccurrenceStatus.completed);
-          }
+          _updated = await widget.executor.complete(occurrence);
         case OccurrenceActionType.restore:
-          await widget.executor.restore(occurrence);
-          _updated = Occurrence(
-            id: occurrence.id,
-            cycleId: occurrence.cycleId,
-            scheduleDefinitionId: occurrence.scheduleDefinitionId,
-            occurrenceKey: occurrence.occurrenceKey,
-            originalScheduledAt: occurrence.originalScheduledAt,
-            currentScheduledAt: occurrence.currentScheduledAt,
-            status: occurrence.isManualOverride
-                ? OccurrenceStatus.rescheduled
-                : OccurrenceStatus.scheduled,
-            isManualOverride: occurrence.isManualOverride,
-            resultRevision: occurrence.resultRevision + 1,
-          );
+          _updated = await widget.executor.restore(occurrence);
         case OccurrenceActionType.providerCancelled:
-          await widget.executor.cancel(
+          _updated = await widget.executor.cancel(
             occurrence,
             outcome: SessionOutcome.providerCancelled,
           );
-          _updated = _withResult(occurrence, OccurrenceStatus.cancelled);
         case OccurrenceActionType.userCancelled:
         case OccurrenceActionType.cancel:
-          await widget.executor.cancel(
+          _updated = await widget.executor.cancel(
             occurrence,
             outcome: SessionOutcome.userCancelled,
           );
-          _updated = _withResult(occurrence, OccurrenceStatus.cancelled);
         case OccurrenceActionType.noShow:
-          await widget.executor.cancel(
+          _updated = await widget.executor.cancel(
             occurrence,
             outcome: SessionOutcome.noShow,
           );
-          _updated = _withResult(occurrence, OccurrenceStatus.skipped);
         case OccurrenceActionType.makeup:
           return;
         case OccurrenceActionType.reschedule:
@@ -182,19 +159,6 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
       if (mounted) setState(() => _busy = false);
     }
   }
-
-  Occurrence _withResult(Occurrence occurrence, OccurrenceStatus status) =>
-      Occurrence(
-        id: occurrence.id,
-        cycleId: occurrence.cycleId,
-        scheduleDefinitionId: occurrence.scheduleDefinitionId,
-        occurrenceKey: occurrence.occurrenceKey,
-        originalScheduledAt: occurrence.originalScheduledAt,
-        currentScheduledAt: occurrence.currentScheduledAt,
-        status: status,
-        isManualOverride: occurrence.isManualOverride,
-        resultRevision: occurrence.resultRevision + 1,
-      );
 
   Future<void> _showHistory() async {
     final executor = widget.executor;
