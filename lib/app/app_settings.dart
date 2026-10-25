@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:planact/core/money/iranian_money_unit.dart';
 import 'package:planact/core/database/app_database.dart';
+import 'package:planact/features/reminders/domain/morning_reminder.dart';
 
 enum AppBackground { none, botanicalPaper, persianWaves, nightWaves }
 
@@ -34,6 +35,9 @@ class AppSettings {
   static const _appLockKey = 'app_lock_enabled';
   static const _backgroundKey = 'app_background_v1';
   static const _showArchivedAccountsKey = 'finance_show_archived_accounts_v1';
+  static const _morningReminderEnabledKey = 'morning_reminder_enabled_v1';
+  static const _morningReminderWindowKey = 'morning_reminder_window_v1';
+  static const _morningReminderSentDayKey = 'morning_reminder_sent_day_v1';
 
   Future<IranianMoneyUnit> readMoneyUnit() async =>
       await database.readMetadata('iranian_money_unit_v1') == 'toman'
@@ -78,4 +82,24 @@ class AppSettings {
 
   Future<void> writeShowArchivedAccounts(bool enabled) =>
       database.writeMetadata(_showArchivedAccountsKey, enabled.toString());
+
+  Future<bool> readMorningReminderEnabled() async =>
+      (await database.readMetadata(_morningReminderEnabledKey)) == 'true';
+
+  Future<void> writeMorningReminderEnabled(bool enabled) =>
+      database.writeMetadata(_morningReminderEnabledKey, enabled.toString());
+
+  Future<MorningReminderWindow> readMorningReminderWindow() async =>
+      MorningReminderWindow.parse(
+        await database.readMetadata(_morningReminderWindowKey),
+      );
+
+  Future<void> writeMorningReminderWindow(MorningReminderWindow window) =>
+      database.writeMetadata(_morningReminderWindowKey, window.storageValue);
+
+  Future<String?> readMorningReminderSentDay() =>
+      database.readMetadata(_morningReminderSentDayKey);
+
+  Future<void> writeMorningReminderSentDay(String dayKey) =>
+      database.writeMetadata(_morningReminderSentDayKey, dayKey);
 }

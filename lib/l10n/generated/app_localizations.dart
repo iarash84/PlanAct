@@ -7247,6 +7247,42 @@ abstract class AppLocalizations {
   /// **'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه'**
   String get settingsAppearanceDescription;
 
+  /// Application copy. Title for the morning reminder settings card.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادآوری صبحگاهی'**
+  String get settingsMorningReminderTitle;
+
+  /// Application copy. Explanation of morning reminder behavior.
+  ///
+  /// In fa, this message translates to:
+  /// **'پس از اولین بازکردن قفل گوشی در بازهٔ صبح، اگر برای امروز یادآوری فعالی وجود داشته باشد، یک اعلان نمایش داده می‌شود.'**
+  String get settingsMorningReminderDescription;
+
+  /// Application copy. Morning reminder window start label.
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع بازهٔ صبح'**
+  String get settingsMorningReminderStart;
+
+  /// Application copy. Morning reminder window end label.
+  ///
+  /// In fa, this message translates to:
+  /// **'پایان بازهٔ صبح'**
+  String get settingsMorningReminderEnd;
+
+  /// Application copy. Disabled morning reminder status.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادآوری صبحگاهی غیرفعال است.'**
+  String get settingsMorningReminderDisabled;
+
+  /// Application copy. Morning reminder settings save error.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم یادآوری صبحگاهی ذخیره نشد؛ دوباره تلاش کنید.'**
+  String get settingsMorningReminderSaveError;
+
   /// Application copy for the background selection setting.
   ///
   /// In fa, this message translates to:

@@ -4328,6 +4328,26 @@ class AppLocalizationsFa extends AppLocalizations {
       'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه';
 
   @override
+  String get settingsMorningReminderTitle => 'یادآوری صبحگاهی';
+
+  @override
+  String get settingsMorningReminderDescription =>
+      'پس از اولین بازکردن قفل گوشی در بازهٔ صبح، اگر برای امروز یادآوری فعالی وجود داشته باشد، یک اعلان نمایش داده می‌شود.';
+
+  @override
+  String get settingsMorningReminderStart => 'شروع بازهٔ صبح';
+
+  @override
+  String get settingsMorningReminderEnd => 'پایان بازهٔ صبح';
+
+  @override
+  String get settingsMorningReminderDisabled => 'یادآوری صبحگاهی غیرفعال است.';
+
+  @override
+  String get settingsMorningReminderSaveError =>
+      'تنظیم یادآوری صبحگاهی ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
   String get settingsBackground => 'تصویر پس‌زمینه';
 
   @override

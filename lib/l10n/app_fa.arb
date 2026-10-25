@@ -6773,6 +6773,36 @@
   "@settingsAppearanceDescription": {
     "description": "Application copy. Original usage: lib/features/settings/presentation/settings_page.dart:65."
   },
+  "settingsMorningReminderTitle": "یادآوری صبحگاهی",
+  "@settingsMorningReminderTitle": {
+    "description": "Application copy. Title for the morning reminder settings card.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
+  "settingsMorningReminderDescription": "پس از اولین بازکردن قفل گوشی در بازهٔ صبح، اگر برای امروز یادآوری فعالی وجود داشته باشد، یک اعلان نمایش داده می‌شود.",
+  "@settingsMorningReminderDescription": {
+    "description": "Application copy. Explanation of morning reminder behavior.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
+  "settingsMorningReminderStart": "شروع بازهٔ صبح",
+  "@settingsMorningReminderStart": {
+    "description": "Application copy. Morning reminder window start label.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
+  "settingsMorningReminderEnd": "پایان بازهٔ صبح",
+  "@settingsMorningReminderEnd": {
+    "description": "Application copy. Morning reminder window end label.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
+  "settingsMorningReminderDisabled": "یادآوری صبحگاهی غیرفعال است.",
+  "@settingsMorningReminderDisabled": {
+    "description": "Application copy. Disabled morning reminder status.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
+  "settingsMorningReminderSaveError": "تنظیم یادآوری صبحگاهی ذخیره نشد؛ دوباره تلاش کنید.",
+  "@settingsMorningReminderSaveError": {
+    "description": "Application copy. Morning reminder settings save error.",
+    "x-planact-introduced": "morning-reminder-2026-10-25"
+  },
   "settingsBackground": "تصویر پس‌زمینه",
   "@settingsBackground": {
     "description": "Application copy for the background selection setting."

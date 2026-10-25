@@ -4,6 +4,7 @@ import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/reminders/domain/morning_reminder.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/domain/commitment_cycle.dart';
@@ -16,7 +17,8 @@ class DriftReminderRepository
         ReminderOccurrenceEligibility,
         ReminderOccurrenceSchedule,
         ReminderOccurrenceReopeningIntent,
-        ReminderIntentTransaction {
+        ReminderIntentTransaction,
+        MorningReminderStore {
   DriftReminderRepository(this.database);
 
   @override
@@ -116,6 +118,53 @@ class DriftReminderRepository
           status != OccurrenceStatus.cancelled;
     },
   );
+
+  @override
+  Future<bool> hasEligibleReminderForLocalDate(DateTime localDate) =>
+      CommandGate.runFor(this, () async {
+        final rules = await listRules();
+        final instances = await listInstances();
+        final occurrenceCanRemind = <StableId, bool>{};
+        for (final instance in instances) {
+          occurrenceCanRemind[instance.occurrenceId] = await canRemind(
+            instance.occurrenceId,
+          );
+        }
+        return rules.any((rule) {
+          final matches = instances.where(
+            (instance) => instance.ruleId == rule.id,
+          );
+          return matches.any(
+            (instance) => isEligibleMorningReminder(
+              rule: rule,
+              instance: instance,
+              localDate: localDate,
+              occurrenceCanRemind:
+                  occurrenceCanRemind[instance.occurrenceId] ?? false,
+            ),
+          );
+        });
+      });
+
+  @override
+  Future<bool> claimMorningReminder(String localDayKey) =>
+      CommandGate.runFor(this, () async {
+        return database.transaction(() async {
+          await database.customStatement(
+            'UPDATE schema_metadata SET value = value WHERE key = ?',
+            ['schema_version'],
+          );
+          final existing = await database.readMetadata(
+            'morning_reminder_sent_day_v1',
+          );
+          if (existing == localDayKey) return false;
+          await database.writeMetadata(
+            'morning_reminder_sent_day_v1',
+            localDayKey,
+          );
+          return true;
+        });
+      });
 
   @override
   Future<List<ReminderRule>> listRules() => CommandGate.runFor(this, () async {

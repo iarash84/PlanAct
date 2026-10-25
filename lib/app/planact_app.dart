@@ -617,10 +617,22 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       await _refresh();
       if (_repository case final DriftCommitmentRepository repository) {
         try {
+          final reminderRepository = DriftReminderRepository(
+            repository.database,
+          );
+          final reminderPlatform = AndroidReminderPlatformAdapter();
           await ReminderService(
-            repository: DriftReminderRepository(repository.database),
-            platform: AndroidReminderPlatformAdapter(),
+            repository: reminderRepository,
+            platform: reminderPlatform,
           ).reconcile(now: DateTime.now().toUtc());
+          final settings = widget.settings;
+          if (settings != null) {
+            await MorningReminderCoordinator(
+              settings: settings,
+              store: reminderRepository,
+              platform: reminderPlatform,
+            ).onDeviceUnlocked();
+          }
         } catch (_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
