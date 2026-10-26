@@ -94,12 +94,17 @@ class _CommitmentChecklistDisclosureState
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   else ...[
-                    Text(
-                      l10n.checklistProgress(
-                        PersianNumbers.format(checked),
-                        PersianNumbers.format(total),
+                    Flexible(
+                      child: Text(
+                        l10n.checklistProgress(
+                          PersianNumbers.format(checked),
+                          PersianNumbers.format(total),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(width: PlanActSpacing.sm),
                     Icon(_expanded ? Icons.expand_less : Icons.expand_more),

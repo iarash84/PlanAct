@@ -9,6 +9,7 @@ import 'package:planact/features/finance/presentation/account_information_card.d
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
@@ -908,60 +909,67 @@ class FinancePageState extends State<FinancePage> {
                               (widget.showArchivedAccounts ||
                                   a.status == FinancialAccountStatus.active),
                     ))
-                      AccountInformationCard(
-                        key: ValueKey(account.id),
-                        account: account,
-                        balance: rebuildBalance(account, _entries),
-                        operations: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: planActL10n(context)
-                                  .accountFormSheetBuildTitle2,
-                              onPressed: _pendingAccounts.contains(account.id)
-                                  ? null
-                                  : () => _editAccount(account),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                            PopupMenuButton<String>(
-                              key: ValueKey('account-menu:${account.id.value}'),
-                              tooltip:
-                                  account.status ==
-                                      FinancialAccountStatus.active
-                                  ? planActL10n(context)
-                                        .financeArchivedAccountAction
-                                  : planActL10n(context)
-                                        .financeRestoreAccountAction,
-                              enabled: !_pendingAccounts.contains(account.id),
-                              onSelected: (action) {
-                                if (action == 'delete') {
-                                  _deleteAccount(account);
-                                } else {
-                                  _changeAccountStatus(account);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: 'status',
-                                  child: Text(
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: PlanActSpacing.md,
+                        ),
+                        child: AccountInformationCard(
+                          key: ValueKey(account.id),
+                          account: account,
+                          balance: rebuildBalance(account, _entries),
+                          operations: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: planActL10n(context)
+                                    .accountFormSheetBuildTitle2,
+                                onPressed: _pendingAccounts.contains(account.id)
+                                    ? null
+                                    : () => _editAccount(account),
+                                icon: const Icon(Icons.edit_outlined),
+                              ),
+                              PopupMenuButton<String>(
+                                key: ValueKey(
+                                  'account-menu:${account.id.value}',
+                                ),
+                                tooltip:
                                     account.status ==
-                                            FinancialAccountStatus.active
-                                        ? planActL10n(context)
-                                              .financeArchivedAccountAction
-                                        : planActL10n(context)
-                                              .financeRestoreAccountAction,
+                                        FinancialAccountStatus.active
+                                    ? planActL10n(context)
+                                          .financeArchivedAccountAction
+                                    : planActL10n(context)
+                                          .financeRestoreAccountAction,
+                                enabled: !_pendingAccounts.contains(account.id),
+                                onSelected: (action) {
+                                  if (action == 'delete') {
+                                    _deleteAccount(account);
+                                  } else {
+                                    _changeAccountStatus(account);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'status',
+                                    child: Text(
+                                      account.status ==
+                                              FinancialAccountStatus.active
+                                          ? planActL10n(context)
+                                                .financeArchivedAccountAction
+                                          : planActL10n(context)
+                                                .financeRestoreAccountAction,
+                                    ),
                                   ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: Text(
-                                    planActL10n(context)
-                                        .financeDeleteAccountAction,
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text(
+                                      planActL10n(context)
+                                          .financeDeleteAccountAction,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -994,6 +1002,14 @@ class FinancePageState extends State<FinancePage> {
                               e.id.value == widget.focusedRecordId),
                     ))
                       Card(
+                        margin: const EdgeInsets.only(
+                          bottom: PlanActSpacing.md,
+                        ),
+                        elevation: 0,
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: PlanActRadius.card,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(PlanActSpacing.lg),
                           child: Column(

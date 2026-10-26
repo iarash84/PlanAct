@@ -51,18 +51,11 @@ class PlannedSlotTile extends StatelessWidget {
             '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}',
           )
         : planActL10n(context).calendarCommitmentCardBuildText2;
-    return ListTile(
-      key: ValueKey('planned-slot-${slot.occurrenceKey}'),
-      onTap: onTap,
-      leading: commitment == null
-          ? const Icon(Icons.event_note_outlined)
-          : CommitmentIdentityMarker(commitment: commitment!),
-      title: Text(
+    final title =
         commitment?.title ??
-            planActL10n(context).plannedOccurrenceWidgetsBuildTitle,
-      ),
-      subtitle: Text(
-        planActL10n(context).plannedOccurrenceWidgetsBuildSubtitle2(
+        planActL10n(context).plannedOccurrenceWidgetsBuildTitle;
+    final subtitle = planActL10n(context)
+        .plannedOccurrenceWidgetsBuildSubtitle2(
           (commitment == null
                   ? ''
                   : planActL10n(context).plannedOccurrenceWidgetsBuildSubtitle)
@@ -71,8 +64,16 @@ class PlannedSlotTile extends StatelessWidget {
             JalaliDate.fromDateTime(slot.date.toUtcDateForCalculation()),
           )).toString(),
           (time).toString(),
-        ),
-      ),
+        );
+    return ListTile(
+      key: ValueKey('planned-slot-${slot.occurrenceKey}'),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
+      leading: commitment == null
+          ? const Icon(Icons.event_note_outlined)
+          : CommitmentIdentityMarker(commitment: commitment!),
+      title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+      subtitle: Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis),
       trailing: onPrepare == null
           ? null
           : IconButton(
@@ -80,7 +81,11 @@ class PlannedSlotTile extends StatelessWidget {
                   .plannedOccurrenceWidgetsBuildTooltip,
               onPressed: busy ? null : onPrepare,
               icon: busy
-                  ? const CircularProgressIndicator()
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(),
+                    )
                   : const Icon(Icons.add_task),
             ),
     );

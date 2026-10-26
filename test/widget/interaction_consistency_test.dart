@@ -8,6 +8,7 @@ import 'package:planact/features/commitments/application/commitment_plan_use_cas
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/presentation/commitment_browse_sheet.dart';
+import 'package:planact/features/commitments/presentation/commitment_card_layout.dart';
 import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
 import 'package:planact/features/today/presentation/today_page.dart';
 
@@ -214,7 +215,7 @@ void main() {
                     of: today,
                     matching: find.text(last.title),
                   ),
-                  matching: find.byType(ListTile),
+                  matching: find.byType(CommitmentCardLayout),
                 )
                 .last;
             final todayAction = find.descendant(
@@ -239,13 +240,28 @@ void main() {
               ValueKey('calendar-commitment-${last.id.value}'),
             );
             expectClear(monthCard);
-            await tester.tap(monthCard);
+            final monthTitle = find.descendant(
+              of: monthCard,
+              matching: find.text(last.title),
+            );
+            await tester.ensureVisible(monthTitle);
+            await tester.pumpAndSettle();
+            await tester.tap(monthTitle);
             await tester.pumpAndSettle();
             final manageCommitment = find.byKey(
               const ValueKey('occurrence-manage-commitment'),
             );
-            await tester.ensureVisible(manageCommitment);
-            await tester.pumpAndSettle();
+            expect(manageCommitment, findsOneWidget);
+            final occurrenceSheet = find.byType(BottomSheet);
+            final occurrenceScroll = find.descendant(
+              of: occurrenceSheet,
+              matching: find.byType(Scrollable),
+            );
+            await tester.scrollUntilVisible(
+              manageCommitment,
+              200,
+              scrollable: occurrenceScroll,
+            );
             await tester.tap(manageCommitment);
             await tester.pumpAndSettle();
             expect(find.byType(CommitmentDetailsPage), findsOneWidget);

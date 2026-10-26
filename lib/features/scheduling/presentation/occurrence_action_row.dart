@@ -74,6 +74,28 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
   Future<void> _perform(OccurrenceAction action) async {
     if (_busy) return;
     final occurrence = _updated ?? widget.occurrence;
+    if (action.type == OccurrenceActionType.restore &&
+        widget.executor is PersistedOccurrenceActionExecutor &&
+        (widget.executor as PersistedOccurrenceActionExecutor).actuals !=
+            null) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(planActL10n(context).actualReopenMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(planActL10n(context).commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(planActL10n(context).financePageConfirmedActions),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
     if (action.type == OccurrenceActionType.reschedule) {
       setState(() => _busy = true);
       try {

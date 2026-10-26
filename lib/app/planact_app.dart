@@ -485,9 +485,10 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   static const _quickAddSize = 56.0;
-  // Reserve the floating footprint inside scroll content, never the viewport.
+  // Reserve the floating footprint plus a clear visual gap inside scroll
+  // content, never the viewport.
   static const _quickAddScrollClearance =
-      _quickAddSize + kFloatingActionButtonMargin;
+      _quickAddSize + kFloatingActionButtonMargin + PlanActSpacing.sm;
 
   late final CalendarNoteRepository _noteRepository =
       _repository is DriftCommitmentRepository
@@ -1841,45 +1842,59 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           child: const Icon(Icons.add),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        labelBehavior: MediaQuery.sizeOf(context).width < 360
-            ? NavigationDestinationLabelBehavior.onlyShowSelected
-            : NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          final duration = PlanActMotion.duration(context);
-          if (duration == Duration.zero) {
-            _pageController.jumpToPage(index);
-            return;
-          }
-          _pageController.animateToPage(
-            index,
-            duration: duration,
-            curve: PlanActMotion.curve,
-          );
-        },
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: planActL10n(context).commonToday,
+      bottomNavigationBar: SizedBox(
+        width: double.infinity,
+        child: MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
+            viewPadding: MediaQuery.of(context).viewPadding
+                .copyWith(left: 0, right: 0),
+            textScaler: TextScaler.noScaling,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: planActL10n(context).navigationCalendar,
+          child: NavigationBar(
+            selectedIndex: _selectedIndex,
+            animationDuration: Duration.zero,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+            labelTextStyle: WidgetStatePropertyAll(
+              Theme.of(context).textTheme.labelMedium
+                  ?.copyWith(fontSize: 1, height: 1),
+            ),
+            onDestinationSelected: (index) {
+              setState(() => _selectedIndex = index);
+              final duration = PlanActMotion.duration(context);
+              if (duration == Duration.zero) {
+                _pageController.jumpToPage(index);
+                return;
+              }
+              _pageController.animateToPage(
+                index,
+                duration: duration,
+                curve: PlanActMotion.curve,
+              );
+            },
+            destinations: [
+              NavigationDestination(
+                icon: Icon(Icons.today_outlined),
+                selectedIcon: Icon(Icons.today),
+                label: planActL10n(context).commonToday,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.calendar_month_outlined),
+                selectedIcon: Icon(Icons.calendar_month),
+                label: planActL10n(context).navigationCalendar,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: planActL10n(context).navigationFinance,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.more_horiz),
+                label: planActL10n(context).navigationMore,
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: planActL10n(context).navigationFinance,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            label: planActL10n(context).navigationMore,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -2386,57 +2401,72 @@ class _MorePage extends StatelessWidget {
       PlanActSpacing.lg + bottomContentPadding,
     ),
     children: [
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.analytics_outlined),
-          title: Text(planActL10n(context).planactAppBuildTitle3),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle2),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onReports,
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.analytics_outlined),
+            title: Text(planActL10n(context).planactAppBuildTitle3),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle2),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: onReports,
+          ),
         ),
       ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.inbox_outlined),
-          title: Text(planActL10n(context).planactAppOpenInboxTitle),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onInbox,
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.inbox_outlined),
+            title: Text(planActL10n(context).planactAppOpenInboxTitle),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: onInbox,
+          ),
         ),
       ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: Text(planActL10n(context).helpFaqPageTitle),
-          subtitle: Text(planActL10n(context).helpFaqPageSubtitle),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => const HelpFaqPage())),
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: Text(planActL10n(context).helpFaqPageTitle),
+            subtitle: Text(planActL10n(context).helpFaqPageSubtitle),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const HelpFaqPage()),
+            ),
+          ),
         ),
       ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.settings_outlined),
-          title: Text(planActL10n(context).planactAppBuildTitle6),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle4),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => Scaffold(
-                appBar: AppBar(
-                  title: Text(planActL10n(context).planactAppBuildTitle6),
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: Text(planActL10n(context).planactAppBuildTitle6),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle4),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(
+                    title: Text(planActL10n(context).planactAppBuildTitle6),
+                  ),
+                  body: settings,
                 ),
-                body: settings,
               ),
             ),
           ),
         ),
       ),
       if (holidayPackages != null)
-        HolidayPackageSettingsCard(
-          service: holidayPackages!,
-          onInstalled: onHolidaysChanged ?? () {},
+        Padding(
+          padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+          child: HolidayPackageSettingsCard(
+            service: holidayPackages!,
+            onInstalled: onHolidaysChanged ?? () {},
+          ),
         ),
       if (backupActions != null)
         BackupSettingsCard(actions: backupActions!, message: backupMessage),

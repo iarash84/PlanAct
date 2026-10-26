@@ -174,15 +174,30 @@ class _Metadata extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
-      const SizedBox(width: PlanActSpacing.sm),
-      Flexible(
-        child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+  Widget build(BuildContext context) {
+    final maxWidth =
+        MediaQuery.sizeOf(context).width -
+        (2 * PlanActSpacing.lg + 48 + PlanActSpacing.sm);
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: maxWidth.clamp(48.0, double.infinity),
       ),
-    ],
-  );
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: PlanActSpacing.sm),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

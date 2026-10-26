@@ -25,13 +25,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await openActions(tester, 'کلاس موسیقی');
-    expect(find.text('انجام شد'), findsOneWidget);
+    expect(find.text('تکمیل تعهد'), findsOneWidget);
     expect(find.text('توقف موقت'), findsOneWidget);
     expect(find.text('لغو تعهد'), findsOneWidget);
     expect(find.text('بایگانی'), findsOneWidget);
     expect(find.byType(AlertDialog), findsNothing);
 
-    await tester.tap(find.text('انجام شد'));
+    await tester.tap(find.text('تکمیل تعهد'));
     await tester.pumpAndSettle();
     expect(
       (await repository.findById(commitment.id))!.status,

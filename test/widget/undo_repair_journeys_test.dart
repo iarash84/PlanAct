@@ -521,7 +521,7 @@ void main() {
         );
         await settle(tester);
         await showOccurrenceMonth(tester, original);
-        final popup = find.byType(PopupMenuButton<OccurrenceAction>);
+        final popup = find.byType(PopupMenuButton<OccurrenceActionType>);
         await tester.scrollUntilVisible(
           popup,
           250,
@@ -663,7 +663,7 @@ void main() {
       );
       await settle(tester);
       await showOccurrenceMonth(tester, originalTime);
-      final popup = find.byType(PopupMenuButton<OccurrenceAction>);
+      final popup = find.byType(PopupMenuButton<OccurrenceActionType>);
       await tester.scrollUntilVisible(
         popup,
         250,

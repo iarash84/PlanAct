@@ -895,29 +895,32 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         itemBuilder: (context, index) {
           if (index == 0) return header;
           final item = _pageItems[index - 1];
-          return _ReviewCard(
-            key: ValueKey(item.suggestion.id),
-            item: item,
-            selected: _selected.containsKey(item.suggestion.id),
-            onSelection:
-                !BulkInboxReject.eligible(item.suggestion) ||
-                    _pending.contains(item.suggestion.id) ||
-                    _bulk != null ||
-                    _bulkConfirming
-                ? null
-                : (value) => setState(() {
-                    if (value == true) {
-                      _selected[item.suggestion.id] = item.suggestion;
-                    } else {
-                      _selected.remove(item.suggestion.id);
-                    }
-                  }),
-            busy: _pending.contains(item.suggestion.id),
-            onConfirm: () => _confirm(item),
-            onEdit: () => _edit(item),
-            onReject: () => _reject(
-              item,
-              recover: item.suggestion.status == SuggestionStatus.rejected,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+            child: _ReviewCard(
+              key: ValueKey(item.suggestion.id),
+              item: item,
+              selected: _selected.containsKey(item.suggestion.id),
+              onSelection:
+                  !BulkInboxReject.eligible(item.suggestion) ||
+                      _pending.contains(item.suggestion.id) ||
+                      _bulk != null ||
+                      _bulkConfirming
+                  ? null
+                  : (value) => setState(() {
+                      if (value == true) {
+                        _selected[item.suggestion.id] = item.suggestion;
+                      } else {
+                        _selected.remove(item.suggestion.id);
+                      }
+                    }),
+              busy: _pending.contains(item.suggestion.id),
+              onConfirm: () => _confirm(item),
+              onEdit: () => _edit(item),
+              onReject: () => _reject(
+                item,
+                recover: item.suggestion.status == SuggestionStatus.rejected,
+              ),
             ),
           );
         },

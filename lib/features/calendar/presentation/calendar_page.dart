@@ -225,14 +225,26 @@ class _CalendarPageState extends State<CalendarPage> {
       width: double.infinity,
       child: SegmentedButton<bool>(
         key: const ValueKey('calendar-mode-toggle'),
+        showSelectedIcon: false,
+        style: ButtonStyle(padding: WidgetStateProperty.all(EdgeInsets.zero)),
         segments: [
           ButtonSegment(
             value: false,
-            label: Text(planActL10n(context).calendarPageToggleLabel),
+            label: Text(
+              planActL10n(context).calendarPageToggleLabel,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           ButtonSegment(
             value: true,
-            label: Text(planActL10n(context).calendarPageToggleLabel2),
+            label: Text(
+              planActL10n(context).calendarPageToggleLabel2,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
         selected: {_week},
@@ -588,27 +600,32 @@ class _CalendarPageState extends State<CalendarPage> {
                       Text(planActL10n(context).calendarPageBuildChildren6)
                     else
                       ...selectedItems.map(
-                        (item) => CalendarCommitmentCard(
-                          commitment: item,
-                          occurrences: _occurrencesFor(item),
-                          previews:
-                              (_monthPreviews[item.id.value] ??
-                                      <PlannedOccurrenceSlot>[])
-                                  .where(
-                                    (slot) =>
-                                        JalaliDate.fromDateTime(
-                                          slot.date.toUtcDateForCalculation(),
-                                        ) ==
-                                        _selectedDay,
-                                  )
-                                  .toList(),
-                          reminderRules: widget.reminderRules,
-                          checklistRepository: widget.checklistRepository,
-                          onChecklistUpdated: widget.onChecklistUpdated,
-                          onOccurrenceTap: widget.onOccurrenceTap,
-                          onTap: widget.onCommitmentTap == null
-                              ? null
-                              : () => widget.onCommitmentTap!(item),
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: PlanActSpacing.md,
+                          ),
+                          child: CalendarCommitmentCard(
+                            commitment: item,
+                            occurrences: _occurrencesFor(item),
+                            previews:
+                                (_monthPreviews[item.id.value] ??
+                                        <PlannedOccurrenceSlot>[])
+                                    .where(
+                                      (slot) =>
+                                          JalaliDate.fromDateTime(
+                                            slot.date.toUtcDateForCalculation(),
+                                          ) ==
+                                          _selectedDay,
+                                    )
+                                    .toList(),
+                            reminderRules: widget.reminderRules,
+                            checklistRepository: widget.checklistRepository,
+                            onChecklistUpdated: widget.onChecklistUpdated,
+                            onOccurrenceTap: widget.onOccurrenceTap,
+                            onTap: widget.onCommitmentTap == null
+                                ? null
+                                : () => widget.onCommitmentTap!(item),
+                          ),
                         ),
                       ),
                     if (!_monthLoading && !_monthError)
@@ -671,28 +688,48 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        IconButton(
-          tooltip: previousLabel,
-          onPressed: onPrevious,
-          icon: const Icon(Icons.chevron_left),
-        ),
-        Expanded(
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+    return SizedBox(
+      height: 48,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Center(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-        IconButton(
-          tooltip: nextLabel,
-          onPressed: onNext,
-          icon: const Icon(Icons.chevron_right),
-        ),
-      ],
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: IconButton(
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              padding: EdgeInsets.zero,
+              tooltip: previousLabel,
+              onPressed: onPrevious,
+              icon: const Icon(Icons.chevron_left),
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: IconButton(
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              padding: EdgeInsets.zero,
+              tooltip: nextLabel,
+              onPressed: onNext,
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

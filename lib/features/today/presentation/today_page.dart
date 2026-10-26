@@ -146,20 +146,23 @@ class TodayPage extends StatelessWidget {
             ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.today.map(
-              (item) => _ActionItemCard(
-                item: item,
-                onOpen: onCommitmentTap,
-                onOccurrenceTap: onOccurrenceTap == null
-                    ? null
-                    : () => onOccurrenceTap!(item),
-                onReview: () => onReview(item),
-                checklist: item.commitment == null
-                    ? null
-                    : checklists[item.commitment!.id],
-                checklistRepository: checklistRepository,
-                onEditCommitment: onEditCommitment,
-                onChecklistChanged: onChecklistChanged,
-                onChecklistUpdated: onChecklistUpdated,
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+                child: _ActionItemCard(
+                  item: item,
+                  onOpen: onCommitmentTap,
+                  onOccurrenceTap: onOccurrenceTap == null
+                      ? null
+                      : () => onOccurrenceTap!(item),
+                  onReview: () => onReview(item),
+                  checklist: item.commitment == null
+                      ? null
+                      : checklists[item.commitment!.id],
+                  checklistRepository: checklistRepository,
+                  onEditCommitment: onEditCommitment,
+                  onChecklistChanged: onChecklistChanged,
+                  onChecklistUpdated: onChecklistUpdated,
+                ),
               ),
             ),
             const SizedBox(height: PlanActSpacing.xl),
@@ -171,20 +174,23 @@ class TodayPage extends StatelessWidget {
             ),
             const SizedBox(height: PlanActSpacing.sm),
             ...center.upcoming.map(
-              (item) => _ActionItemCard(
-                item: item,
-                onOpen: onCommitmentTap,
-                onOccurrenceTap: onOccurrenceTap == null
-                    ? null
-                    : () => onOccurrenceTap!(item),
-                onReview: () => onReview(item),
-                checklist: item.commitment == null
-                    ? null
-                    : checklists[item.commitment!.id],
-                checklistRepository: checklistRepository,
-                onEditCommitment: onEditCommitment,
-                onChecklistChanged: onChecklistChanged,
-                onChecklistUpdated: onChecklistUpdated,
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+                child: _ActionItemCard(
+                  item: item,
+                  onOpen: onCommitmentTap,
+                  onOccurrenceTap: onOccurrenceTap == null
+                      ? null
+                      : () => onOccurrenceTap!(item),
+                  onReview: () => onReview(item),
+                  checklist: item.commitment == null
+                      ? null
+                      : checklists[item.commitment!.id],
+                  checklistRepository: checklistRepository,
+                  onEditCommitment: onEditCommitment,
+                  onChecklistChanged: onChecklistChanged,
+                  onChecklistUpdated: onChecklistUpdated,
+                ),
               ),
             ),
           ],
