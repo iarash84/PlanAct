@@ -121,6 +121,7 @@ class ParsedSms {
     this.merchant,
     this.reference,
     this.bank,
+    this.sourceAddress,
     this.accountHint,
     this.balance,
     this.currencyEvidence,
@@ -142,6 +143,7 @@ class ParsedSms {
   final String? merchant;
   final String? reference;
   final String? bank;
+  final String? sourceAddress;
   final String? accountHint;
   final Money? balance;
   final SmsCurrencyEvidence? currencyEvidence;
@@ -446,6 +448,7 @@ class InboxUseCases {
     required String rawText,
     required String sourceKey,
     required String currency,
+    String? sourceAddress,
     DateTime? importedAt,
   }) => CommandGate.runFor(repository, () async {
     final normalized = rawText.trim();
@@ -524,6 +527,7 @@ class InboxUseCases {
       reference: parsed.reference,
       direction: parsed.direction,
       bank: parsed.bank,
+      sourceAddress: sourceAddress,
       accountHint: parsed.accountHint,
       balance: parsed.balance,
       quality: parsed.quality,

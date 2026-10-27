@@ -4471,6 +4471,12 @@ abstract class AppLocalizations {
   /// **'بانک: {value1}'**
   String inboxPageBuildChildren12(String value1);
 
+  /// Application copy. Sender address retained from the SMS provider.
+  ///
+  /// In fa, this message translates to:
+  /// **'فرستنده پیامک: {value1}'**
+  String inboxPageSmsSenderLabel(String value1);
+
   /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:1143.
   ///
   /// In fa, this message translates to:

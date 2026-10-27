@@ -180,6 +180,7 @@ class SmsIngestion {
               await inbox.stageSms(
                 rawText: row.message!.body,
                 sourceKey: row.message!.sourceKey,
+                sourceAddress: row.message!.address,
                 currency: 'IRR',
                 importedAt: row.message!.receivedAt,
               );

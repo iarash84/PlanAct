@@ -1284,6 +1284,12 @@ class _ReviewCardState extends State<_ReviewCard> {
               ),
             ),
             Text(
+              planActL10n(context).inboxPageSmsSenderLabel(
+                (draft.sourceAddress ?? planActL10n(context).commonUnknown)
+                    .toString(),
+              ),
+            ),
+            Text(
               draft.currencyEvidence == null
                   ? planActL10n(context).inboxPageBuildChildren13
                   : draft.currencyEvidence!.requiresSelection
@@ -1334,6 +1340,12 @@ class _ReviewCardState extends State<_ReviewCard> {
               Text(
                 planActL10n(context).inboxPageBuildChildren12(
                   (draft.bank ?? planActL10n(context).commonUnknown).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageSmsSenderLabel(
+                  (draft.sourceAddress ?? planActL10n(context).commonUnknown)
+                      .toString(),
                 ),
               ),
               Text(

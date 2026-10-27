@@ -2610,6 +2610,11 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
+  String inboxPageSmsSenderLabel(String value1) {
+    return 'فرستنده پیامک: $value1';
+  }
+
+  @override
   String get inboxPageBuildChildren13 =>
       'واحد پیامک قدیمی نامشخص؛ مبلغ ذخیره‌شده بدون تغییر حفظ شده است.';
 

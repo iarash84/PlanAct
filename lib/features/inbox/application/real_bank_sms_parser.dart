@@ -32,6 +32,18 @@ class RealBankSmsParser implements SmsFormatParser {
       ),
     ),
     (
+      'رسالت',
+      RegExp(
+        '^بانک رسالت\n(?<direction>برداشت از|واریز به)\\s+$_account\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
+      ),
+    ),
+    (
+      'ایران‌زمین',
+      RegExp(
+        '^بانک ایران(?:‌| )زمین\n(?<direction>برداشت از|واریز به)\\s+$_account\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
+      ),
+    ),
+    (
       null,
       RegExp(
         '^حساب\\s*$_account\n(?<direction>برداشت|واریز)\\s*$_amount\n$_balance\n$_stamp\$',

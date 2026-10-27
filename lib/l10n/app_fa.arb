@@ -3977,6 +3977,17 @@
       }
     }
   },
+  "inboxPageSmsSenderLabel": "فرستنده پیامک: {value1}",
+  "@inboxPageSmsSenderLabel": {
+    "description": "Application copy. Sender address retained from the SMS provider.",
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "placeholders": {
+      "value1": {
+        "type": "String",
+        "description": "SMS sender address, or Unknown when unavailable."
+      }
+    }
+  },
   "inboxPageBuildChildren13": "واحد پیامک قدیمی نامشخص؛ مبلغ ذخیره‌شده بدون تغییر حفظ شده است.",
   "@inboxPageBuildChildren13": {
     "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:1143."

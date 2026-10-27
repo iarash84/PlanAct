@@ -17,8 +17,9 @@ class BankSmsReceiver : BroadcastReceiver() {
         val body = messages.joinToString(separator = "") { it.messageBody.orEmpty() }.trim()
         if (body.isEmpty()) return
         val receivedAt = messages.first().timestampMillis
+        val address = messages.first().originatingAddress.orEmpty().trim()
         val key = "android-received:${sha256(receivedAt.toString() + body)}"
-        SmsBridge.publish(context, "", body, receivedAt, key)
+        SmsBridge.publish(context, address, body, receivedAt, key)
     }
 
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")

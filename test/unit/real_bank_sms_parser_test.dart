@@ -49,6 +49,34 @@ void main() {
       expect(parsed.quality, ParseQuality.high);
     });
   }
+  final syntheticBankReports = [
+    (
+      bank: 'رسالت',
+      text: 'بانک رسالت\nواریز به  321-654-9876543-2\nمبلغ: ۱۲۳٬۴۵۰ ریال\nموجودی: ۹۸۷٬۶۵۰ ریال\nزمان: 1405/7/23 - 08:42:02',
+      amount: 123450,
+      direction: TransactionDirection.incoming,
+    ),
+    (
+      bank: 'ایران‌زمین',
+      text: 'بانک ایران‌زمین\nواریز به  456-789-1234567-3\nمبلغ: ۲۵۰٬۰۰۰ تومان\nمانده: ۱٬۷۵۰٬۰۰۰ تومان\nزمان: 1405/7/24 - 09:15',
+      amount: 2500000,
+      direction: TransactionDirection.incoming,
+    ),
+  ];
+  for (final sample in syntheticBankReports) {
+    test(
+      '${sample.bank} synthetic deposit is parsed without real SMS data',
+      () {
+        final parsed = parser.parse(text: sample.text, currency: 'IRR');
+        expect(parsed.bank, sample.bank);
+        expect(parsed.amount.minorUnits, sample.amount);
+        expect(parsed.direction, sample.direction);
+        expect(parsed.balance, isNotNull);
+        expect(parsed.accountHint, contains('-'));
+        expect(parsed.occurredAt, isNotNull);
+      },
+    );
+  }
   test(
     'Sina account bidi controls still stage a bank transaction suggestion',
     () async {
@@ -125,6 +153,24 @@ void main() {
         reason: 'counterexample $i',
       );
     }
+  });
+  test('sender address is retained on the staged transaction draft', () async {
+    const message =
+        'بانک رسالت\nواریز به  321-654-9876543-2\nمبلغ: ۱۲۳٬۴۵۰ ریال\nموجودی: ۹۸۷٬۶۵۰ ریال\nزمان: 1405/7/23 - 08:42:02';
+    final suggestion = await InboxUseCases(InMemoryInboxRepository()).stageSms(
+      rawText: message,
+      sourceKey: 'synthetic-resalat-address',
+      sourceAddress: 'ResalatBank',
+      currency: 'IRR',
+      importedAt: DateTime.utc(2026, 10, 21),
+    );
+    expect(suggestion.draft.sourceAddress, 'ResalatBank');
+    final review = suggestion.draft.toReviewJson();
+    expect(review['sourceAddress'], 'ResalatBank');
+    expect(
+      TransactionDraft.fromReviewJson(review).sourceAddress,
+      'ResalatBank',
+    );
   });
   test(
     'identical SMS bodies with distinct provider keys remain separate',
