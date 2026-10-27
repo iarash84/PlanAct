@@ -150,7 +150,11 @@ class ParsedSms {
 }
 
 abstract interface class SmsFormatParser {
-  ParsedSms? tryParse({required String text, required String currency});
+  ParsedSms? tryParse({
+    required String text,
+    required String currency,
+    String? sourceAddress,
+  });
 }
 
 class LocalSmsParser implements SmsFormatParser {
@@ -160,18 +164,34 @@ class LocalSmsParser implements SmsFormatParser {
 
   final List<SmsFormatParser> parsers;
 
-  ParsedSms parse({required String text, required String currency}) {
+  ParsedSms parse({
+    required String text,
+    required String currency,
+    String? sourceAddress,
+  }) {
     for (final parser in parsers) {
-      final result = parser.tryParse(text: text, currency: currency);
+      final result = parser.tryParse(
+        text: text,
+        currency: currency,
+        sourceAddress: sourceAddress,
+      );
       if (result != null) return result;
     }
     throw const UnsupportedSmsFormat();
   }
 
   @override
-  ParsedSms? tryParse({required String text, required String currency}) {
+  ParsedSms? tryParse({
+    required String text,
+    required String currency,
+    String? sourceAddress,
+  }) {
     try {
-      return parse(text: text, currency: currency);
+      return parse(
+        text: text,
+        currency: currency,
+        sourceAddress: sourceAddress,
+      );
     } on ValidationError {
       return null;
     }
@@ -221,7 +241,11 @@ class GenericBankSmsParser implements SmsFormatParser {
   static const _transfers = {'انتقال', 'کارت به کارت', 'transfer'};
 
   @override
-  ParsedSms? tryParse({required String text, required String currency}) {
+  ParsedSms? tryParse({
+    required String text,
+    required String currency,
+    String? sourceAddress,
+  }) {
     if (text.length > 4096) return null;
     final normalized = _normalizeDigits(text).trim();
     // Reject these anywhere, including an otherwise valid labelled message.
@@ -487,7 +511,11 @@ class InboxUseCases {
     }
     final ParsedSms parsed;
     try {
-      parsed = parser.parse(text: normalized, currency: currency);
+      parsed = parser.parse(
+        text: normalized,
+        currency: currency,
+        sourceAddress: sourceAddress,
+      );
     } on ValidationError {
       throw const UnsupportedSmsFormat();
     }

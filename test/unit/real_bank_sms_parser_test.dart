@@ -77,6 +77,258 @@ void main() {
       },
     );
   }
+  final resalatCompactMessages = [
+    (
+      text: '10.7291550.1\n-39,600\n08/03_20:14\nمانده: 335,232,811',
+      amount: 39600,
+      direction: TransactionDirection.outgoing,
+      balance: 335232811,
+    ),
+    (
+      text: '10.7291550.1\n-198,000,000\n08/03_20:14\nمانده: 335,272,411',
+      amount: 198000000,
+      direction: TransactionDirection.outgoing,
+      balance: 335272411,
+    ),
+    (
+      text: '10.7291550.1\n-90,000,000\n08/02_19:37\nمانده: 101,290,411',
+      amount: 90000000,
+      direction: TransactionDirection.outgoing,
+      balance: 101290411,
+    ),
+    (
+      text: '10.7291550.1\n-18,000\n08/02_19:37\nمانده: 101,272,411',
+      amount: 18000,
+      direction: TransactionDirection.outgoing,
+      balance: 101272411,
+    ),
+    (
+      text: '10.7291550.1\n-400,000,000\n08/02_19:35\nمانده: 191,370,411',
+      amount: 400000000,
+      direction: TransactionDirection.outgoing,
+      balance: 191370411,
+    ),
+    (
+      text: '10.7291550.1\n+538,300,000\n07/30_14:00\nمانده: 647,761,111',
+      amount: 538300000,
+      direction: TransactionDirection.incoming,
+      balance: 647761111,
+    ),
+  ];
+  for (var i = 0; i < resalatCompactMessages.length; i++) {
+    test('Resalat compact message ${i + 1} is parsed independently', () {
+      final sample = resalatCompactMessages[i];
+      final parsed = parser.parse(
+        text: sample.text,
+        currency: 'IRR',
+        sourceAddress: 'ResalatBank',
+      );
+      expect(parsed.bank, 'رسالت');
+      expect(parsed.amount.minorUnits, sample.amount);
+      expect(parsed.balance!.minorUnits, sample.balance);
+      expect(parsed.direction, sample.direction);
+      expect(parsed.accountHint, '10.7291550.1');
+      expect(parsed.occurredAt, isNull);
+      expect(parsed.sourceDate, isNotEmpty);
+      expect(parsed.sourceTime, isNotEmpty);
+      expect(parsed.quality, ParseQuality.medium);
+    });
+  }
+  test(
+    'Resalat compact SMS stages with sender-specific bank identity',
+    () async {
+      const message =
+          '10.7291550.1\n'
+          '+538,300,000\n'
+          '07/30_14:00\n'
+          'مانده: 647,761,111';
+      final suggestion = await InboxUseCases(InMemoryInboxRepository())
+          .stageSms(
+            rawText: message,
+            sourceKey: 'android-sms:resalat-compact-sample',
+            sourceAddress: 'ResalatBank',
+            currency: 'IRR',
+            importedAt: DateTime.utc(2026, 10, 27, 10),
+          );
+      expect(suggestion.draft.bank, 'رسالت');
+      expect(suggestion.draft.sourceAddress, 'ResalatBank');
+      expect(suggestion.draft.direction, TransactionDirection.incoming);
+      expect(suggestion.draft.amount.minorUnits, 538300000);
+      expect(suggestion.draft.balance!.minorUnits, 647761111);
+      expect(suggestion.draft.dateSource, TransactionDateSource.receipt);
+      expect(suggestion.draft.occurredAt, DateTime.utc(2026, 10, 27, 10));
+    },
+  );
+  final resalatHeaderVariants = [
+    'بانک قرض‌الحسنه رسالت',
+    'بانک قرض  الحسنه رسالت',
+    'بانک قرض الحسنه رسالت',
+    '*بانک قرض الحسنه رسالت*',
+  ];
+  for (var i = 0; i < resalatHeaderVariants.length; i++) {
+    test('Resalat real sender header variant ${i + 1} is parsed', () {
+      final message =
+          '${resalatHeaderVariants[i]}\n'
+          'برداشت از  321-654-9876543-2\n'
+          'مبلغ: ۱۲۳٬۴۵۰ ریال\n'
+          'موجودی: ۹۸۷٬۶۵۰ ریال\n'
+          'زمان: 1405/7/23 - 08:42:02';
+      final parsed = parser.parse(text: message, currency: 'IRR');
+      expect(parsed.bank, 'رسالت');
+      expect(parsed.amount.minorUnits, 123450);
+      expect(parsed.balance!.minorUnits, 987650);
+      expect(parsed.direction, TransactionDirection.outgoing);
+      expect(parsed.accountHint, '321-654-9876543-2');
+      expect(parsed.occurredAt, DateTime(2026, 10, 15, 8, 42, 2));
+    });
+  }
+  test('Resalat account label is accepted without changing evidence', () {
+    const message =
+        'بانک قرض‌الحسنه رسالت\n'
+        'واریز به حساب 321-654-9876543-2\n'
+        'مبلغ: ۱۲۳٬۴۵۰ ریال\n'
+        'مانده: ۹۸۷٬۶۵۰ ریال\n'
+        'زمان: 1405/7/23 - 08:42:02';
+    final parsed = parser.parse(text: message, currency: 'IRR');
+    expect(parsed.bank, 'رسالت');
+    expect(parsed.direction, TransactionDirection.incoming);
+    expect(parsed.amount.minorUnits, 123450);
+    expect(parsed.balance!.minorUnits, 987650);
+  });
+  final iranZaminMessages = [
+    (
+      text: '159-10-1812991-1\n+400,000,000\nمانده 475,306,009\n1405/8/2-19:35',
+      amount: 400000000,
+      balance: 475306009,
+      direction: TransactionDirection.incoming,
+    ),
+    (
+      text: '159-10-1812991-1\n-300,000,000\nمانده 75,366,009\n1405/7/30-9:04',
+      amount: 300000000,
+      balance: 75366009,
+      direction: TransactionDirection.outgoing,
+    ),
+  ];
+  for (var i = 0; i < iranZaminMessages.length; i++) {
+    test('Iran Zamin real message ${i + 1} is sender-gated and parsed', () {
+      final sample = iranZaminMessages[i];
+      final parsed = parser.parse(
+        text: sample.text,
+        currency: 'IRR',
+        sourceAddress: 'IZBANK',
+      );
+      expect(parsed.bank, 'ایران‌زمین');
+      expect(parsed.amount.minorUnits, sample.amount);
+      expect(parsed.balance!.minorUnits, sample.balance);
+      expect(parsed.direction, sample.direction);
+      expect(parsed.accountHint, '159-10-1812991-1');
+      expect(parsed.sourceDate, isNotEmpty);
+      expect(parsed.sourceTime, isNotEmpty);
+      expect(parsed.occurredAt, isNotNull);
+      expect(parsed.quality, ParseQuality.high);
+    });
+  }
+
+  final mehrIranMessages = [
+    (
+      text:
+          '302370012828479001\n90,000,000+\n1405/8/2-19:37\nمانده:102,559,660',
+      amount: 90000000,
+      balance: 102559660,
+      direction: TransactionDirection.incoming,
+    ),
+    (
+      text: '302370012828479001\n43,973,030-\n1405/7/7-6:47\nمانده:12,559,660',
+      amount: 43973030,
+      balance: 12559660,
+      direction: TransactionDirection.outgoing,
+    ),
+  ];
+  for (var i = 0; i < mehrIranMessages.length; i++) {
+    test('Mehr Iran real message ${i + 1} is sender-gated and parsed', () {
+      final sample = mehrIranMessages[i];
+      final parsed = parser.parse(
+        text: sample.text,
+        currency: 'IRR',
+        sourceAddress: 'B.QMEHRIRAN',
+      );
+      expect(parsed.bank, 'مهر ایران');
+      expect(parsed.amount.minorUnits, sample.amount);
+      expect(parsed.balance!.minorUnits, sample.balance);
+      expect(parsed.direction, sample.direction);
+      expect(parsed.accountHint, '302370012828479001');
+      expect(parsed.sourceDate, isNotEmpty);
+      expect(parsed.sourceTime, isNotEmpty);
+      expect(parsed.occurredAt, isNotNull);
+      expect(parsed.quality, ParseQuality.high);
+    });
+  }
+
+  test('Iran Zamin and Mehr Iran grammars reject wrong senders and non-transaction SMS', () {
+    const iranZamin =
+        '159-10-1812991-1\n+400,000,000\nمانده 475,306,009\n1405/8/2-19:35';
+    const mehrIran =
+        '302370012828479001\n90,000,000+\n1405/8/2-19:37\nمانده:102,559,660';
+    expect(
+      parser.tryParse(
+        text: iranZamin,
+        currency: 'IRR',
+        sourceAddress: 'B.QMEHRIRAN',
+      ),
+      isNull,
+    );
+    expect(
+      parser.tryParse(text: mehrIran, currency: 'IRR', sourceAddress: 'IZBANK'),
+      isNull,
+    );
+    expect(
+      parser.tryParse(
+        text: 'انتقال وجه پایا عادی\nاز: 302370012828479001\nبه: IR040590042481302335202001\nمبلغ 1,819,000,000 ريال',
+        currency: 'IRR',
+        sourceAddress: 'B.QMEHRIRAN',
+      ),
+      isNull,
+    );
+    expect(
+      parser.tryParse(
+        text: 'ورود به همراه بانک\n09:03:07-1405/07/30',
+        currency: 'IRR',
+        sourceAddress: 'IZBANK',
+      ),
+      isNull,
+    );
+  });
+
+  test('Iran Zamin and Mehr Iran suggestions retain sender and stay staged', () async {
+    const samples = [
+      (
+        text:
+            '159-10-1812991-1\n+400,000,000\nمانده 475,306,009\n1405/8/2-19:35',
+        sender: 'IZBANK',
+        bank: 'ایران‌زمین',
+      ),
+      (
+        text:
+            '302370012828479001\n43,973,030-\n1405/7/7-6:47\nمانده:12,559,660',
+        sender: 'B.QMEHRIRAN',
+        bank: 'مهر ایران',
+      ),
+    ];
+    for (final sample in samples) {
+      final suggestion = await InboxUseCases(InMemoryInboxRepository())
+          .stageSms(
+            rawText: sample.text,
+            sourceKey: 'android-sms:${sample.sender}',
+            sourceAddress: sample.sender,
+            currency: 'IRR',
+            importedAt: DateTime.utc(2026, 10, 27),
+          );
+      expect(suggestion.draft.sourceAddress, sample.sender);
+      expect(suggestion.draft.bank, sample.bank);
+      expect(suggestion.draft.amount.minorUnits, greaterThan(0));
+    }
+  });
+
   test(
     'Sina account bidi controls still stage a bank transaction suggestion',
     () async {
@@ -239,23 +491,23 @@ void main() {
       );
       expect(
         parser.parse(text: arabic, currency: 'IRR').amount.minorUnits,
-        700000,
+        640000,
       );
-      final prefixed = realBankSms[8].replaceFirst('3,000,000-', '-3,000,000');
+      final prefixed = realBankSms[8].replaceFirst('3,200,000-', '-3,200,000');
       expect(
         parser.parse(text: prefixed, currency: 'IRR').direction,
         TransactionDirection.outgoing,
       );
       final unitlessBalance = realBankSms[0].replaceFirst(
-        '85,196,567 ريال',
-        '85,196,567',
+        '12,345,678 ريال',
+        '12,345,678',
       );
       expect(
         parser
             .parse(text: unitlessBalance, currency: 'IRR')
             .balance!
             .minorUnits,
-        85196567,
+        12345678,
       );
       final balanceOnlyUnit = realBankSms[2].replaceFirst(
         'مانده92,586,708',
@@ -268,32 +520,32 @@ void main() {
         text: realBankSms[0].replaceAll('ريال', 'تومان'),
         currency: 'IRR',
       );
-      expect(toman.amount.minorUnits, 7000000);
+      expect(toman.amount.minorUnits, 6400000);
       expect(toman.currencyEvidence!.detectedUnit, SmsMoneyUnit.toman);
     },
   );
   final rejected = <String>[
-    '${realBankSms[0]}\nرمز یکبار مصرف 123456',
+    '${realBankSms[0]}\nرمز یکبار مصرف 654321',
     '${realBankSms[0]}\nتراکنش ناموفق',
-    '${realBankSms[0]}\nمبلغ 700,000 ریال',
+    '${realBankSms[0]}\nمبلغ 640,000 ریال',
     realBankSms[0].replaceFirst(
-      'مبلغ  700,000 ريال',
-      'مبلغ  700,000 ريال تومان',
+      'مبلغ  640,000 ريال',
+      'مبلغ  640,000 ريال تومان',
     ),
-    realBankSms[0].replaceFirst('700,000', '70,00'),
-    realBankSms[0].replaceFirst('700,000', '9223372036854775808'),
-    realBankSms[0].replaceFirst('700,000', '0'),
+    realBankSms[0].replaceFirst('640,000', '64,00'),
+    realBankSms[0].replaceFirst('640,000', '9223372036854775808'),
+    realBankSms[0].replaceFirst('640,000', '0'),
     realBankSms[0].replaceFirst('1405/7/7', '1405/7/31'),
     realBankSms[0].replaceFirst('1405/7/7', '1405/12/30'),
     realBankSms[0].replaceFirst('18:53:40', '24:53:40'),
     realBankSms[2].replaceFirst('05/07/05', '05/13/05'),
-    realBankSms[8].replaceFirst('3,000,000-', '3,000,000+'),
-    realBankSms[8].replaceFirst('3,000,000-', '-3,000,000-'),
+    realBankSms[8].replaceFirst('3,200,000-', '3,200,000+'),
+    realBankSms[8].replaceFirst('3,200,000-', '-3,200,000-'),
     realBankSms[0].replaceFirst('برداشت از', 'واریز به برداشت از'),
     realBankSms[12].replaceFirst('واريز به', 'برداشت از'),
     realBankSms[0].replaceFirst(
-      'مانده 85,196,567 ريال',
-      'مانده 85,196,567 دلار',
+      'مانده 12,345,678 ريال',
+      'مانده 12,345,678 دلار',
     ),
     realBankSms[4].replaceFirst(
       'مانده: 208,461,111',

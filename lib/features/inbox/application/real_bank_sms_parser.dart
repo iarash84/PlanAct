@@ -24,23 +24,26 @@ class RealBankSmsParser implements SmsFormatParser {
   static final _compactSinaDeposit = RegExp(r'واریز\s+به\s+حساب');
   static final _compactSinaBank = RegExp(r'بانک\s*سینا');
 
+  static const _accountAfterDirection =
+      r'(?:حساب\s*)?'
+      '$_account';
   static final _templates = <(String?, RegExp)>[
     (
       'سینا',
       RegExp(
-        '^بانک سینا\n(?<direction>برداشت از|واریز به)\\s+$_account\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
+        '^بانک سینا\n(?<direction>برداشت از|واریز به)\\s+$_accountAfterDirection\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
       ),
     ),
     (
       'رسالت',
       RegExp(
-        '^بانک رسالت\n(?<direction>برداشت از|واریز به)\\s+$_account\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
+        '^بانک رسالت\n(?<direction>برداشت از|واریز به)\\s+$_accountAfterDirection\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
       ),
     ),
     (
       'ایران‌زمین',
       RegExp(
-        '^بانک ایران(?:‌| )زمین\n(?<direction>برداشت از|واریز به)\\s+$_account\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
+        '^بانک ایران(?:‌| )زمین\n(?<direction>برداشت از|واریز به)\\s+$_accountAfterDirection\nمبلغ\\s*:?\\s*$_amount\n$_balance\nزمان\\s*:\\s*$_stamp\$',
       ),
     ),
     (
@@ -77,9 +80,13 @@ class RealBankSmsParser implements SmsFormatParser {
   ];
 
   @override
-  ParsedSms? tryParse({required String text, required String currency}) {
+  ParsedSms? tryParse({
+    required String text,
+    required String currency,
+    String? sourceAddress,
+  }) {
     if (text.length > 4096) return null;
-    final normalized = text
+    var normalized = text
         .replaceAll(RegExp(r'[\u200e\u200f\u202a-\u202e\u2066-\u2069]'), '')
         .replaceAll('ي', 'ی')
         .replaceAll('ك', 'ک')
@@ -93,6 +100,22 @@ class RealBankSmsParser implements SmsFormatParser {
         .map((line) => line.trim())
         .join('\n')
         .trim();
+    normalized = _canonicalizeBankHeader(normalized);
+    final compactResalat = _tryParseResalatCompact(
+      normalized,
+      sourceAddress: sourceAddress,
+    );
+    if (compactResalat != null) return compactResalat;
+    final iranZamin = _tryParseIranZamin(
+      normalized,
+      sourceAddress: sourceAddress,
+    );
+    if (iranZamin != null) return iranZamin;
+    final mehrIran = _tryParseMehrIran(
+      normalized,
+      sourceAddress: sourceAddress,
+    );
+    if (mehrIran != null) return mehrIran;
     if (RegExp(
       r'رمز|ناموفق|لغو|خطا|otp|password|fail|declined',
       caseSensitive: false,
@@ -185,6 +208,171 @@ class RealBankSmsParser implements SmsFormatParser {
       );
     }
     return normalized.contains('\n') ? null : _tryParseCompactSina(normalized);
+  }
+
+  ParsedSms? _tryParseResalatCompact(String text, {String? sourceAddress}) {
+    if (sourceAddress == null ||
+        !RegExp(
+          r'^resalatbank$',
+          caseSensitive: false,
+        ).hasMatch(sourceAddress.trim())) {
+      return null;
+    }
+    final lines = text.split('\n');
+    if (lines.length != 4) return null;
+    final account = RegExp(r'^\d{1,32}(?:\.\d{1,32})+$').firstMatch(lines[0]);
+    final amount = RegExp('^([+-])($_number)\\s*\$').firstMatch(lines[1]);
+    final stamp = RegExp(r'^(\d{2}/\d{2})[_ -](\d{2}:\d{2}(?::\d{2})?)$')
+        .firstMatch(lines[2]);
+    final balance = RegExp('^(?:مانده|موجودی)\\s*:?\\s*($_number)\$')
+        .firstMatch(lines[3]);
+    if (account == null || amount == null || stamp == null || balance == null) {
+      return null;
+    }
+    final sourceAmount = _integer(amount.group(2)!, null);
+    if (sourceAmount == null || sourceAmount <= 0) return null;
+    final timeParts = stamp.group(2)!.split(':').map(int.parse).toList();
+    if (timeParts[0] > 23 ||
+        timeParts[1] > 59 ||
+        (timeParts.length == 3 && timeParts[2] > 59)) {
+      return null;
+    }
+    final evidence = SmsCurrencyEvidence(
+      sourceAmount: sourceAmount,
+      detectedUnit: null,
+    );
+    final balanceAmount = _integer(balance.group(1)!, null);
+    if (balanceAmount == null) return null;
+    return ParsedSms(
+      amount: Money(minorUnits: sourceAmount, currency: 'IRR'),
+      balance: Money(minorUnits: balanceAmount, currency: 'IRR'),
+      currencyEvidence: evidence,
+      occurredAt: null,
+      sourceDate: stamp.group(1),
+      sourceTime: stamp.group(2),
+      direction: amount.group(1) == '+'
+          ? TransactionDirection.incoming
+          : TransactionDirection.outgoing,
+      quality: ParseQuality.medium,
+      confidence: 85,
+      accountHint: account.group(0),
+      bank: 'رسالت',
+    );
+  }
+
+  ParsedSms? _tryParseIranZamin(String text, {String? sourceAddress}) {
+    if (sourceAddress?.trim().toUpperCase() != 'IZBANK') return null;
+    final lines = text.split('\n');
+    if (lines.length != 4) return null;
+    final account = RegExp(r'^\d{1,12}(?:-\d{1,12}){2,4}$')
+        .firstMatch(lines[0]);
+    final amount = RegExp(r'^([+-])(' + _number + r')$').firstMatch(lines[1]);
+    final balance = RegExp(r'^مانده\s*:?[ ]*(' + _number + r')$')
+        .firstMatch(lines[2]);
+    final stamp = RegExp(
+      r'^(?<date>\d{4}/\d{1,2}/\d{1,2})-(?<time>\d{1,2}:\d{2}(?::\d{2})?)$',
+    ).firstMatch(lines[3]);
+    if (account == null || amount == null || balance == null || stamp == null) {
+      return null;
+    }
+    return _buildSignedBankSms(
+      amountText: amount.group(2)!,
+      sign: amount.group(1)!,
+      balanceText: balance.group(1)!,
+      dateText: stamp.namedGroup('date')!,
+      timeText: stamp.namedGroup('time')!,
+      account: account.group(0)!,
+      bank: 'ایران‌زمین',
+    );
+  }
+
+  ParsedSms? _tryParseMehrIran(String text, {String? sourceAddress}) {
+    if (sourceAddress?.trim().toUpperCase() != 'B.QMEHRIRAN') return null;
+    final lines = text.split('\n');
+    if (lines.length != 4) return null;
+    final account = RegExp(r'^\d{12,24}$').firstMatch(lines[0]);
+    final amount = RegExp(r'^(' + _number + r')([+-])$').firstMatch(lines[1]);
+    final stamp = RegExp(
+      r'^(?<date>\d{4}/\d{1,2}/\d{1,2})-(?<time>\d{1,2}:\d{2}(?::\d{2})?)$',
+    ).firstMatch(lines[2]);
+    final balance = RegExp(r'^مانده\s*:\s*(' + _number + r')$')
+        .firstMatch(lines[3]);
+    if (account == null || amount == null || stamp == null || balance == null) {
+      return null;
+    }
+    return _buildSignedBankSms(
+      amountText: amount.group(1)!,
+      sign: amount.group(2)!,
+      balanceText: balance.group(1)!,
+      dateText: stamp.namedGroup('date')!,
+      timeText: stamp.namedGroup('time')!,
+      account: account.group(0)!,
+      bank: 'مهر ایران',
+    );
+  }
+
+  ParsedSms? _buildSignedBankSms({
+    required String amountText,
+    required String sign,
+    required String balanceText,
+    required String dateText,
+    required String timeText,
+    required String account,
+    required String bank,
+  }) {
+    final amount = _integer(amountText, null);
+    final balance = _integer(balanceText, null);
+    if (amount == null || amount <= 0 || balance == null) return null;
+    final time = timeText.split(':').map(int.parse).toList();
+    if (time[0] > 23 || time[1] > 59 || (time.length == 3 && time[2] > 59)) {
+      return null;
+    }
+    final date = _date(dateText);
+    if (date == null) return null;
+    final occurredAt = date.$1 == null
+        ? null
+        : DateTime(
+            date.$1!.year,
+            date.$1!.month,
+            date.$1!.day,
+            time[0],
+            time[1],
+            time.length == 3 ? time[2] : 0,
+          );
+    return ParsedSms(
+      amount: Money(minorUnits: amount, currency: 'IRR'),
+      balance: Money(minorUnits: balance, currency: 'IRR'),
+      currencyEvidence: SmsCurrencyEvidence(
+        sourceAmount: amount,
+        detectedUnit: null,
+      ),
+      occurredAt: occurredAt,
+      sourceDate: dateText,
+      sourceTime: timeText,
+      direction: sign == '+'
+          ? TransactionDirection.incoming
+          : TransactionDirection.outgoing,
+      quality: occurredAt == null ? ParseQuality.medium : ParseQuality.high,
+      confidence: 90,
+      accountHint: account,
+      bank: bank,
+    );
+  }
+
+  String _canonicalizeBankHeader(String text) {
+    final lines = text.split('\n');
+    if (lines.isEmpty) return text;
+    final header = lines.first
+        .replaceAll('*', '')
+        .replaceAll(RegExp(r'[ \u200c]+'), ' ')
+        .trim();
+    if (RegExp(r'^بانک قرض الحسنه رسالت$').hasMatch(header) ||
+        header == 'بانک رسالت') {
+      lines[0] = 'بانک رسالت';
+    } else if (RegExp(r'^بانک ایران[ \u200c]*زمین$').hasMatch(header)) {
+      lines[0] = 'بانک ایران‌زمین';
+    }
+    return lines.join('\n');
   }
 
   ParsedSms? _tryParseCompactSina(String text) {

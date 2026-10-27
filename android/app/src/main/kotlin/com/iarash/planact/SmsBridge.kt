@@ -31,7 +31,7 @@ object SmsBridge {
         else finishPermissionRequest(error = "sms_permission_timeout")
     }
     private val relevantMarkers = Regex(
-        "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|کارت|بانک|\b(?:atm|pos|iban|شبا|رمز)\b|[۰-۹]{3,})"
+        "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|مانده|کارت|بانک|\\b(?:atm|pos|iban|شبا|رمز)\\b|[0-9۰-۹٠-٩]{3,})"
     )
 
     fun attach(sink: EventChannel.EventSink) { sinks.add(sink) }
