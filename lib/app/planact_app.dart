@@ -23,7 +23,11 @@ import 'package:planact/features/calendar/application/holiday_package_service.da
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
+
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:planact/app/quick_add_fab.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -1833,69 +1837,99 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: SizedBox.square(
-        dimension: _quickAddSize,
-        child: FloatingActionButton(
-          key: const ValueKey('shell-quick-add'),
-          tooltip: planActL10n(context).commonQuickAdd,
-          onPressed: _showQuickAdd,
-          child: const Icon(Icons.add),
-        ),
+      floatingActionButton: QuickAddFab(
+        size: _quickAddSize,
+        tooltip: planActL10n(context).commonQuickAdd,
+        onPressed: _showQuickAdd,
       ),
-      bottomNavigationBar: SizedBox(
-        width: double.infinity,
-        child: MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
-            viewPadding: MediaQuery.of(context).viewPadding
-                .copyWith(left: 0, right: 0),
-            textScaler: TextScaler.noScaling,
+      bottomNavigationBar: _buildBottomNavigationBar(context),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasBackground = widget.background.assetPath != null;
+    final surface = theme.colorScheme.surface;
+
+    final navigation = MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
+        viewPadding: MediaQuery.of(context).viewPadding
+            .copyWith(left: 0, right: 0),
+        textScaler: TextScaler.noScaling,
+      ),
+      child: NavigationBarTheme(
+        data: NavigationBarTheme.of(context).copyWith(
+          height: 64,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          animationDuration: Duration.zero,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          labelTextStyle: WidgetStatePropertyAll(
+            theme.textTheme.labelMedium?.copyWith(fontSize: 1, height: 1),
           ),
-          child: NavigationBar(
-            selectedIndex: _selectedIndex,
-            animationDuration: Duration.zero,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-            labelTextStyle: WidgetStatePropertyAll(
-              Theme.of(context).textTheme.labelMedium
-                  ?.copyWith(fontSize: 1, height: 1),
+          onDestinationSelected: (index) {
+            setState(() => _selectedIndex = index);
+            final duration = PlanActMotion.duration(context);
+            if (duration == Duration.zero) {
+              _pageController.jumpToPage(index);
+              return;
+            }
+            _pageController.animateToPage(
+              index,
+              duration: duration,
+              curve: PlanActMotion.curve,
+            );
+          },
+          destinations: [
+            NavigationDestination(
+              icon: Icon(Icons.today_outlined),
+              selectedIcon: Icon(Icons.today),
+              label: planActL10n(context).commonToday,
             ),
-            onDestinationSelected: (index) {
-              setState(() => _selectedIndex = index);
-              final duration = PlanActMotion.duration(context);
-              if (duration == Duration.zero) {
-                _pageController.jumpToPage(index);
-                return;
-              }
-              _pageController.animateToPage(
-                index,
-                duration: duration,
-                curve: PlanActMotion.curve,
-              );
-            },
-            destinations: [
-              NavigationDestination(
-                icon: Icon(Icons.today_outlined),
-                selectedIcon: Icon(Icons.today),
-                label: planActL10n(context).commonToday,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.calendar_month_outlined),
-                selectedIcon: Icon(Icons.calendar_month),
-                label: planActL10n(context).navigationCalendar,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                selectedIcon: Icon(Icons.account_balance_wallet),
-                label: planActL10n(context).navigationFinance,
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.more_horiz),
-                label: planActL10n(context).navigationMore,
-              ),
-            ],
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: planActL10n(context).navigationCalendar,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.account_balance_wallet_outlined),
+              selectedIcon: Icon(Icons.account_balance_wallet),
+              label: planActL10n(context).navigationFinance,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.more_horiz),
+              label: planActL10n(context).navigationMore,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final panel = DecoratedBox(
+      decoration: BoxDecoration(
+        color: surface.withValues(alpha: hasBackground ? 0.68 : 1),
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(
+              alpha: hasBackground ? 0.42 : 0.24,
+            ),
           ),
         ),
       ),
+      child: navigation,
+    );
+
+    return ClipRect(
+      child: hasBackground
+          ? BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: panel,
+            )
+          : panel,
     );
   }
 }
