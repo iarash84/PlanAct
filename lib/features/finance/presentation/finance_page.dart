@@ -434,6 +434,7 @@ class FinancePageState extends State<FinancePage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: PlanActSpacing.sm),
                     TextField(
                       controller: note,
                       decoration: InputDecoration(
@@ -442,7 +443,8 @@ class FinancePageState extends State<FinancePage> {
                             : PersianCopy.financePageResultLabelText3,
                       ),
                     ),
-                    if (original == null)
+                    if (original == null) ...[
+                      const SizedBox(height: PlanActSpacing.sm),
                       DraftTagPicker(
                         repository: widget.tagRepository,
                         selected: draftTags,
@@ -450,7 +452,8 @@ class FinancePageState extends State<FinancePage> {
                         onChanged: (tags) =>
                             setDialogState(() => draftTags = tags),
                       ),
-                    const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: PlanActSpacing.sm),
                     Row(
                       children: [
                         Expanded(
