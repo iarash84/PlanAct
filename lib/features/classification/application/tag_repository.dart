@@ -27,9 +27,20 @@ abstract interface class TagRepository {
   });
 }
 
+/// Optional read capability for callers that already have a bounded set of
+/// records. Implementations must preserve the same membership semantics as
+/// [TagRepository.tagsFor].
+abstract interface class BatchTagRepository {
+  Future<Map<String, Set<StableId>>> tagsForMany(
+    Iterable<String> recordIds,
+    TaggableType type,
+  );
+}
+
 enum TaggableType { commitment, accountEntry }
 
-class InMemoryTagRepository implements TagRepository, CommandGateProvider {
+class InMemoryTagRepository
+    implements TagRepository, BatchTagRepository, CommandGateProvider {
   @override
   CommandGate? get commandGate => CommandGate.forOwner(this);
   final Map<String, Tag> _tags = {};
@@ -107,6 +118,20 @@ class InMemoryTagRepository implements TagRepository, CommandGateProvider {
         this,
         () async => Set.unmodifiable(_links[(type, recordId)] ?? const {}),
       );
+
+  @override
+  Future<Map<String, Set<StableId>>> tagsForMany(
+    Iterable<String> recordIds,
+    TaggableType type,
+  ) => CommandGate.runFor(this, () async {
+    final requested = recordIds.toSet();
+    return Map.unmodifiable({
+      for (final recordId in requested)
+        recordId: Set.unmodifiable(
+          _links[(type, recordId)] ?? const <StableId>{},
+        ),
+    });
+  });
 
   @override
   Future<void> attach({

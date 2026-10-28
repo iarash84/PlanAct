@@ -185,11 +185,11 @@ void main() {
     });
   }
 
-  for (final years in [
-    expectations.keys.toList(),
-    expectations.keys.toList().reversed.toList(),
-  ]) {
-    test('independent annual installs and cold reopen $years', () async {
+  test('independent annual installs and cold reopen preserve either order', () async {
+    for (final years in [
+      expectations.keys.toList(),
+      expectations.keys.toList().reversed.toList(),
+    ]) {
       final directory = await Directory.systemTemp.createTemp(
         'future-holidays-',
       );
@@ -221,6 +221,6 @@ void main() {
         unorderedEquals(years),
       );
       expect(service.provider.hasCompleteOfficialCoverage(1411), isFalse);
-    });
-  }
+    }
+  });
 }

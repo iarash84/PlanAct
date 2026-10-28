@@ -61,24 +61,24 @@ void main() {
     expect(parse('amount: 100 rial\ntime: 12:30')!.occurredAt, isNull);
   });
 
-  for (final date in [
-    '2025-02-29',
-    '2026-04-31',
-    '2026-00-01',
-    '1404/12/30',
-    '1405/07/31',
-    '1405/13/01',
-    '26-10-11',
-  ]) {
-    test('invalid date rejected: $date', () {
+  test('all invalid dates are rejected', () {
+    for (final date in [
+      '2025-02-29',
+      '2026-04-31',
+      '2026-00-01',
+      '1404/12/30',
+      '1405/07/31',
+      '1405/13/01',
+      '26-10-11',
+    ]) {
       expect(parse('amount: 100 rial\ndate: $date\ntime: 12:30'), isNull);
-    });
-  }
-  for (final time in ['24:00', '12:60', '12:00:60', '1:2', '12:00 trailing']) {
-    test('invalid time rejected: $time', () {
+    }
+  });
+  test('all invalid times are rejected', () {
+    for (final time in ['24:00', '12:60', '12:00:60', '1:2', '12:00 trailing']) {
       expect(parse('amount: 100 rial\ndate: 2026-10-11\ntime: $time'), isNull);
-    });
-  }
+    }
+  });
   for (final text in [
     'amount: 100 rial\namount: 200 rial',
     'amount: 100 rial\namount: 100 rial',

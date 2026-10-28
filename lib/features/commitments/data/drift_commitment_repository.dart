@@ -120,11 +120,20 @@ class DriftCommitmentRepository
   @override
   Future<List<Commitment>> list() => CommandGate.runFor(this, () async {
     final rows = await _database.select(_database.commitments).get();
-    final result = <Commitment>[];
-    for (final row in rows) {
-      result.add(_toDomain(row, await _tagsFor(row.id)));
-    }
-    return result;
+    final tags = DriftTagRepository(_database);
+    final allTags = await tags.list();
+    final memberships = await tags.tagsForMany(
+      rows.map((row) => row.id),
+      TaggableType.commitment,
+    );
+    final labelsById = {for (final tag in allTags) tag.id: tag.label};
+    return [
+      for (final row in rows)
+        _toDomain(row, {
+          for (final id in memberships[row.id] ?? const <StableId>{})
+            if (labelsById[id] case final label?) label,
+        }),
+    ];
   });
 
   @override

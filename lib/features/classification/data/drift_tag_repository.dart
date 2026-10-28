@@ -6,7 +6,8 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
 
-class DriftTagRepository implements CommandGateProvider, TagRepository {
+class DriftTagRepository
+    implements CommandGateProvider, TagRepository, BatchTagRepository {
   DriftTagRepository(this.database);
 
   @override
@@ -185,6 +186,39 @@ class DriftTagRepository implements CommandGateProvider, TagRepository {
         )..where((row) => row.accountEntryId.equals(recordId))).get();
         return rows.map((row) => StableId.parse(row.tagId)).toSet();
       });
+
+  @override
+  Future<Map<String, Set<StableId>>> tagsForMany(
+    Iterable<String> recordIds,
+    TaggableType type,
+  ) => CommandGate.runFor(this, () async {
+    final requested = recordIds.toSet();
+    if (requested.isEmpty) return const {};
+
+    final result = <String, Set<StableId>>{};
+    for (final recordId in requested) {
+      result[recordId] = <StableId>{};
+    }
+    if (type == TaggableType.commitment) {
+      final rows = await (database.select(
+        database.commitmentTags,
+      )..where((row) => row.commitmentId.isIn(requested))).get();
+      for (final row in rows) {
+        result[row.commitmentId]?.add(StableId.parse(row.tagId));
+      }
+    } else {
+      final rows = await (database.select(
+        database.accountEntryTags,
+      )..where((row) => row.accountEntryId.isIn(requested))).get();
+      for (final row in rows) {
+        result[row.accountEntryId]?.add(StableId.parse(row.tagId));
+      }
+    }
+    return {
+      for (final entry in result.entries)
+        entry.key: Set.unmodifiable(entry.value),
+    };
+  });
 
   @override
   Future<void> attach({

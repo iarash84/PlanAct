@@ -566,6 +566,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
   String? _todayError;
+  Future<void>? _refreshInFlight;
+  bool _refreshAgain = false;
   final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
@@ -661,22 +663,59 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Future<void> _tagsChanged() => _refresh(throwOnFailure: true);
 
   Future<void> _refresh({bool throwOnFailure = false}) async {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) {
+      _refreshAgain = true;
+      try {
+        await inFlight;
+      } catch (_) {
+        if (throwOnFailure) rethrow;
+      }
+      return;
+    }
+
+    final future = _drainRefreshes();
+    _refreshInFlight = future;
+    try {
+      await future;
+    } catch (_) {
+      if (throwOnFailure) rethrow;
+    } finally {
+      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+    }
+  }
+
+  Future<void> _drainRefreshes() async {
+    do {
+      _refreshAgain = false;
+      await _performRefresh();
+    } while (_refreshAgain);
+  }
+
+  Future<void> _performRefresh() async {
     try {
       final persisted = await _repository.list();
       final allTags = await _tagRepository.list();
+      final memberships = _tagRepository is BatchTagRepository
+          ? await (_tagRepository as BatchTagRepository).tagsForMany(
+              persisted.map((item) => item.id.value),
+              TaggableType.commitment,
+            )
+          : null;
+      final labelsById = {for (final tag in allTags) tag.id: tag.label};
       final items = <Commitment>[];
       for (final item in persisted) {
-        final ids = await _tagRepository.tagsFor(
-          item.id.value,
-          TaggableType.commitment,
-        );
+        final ids =
+            memberships?[item.id.value] ??
+            await _tagRepository.tagsFor(
+              item.id.value,
+              TaggableType.commitment,
+            );
         items.add(
-          item.withTags(
-            allTags
-                .where((tag) => ids.contains(tag.id))
-                .map((tag) => tag.label)
-                .toSet(),
-          ),
+          item.withTags({
+            for (final id in ids)
+              if (labelsById[id] case final label?) label,
+          }),
         );
       }
       final schedules = <String, List<DateTime>>{};
@@ -762,7 +801,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         setState(() => _todayError = PersianCopy.planactAppRefreshMessage);
         _commitmentViewsRevision.value++;
       }
-      if (throwOnFailure) rethrow;
+      rethrow;
     }
   }
 
