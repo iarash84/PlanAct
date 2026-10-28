@@ -711,12 +711,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               item.id.value,
               TaggableType.commitment,
             );
-        items.add(
-          item.withTags({
-            for (final id in ids)
-              if (labelsById[id] case final label?) label,
-          }),
-        );
+        items.add(item.withTags({for (final id in ids) ?labelsById[id]}));
       }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};

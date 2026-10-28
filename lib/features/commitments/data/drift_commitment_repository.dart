@@ -131,7 +131,7 @@ class DriftCommitmentRepository
       for (final row in rows)
         _toDomain(row, {
           for (final id in memberships[row.id] ?? const <StableId>{})
-            if (labelsById[id] case final label?) label,
+            ?labelsById[id],
         }),
     ];
   });

@@ -75,7 +75,13 @@ void main() {
     }
   });
   test('all invalid times are rejected', () {
-    for (final time in ['24:00', '12:60', '12:00:60', '1:2', '12:00 trailing']) {
+    for (final time in [
+      '24:00',
+      '12:60',
+      '12:00:60',
+      '1:2',
+      '12:00 trailing',
+    ]) {
       expect(parse('amount: 100 rial\ndate: 2026-10-11\ntime: $time'), isNull);
     }
   });
