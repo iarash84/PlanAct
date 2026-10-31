@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -26,6 +27,10 @@ import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 void main() {
+  // Restore and correction-reopen coverage intentionally creates multiple
+  // independent database owners.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   late Directory directory;
   late File file;
   late AppDatabase database;

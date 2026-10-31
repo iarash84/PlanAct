@@ -824,68 +824,90 @@ class _CalendarDay extends StatelessWidget {
                     ? Border.all(color: scheme.primary, width: 2)
                     : null,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    PersianNumbers.format(date.day),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: selected || isToday
-                          ? FontWeight.bold
-                          : FontWeight.w600,
-                      color: holiday
-                          ? PlanActStatusColors.of(context).holiday
-                          : selected
-                          ? scheme.onPrimaryContainer
-                          : scheme.onSurface,
-                    ),
-                  ),
-                  if (holiday)
-                    Text(
-                      planActL10n(context).calendarPageHolidayHeightMessage,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: PlanActStatusColors.of(context).holiday,
-                      ),
-                    ),
-                  for (final item in markers.take(2))
-                    Container(
-                      key: ValueKey('month-title-${date.day}-${item.id}'),
-                      height: markerHeight,
-                      margin: const EdgeInsets.only(top: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        borderRadius: PlanActRadius.chip,
-                        color: CommitmentIdentityPalette.background(
-                          item.color,
-                          theme.brightness,
-                        ),
-                      ),
-                      child: Text(
-                        item.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: CommitmentIdentityPalette.foreground(
-                            item.color,
-                            theme.brightness,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // A month cell has a finite, text-scale-dependent height. The
+                  // marker stack can legitimately be taller than that height on
+                  // narrow screens, especially with large Persian text. Scale
+                  // the complete cell content as one unit so it remains visible
+                  // without producing a RenderFlex overflow or clipping an
+                  // individual marker.
+                  return FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.topCenter,
+                    child: SizedBox(
+                      width: constraints.maxWidth,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            PersianNumbers.format(date.day),
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: selected || isToday
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: holiday
+                                  ? PlanActStatusColors.of(context).holiday
+                                  : selected
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onSurface,
+                            ),
                           ),
-                        ),
+                          if (holiday)
+                            Text(
+                              planActL10n(context)
+                                  .calendarPageHolidayHeightMessage,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: PlanActStatusColors.of(context).holiday,
+                              ),
+                            ),
+                          for (final item in markers.take(2))
+                            Container(
+                              key: ValueKey(
+                                'month-title-${date.day}-${item.id}',
+                              ),
+                              height: markerHeight,
+                              margin: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: PlanActRadius.chip,
+                                color: CommitmentIdentityPalette.background(
+                                  item.color,
+                                  theme.brightness,
+                                ),
+                              ),
+                              child: Text(
+                                item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: CommitmentIdentityPalette.foreground(
+                                    item.color,
+                                    theme.brightness,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (markers.length > 2)
+                            Text(
+                              '+${PersianNumbers.format(markers.length - 2)}',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: selected
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurfaceVariant,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  if (markers.length > 2)
-                    Text(
-                      '+${PersianNumbers.format(markers.length - 2)}',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? scheme.onPrimaryContainer
-                            : scheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
+                  );
+                },
               ),
             ),
           ),
