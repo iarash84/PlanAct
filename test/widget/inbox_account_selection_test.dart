@@ -175,8 +175,11 @@ void main() {
           );
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
-          await tester.ensureVisible(find.text('ویرایش'));
-          await tester.pumpAndSettle();
+          await tester.dragUntilVisible(
+            find.text('ویرایش'),
+            find.byType(ListView).first,
+            const Offset(0, -400),
+          );
           await tester.tap(find.text('ویرایش'));
           await tester.pumpAndSettle();
           final bankField = find.widgetWithText(TextField, 'نام بانک');

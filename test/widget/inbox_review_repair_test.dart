@@ -147,8 +147,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('نمونه'), findsOneWidget);
       expect(find.text('ردشده'), findsOneWidget);
-      await tester.ensureVisible(find.text('بازگردانی به صف بررسی'));
-      await tester.pumpAndSettle();
+      await tester.dragUntilVisible(
+        find.text('بازگردانی به صف بررسی'),
+        find.byType(ListView).first,
+        const Offset(0, -400),
+      );
       await tester.tap(find.text('بازگردانی به صف بررسی'));
       await tester.pumpAndSettle();
       expect(
