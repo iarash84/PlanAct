@@ -31,7 +31,7 @@ object SmsBridge {
         else finishPermissionRequest(error = "sms_permission_timeout")
     }
     private val relevantMarkers = Regex(
-        "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|کارت|بانک|\b(?:atm|pos|iban|شبا|رمز)\b|[۰-۹]{3,})"
+        "(?i)(برداشت|واریز|انتقال|مبلغ|موجودی|مانده|کارت|بانک|\\b(?:atm|pos|iban|شبا|رمز)\\b|[0-9۰-۹٠-٩]{3,})"
     )
 
     fun attach(sink: EventChannel.EventSink) { sinks.add(sink) }
@@ -41,9 +41,14 @@ object SmsBridge {
         if (!hasAccess(context)) return
         val normalized = body.trim()
         if (!isRelevant(normalized)) return
-        // Do not forward or log the raw sender number. The staged body is still
+        // The sender is source evidence shown during review; the body remains
         // subject to Dart retention and explicit financial confirmation.
-        val message = mapOf("sourceKey" to sourceKey, "body" to normalized, "receivedAt" to receivedAt)
+        val message = mapOf(
+            "sourceKey" to sourceKey,
+            "address" to address.trim(),
+            "body" to normalized,
+            "receivedAt" to receivedAt,
+        )
         sinks.forEach { it.success(message) }
     }
 
@@ -137,12 +142,13 @@ object SmsBridge {
                             "($dateColumn > ? OR ($dateColumn = ? AND $idColumn > ?))"
                         context.contentResolver.query(
                             Telephony.Sms.Inbox.CONTENT_URI,
-                            arrayOf(idColumn, Telephony.Sms.BODY, dateColumn), selection,
+                            arrayOf(idColumn, Telephony.Sms.ADDRESS, Telephony.Sms.BODY, dateColumn), selection,
                             arrayOf(from.toString(), until.toString(), afterDate.toString(),
                                 afterDate.toString(), afterId.toString()),
                             "$dateColumn ASC, $idColumn ASC LIMIT 100"
                         )?.use { cursor ->
                             val id = cursor.getColumnIndexOrThrow(idColumn)
+                            val address = cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS)
                             val body = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
                             val date = cursor.getColumnIndexOrThrow(dateColumn)
                             while (rows.size < 100 && cursor.moveToNext()) {
@@ -153,6 +159,7 @@ object SmsBridge {
                                     "receivedAt" to timestamp)
                                 if (isRelevant(text)) {
                                     row["sourceKey"] = "android-sms:$rowId"
+                                    row["address"] = cursor.getString(address)?.trim().orEmpty()
                                     row["body"] = text
                                 }
                                 rows.add(row)

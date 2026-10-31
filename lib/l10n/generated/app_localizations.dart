@@ -289,7 +289,7 @@ abstract class AppLocalizations {
   /// Application copy. Original usage: lib/app/planact_app.dart:796.
   ///
   /// In fa, this message translates to:
-  /// **'انجام شد'**
+  /// **'تکمیل تعهد'**
   String get planactAppShowCommitmentDetailsTitle;
 
   /// Application copy. Original usage: lib/app/planact_app.dart:805.
@@ -685,6 +685,18 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'نمایش، امنیت و مجوزهای برنامه'**
   String get planactAppBuildSubtitle4;
+
+  /// Application copy. Original usage: lib/app/planact_app.dart:1767.
+  ///
+  /// In fa, this message translates to:
+  /// **'راهنما و سوالات متداول'**
+  String get helpFaqPageTitle;
+
+  /// Application copy. Original usage: lib/app/planact_app.dart:1768.
+  ///
+  /// In fa, this message translates to:
+  /// **'پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت'**
+  String get helpFaqPageSubtitle;
 
   /// Application copy. Original usage: lib/app/theme/commitment_identity_palette.dart:37.
   ///
@@ -4459,6 +4471,12 @@ abstract class AppLocalizations {
   /// **'بانک: {value1}'**
   String inboxPageBuildChildren12(String value1);
 
+  /// Application copy. Sender address retained from the SMS provider.
+  ///
+  /// In fa, this message translates to:
+  /// **'فرستنده پیامک: {value1}'**
+  String inboxPageSmsSenderLabel(String value1);
+
   /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:1143.
   ///
   /// In fa, this message translates to:
@@ -7235,6 +7253,42 @@ abstract class AppLocalizations {
   /// **'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه'**
   String get settingsAppearanceDescription;
 
+  /// Application copy. Title for the morning reminder settings card.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادآوری صبحگاهی'**
+  String get settingsMorningReminderTitle;
+
+  /// Application copy. Explanation of morning reminder behavior.
+  ///
+  /// In fa, this message translates to:
+  /// **'پس از اولین بازکردن قفل گوشی در بازهٔ صبح، اگر برای امروز یادآوری فعالی وجود داشته باشد، یک اعلان نمایش داده می‌شود.'**
+  String get settingsMorningReminderDescription;
+
+  /// Application copy. Morning reminder window start label.
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع بازهٔ صبح'**
+  String get settingsMorningReminderStart;
+
+  /// Application copy. Morning reminder window end label.
+  ///
+  /// In fa, this message translates to:
+  /// **'پایان بازهٔ صبح'**
+  String get settingsMorningReminderEnd;
+
+  /// Application copy. Disabled morning reminder status.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادآوری صبحگاهی غیرفعال است.'**
+  String get settingsMorningReminderDisabled;
+
+  /// Application copy. Morning reminder settings save error.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم یادآوری صبحگاهی ذخیره نشد؛ دوباره تلاش کنید.'**
+  String get settingsMorningReminderSaveError;
+
   /// Application copy for the background selection setting.
   ///
   /// In fa, this message translates to:
@@ -7558,6 +7612,42 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.'**
   String get financeArchiveAccountMessage;
+
+  /// Shows archived account cards in the ordinary finance page without making them selectable for new records.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش حساب‌های بایگانی‌شده'**
+  String get financeShowArchivedAccounts;
+
+  /// Explains the archived account display preference and active-only write selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.'**
+  String get financeShowArchivedAccountsDescription;
+
+  /// Explicit irreversible deletion action for an account without history or references.
+  ///
+  /// In fa, this message translates to:
+  /// **'حذف حساب'**
+  String get financeDeleteAccountAction;
+
+  /// Confirms irreversible deletion of an empty account.
+  ///
+  /// In fa, this message translates to:
+  /// **'حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟'**
+  String get financeDeleteAccountMessage;
+
+  /// Confirms successful account deletion.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب حذف شد.'**
+  String get financeDeleteAccountSuccess;
+
+  /// Explains why an account with history or references cannot be physically deleted.
+  ///
+  /// In fa, this message translates to:
+  /// **'این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.'**
+  String get financeDeleteAccountUnavailable;
 
   /// Undo repair: explicit operation feedback and confirmation.
   ///
@@ -8129,6 +8219,24 @@ abstract class AppLocalizations {
   /// **'افزودن کار'**
   String get checklistAdd;
 
+  /// Edit the commitment from an inline Today card control.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش تعهد'**
+  String get commitmentEdit;
+
+  /// Expand inline commitment details in a Today card.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش جزئیات'**
+  String get detailsShow;
+
+  /// Collapse inline commitment details in a Today card.
+  ///
+  /// In fa, this message translates to:
+  /// **'بستن جزئیات'**
+  String get detailsHide;
+
   /// Explicit checklist item rename.
   ///
   /// In fa, this message translates to:
@@ -8212,6 +8320,18 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'{count} یادداشت: {titles}'**
   String calendarNoteDaySummary(String count, String titles);
+
+  /// Financial account visibility and safe deletion feedback
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.'**
+  String get financeArchivedAccountsSaveError;
+
+  /// Financial account visibility and safe deletion feedback
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.'**
+  String get financeDeleteAccountFailed;
 }
 
 class _AppLocalizationsDelegate

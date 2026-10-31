@@ -185,42 +185,45 @@ void main() {
     });
   }
 
-  for (final years in [
-    expectations.keys.toList(),
-    expectations.keys.toList().reversed.toList(),
-  ]) {
-    test('independent annual installs and cold reopen $years', () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'future-holidays-',
-      );
-      addTearDown(() => directory.delete(recursive: true));
-      final file = File('${directory.path}/holidays.sqlite');
-      HolidayPackageService create() =>
-          HolidayPackageService(SqliteHolidayPackageStore(file), _NoFiles());
-      var service = create();
-      await service.load();
-      for (final year in years) {
-        final package = await HolidayDataPackage.verify(
-          await signHolidayPayload(_payload(year)),
+  test(
+    'independent annual installs and cold reopen preserve either order',
+    () async {
+      for (final years in [
+        expectations.keys.toList(),
+        expectations.keys.toList().reversed.toList(),
+      ]) {
+        final directory = await Directory.systemTemp.createTemp(
+          'future-holidays-',
         );
-        await service.install(
-          package,
-          publisherApproved: service.packages.isEmpty,
-        );
-        service = create();
+        addTearDown(() => directory.delete(recursive: true));
+        final file = File('${directory.path}/holidays.sqlite');
+        HolidayPackageService create() =>
+            HolidayPackageService(SqliteHolidayPackageStore(file), _NoFiles());
+        var service = create();
         await service.load();
-        expect(service.provider.hasCompleteOfficialCoverage(year), isTrue);
+        for (final year in years) {
+          final package = await HolidayDataPackage.verify(
+            await signHolidayPayload(_payload(year)),
+          );
+          await service.install(
+            package,
+            publisherApproved: service.packages.isEmpty,
+          );
+          service = create();
+          await service.load();
+          expect(service.provider.hasCompleteOfficialCoverage(year), isTrue);
+          expect(
+            service.packages.any((p) => p.year == year && p.revision == 1),
+            isTrue,
+          );
+        }
+        expect(service.packages.map((p) => p.year), unorderedEquals(years));
         expect(
-          service.packages.any((p) => p.year == year && p.revision == 1),
-          isTrue,
+          service.calendars.where((c) => c.imported).map((c) => c.year),
+          unorderedEquals(years),
         );
+        expect(service.provider.hasCompleteOfficialCoverage(1411), isFalse);
       }
-      expect(service.packages.map((p) => p.year), unorderedEquals(years));
-      expect(
-        service.calendars.where((c) => c.imported).map((c) => c.year),
-        unorderedEquals(years),
-      );
-      expect(service.provider.hasCompleteOfficialCoverage(1411), isFalse);
-    });
-  }
+    },
+  );
 }

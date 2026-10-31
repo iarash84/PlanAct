@@ -5,6 +5,8 @@ import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
 
@@ -31,13 +33,15 @@ void main() {
     group(durable ? 'Drift contract' : 'InMemory contract', () {
       late TagRepository repository;
       late Object owner;
+      late AppDatabase? database;
       setUp(() {
         if (durable) {
-          final database = AppDatabase.forTesting(NativeDatabase.memory());
-          addTearDown(database.close);
-          repository = DriftTagRepository(database);
-          owner = database;
+          database = AppDatabase.forTesting(NativeDatabase.memory());
+          addTearDown(database!.close);
+          repository = DriftTagRepository(database!);
+          owner = database!;
         } else {
+          database = null;
           repository = InMemoryTagRepository();
           owner = repository;
         }
@@ -89,6 +93,55 @@ void main() {
         },
       );
 
+      test(
+        'batch membership reads preserve typed and empty-record semantics',
+        () async {
+          final commitmentTag = await repository.getOrCreate('کار');
+          final commitmentId = durable
+              ? StableId.generate().value
+              : 'commitment-1';
+          if (durable) {
+            await DriftCommitmentRepository(
+              database!,
+            ).save(Commitment.create(title: 'Test', now: DateTime.utc(2026)));
+          }
+          final recordId = durable
+              ? (await DriftCommitmentRepository(
+                  database!,
+                ).list()).single.id.value
+              : commitmentId;
+          await repository.attach(
+            recordId: recordId,
+            tag: commitmentTag,
+            type: TaggableType.commitment,
+          );
+
+          final batch = repository as BatchTagRepository;
+          expect(
+            await batch.tagsForMany([
+              recordId,
+              'commitment-empty',
+            ], TaggableType.commitment),
+            {
+              recordId: {commitmentTag.id},
+              'commitment-empty': <StableId>{},
+            },
+          );
+          expect(
+            await batch.tagsForMany([
+              'account-1',
+              'account-empty',
+            ], TaggableType.accountEntry),
+            {'account-1': <StableId>{}, 'account-empty': <StableId>{}},
+          );
+          expect(
+            await batch.tagsForMany([recordId], TaggableType.accountEntry),
+            {recordId: <StableId>{}},
+          );
+          expect(await batch.tagsForMany([], TaggableType.commitment), isEmpty);
+        },
+      );
+
       test('retired CommandGate rejects reads and mutations', () async {
         final tag = await repository.getOrCreate('work');
         final gate = CommandGate();
@@ -101,6 +154,9 @@ void main() {
           () => repository.list(),
           () => repository.autocomplete(''),
           () => repository.tagsFor('record', TaggableType.commitment),
+          () => (repository as BatchTagRepository).tagsForMany([
+            'record',
+          ], TaggableType.commitment),
           () => repository.recordsWithTag(tag.id, TaggableType.accountEntry),
           () => repository.attach(
             recordId: 'record',

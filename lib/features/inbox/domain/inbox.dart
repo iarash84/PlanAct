@@ -101,6 +101,7 @@ class TransactionDraft {
     this.reference,
     this.direction = TransactionDirection.unknown,
     this.bank,
+    this.sourceAddress,
     this.accountHint,
     this.balance,
     this.quality = ParseQuality.low,
@@ -119,6 +120,9 @@ class TransactionDraft {
   final String? reference;
   final TransactionDirection direction;
   final String? bank;
+
+  /// The provider sender/address, retained as source evidence for review.
+  final String? sourceAddress;
   final String? accountHint;
   final Money? balance;
   final ParseQuality quality;
@@ -139,6 +143,7 @@ class TransactionDraft {
     'reference': reference,
     'direction': direction.name,
     'bank': bank,
+    'sourceAddress': sourceAddress,
     'accountHint': accountHint,
     'balance': balance?.minorUnits,
     'balanceCurrency': balance?.currency,
@@ -165,6 +170,7 @@ class TransactionDraft {
           json['direction'] as String? ?? 'unknown',
         ),
         bank: json['bank'] as String?,
+        sourceAddress: json['sourceAddress'] as String?,
         accountHint: json['accountHint'] as String?,
         balance: json['balance'] == null
             ? null

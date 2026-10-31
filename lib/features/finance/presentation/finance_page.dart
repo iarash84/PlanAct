@@ -9,6 +9,7 @@ import 'package:planact/features/finance/presentation/account_information_card.d
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
@@ -78,6 +79,7 @@ class FinancePage extends StatefulWidget {
     this.onDetermineRelationship,
     this.embedded = false,
     this.bottomContentPadding = 0,
+    this.showArchivedAccounts = false,
     this.focusedRecordId,
     this.focusedKind = FinanceRecordKind.entry,
   });
@@ -89,6 +91,7 @@ class FinancePage extends StatefulWidget {
   final FinanceRepository repository;
   final bool embedded;
   final double bottomContentPadding;
+  final bool showArchivedAccounts;
 
   /// Search opens the existing controls for exactly one durable record.
   final String? focusedRecordId;
@@ -431,6 +434,7 @@ class FinancePageState extends State<FinancePage> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: PlanActSpacing.sm),
                     TextField(
                       controller: note,
                       decoration: InputDecoration(
@@ -439,7 +443,8 @@ class FinancePageState extends State<FinancePage> {
                             : PersianCopy.financePageResultLabelText3,
                       ),
                     ),
-                    if (original == null)
+                    if (original == null) ...[
+                      const SizedBox(height: PlanActSpacing.sm),
                       DraftTagPicker(
                         repository: widget.tagRepository,
                         selected: draftTags,
@@ -447,7 +452,8 @@ class FinancePageState extends State<FinancePage> {
                         onChanged: (tags) =>
                             setDialogState(() => draftTags = tags),
                       ),
-                    const SizedBox(height: 8),
+                    ],
+                    const SizedBox(height: PlanActSpacing.sm),
                     Row(
                       children: [
                         Expanded(
@@ -899,55 +905,74 @@ class FinancePageState extends State<FinancePage> {
                       ),
                     for (final account in _accounts.where(
                       (a) =>
-                          widget.focusedRecordId == null ||
-                          (widget.focusedKind == FinanceRecordKind.account &&
-                              a.id.value == widget.focusedRecordId),
+                          widget.focusedRecordId != null &&
+                              widget.focusedKind == FinanceRecordKind.account &&
+                              a.id.value == widget.focusedRecordId ||
+                          widget.focusedRecordId == null &&
+                              (widget.showArchivedAccounts ||
+                                  a.status == FinancialAccountStatus.active),
                     ))
-                      AccountInformationCard(
-                        key: ValueKey(account.id),
-                        account: account,
-                        balance: rebuildBalance(account, _entries),
-                        operations: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: planActL10n(context)
-                                  .accountFormSheetBuildTitle2,
-                              onPressed: _pendingAccounts.contains(account.id)
-                                  ? null
-                                  : () => _editAccount(account),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                            PopupMenuButton<FinancialAccountStatus>(
-                              key: ValueKey('account-menu:${account.id.value}'),
-                              tooltip:
-                                  account.status ==
-                                      FinancialAccountStatus.active
-                                  ? planActL10n(context)
-                                        .financeArchivedAccountAction
-                                  : planActL10n(context)
-                                        .financeRestoreAccountAction,
-                              enabled: !_pendingAccounts.contains(account.id),
-                              onSelected: (_) => _changeAccountStatus(account),
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value:
-                                      account.status ==
-                                          FinancialAccountStatus.active
-                                      ? FinancialAccountStatus.archived
-                                      : FinancialAccountStatus.active,
-                                  child: Text(
-                                    account.status ==
-                                            FinancialAccountStatus.active
-                                        ? planActL10n(context)
-                                              .financeArchivedAccountAction
-                                        : planActL10n(context)
-                                              .financeRestoreAccountAction,
-                                  ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: PlanActSpacing.md,
+                        ),
+                        child: AccountInformationCard(
+                          key: ValueKey(account.id),
+                          account: account,
+                          balance: rebuildBalance(account, _entries),
+                          operations: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: planActL10n(context)
+                                    .accountFormSheetBuildTitle2,
+                                onPressed: _pendingAccounts.contains(account.id)
+                                    ? null
+                                    : () => _editAccount(account),
+                                icon: const Icon(Icons.edit_outlined),
+                              ),
+                              PopupMenuButton<String>(
+                                key: ValueKey(
+                                  'account-menu:${account.id.value}',
                                 ),
-                              ],
-                            ),
-                          ],
+                                tooltip:
+                                    account.status ==
+                                        FinancialAccountStatus.active
+                                    ? planActL10n(context)
+                                          .financeArchivedAccountAction
+                                    : planActL10n(context)
+                                          .financeRestoreAccountAction,
+                                enabled: !_pendingAccounts.contains(account.id),
+                                onSelected: (action) {
+                                  if (action == 'delete') {
+                                    _deleteAccount(account);
+                                  } else {
+                                    _changeAccountStatus(account);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'status',
+                                    child: Text(
+                                      account.status ==
+                                              FinancialAccountStatus.active
+                                          ? planActL10n(context)
+                                                .financeArchivedAccountAction
+                                          : planActL10n(context)
+                                                .financeRestoreAccountAction,
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text(
+                                      planActL10n(context)
+                                          .financeDeleteAccountAction,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -980,6 +1005,14 @@ class FinancePageState extends State<FinancePage> {
                               e.id.value == widget.focusedRecordId),
                     ))
                       Card(
+                        margin: const EdgeInsets.only(
+                          bottom: PlanActSpacing.md,
+                        ),
+                        elevation: 0,
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: PlanActRadius.card,
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(PlanActSpacing.lg),
                           child: Column(
@@ -1155,6 +1188,42 @@ class FinancePageState extends State<FinancePage> {
               ? null
               : () => _undoAccountStatus(account.id, token),
         );
+      }
+    } finally {
+      if (mounted) setState(() => _pendingAccounts.remove(account.id));
+    }
+  }
+
+  Future<void> _deleteAccount(FinancialAccount account) async {
+    if (!_pendingAccounts.add(account.id)) return;
+    setState(() {});
+    try {
+      if (!await confirmRecordedAction(
+            context,
+            planActL10n(context).financeDeleteAccountMessage,
+          ) ||
+          !mounted) {
+        return;
+      }
+      try {
+        await _finance.deleteAccount(account.id);
+      } catch (_) {
+        if (mounted) {
+          _showMessage(planActL10n(context).financeDeleteAccountFailed);
+        }
+        return;
+      }
+      await _refresh();
+      try {
+        await widget.onDataChanged?.call();
+      } catch (_) {
+        if (mounted) {
+          _showMessage(planActL10n(context).undoRefreshPending);
+        }
+        return;
+      }
+      if (mounted) {
+        _showMessage(planActL10n(context).financeDeleteAccountSuccess);
       }
     } finally {
       if (mounted) setState(() => _pendingAccounts.remove(account.id));

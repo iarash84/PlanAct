@@ -127,7 +127,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'ثبت انتقال انجام نشد؛ دوباره تلاش کنید.';
 
   @override
-  String get planactAppShowCommitmentDetailsTitle => 'انجام شد';
+  String get planactAppShowCommitmentDetailsTitle => 'تکمیل تعهد';
 
   @override
   String get planactAppShowCommitmentDetailsTitle2 => 'توقف موقت';
@@ -348,6 +348,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get planactAppBuildSubtitle4 => 'نمایش، امنیت و مجوزهای برنامه';
+
+  @override
+  String get helpFaqPageTitle => 'راهنما و سوالات متداول';
+
+  @override
+  String get helpFaqPageSubtitle =>
+      'پاسخ پرسش‌های رایج دربارهٔ قابلیت‌های پلن‌اکت';
 
   @override
   String get commitmentIdentityPaletteCommitmentColorTeal => 'سبزآبی';
@@ -2603,6 +2610,11 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
+  String inboxPageSmsSenderLabel(String value1) {
+    return 'فرستنده پیامک: $value1';
+  }
+
+  @override
   String get inboxPageBuildChildren13 =>
       'واحد پیامک قدیمی نامشخص؛ مبلغ ذخیره‌شده بدون تغییر حفظ شده است.';
 
@@ -4321,6 +4333,26 @@ class AppLocalizationsFa extends AppLocalizations {
       'انتخاب حالت روشن، تاریک یا هماهنگ با دستگاه';
 
   @override
+  String get settingsMorningReminderTitle => 'یادآوری صبحگاهی';
+
+  @override
+  String get settingsMorningReminderDescription =>
+      'پس از اولین بازکردن قفل گوشی در بازهٔ صبح، اگر برای امروز یادآوری فعالی وجود داشته باشد، یک اعلان نمایش داده می‌شود.';
+
+  @override
+  String get settingsMorningReminderStart => 'شروع بازهٔ صبح';
+
+  @override
+  String get settingsMorningReminderEnd => 'پایان بازهٔ صبح';
+
+  @override
+  String get settingsMorningReminderDisabled => 'یادآوری صبحگاهی غیرفعال است.';
+
+  @override
+  String get settingsMorningReminderSaveError =>
+      'تنظیم یادآوری صبحگاهی ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
   String get settingsBackground => 'تصویر پس‌زمینه';
 
   @override
@@ -4508,6 +4540,27 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get financeArchiveAccountMessage =>
       'حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.';
+
+  @override
+  String get financeShowArchivedAccounts => 'نمایش حساب‌های بایگانی‌شده';
+
+  @override
+  String get financeShowArchivedAccountsDescription =>
+      'حساب‌های بایگانی‌شده در صفحه مالی نمایش داده شوند؛ انتخاب برای ثبت جدید همچنان فقط از حساب‌های فعال است.';
+
+  @override
+  String get financeDeleteAccountAction => 'حذف حساب';
+
+  @override
+  String get financeDeleteAccountMessage =>
+      'حذف حساب دائمی است و بازگردانی ندارد. فقط حساب بدون سابقه و ارجاع مالی حذف می‌شود. ادامه می‌دهید؟';
+
+  @override
+  String get financeDeleteAccountSuccess => 'حساب حذف شد.';
+
+  @override
+  String get financeDeleteAccountUnavailable =>
+      'این حساب سابقه یا ارجاع مالی دارد؛ برای حفظ تاریخچه آن را بایگانی کنید.';
 
   @override
   String get matchHistoryTitle => 'ارتباط‌های ثبت‌شده';
@@ -4843,6 +4896,15 @@ class AppLocalizationsFa extends AppLocalizations {
   String get checklistAdd => 'افزودن کار';
 
   @override
+  String get commitmentEdit => 'ویرایش تعهد';
+
+  @override
+  String get detailsShow => 'نمایش جزئیات';
+
+  @override
+  String get detailsHide => 'بستن جزئیات';
+
+  @override
   String get checklistEdit => 'ویرایش کار';
 
   @override
@@ -4892,4 +4954,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String calendarNoteDaySummary(String count, String titles) {
     return '$count یادداشت: $titles';
   }
+
+  @override
+  String get financeArchivedAccountsSaveError =>
+      'تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.';
+
+  @override
+  String get financeDeleteAccountFailed =>
+      'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.';
 }

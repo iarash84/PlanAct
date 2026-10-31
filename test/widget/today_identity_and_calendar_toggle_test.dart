@@ -5,6 +5,8 @@ import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
+import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/commitments/presentation/commitment_identity_marker.dart';
@@ -138,17 +140,21 @@ void main() {
     );
 
     testWidgets(
-      '$brightness Today checklist preview strikes completed items and toggles in place',
+      '$brightness Today checklist disclosure opens and toggles in place',
       (tester) async {
         final commitment = Commitment.create(title: 'خرید');
+        final owners = InMemoryCommitmentRepository();
+        await owners.save(commitment);
+        final repository = InMemoryChecklistRepository(owners);
         final item = ChecklistItem(id: StableId.generate(), title: 'نان');
-        final list = CommitmentChecklist(
-          commitmentId: commitment.id,
-          revision: 1,
-          items: [item],
+        await repository.save(
+          CommitmentChecklist(
+            commitmentId: commitment.id,
+            revision: 1,
+            items: [item],
+          ),
+          expectedRevision: 0,
         );
-        StableId? changedItem;
-        bool? changedValue;
         await tester.pumpWidget(
           host(
             TodayPage(
@@ -168,11 +174,7 @@ void main() {
                 ],
                 upcoming: const [],
               ),
-              checklists: {commitment.id: list},
-              onChecklistChanged: (ownerId, itemId, value) async {
-                changedItem = itemId;
-                changedValue = value;
-              },
+              checklistRepository: repository,
               onAdd: () {},
               onCommitmentTap: (_) {},
               onCommitmentArchive: (_) {},
@@ -181,17 +183,27 @@ void main() {
             1,
           ),
         );
-        final checkbox = find.byKey(
-          ValueKey('today-checklist-item-${item.id.value}'),
+        final disclosure = find.byKey(
+          ValueKey('checklist-disclosure-${commitment.id.value}'),
         );
+        expect(
+          find.byKey(ValueKey('checklist-item-${item.id.value}')),
+          findsNothing,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(disclosure);
+        await tester.pumpAndSettle();
+        final checkbox = find.byKey(
+          ValueKey('checklist-item-${item.id.value}'),
+        );
+        expect(checkbox, findsOneWidget);
         await tester.tap(checkbox);
         await tester.pumpAndSettle();
-        expect(changedItem, item.id);
-        expect(changedValue, isTrue);
         expect(
           tester.widget<Text>(find.text('نان')).style?.decoration,
           TextDecoration.lineThrough,
         );
+        expect(tester.takeException(), isNull);
       },
     );
   }
