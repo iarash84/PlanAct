@@ -175,12 +175,15 @@ void main() {
           );
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
+          final editButton = find.text('ویرایش');
           await tester.dragUntilVisible(
-            find.text('ویرایش'),
+            editButton,
             find.byType(ListView).first,
             const Offset(0, -400),
           );
-          await tester.tap(find.text('ویرایش'));
+          await tester.ensureVisible(editButton);
+          await tester.pumpAndSettle();
+          await tester.tap(editButton);
           await tester.pumpAndSettle();
           final bankField = find.widgetWithText(TextField, 'نام بانک');
           await tester.ensureVisible(bankField);

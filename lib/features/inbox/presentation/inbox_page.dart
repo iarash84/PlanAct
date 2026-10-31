@@ -432,7 +432,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _epoch++;
-        _items = _items.where((i) => i.suggestion.id != id).toList();
+        // Keep a rejected card visible while it is being recovered. The
+        // rejected filter would otherwise remove its only recovery action
+        // before the durable refresh below completes.
+        if (!recover) {
+          _items = _items.where((i) => i.suggestion.id != id).toList();
+        }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
