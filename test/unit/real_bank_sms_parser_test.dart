@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
+import 'package:planact/features/inbox/application/real_bank_sms_parser.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
@@ -49,6 +50,24 @@ void main() {
       expect(parsed.quality, ParseQuality.high);
     });
   }
+  test('parses a raw Sina corpus deposit with a starred header', () {
+    final parsed = const RealBankSmsParser().tryParse(
+      text:
+          '*بانک سينا*\n'
+          'واريز به \u202A901-678-3456789-7\u202C\n'
+          'مبلغ  4,678,345 ريال\n'
+          'مانده 90,678,345 ريال\n'
+          'زمان : 1404/11/17 ; 11:05:35',
+      currency: 'IRR',
+      sourceAddress: 'Sina Bank',
+    );
+    expect(parsed, isNotNull);
+    final value = parsed!;
+    expect(value.amount.minorUnits, 4678345);
+    expect(value.direction, TransactionDirection.incoming);
+    expect(value.bank, 'سینا');
+  });
+
   final syntheticBankReports = [
     (
       bank: 'رسالت',
@@ -77,6 +96,283 @@ void main() {
       },
     );
   }
+  group('layered bank profiles', () {
+    const layeredParser = RealBankSmsParser();
+
+    test('parses Bank Refah signed withdrawal with partial timestamp', () {
+      final parsed = layeredParser.tryParse(
+        text:
+            'بانک رفاه\n'
+            'حساب317777142\n'
+            'کارت30,018,000-\n'
+            'مانده134,403,080\n'
+            '07/08-16:29',
+        currency: 'IRR',
+        sourceAddress: 'بانک رفاه',
+      );
+
+      final result = parsed!;
+      expect(result.bank, 'رفاه');
+      expect(result.accountHint, '317777142');
+      expect(result.amount.minorUnits, 30018000);
+      expect(result.balance!.minorUnits, 134403080);
+      expect(result.direction, TransactionDirection.outgoing);
+      expect(result.sourceDate, '07/08');
+      expect(result.sourceTime, '16:29');
+      expect(result.occurredAt, isNull);
+      expect(result.quality, ParseQuality.medium);
+    });
+
+    test('parses Bank Refah signed deposit with sender alias', () {
+      final parsed = layeredParser.tryParse(
+        text:
+            'بانک رفاه\n'
+            'حساب317777142\n'
+            'کارت12,000,000+\n'
+            'مانده164,421,080\n'
+            '07/08-06:39',
+        currency: 'IRR',
+        sourceAddress: 'BANK REFAH',
+      );
+
+      final result = parsed!;
+      expect(result.bank, 'رفاه');
+      expect(result.amount.minorUnits, 12000000);
+      expect(result.balance!.minorUnits, 164421080);
+      expect(result.direction, TransactionDirection.incoming);
+    });
+
+    test('parses Bank Mellat four-line signed transaction', () {
+      final parsed = layeredParser.tryParse(
+        text:
+            'حساب1234567890\n'
+            'برداشت123,890-\n'
+            'مانده123,890,567\n'
+            '12/45/89-01:07',
+        currency: 'IRR',
+        sourceAddress: 'BANK MELLAT',
+      );
+
+      final result = parsed!;
+      expect(result.bank, 'ملت');
+      expect(result.accountHint, '1234567890');
+      expect(result.amount.minorUnits, 123890);
+      expect(result.balance!.minorUnits, 123890567);
+      expect(result.direction, TransactionDirection.outgoing);
+      expect(result.sourceDate, '12/45/89');
+      expect(result.sourceTime, '01:07');
+      expect(result.occurredAt, isNull);
+    });
+
+    test('parses National Bank deposit with compact date evidence', () {
+      final parsed = layeredParser.tryParse(
+        text:
+            'بانك ملي ايران\n'
+            'واریز:3,000,000+\n'
+            'حساب:70008\n'
+            'مانده:4,953,268\n'
+            '0705-17:00',
+        currency: 'IRR',
+        sourceAddress: 'BANK MELLI',
+      );
+
+      final result = parsed!;
+      expect(result.bank, 'ملی ایران');
+      expect(result.accountHint, '70008');
+      expect(result.amount.minorUnits, 3000000);
+      expect(result.balance!.minorUnits, 4953268);
+      expect(result.direction, TransactionDirection.incoming);
+      expect(result.sourceDate, '0705');
+      expect(result.sourceTime, '17:00');
+      expect(result.occurredAt, isNull);
+    });
+
+    test('does not turn National Bank transfer into income', () {
+      final text =
+          'بانک ملی ایران\n'
+          'انتقال:3,000,000-\n'
+          'حساب:70008\n'
+          'مانده:1,953,268\n'
+          '0705-17:00';
+
+      expect(
+        layeredParser.tryParse(
+          text: text,
+          currency: 'IRR',
+          sourceAddress: 'BANK MELLI',
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('additional bank message layouts', () {
+    const parser = RealBankSmsParser();
+
+    final samples =
+        <
+          ({
+            String name,
+            String text,
+            String? bank,
+            int amount,
+            TransactionDirection direction,
+            String? sourceAddress,
+          })
+        >[
+          (
+            name: 'National withdrawal',
+            text:
+                'بانك ملي ايران\n'
+                'برداشت:3,000,000-\n'
+                'حساب:70008\n'
+                'مانده:4,953,268\n'
+                '0705-17:00',
+            bank: 'ملی ایران',
+            amount: 3000000,
+            direction: TransactionDirection.outgoing,
+            sourceAddress: 'BANK MELLI',
+          ),
+          (
+            name: 'National internet purchase',
+            text:
+                'بانك ملي ايران\n'
+                'خريداينترنتي:75,000,000-\n'
+                'حساب:70008\n'
+                'مانده:310,452,489\n'
+                '0612-19:57',
+            bank: 'ملی ایران',
+            amount: 75000000,
+            direction: TransactionDirection.outgoing,
+            sourceAddress: 'BANK MELLI',
+          ),
+          (
+            name: 'National deposit',
+            text:
+                'بانك ملي ايران\n'
+                'واريز:500,000,000+\n'
+                'حساب:70008\n'
+                'مانده:514,978,739\n'
+                '0609-07:05',
+            bank: 'ملی ایران',
+            amount: 500000000,
+            direction: TransactionDirection.incoming,
+            sourceAddress: 'BANK MELLI',
+          ),
+          (
+            name: 'City allowance',
+            text:
+                '*بانک شهر*\n'
+                'واريز يارانه\n'
+                'واريز به :7001000767658\n'
+                'مبلغ:3,000,000ريال\n'
+                'موجودي:8,092,213 ريال\n'
+                '1405/06/30 21:32:32',
+            bank: 'شهر',
+            amount: 3000000,
+            direction: TransactionDirection.incoming,
+            sourceAddress: null,
+          ),
+          (
+            name: 'City card purchase',
+            text:
+                '*بانک شهر*\n'
+                'خريد با کارت\n'
+                'برداشت از:7001000767658\n'
+                'مبلغ:7,981,000ريال\n'
+                'موجودي:2,114,257 ريال\n'
+                '1405/04/31 17:51:48',
+            bank: 'شهر',
+            amount: 7981000,
+            direction: TransactionDirection.outgoing,
+            sourceAddress: null,
+          ),
+          (
+            name: 'City bill payment',
+            text:
+                '*بانک شهر*\n'
+                'پرداخت قبض\n'
+                'برداشت از:7001000767658\n'
+                'مبلغ:444,510ريال\n'
+                'موجودي:4,077,940 ريال\n'
+                '1405/03/15 22:06:08',
+            bank: 'شهر',
+            amount: 444510,
+            direction: TransactionDirection.outgoing,
+            sourceAddress: null,
+          ),
+          (
+            name: 'Tourism labelled deposit',
+            text:
+                '*بانك گردشگری*\n'
+                'فرشته\n'
+                'واريز به: 154.9498.2400525.1\n'
+                'مبلغ: 2,000,000 ريال\n'
+                '05/06/02_12:05\n'
+                'موجودي: 2,000,000 ريال',
+            bank: 'گردشگری',
+            amount: 2000000,
+            direction: TransactionDirection.incoming,
+            sourceAddress: null,
+          ),
+          (
+            name: 'Tourism compact deposit',
+            text:
+                '777.888.18125929.1\n'
+                '+41,000,000\n'
+                '05/07_22:48\n'
+                'مانده: 41,642,610',
+            bank: null,
+            amount: 41000000,
+            direction: TransactionDirection.incoming,
+            sourceAddress: null,
+          ),
+          (
+            name: 'Tourism compact withdrawal',
+            text:
+                '777.888.18125929.1\n'
+                '-34,537,910\n'
+                '05/07_22:57\n'
+                'مانده: 7,104,700',
+            bank: null,
+            amount: 34537910,
+            direction: TransactionDirection.outgoing,
+            sourceAddress: null,
+          ),
+        ];
+
+    for (final sample in samples) {
+      test('${sample.name} is recognized', () {
+        final result = parser.tryParse(
+          text: sample.text,
+          currency: 'IRR',
+          sourceAddress: sample.sourceAddress,
+        );
+        expect(result, isNotNull);
+        expect(result!.bank, sample.bank);
+        expect(result.amount.minorUnits, sample.amount);
+        expect(result.direction, sample.direction);
+      });
+    }
+
+    test(
+      'National transfer remains a transfer and is not treated as income',
+      () {
+        final result = parser.tryParse(
+          text:
+              'بانك ملي ايران\n'
+              'انتقال:3,000,000+\n'
+              'حساب:70008\n'
+              'مانده:310,543,489\n'
+              '0612-20:22',
+          currency: 'IRR',
+          sourceAddress: 'BANK MELLI',
+        );
+        expect(result, isNull);
+      },
+    );
+  });
+
   final resalatCompactMessages = [
     (
       text: '10.7291550.1\n-39,600\n08/03_20:14\nمانده: 335,232,811',
