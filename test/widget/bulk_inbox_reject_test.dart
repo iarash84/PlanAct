@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -49,6 +50,23 @@ Future<void> press(WidgetTester tester, String text) async {
 }
 
 void main() {
+  testWidgets('Inbox keeps a minimum gap between independent sections', (
+    tester,
+  ) async {
+    final inbox = ControlledInbox(InMemoryInboxRepository());
+
+    await mount(tester, inbox);
+
+    final status = find.byType(DropdownButtonFormField<SuggestionStatus>);
+    final bank = find.byType(DropdownButtonFormField<String>);
+    expect(status, findsOneWidget);
+    expect(bank, findsOneWidget);
+    expect(
+      tester.getTopLeft(bank).dy - tester.getBottomLeft(status).dy,
+      greaterThanOrEqualTo(PlanActSpacing.lg),
+    );
+  });
+
   testWidgets(
     'refresh invalidates stale selection and filters clear selection',
     (tester) async {
