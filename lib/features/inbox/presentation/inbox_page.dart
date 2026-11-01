@@ -432,7 +432,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _epoch++;
-        _items = _items.where((i) => i.suggestion.id != id).toList();
+        // Keep a rejected card visible while it is being recovered. The
+        // rejected filter would otherwise remove its only recovery action
+        // before the durable refresh below completes.
+        if (!recover) {
+          _items = _items.where((i) => i.suggestion.id != id).toList();
+        }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -583,6 +588,11 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     await _reload();
   }
 
+  Widget _inboxSection(Widget child) => Padding(
+    padding: const EdgeInsets.only(bottom: PlanActSpacing.lg),
+    child: child,
+  );
+
   Widget _bulkControls() {
     final page = _pageItems;
     final eligible = page.where(
@@ -725,155 +735,172 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SmsStatusCard(
-          access: _smsAccess,
-          error: _smsError,
-          onRefresh: _refreshSms,
-          onEnable: widget.smsSource != null && !_working && _smsAccess != true
-              ? _enableSms
-              : null,
+        _inboxSection(
+          _SmsStatusCard(
+            access: _smsAccess,
+            error: _smsError,
+            onRefresh: _refreshSms,
+            onEnable:
+                widget.smsSource != null && !_working && _smsAccess != true
+                ? _enableSms
+                : null,
+          ),
         ),
         if (widget.smsSource != null && _smsAccess != true)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(PlanActSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextButton(
-                    onPressed: () => setState(
-                      () => _showSmsPermissionHelp = !_showSmsPermissionHelp,
-                    ),
-                    child: Text(planActL10n(context).smsPermissionHelpTitle),
-                  ),
-                  if (_showSmsPermissionHelp) ...[
-                    Text(planActL10n(context).smsPermissionHelpBody),
-                    const SizedBox(height: PlanActSpacing.sm),
-                    OutlinedButton(
-                      onPressed: _working || _openingSmsSettings
-                          ? null
-                          : _openSmsSettings,
-                      child: Text(
-                        planActL10n(context).smsPermissionOpenSettings,
+          _inboxSection(
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(PlanActSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextButton(
+                      onPressed: () => setState(
+                        () => _showSmsPermissionHelp = !_showSmsPermissionHelp,
                       ),
+                      child: Text(planActL10n(context).smsPermissionHelpTitle),
                     ),
+                    if (_showSmsPermissionHelp) ...[
+                      Text(planActL10n(context).smsPermissionHelpBody),
+                      const SizedBox(height: PlanActSpacing.sm),
+                      OutlinedButton(
+                        onPressed: _working || _openingSmsSettings
+                            ? null
+                            : _openSmsSettings,
+                        child: Text(
+                          planActL10n(context).smsPermissionOpenSettings,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
-              ),
-            ),
-          ),
-        if (_smsSync != null) SmsAutomaticSyncCard(controller: _smsSync!),
-        if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
-          SmsScanCard(
-            inbox: widget.inbox,
-            source: widget.smsSource!,
-            access: _smsAccess == true,
-            onChanged: _reload,
-          ),
-        const SizedBox(height: PlanActSpacing.md),
-        DropdownButtonFormField<SuggestionStatus>(
-          isExpanded: true,
-          itemHeight: null,
-          initialValue: _status,
-          decoration: InputDecoration(
-            labelText: planActL10n(context).inboxPageHeaderLabelText,
-          ),
-          items: [
-            DropdownMenuItem(
-              value: null,
-              child: Text(planActL10n(context).inboxPageHeaderItems),
-            ),
-            DropdownMenuItem(
-              value: SuggestionStatus.rejected,
-              child: Text(planActL10n(context).inboxPageHeaderItems2),
-            ),
-            DropdownMenuItem(
-              value: SuggestionStatus.confirmed,
-              child: Text(planActL10n(context).inboxPageHeaderItems3),
-            ),
-          ],
-          onChanged: (value) {
-            setState(() {
-              _status = value;
-              _clearSelection();
-              _epoch++;
-            });
-            _reload();
-          },
-        ),
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          itemHeight: null,
-          initialValue: _bank,
-          decoration: InputDecoration(
-            labelText: planActL10n(context).inboxPageHeaderLabelText2,
-          ),
-          items: [
-            DropdownMenuItem(
-              value: null,
-              child: Text(planActL10n(context).inboxPageHeaderItems4),
-            ),
-            for (final bank in _banks)
-              DropdownMenuItem(
-                value: bank,
-                child: Text(
-                  bank.isEmpty
-                      ? planActL10n(context).inboxPageHeaderItems5
-                      : bank,
                 ),
               ),
-          ],
-          onChanged: (value) {
-            setState(() {
-              _bank = value;
-              _clearSelection();
-              _epoch++;
-            });
-            _reload();
-          },
-        ),
-        TextButton.icon(
-          onPressed: () {
-            setState(() {
-              _oldestFirst = !_oldestFirst;
-              _clearSelection();
-              _epoch++;
-            });
-            _reload();
-          },
-          icon: const Icon(Icons.sort),
-          label: Text(
-            _oldestFirst
-                ? planActL10n(context).inboxPageHeaderLabel
-                : planActL10n(context).inboxPageHeaderLabel2,
+            ),
+          ),
+        if (_smsSync != null)
+          _inboxSection(SmsAutomaticSyncCard(controller: _smsSync!)),
+        if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
+          _inboxSection(
+            SmsScanCard(
+              inbox: widget.inbox,
+              source: widget.smsSource!,
+              access: _smsAccess == true,
+              onChanged: _reload,
+            ),
+          ),
+        _inboxSection(
+          DropdownButtonFormField<SuggestionStatus>(
+            isExpanded: true,
+            itemHeight: null,
+            initialValue: _status,
+            decoration: InputDecoration(
+              labelText: planActL10n(context).inboxPageHeaderLabelText,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: null,
+                child: Text(planActL10n(context).inboxPageHeaderItems),
+              ),
+              DropdownMenuItem(
+                value: SuggestionStatus.rejected,
+                child: Text(planActL10n(context).inboxPageHeaderItems2),
+              ),
+              DropdownMenuItem(
+                value: SuggestionStatus.confirmed,
+                child: Text(planActL10n(context).inboxPageHeaderItems3),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _status = value;
+                _clearSelection();
+                _epoch++;
+              });
+              _reload();
+            },
           ),
         ),
-        if (_error != null) Text(_error!),
-        _bulkControls(),
+        _inboxSection(
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            itemHeight: null,
+            initialValue: _bank,
+            decoration: InputDecoration(
+              labelText: planActL10n(context).inboxPageHeaderLabelText2,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: null,
+                child: Text(planActL10n(context).inboxPageHeaderItems4),
+              ),
+              for (final bank in _banks)
+                DropdownMenuItem(
+                  value: bank,
+                  child: Text(
+                    bank.isEmpty
+                        ? planActL10n(context).inboxPageHeaderItems5
+                        : bank,
+                  ),
+                ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _bank = value;
+                _clearSelection();
+                _epoch++;
+              });
+              _reload();
+            },
+          ),
+        ),
+        _inboxSection(
+          TextButton.icon(
+            onPressed: () {
+              setState(() {
+                _oldestFirst = !_oldestFirst;
+                _clearSelection();
+                _epoch++;
+              });
+              _reload();
+            },
+            icon: const Icon(Icons.sort),
+            label: Text(
+              _oldestFirst
+                  ? planActL10n(context).inboxPageHeaderLabel
+                  : planActL10n(context).inboxPageHeaderLabel2,
+            ),
+          ),
+        ),
+        if (_error != null) _inboxSection(Text(_error!)),
+        _inboxSection(_bulkControls()),
         if (_items.isEmpty)
-          SizedBox(
-            height: 300,
-            child: _InboxStateCard(
-              icon: Icons.inbox_outlined,
-              title: planActL10n(context).inboxPageHeaderTitle,
-              message: planActL10n(context).inboxPageHeaderMessage,
+          _inboxSection(
+            SizedBox(
+              height: 300,
+              child: _InboxStateCard(
+                icon: Icons.inbox_outlined,
+                title: planActL10n(context).inboxPageHeaderTitle,
+                message: planActL10n(context).inboxPageHeaderMessage,
+              ),
             ),
           )
         else
-          Text(
-            planActL10n(context).planactAppShowTimelineSubtitle2(
-              (switch (_status) {
-                SuggestionStatus.rejected => planActL10n(
-                  context,
-                ).inboxPageHeaderItems2,
-                SuggestionStatus.confirmed => planActL10n(
-                  context,
-                ).inboxPageHeaderItems3,
-                _ => planActL10n(context).inboxPageHeaderItems,
-              }).toString(),
-              (PersianNumbers.format(_items.length)).toString(),
+          _inboxSection(
+            Text(
+              planActL10n(context).planactAppShowTimelineSubtitle2(
+                (switch (_status) {
+                  SuggestionStatus.rejected => planActL10n(
+                    context,
+                  ).inboxPageHeaderItems2,
+                  SuggestionStatus.confirmed => planActL10n(
+                    context,
+                  ).inboxPageHeaderItems3,
+                  _ => planActL10n(context).inboxPageHeaderItems,
+                }).toString(),
+                (PersianNumbers.format(_items.length)).toString(),
+              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            style: Theme.of(context).textTheme.titleMedium,
           ),
       ],
     );
@@ -895,29 +922,32 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         itemBuilder: (context, index) {
           if (index == 0) return header;
           final item = _pageItems[index - 1];
-          return _ReviewCard(
-            key: ValueKey(item.suggestion.id),
-            item: item,
-            selected: _selected.containsKey(item.suggestion.id),
-            onSelection:
-                !BulkInboxReject.eligible(item.suggestion) ||
-                    _pending.contains(item.suggestion.id) ||
-                    _bulk != null ||
-                    _bulkConfirming
-                ? null
-                : (value) => setState(() {
-                    if (value == true) {
-                      _selected[item.suggestion.id] = item.suggestion;
-                    } else {
-                      _selected.remove(item.suggestion.id);
-                    }
-                  }),
-            busy: _pending.contains(item.suggestion.id),
-            onConfirm: () => _confirm(item),
-            onEdit: () => _edit(item),
-            onReject: () => _reject(
-              item,
-              recover: item.suggestion.status == SuggestionStatus.rejected,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+            child: _ReviewCard(
+              key: ValueKey(item.suggestion.id),
+              item: item,
+              selected: _selected.containsKey(item.suggestion.id),
+              onSelection:
+                  !BulkInboxReject.eligible(item.suggestion) ||
+                      _pending.contains(item.suggestion.id) ||
+                      _bulk != null ||
+                      _bulkConfirming
+                  ? null
+                  : (value) => setState(() {
+                      if (value == true) {
+                        _selected[item.suggestion.id] = item.suggestion;
+                      } else {
+                        _selected.remove(item.suggestion.id);
+                      }
+                    }),
+              busy: _pending.contains(item.suggestion.id),
+              onConfirm: () => _confirm(item),
+              onEdit: () => _edit(item),
+              onReject: () => _reject(
+                item,
+                recover: item.suggestion.status == SuggestionStatus.rejected,
+              ),
             ),
           );
         },
@@ -1281,6 +1311,12 @@ class _ReviewCardState extends State<_ReviewCard> {
               ),
             ),
             Text(
+              planActL10n(context).inboxPageSmsSenderLabel(
+                (draft.sourceAddress ?? planActL10n(context).commonUnknown)
+                    .toString(),
+              ),
+            ),
+            Text(
               draft.currencyEvidence == null
                   ? planActL10n(context).inboxPageBuildChildren13
                   : draft.currencyEvidence!.requiresSelection
@@ -1331,6 +1367,12 @@ class _ReviewCardState extends State<_ReviewCard> {
               Text(
                 planActL10n(context).inboxPageBuildChildren12(
                   (draft.bank ?? planActL10n(context).commonUnknown).toString(),
+                ),
+              ),
+              Text(
+                planActL10n(context).inboxPageSmsSenderLabel(
+                  (draft.sourceAddress ?? planActL10n(context).commonUnknown)
+                      .toString(),
                 ),
               ),
               Text(

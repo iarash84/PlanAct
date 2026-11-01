@@ -377,6 +377,7 @@ class DriftInboxRepository
                       metadata['currencyEvidence'] as Map<String, dynamic>,
                     ),
               bank: metadata['bank'] as String?,
+              sourceAddress: metadata['sourceAddress'] as String?,
               receivedAt: metadata['receivedAt'] == null
                   ? null
                   : DateTime.parse(metadata['receivedAt'] as String),
@@ -467,6 +468,7 @@ class DriftInboxRepository
       metadata.addAll({
         'currencyEvidence': suggestion.draft.currencyEvidence?.toJson(),
         'bank': suggestion.draft.bank,
+        'sourceAddress': suggestion.draft.sourceAddress,
         'direction': suggestion.draft.direction.name,
         'quality': suggestion.draft.quality.name,
         'confidence': suggestion.draft.confidence,

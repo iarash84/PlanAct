@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -105,6 +105,10 @@ Future<Map<String, List<Map<String, Object?>>>> _logical(AppDatabase db) async {
 }
 
 void main() {
+  // Encrypted backup coverage intentionally creates independent database
+  // owners for source, target, safety, and cold-reopen validation.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   test('independent encrypted restore rebinds recurrence, cold reopens and extends without rewriting history', () async {
     final root = await Directory.systemTemp.createTemp('recurrence-recovery-');
     final sourceFile = File('${root.path}/source/live.sqlite');

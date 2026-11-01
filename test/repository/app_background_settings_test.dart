@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/app_settings.dart';
@@ -7,6 +8,10 @@ import 'package:planact/core/database/app_database.dart';
 import 'package:planact/features/backup/data/sqlite_backup_snapshot.dart';
 
 void main() {
+  // This test intentionally opens several independent file-backed databases
+  // during cold-reopen and restore checks.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   test('background selection persists across a cold database reopen', () async {
     final directory = await Directory.systemTemp.createTemp(
       'planact-background-',

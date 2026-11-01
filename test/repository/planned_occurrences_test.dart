@@ -89,6 +89,10 @@ class _WriterBarrier extends QueryInterceptor {
 }
 
 void main() {
+  // This suite intentionally opens independent databases for reopen and
+  // concurrent-writer coverage.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   for (final count in [12, 60]) {
     test(
       'file-backed $count slot termination survives sparse preparation',

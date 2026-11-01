@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -15,6 +16,10 @@ import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 
 void main() {
+  // Restore and concurrency cases intentionally create independent database
+  // owners against separate or restored SQLite files.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   late Directory directory;
   late File file;
   late AppDatabase database;

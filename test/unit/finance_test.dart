@@ -196,6 +196,33 @@ void main() {
     },
   );
 
+  test('deletes an account only when it has no financial history', () async {
+    final localRepository = InMemoryFinanceRepository();
+    final useCases = FinanceUseCases(localRepository);
+    await useCases.createAccount(account);
+
+    await useCases.deleteAccount(account.id);
+    expect(await localRepository.listAccounts(), isEmpty);
+  });
+
+  test('rejects deletion when an account has a ledger entry', () async {
+    final localRepository = InMemoryFinanceRepository();
+    final useCases = FinanceUseCases(localRepository);
+    await useCases.createAccount(account);
+    await useCases.record(
+      account: account,
+      type: AccountEntryType.income,
+      amount: const Money(minorUnits: 100, currency: 'IRR'),
+      occurredAt: DateTime.utc(2026, 1, 9),
+    );
+
+    await expectLater(
+      useCases.deleteAccount(account.id),
+      throwsA(isA<ValidationError>()),
+    );
+    expect((await localRepository.listAccounts()).single.id, account.id);
+  });
+
   test('restores an archived account without changing its history', () async {
     final localRepository = InMemoryFinanceRepository();
     final useCases = FinanceUseCases(localRepository);

@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -155,6 +155,9 @@ Future<void> _history(AppDatabase db, CommitmentPlan plan) async {
 }
 
 void main() {
+  // Backup and restore coverage intentionally creates multiple database owners.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   test('encrypted hybrid restore preserves projection, durable rules and populated history through explicit preparation', () async {
     final root = await Directory.systemTemp.createTemp('hybrid-backup-');
     final sourceFile = File('${root.path}/source/live.sqlite');

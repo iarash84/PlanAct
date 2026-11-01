@@ -147,9 +147,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('نمونه'), findsOneWidget);
       expect(find.text('ردشده'), findsOneWidget);
-      await tester.ensureVisible(find.text('بازگردانی به صف بررسی'));
+      final recoverButton = find.text('بازگردانی به صف بررسی');
+      await tester.dragUntilVisible(
+        recoverButton,
+        find.byType(ListView).first,
+        const Offset(0, -400),
+      );
+      await tester.ensureVisible(recoverButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('بازگردانی به صف بررسی'));
+      await tester.tap(recoverButton);
       await tester.pumpAndSettle();
       expect(
         (await repository.listSuggestions()).every(
@@ -166,9 +172,15 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('نیازمند بررسی').last);
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('ویرایش'));
+      final editButton = find.text('ویرایش');
+      await tester.dragUntilVisible(
+        editButton,
+        find.byType(ListView).first,
+        const Offset(0, -400),
+      );
+      await tester.ensureVisible(editButton);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('ویرایش'));
+      await tester.tap(editButton);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, '9999');
       final editedText = tester

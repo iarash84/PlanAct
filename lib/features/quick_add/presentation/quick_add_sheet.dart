@@ -3,6 +3,7 @@ import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
@@ -202,6 +203,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
               ),
             ),
           ),
+          const SizedBox(height: PlanActSpacing.sm),
           DropdownButtonFormField<FinancialAccount>(
             key: const ValueKey('quick-financial-account'),
             initialValue: _account,
@@ -218,6 +220,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
                 .toList(),
             onChanged: (value) => setState(() => _account = value ?? _account),
           ),
+          const SizedBox(height: PlanActSpacing.sm),
           TextField(
             key: const ValueKey('quick-financial-note'),
             controller: _note,
@@ -227,6 +230,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
                   : planActL10n(context).quickAddSheetBuildLabelText3,
             ),
           ),
+          const SizedBox(height: PlanActSpacing.sm),
           DraftTagPicker(
             repository: widget.tagRepository,
             selected: _tags,
@@ -344,6 +348,7 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
             ),
           ),
         ),
+        const SizedBox(height: PlanActSpacing.sm),
         DropdownButtonFormField<FinancialAccount>(
           initialValue: _from,
           decoration: InputDecoration(
@@ -354,6 +359,7 @@ class _QuickTransferSheetState extends State<QuickTransferSheet> {
               .toList(),
           onChanged: (v) => setState(() => _from = v ?? _from),
         ),
+        const SizedBox(height: PlanActSpacing.sm),
         DropdownButtonFormField<FinancialAccount>(
           initialValue: _to,
           decoration: InputDecoration(

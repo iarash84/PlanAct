@@ -153,6 +153,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
           ),
           onSubmitted: (_) => _add(),
         ),
+        const SizedBox(height: PlanActSpacing.sm),
         OutlinedButton.icon(
           onPressed: widget.enabled ? _add : null,
           icon: const Icon(Icons.add),

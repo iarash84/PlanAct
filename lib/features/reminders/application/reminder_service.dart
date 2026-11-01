@@ -2,6 +2,9 @@ import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 
+import 'package:planact/app/app_settings.dart';
+import 'package:planact/features/reminders/domain/morning_reminder.dart';
+
 /// Optional platform inventory used to remove alarms with no durable owner.
 abstract interface class ReminderPlatformInventory {
   Future<void> removeOrphans(Set<String> activeInstanceIds);
@@ -19,7 +22,15 @@ abstract interface class ReminderFreshInstance {
   Future<ReminderInstance?> findInstance(StableId id);
 }
 
-/// Atomically commits reminder intent before any external platform effects.
+/// Delivers the morning reminder after the native unlock trigger has admitted it.
+///
+/// Android receives the unlock broadcast in a native receiver so delivery does
+/// not depend on a running Flutter engine.
+abstract interface class MorningReminderPlatform {
+  Future<bool> notificationsEnabled();
+  Future<void> showMorningReminder();
+}
+
 abstract interface class ReminderIntentTransaction {
   Future<T> runReminderTransaction<T>(Future<T> Function() action);
 }
@@ -37,6 +48,16 @@ abstract interface class ReminderOccurrenceSchedule {
 abstract interface class ReminderOccurrenceReopeningIntent {
   Future<bool> hasPendingReopening(StableId occurrenceId);
   Future<void> finishReopening(StableId occurrenceId);
+}
+
+/// Application-facing seam for the daily, unlock-triggered reminder.
+///
+/// The production Android receiver performs the unlock-triggered claim directly
+/// against the durable database. This seam remains useful for foreground
+/// coordination and platform-independent tests.
+abstract interface class MorningReminderStore {
+  Future<bool> hasEligibleReminderForLocalDate(DateTime localDate);
+  Future<bool> claimMorningReminder(String localDayKey);
 }
 
 class InMemoryReminderRepository implements ReminderRepository {
@@ -57,6 +78,34 @@ class InMemoryReminderRepository implements ReminderRepository {
   @override
   Future<void> saveInstance(ReminderInstance instance) async =>
       _instances[instance.id] = instance;
+}
+
+class MorningReminderCoordinator {
+  MorningReminderCoordinator({
+    required this.settings,
+    required this.store,
+    required this.platform,
+    this.now = DateTime.now,
+  });
+
+  final AppSettings settings;
+  final MorningReminderStore store;
+  final MorningReminderPlatform platform;
+  final DateTime Function() now;
+
+  Future<bool> onDeviceUnlocked() async {
+    if (!await settings.readMorningReminderEnabled()) return false;
+    final localNow = now().toLocal();
+    final window = await settings.readMorningReminderWindow();
+    if (!window.contains(localNow)) return false;
+    if (!await platform.notificationsEnabled()) return false;
+    final hasReminder = await store.hasEligibleReminderForLocalDate(localNow);
+    if (!hasReminder) return false;
+    final dayKey = morningReminderDayKey(localNow);
+    if (!await store.claimMorningReminder(dayKey)) return false;
+    await platform.showMorningReminder();
+    return true;
+  }
 }
 
 class ReminderService {

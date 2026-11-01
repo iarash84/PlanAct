@@ -658,6 +658,7 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
       ],
       const SizedBox(height: PlanActSpacing.lg),
       const Text(PersianCopy.quickCaptureSheetFinancialFieldsChildren),
+      const SizedBox(height: PlanActSpacing.sm),
       SegmentedButton<CommitmentFinancialMeaning>(
         direction: Axis.vertical,
         segments: const [

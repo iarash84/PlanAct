@@ -1,0 +1,7 @@
+B.QMEHRIRAN`t60`tD:\repos\planact\test\fixtures\device_sms_corpus\B.QMEHRIRAN.txt
+Bank_Mellat`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Mellat.txt
+Bank_Melli`t47`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Melli.txt
+IZBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\IZBANK.txt
+PARSIANBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\PARSIANBANK.txt
+ResalatBank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\ResalatBank.txt
+Sina_Bank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\Sina_Bank.txt

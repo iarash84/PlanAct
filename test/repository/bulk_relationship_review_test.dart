@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -13,6 +14,10 @@ import 'package:planact/features/reconciliation/data/drift_reconciliation_reposi
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 
 void main() {
+  // This test intentionally opens independent database owners for restore
+  // and concurrent relationship-review coverage.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   late Directory directory;
   late File file;
   late AppDatabase database;

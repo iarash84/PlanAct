@@ -59,6 +59,7 @@ class WeekTimelineView extends StatefulWidget {
     this.loader,
     this.plannedLoader,
     this.onTap,
+    this.onOccurrenceTap,
     this.onAdd,
     this.noteLoader,
     this.notesRevision = 0,
@@ -74,6 +75,7 @@ class WeekTimelineView extends StatefulWidget {
   final Future<PlannedOccurrenceRange> Function(LocalDate, LocalDate)?
   plannedLoader;
   final ValueChanged<Commitment>? onTap;
+  final ValueChanged<Occurrence>? onOccurrenceTap;
   final VoidCallback? onAdd;
   final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
   final int notesRevision;
@@ -746,7 +748,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       return PlannedSlotTile(
         slot: occurrence.preview!,
         commitment: commitment,
-        onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+        onTap: widget.onOccurrenceTap != null && occurrence.recorded != null
+            ? () => widget.onOccurrenceTap!(occurrence.recorded!)
+            : widget.onTap == null
+            ? null
+            : () => widget.onTap!(commitment),
       );
     }
     final theme = Theme.of(context);
@@ -761,7 +767,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       key: ValueKey('week-card-${occurrence.key}'),
       color: theme.colorScheme.surface,
       child: InkWell(
-        onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+        onTap: widget.onOccurrenceTap != null && occurrence.recorded != null
+            ? () => widget.onOccurrenceTap!(occurrence.recorded!)
+            : widget.onTap == null
+            ? null
+            : () => widget.onTap!(commitment),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           child: Padding(
@@ -812,7 +822,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       return PlannedSlotTile(
         slot: occurrence.preview!,
         commitment: commitment,
-        onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+        onTap: widget.onOccurrenceTap != null && occurrence.recorded != null
+            ? () => widget.onOccurrenceTap!(occurrence.recorded!)
+            : widget.onTap == null
+            ? null
+            : () => widget.onTap!(commitment),
       );
     }
     final theme = Theme.of(context);
@@ -836,7 +850,11 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
         color: CommitmentIdentityPalette.background(color, theme.brightness),
         borderRadius: PlanActRadius.chip,
         child: InkWell(
-          onTap: widget.onTap == null ? null : () => widget.onTap!(commitment),
+          onTap: widget.onOccurrenceTap != null && occurrence.recorded != null
+              ? () => widget.onOccurrenceTap!(occurrence.recorded!)
+              : widget.onTap == null
+              ? null
+              : () => widget.onTap!(commitment),
           borderRadius: PlanActRadius.chip,
           child: Semantics(
             button: true,

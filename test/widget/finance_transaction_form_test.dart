@@ -65,7 +65,6 @@ void main() {
       await tester.tap(find.text('حساب تازه').last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('ثبت'));
-      await tester.tap(find.text('ثبت'));
       await tester.pumpAndSettle();
       final entries = await repository.listEntries();
       expect(entries, hasLength(1));

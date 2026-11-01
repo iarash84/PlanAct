@@ -178,4 +178,48 @@ void main() {
       expect((await repository.listAccounts()).single.name, original.name);
     },
   );
+
+  test(
+    'deletes an empty account and removes its identifier metadata',
+    () async {
+      final target = account(
+        identifiers: AccountIdentifiers(accountNumber: '000123'),
+      );
+      await repository.createAccount(target);
+      expect(
+        await database.readMetadata(
+          'account_identifiers_v1:${target.id.value}',
+        ),
+        isNotNull,
+      );
+
+      await FinanceUseCases(repository).deleteAccount(target.id);
+
+      expect(await repository.listAccounts(), isEmpty);
+      expect(
+        await database.readMetadata(
+          'account_identifiers_v1:${target.id.value}',
+        ),
+        isNull,
+      );
+      await database.close();
+      database = db.AppDatabase(NativeDatabase(live));
+      repository = DriftFinanceRepository(database);
+      expect(await repository.listAccounts(), isEmpty);
+    },
+  );
+
+  test('rejects deletion when the account has ledger history', () async {
+    final target = account();
+    final commands = FinanceUseCases(repository);
+    await commands.createAccount(
+      target,
+      openingBalance: const Money(minorUnits: 1, currency: 'IRR'),
+    );
+
+    await expectLater(commands.deleteAccount(target.id), throwsException);
+
+    expect((await repository.listAccounts()).single.id, target.id);
+    expect((await repository.listEntries()).single.accountId, target.id);
+  });
 }

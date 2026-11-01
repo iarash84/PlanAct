@@ -23,7 +23,11 @@ import 'package:planact/features/calendar/application/holiday_package_service.da
 import 'package:planact/features/calendar/presentation/holiday_package_settings_card.dart';
 import 'package:planact/features/backup/presentation/backup_settings_card.dart';
 import 'package:planact/features/calendar/domain/holiday_provider.dart';
+
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:planact/app/quick_add_fab.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:planact/core/presentation/holiday_provider_scope.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -72,6 +76,7 @@ import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
+import 'package:planact/features/help/presentation/help_faq_page.dart';
 import 'package:planact/features/settings/presentation/about_page.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
@@ -126,6 +131,7 @@ class PlanActApp extends StatefulWidget {
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
   AppBackground _background = AppBackground.none;
+  bool _showArchivedAccounts = false;
   bool _backgroundLoaded = true;
   bool _backgroundLoadFailed = false;
   AppSettings? _settings;
@@ -149,6 +155,7 @@ class _PlanActAppState extends State<PlanActApp> {
       });
       _backgroundLoaded = false;
       _loadBackground();
+      _loadShowArchivedAccounts();
       _loadAppLockSetting();
     }
     _moneyUnits = MoneyUnitController(_settings);
@@ -226,6 +233,22 @@ class _PlanActAppState extends State<PlanActApp> {
     if (settings == null) throw StateError('Persistent settings unavailable');
     await settings.writeBackground(background);
     if (mounted) setState(() => _background = background);
+  }
+
+  Future<void> _loadShowArchivedAccounts() async {
+    try {
+      final value = await _settings!.readShowArchivedAccounts();
+      if (mounted) setState(() => _showArchivedAccounts = value);
+    } catch (_) {
+      if (mounted) setState(() => _showArchivedAccounts = false);
+    }
+  }
+
+  Future<void> _setShowArchivedAccounts(bool enabled) async {
+    final settings = _settings;
+    if (settings == null) throw StateError('Persistent settings unavailable');
+    await settings.writeShowArchivedAccounts(enabled);
+    if (mounted) setState(() => _showArchivedAccounts = enabled);
   }
 
   bool _changingAppLock = false;
@@ -363,6 +386,8 @@ class _PlanActAppState extends State<PlanActApp> {
               tagRepository: widget.tagRepository,
               planRepository: widget.planRepository,
               settings: _settings,
+              showArchivedAccounts: _showArchivedAccounts,
+              onShowArchivedAccountsChanged: _setShowArchivedAccounts,
               themeMode: _themeMode,
               appLockEnabled: _appLockEnabled,
               appLockController: _appLockController,
@@ -427,6 +452,8 @@ class HomeShell extends StatefulWidget {
     this.backupMessage,
     this.smsSource,
     this.themeMode = ThemeMode.system,
+    this.showArchivedAccounts = false,
+    this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
     this.onBackgroundChanged,
     this.appLockEnabled = false,
@@ -447,6 +474,8 @@ class HomeShell extends StatefulWidget {
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
+  final bool showArchivedAccounts;
+  final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
   final Future<void> Function(AppBackground background)? onBackgroundChanged;
   final bool appLockEnabled;
@@ -460,9 +489,10 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   static const _quickAddSize = 56.0;
-  // Reserve the floating footprint inside scroll content, never the viewport.
+  // Reserve the floating footprint plus a clear visual gap inside scroll
+  // content, never the viewport.
   static const _quickAddScrollClearance =
-      _quickAddSize + kFloatingActionButtonMargin;
+      _quickAddSize + kFloatingActionButtonMargin + PlanActSpacing.sm;
 
   late final CalendarNoteRepository _noteRepository =
       _repository is DriftCommitmentRepository
@@ -536,6 +566,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   TodayDashboard? _todayDashboard;
   TodayActionCenter? _todayActionCenter;
   String? _todayError;
+  Future<void>? _refreshInFlight;
+  bool _refreshAgain = false;
   final AttentionEngine _attentionEngine = const AttentionEngine();
   late final FinancialExpectationRepository _expectationRepository =
       _repository is DriftCommitmentRepository
@@ -592,10 +624,22 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       await _refresh();
       if (_repository case final DriftCommitmentRepository repository) {
         try {
+          final reminderRepository = DriftReminderRepository(
+            repository.database,
+          );
+          final reminderPlatform = AndroidReminderPlatformAdapter();
           await ReminderService(
-            repository: DriftReminderRepository(repository.database),
-            platform: AndroidReminderPlatformAdapter(),
+            repository: reminderRepository,
+            platform: reminderPlatform,
           ).reconcile(now: DateTime.now().toUtc());
+          final settings = widget.settings;
+          if (settings != null) {
+            await MorningReminderCoordinator(
+              settings: settings,
+              store: reminderRepository,
+              platform: reminderPlatform,
+            ).onDeviceUnlocked();
+          }
         } catch (_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -619,23 +663,55 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Future<void> _tagsChanged() => _refresh(throwOnFailure: true);
 
   Future<void> _refresh({bool throwOnFailure = false}) async {
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) {
+      _refreshAgain = true;
+      try {
+        await inFlight;
+      } catch (_) {
+        if (throwOnFailure) rethrow;
+      }
+      return;
+    }
+
+    final future = _drainRefreshes();
+    _refreshInFlight = future;
+    try {
+      await future;
+    } catch (_) {
+      if (throwOnFailure) rethrow;
+    } finally {
+      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+    }
+  }
+
+  Future<void> _drainRefreshes() async {
+    do {
+      _refreshAgain = false;
+      await _performRefresh();
+    } while (_refreshAgain);
+  }
+
+  Future<void> _performRefresh() async {
     try {
       final persisted = await _repository.list();
       final allTags = await _tagRepository.list();
+      final memberships = _tagRepository is BatchTagRepository
+          ? await (_tagRepository as BatchTagRepository).tagsForMany(
+              persisted.map((item) => item.id.value),
+              TaggableType.commitment,
+            )
+          : null;
+      final labelsById = {for (final tag in allTags) tag.id: tag.label};
       final items = <Commitment>[];
       for (final item in persisted) {
-        final ids = await _tagRepository.tagsFor(
-          item.id.value,
-          TaggableType.commitment,
-        );
-        items.add(
-          item.withTags(
-            allTags
-                .where((tag) => ids.contains(tag.id))
-                .map((tag) => tag.label)
-                .toSet(),
-          ),
-        );
+        final ids =
+            memberships?[item.id.value] ??
+            await _tagRepository.tagsFor(
+              item.id.value,
+              TaggableType.commitment,
+            );
+        items.add(item.withTags({for (final id in ids) ?labelsById[id]}));
       }
       final schedules = <String, List<DateTime>>{};
       final plans = <StableId, List<Occurrence>>{};
@@ -720,7 +796,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         setState(() => _todayError = PersianCopy.planactAppRefreshMessage);
         _commitmentViewsRevision.value++;
       }
-      if (throwOnFailure) rethrow;
+      rethrow;
     }
   }
 
@@ -1008,7 +1084,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _showCommitmentDetails(Commitment commitment) async {
+  Future<void> _showCommitmentActions(Commitment commitment) async {
     final fresh = await _repository.findById(commitment.id);
     if (fresh == null) throw StateError('Commitment no longer exists');
     commitment = fresh;
@@ -1141,7 +1217,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   onTap: () {
                     Navigator.pop(
                       sheetContext,
-                      () => _openReportCommitment(commitment),
+                      () => _openCommitmentDetails(commitment),
                     );
                   },
                 ),
@@ -1338,7 +1414,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     : _formatDate(_firstScheduledDate(item)!),
                 _statusLabel(item.status),
               ),
-          onOpen: _showCommitmentDetails,
+          onOpen: _showCommitmentActions,
           error: _todayError,
           onRetry: _refresh,
         ),
@@ -1363,11 +1439,109 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 expectations: _expectationRepository,
                 tags: _tagRepository,
               ),
-        onOpenCommitment: _openReportCommitment,
+        onOpenCommitment: _openCommitmentDetails,
         onOpenTransaction: _openRelationship,
       ),
     ),
   );
+
+  PersistedOccurrenceActionExecutor _occurrenceExecutor() =>
+      PersistedOccurrenceActionExecutor(
+        plans: _planRepository,
+        actuals: _repository is DriftCommitmentRepository
+            ? DriftActualRepository(_repository.database)
+            : null,
+        reminders: _createCommitmentPlan.reminderService,
+        replacements: _repository is DriftCommitmentRepository
+            ? DriftReplacementRepository(_repository.database)
+            : null,
+        policyRepository: _repository is DriftCommitmentRepository
+            ? DriftSessionPolicyRepository(_repository.database)
+            : null,
+      );
+
+  Future<void> _showOccurrenceAction(
+    Occurrence occurrence, {
+    Commitment? commitment,
+  }) async {
+    var resolvedCommitment = commitment;
+    if (resolvedCommitment == null) {
+      for (final entry in _calendarOccurrences.entries) {
+        if (entry.value.any((item) => item.id == occurrence.id)) {
+          resolvedCommitment = _commitments
+              .where((item) => item.id.value == entry.key)
+              .firstOrNull;
+          break;
+        }
+      }
+    }
+    if (!mounted) return;
+    Future<void> Function()? managementAction;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    PlanActSpacing.md,
+                    PlanActSpacing.sm,
+                    PlanActSpacing.md,
+                    0,
+                  ),
+                  child: Text(
+                    planActL10n(
+                      sheetContext,
+                    ).attentionEngineAttentionActionDetermineOccurrenceStatus,
+                    style: Theme.of(sheetContext).textTheme.titleMedium,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    PlanActSpacing.sm,
+                    PlanActSpacing.md,
+                    PlanActSpacing.sm,
+                    0,
+                  ),
+                  child: OccurrenceActionRow(
+                    occurrence: occurrence,
+                    executor: _occurrenceExecutor(),
+                    onChanged: () async {
+                      await _refresh(throwOnFailure: true);
+                      if (sheetContext.mounted) Navigator.pop(sheetContext);
+                    },
+                  ),
+                ),
+                if (resolvedCommitment != null) ...[
+                  const Divider(),
+                  ListTile(
+                    key: const ValueKey('occurrence-manage-commitment'),
+                    leading: const Icon(Icons.manage_search),
+                    title: const Text(
+                      PersianCopy.planactAppShowCommitmentDetailsTitle7,
+                    ),
+                    subtitle: Text(resolvedCommitment.title),
+                    onTap: () {
+                      managementAction = () =>
+                          _openCommitmentDetails(resolvedCommitment!);
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (managementAction != null) await managementAction!();
+  }
 
   CommitmentDetailsPage _detailsPage(Commitment commitment) =>
       CommitmentDetailsPage(
@@ -1376,22 +1550,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         tagRepository: _tagRepository,
         planRepository: _planRepository,
         expectationRepository: _expectationRepository,
-        occurrenceExecutor: PersistedOccurrenceActionExecutor(
-          plans: _planRepository,
-          actuals: _repository is DriftCommitmentRepository
-              ? DriftActualRepository(_repository.database)
-              : null,
-          reminders: _createCommitmentPlan.reminderService,
-          replacements: _repository is DriftCommitmentRepository
-              ? DriftReplacementRepository(_repository.database)
-              : null,
-          policyRepository: _repository is DriftCommitmentRepository
-              ? DriftSessionPolicyRepository(_repository.database)
-              : null,
-        ),
+        occurrenceExecutor: _occurrenceExecutor(),
         onSaved: _tagsChanged,
         checklistRepository: _checklists,
       );
+
+  Future<void> _showTodayOccurrenceAction(TodayActionItem item) async {
+    final source = item.sourceReference;
+    final commitment = item.commitment;
+    if (source == null || commitment == null) return;
+    for (final occurrences in _calendarOccurrences.values) {
+      for (final occurrence in occurrences) {
+        if (occurrence.id.value == source) {
+          await _showOccurrenceAction(occurrence, commitment: commitment);
+          return;
+        }
+      }
+    }
+  }
 
   Future<void> _openSearch() async {
     await Navigator.of(context).push<void>(
@@ -1405,7 +1581,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   notes: _noteRepository,
                   tags: _tagRepository,
                 ),
-          onOpenCommitment: _showCommitmentDetails,
+          onOpenCommitment: _showCommitmentActions,
           onOpenNote: _showNote,
           onOpenFinancial: _openSearchFinancial,
           refreshListenable: _commitmentViewsRevision,
@@ -1417,7 +1593,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     await _financePageKey.currentState?.refreshData();
   }
 
-  Future<void> _openReportCommitment(Commitment commitment) async {
+  Future<void> _openCommitmentDetails(Commitment commitment) async {
     await Navigator.of(
       context,
     ).push<void>(MaterialPageRoute(builder: (_) => _detailsPage(commitment)));
@@ -1487,10 +1663,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onRetry: _refreshWithSms,
         onRefresh: _refreshWithSms,
         onAdd: _showCapture,
-        onCommitmentTap: _showCommitmentDetails,
+        onCommitmentTap: _showCommitmentActions,
+        onEditCommitment: _openCommitmentDetails,
+        onOccurrenceTap: _showTodayOccurrenceAction,
         onCommitmentArchive: _archiveCommitment,
+        checklistRepository: _checklists,
         checklists: _checklistSnapshots,
         onChecklistChanged: _toggleChecklistItem,
+        onChecklistUpdated: _refresh,
         onReview: (item) {
           if (item.attentionAction == AttentionAction.classifyTransaction &&
               item.sourceReference != null) {
@@ -1533,8 +1713,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             ? _planRepository.loadMonth
             : null,
         reminderRules: _calendarReminderRules,
+        checklistRepository: _checklists,
+        onChecklistUpdated: _refresh,
         scheduledDates: _scheduledDates,
-        onCommitmentTap: _showCommitmentDetails,
+        onCommitmentTap: _showCommitmentActions,
+        onOccurrenceTap: _showOccurrenceAction,
         onAdd: _showCapture,
       ),
       FinancePage(
@@ -1542,6 +1725,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         bottomContentPadding: _quickAddScrollClearance,
         embedded: true,
         repository: _financeRepository,
+        showArchivedAccounts: widget.showArchivedAccounts,
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,
         onTagsChanged: _tagsChanged,
@@ -1565,6 +1749,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           backupActions: widget.backupActions,
           backupMessage: widget.backupMessage,
           settings: widget.settings,
+          showArchivedAccounts: widget.showArchivedAccounts,
+          onShowArchivedAccountsChanged: widget.onShowArchivedAccountsChanged,
           themeMode: widget.themeMode,
           background: widget.background,
           onBackgroundChanged: widget.onBackgroundChanged,
@@ -1685,52 +1871,99 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: SizedBox.square(
-        dimension: _quickAddSize,
-        child: FloatingActionButton(
-          key: const ValueKey('shell-quick-add'),
-          tooltip: planActL10n(context).commonQuickAdd,
-          onPressed: _showQuickAdd,
-          child: const Icon(Icons.add),
+      floatingActionButton: QuickAddFab(
+        size: _quickAddSize,
+        tooltip: planActL10n(context).commonQuickAdd,
+        onPressed: _showQuickAdd,
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasBackground = widget.background.assetPath != null;
+    final surface = theme.colorScheme.surface;
+
+    final navigation = MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
+        viewPadding: MediaQuery.of(context).viewPadding
+            .copyWith(left: 0, right: 0),
+        textScaler: TextScaler.noScaling,
+      ),
+      child: NavigationBarTheme(
+        data: NavigationBarTheme.of(context).copyWith(
+          height: 64,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          animationDuration: Duration.zero,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          labelTextStyle: WidgetStatePropertyAll(
+            theme.textTheme.labelMedium?.copyWith(fontSize: 1, height: 1),
+          ),
+          onDestinationSelected: (index) {
+            setState(() => _selectedIndex = index);
+            final duration = PlanActMotion.duration(context);
+            if (duration == Duration.zero) {
+              _pageController.jumpToPage(index);
+              return;
+            }
+            _pageController.animateToPage(
+              index,
+              duration: duration,
+              curve: PlanActMotion.curve,
+            );
+          },
+          destinations: [
+            NavigationDestination(
+              icon: Icon(Icons.today_outlined),
+              selectedIcon: Icon(Icons.today),
+              label: planActL10n(context).commonToday,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: planActL10n(context).navigationCalendar,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.account_balance_wallet_outlined),
+              selectedIcon: Icon(Icons.account_balance_wallet),
+              label: planActL10n(context).navigationFinance,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.more_horiz),
+              label: planActL10n(context).navigationMore,
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-          final duration = PlanActMotion.duration(context);
-          if (duration == Duration.zero) {
-            _pageController.jumpToPage(index);
-            return;
-          }
-          _pageController.animateToPage(
-            index,
-            duration: duration,
-            curve: PlanActMotion.curve,
-          );
-        },
-        destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: planActL10n(context).commonToday,
+    );
+
+    final panel = DecoratedBox(
+      decoration: BoxDecoration(
+        color: surface.withValues(alpha: hasBackground ? 0.68 : 1),
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(
+              alpha: hasBackground ? 0.42 : 0.24,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: planActL10n(context).navigationCalendar,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: planActL10n(context).navigationFinance,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            label: planActL10n(context).navigationMore,
-          ),
-        ],
+        ),
       ),
+      child: navigation,
+    );
+
+    return ClipRect(
+      child: hasBackground
+          ? BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: panel,
+            )
+          : panel,
     );
   }
 }
@@ -2014,6 +2247,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                     OccurrenceActionRow(
                       occurrence: occurrence,
                       executor: widget.occurrenceExecutor,
+                      useActionsMenu: true,
                       key: ValueKey(
                         '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                       ),
@@ -2235,46 +2469,72 @@ class _MorePage extends StatelessWidget {
       PlanActSpacing.lg + bottomContentPadding,
     ),
     children: [
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.analytics_outlined),
-          title: Text(planActL10n(context).planactAppBuildTitle3),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle2),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onReports,
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.analytics_outlined),
+            title: Text(planActL10n(context).planactAppBuildTitle3),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle2),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: onReports,
+          ),
         ),
       ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.inbox_outlined),
-          title: Text(planActL10n(context).planactAppOpenInboxTitle),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: onInbox,
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.inbox_outlined),
+            title: Text(planActL10n(context).planactAppOpenInboxTitle),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle3),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: onInbox,
+          ),
         ),
       ),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.settings_outlined),
-          title: Text(planActL10n(context).planactAppBuildTitle6),
-          subtitle: Text(planActL10n(context).planactAppBuildSubtitle4),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => Scaffold(
-                appBar: AppBar(
-                  title: Text(planActL10n(context).planactAppBuildTitle6),
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: Text(planActL10n(context).helpFaqPageTitle),
+            subtitle: Text(planActL10n(context).helpFaqPageSubtitle),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const HelpFaqPage()),
+            ),
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: Text(planActL10n(context).planactAppBuildTitle6),
+            subtitle: Text(planActL10n(context).planactAppBuildSubtitle4),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(
+                    title: Text(planActL10n(context).planactAppBuildTitle6),
+                  ),
+                  body: settings,
                 ),
-                body: settings,
               ),
             ),
           ),
         ),
       ),
       if (holidayPackages != null)
-        HolidayPackageSettingsCard(
-          service: holidayPackages!,
-          onInstalled: onHolidaysChanged ?? () {},
+        Padding(
+          padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+          child: HolidayPackageSettingsCard(
+            service: holidayPackages!,
+            onInstalled: onHolidaysChanged ?? () {},
+          ),
         ),
       if (backupActions != null)
         BackupSettingsCard(actions: backupActions!, message: backupMessage),

@@ -15,7 +15,6 @@ import 'package:planact/features/commitments/domain/counted_commitment_progress.
 import 'package:planact/features/commitments/presentation/commitment_progress_section.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
-import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
 
 import '../fixtures/counted_commitment.dart';
 
@@ -248,31 +247,44 @@ void main() {
         400,
         scrollable: find.byType(Scrollable).first,
       );
-      final actionMenu = find.descendant(
-        of: find.byType(OccurrenceActionRow).first,
-        matching: find.byWidgetPredicate((widget) => widget is PopupMenuButton),
+      final occurrenceMenu = find.byKey(
+        ValueKey('occurrence-actions-menu-${plan.occurrences.first.id.value}'),
       );
-      await tester.scrollUntilVisible(
-        actionMenu.hitTestable(),
-        250,
-        scrollable: find.byType(Scrollable).first,
+      await tester.ensureVisible(occurrenceMenu);
+      await tester.pumpAndSettle();
+      expect(occurrenceMenu.hitTestable(), findsOneWidget);
+      expect(
+        find.byKey(
+          ValueKey(
+            'occurrence-action-${plan.occurrences.first.id.value}-complete',
+          ),
+        ),
+        findsNothing,
       );
-      await tester.tap(actionMenu);
+      await tester.tap(occurrenceMenu);
       await tester.pumpAndSettle();
       await tester.tap(find.text('انجام شد / حضور داشت'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('انجام شد'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
       await settleIo(tester);
+      expect(find.byType(AlertDialog), findsNothing);
       expect(find.text('انجام‌شده: ۱ نوبت (۲۵٪)'), findsOneWidget);
-      expect(find.text('باقی‌مانده: ۳ نوبت (۷۵٪)'), findsOneWidget);
+      expect(find.text('بازگردانی'), findsOneWidget);
       final saved = (await plans.findByCommitmentId(plan.commitment.id))!;
       expect(
         saved.occurrences.where((o) => o.status == OccurrenceStatus.completed),
         hasLength(1),
       );
       expect(await database.select(database.actuals).get(), hasLength(1));
+      await tester.tap(find.text('بازگردانی'));
+      await settleIo(tester);
+      expect(find.text('تغییر بازگردانی شد؛ سابقه محفوظ است.'), findsOneWidget);
+      final reopened = (await plans.findByCommitmentId(plan.commitment.id))!;
+      expect(
+        reopened.occurrences
+            .singleWhere((o) => o.id == plan.occurrences.first.id)
+            .status,
+        OccurrenceStatus.scheduled,
+      );
+      expect(await database.select(database.actuals).get(), hasLength(2));
     },
   );
 }

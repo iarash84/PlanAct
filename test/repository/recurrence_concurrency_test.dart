@@ -159,6 +159,10 @@ void _expectPreserved(
 }
 
 void main() {
+  // This suite intentionally opens two independent SQLite connections to
+  // exercise real writer contention and retry behavior.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   for (final journal in ['delete', 'wal']) {
     for (final scenario in ['monthly', 'yearly', 'legacy monthly']) {
       test('$journal / $scenario: actual writer overlap, retry and cold reopen', () async {

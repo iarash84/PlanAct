@@ -6,6 +6,7 @@ import 'package:planact/core/localization/persian_copy.g.dart';
 import 'dart:math' as math;
 
 import 'package:planact/features/scheduling/application/planned_occurrences.dart';
+import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 
 import 'package:planact/app/theme/commitment_identity_palette.dart';
@@ -36,6 +37,7 @@ class CalendarPage extends StatefulWidget {
     this.onAdd,
     this.occurrences = const {},
     this.reminderRules = const [],
+    this.onOccurrenceTap,
     this.initialDate,
     this.weekLoader,
     this.monthLoader,
@@ -43,6 +45,8 @@ class CalendarPage extends StatefulWidget {
     this.noteLoader,
     this.notesRevision = 0,
     this.onNoteTap,
+    this.checklistRepository,
+    this.onChecklistUpdated,
     this.holidayProvider = const IranianHolidayProvider(),
     this.bottomContentPadding = 0,
   });
@@ -52,6 +56,8 @@ class CalendarPage extends StatefulWidget {
   final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
   final int notesRevision;
   final ValueChanged<CalendarNote>? onNoteTap;
+  final ChecklistRepository? checklistRepository;
+  final Future<void> Function()? onChecklistUpdated;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate)? weekLoader;
   final Future<Map<String, List<Occurrence>>> Function(LocalDate, LocalDate)?
   monthLoader;
@@ -63,6 +69,7 @@ class CalendarPage extends StatefulWidget {
   final Map<String, List<Occurrence>> occurrences;
   final List<ReminderRule> reminderRules;
   final ValueChanged<Commitment>? onCommitmentTap;
+  final ValueChanged<Occurrence>? onOccurrenceTap;
   final VoidCallback? onAdd;
 
   @override
@@ -218,14 +225,26 @@ class _CalendarPageState extends State<CalendarPage> {
       width: double.infinity,
       child: SegmentedButton<bool>(
         key: const ValueKey('calendar-mode-toggle'),
+        showSelectedIcon: false,
+        style: ButtonStyle(padding: WidgetStateProperty.all(EdgeInsets.zero)),
         segments: [
           ButtonSegment(
             value: false,
-            label: Text(planActL10n(context).calendarPageToggleLabel),
+            label: Text(
+              planActL10n(context).calendarPageToggleLabel,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           ButtonSegment(
             value: true,
-            label: Text(planActL10n(context).calendarPageToggleLabel2),
+            label: Text(
+              planActL10n(context).calendarPageToggleLabel2,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
         selected: {_week},
@@ -314,6 +333,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   loader: widget.weekLoader,
                   plannedLoader: widget.plannedLoader,
                   onTap: widget.onCommitmentTap,
+                  onOccurrenceTap: widget.onOccurrenceTap,
                   onAdd: widget.onAdd,
                   noteLoader: widget.noteLoader,
                   notesRevision: widget.notesRevision,
@@ -417,13 +437,15 @@ class _CalendarPageState extends State<CalendarPage> {
                           textScaler: scaler,
                         )..layout(maxWidth: cellWidth - 8);
                         final markerHeight =
-                            markerPainter.preferredLineHeight * 2 + 4;
+                            markerPainter.preferredLineHeight * 2 + 8;
                         markerPainter.dispose();
                         final holidayHeight = textHeight(
                           planActL10n(context).calendarPageHolidayHeightMessage,
                           theme.textTheme.labelSmall,
                         );
                         double weekHeight(int week) {
+                          const cellVerticalPadding = 8.0;
+                          const todayBorderExtent = 4.0;
                           var height = 48.0;
                           for (var column = 0; column < 7; column++) {
                             final day = week * 7 + column - leading + 1;
@@ -452,7 +474,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                   math.min(itemCount, 2) * (markerHeight + 2) +
                                   overflowHeight +
                                   PlanActSpacing.sm +
-                                  (date == today ? 4 : 0),
+                                  (itemCount > 0 ? cellVerticalPadding : 0) +
+                                  (date == today ? todayBorderExtent : 0),
                             );
                           }
                           return height;
@@ -577,24 +600,32 @@ class _CalendarPageState extends State<CalendarPage> {
                       Text(planActL10n(context).calendarPageBuildChildren6)
                     else
                       ...selectedItems.map(
-                        (item) => CalendarCommitmentCard(
-                          commitment: item,
-                          occurrences: _occurrencesFor(item),
-                          previews:
-                              (_monthPreviews[item.id.value] ??
-                                      <PlannedOccurrenceSlot>[])
-                                  .where(
-                                    (slot) =>
-                                        JalaliDate.fromDateTime(
-                                          slot.date.toUtcDateForCalculation(),
-                                        ) ==
-                                        _selectedDay,
-                                  )
-                                  .toList(),
-                          reminderRules: widget.reminderRules,
-                          onTap: widget.onCommitmentTap == null
-                              ? null
-                              : () => widget.onCommitmentTap!(item),
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: PlanActSpacing.md,
+                          ),
+                          child: CalendarCommitmentCard(
+                            commitment: item,
+                            occurrences: _occurrencesFor(item),
+                            previews:
+                                (_monthPreviews[item.id.value] ??
+                                        <PlannedOccurrenceSlot>[])
+                                    .where(
+                                      (slot) =>
+                                          JalaliDate.fromDateTime(
+                                            slot.date.toUtcDateForCalculation(),
+                                          ) ==
+                                          _selectedDay,
+                                    )
+                                    .toList(),
+                            reminderRules: widget.reminderRules,
+                            checklistRepository: widget.checklistRepository,
+                            onChecklistUpdated: widget.onChecklistUpdated,
+                            onOccurrenceTap: widget.onOccurrenceTap,
+                            onTap: widget.onCommitmentTap == null
+                                ? null
+                                : () => widget.onCommitmentTap!(item),
+                          ),
                         ),
                       ),
                     if (!_monthLoading && !_monthError)
@@ -657,28 +688,48 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        IconButton(
-          tooltip: previousLabel,
-          onPressed: onPrevious,
-          icon: const Icon(Icons.chevron_left),
-        ),
-        Expanded(
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+    return SizedBox(
+      height: 48,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Center(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-        IconButton(
-          tooltip: nextLabel,
-          onPressed: onNext,
-          icon: const Icon(Icons.chevron_right),
-        ),
-      ],
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: IconButton(
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              padding: EdgeInsets.zero,
+              tooltip: previousLabel,
+              onPressed: onPrevious,
+              icon: const Icon(Icons.chevron_left),
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: IconButton(
+              constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+              padding: EdgeInsets.zero,
+              tooltip: nextLabel,
+              onPressed: onNext,
+              icon: const Icon(Icons.chevron_right),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -773,68 +824,90 @@ class _CalendarDay extends StatelessWidget {
                     ? Border.all(color: scheme.primary, width: 2)
                     : null,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    PersianNumbers.format(date.day),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: selected || isToday
-                          ? FontWeight.bold
-                          : FontWeight.w600,
-                      color: holiday
-                          ? PlanActStatusColors.of(context).holiday
-                          : selected
-                          ? scheme.onPrimaryContainer
-                          : scheme.onSurface,
-                    ),
-                  ),
-                  if (holiday)
-                    Text(
-                      planActL10n(context).calendarPageHolidayHeightMessage,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: PlanActStatusColors.of(context).holiday,
-                      ),
-                    ),
-                  for (final item in markers.take(2))
-                    Container(
-                      key: ValueKey('month-title-${date.day}-${item.id}'),
-                      height: markerHeight,
-                      margin: const EdgeInsets.only(top: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        borderRadius: PlanActRadius.chip,
-                        color: CommitmentIdentityPalette.background(
-                          item.color,
-                          theme.brightness,
-                        ),
-                      ),
-                      child: Text(
-                        item.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: CommitmentIdentityPalette.foreground(
-                            item.color,
-                            theme.brightness,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // A month cell has a finite, text-scale-dependent height. The
+                  // marker stack can legitimately be taller than that height on
+                  // narrow screens, especially with large Persian text. Scale
+                  // the complete cell content as one unit so it remains visible
+                  // without producing a RenderFlex overflow or clipping an
+                  // individual marker.
+                  return FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.topCenter,
+                    child: SizedBox(
+                      width: constraints.maxWidth,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            PersianNumbers.format(date.day),
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: selected || isToday
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: holiday
+                                  ? PlanActStatusColors.of(context).holiday
+                                  : selected
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onSurface,
+                            ),
                           ),
-                        ),
+                          if (holiday)
+                            Text(
+                              planActL10n(context)
+                                  .calendarPageHolidayHeightMessage,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: PlanActStatusColors.of(context).holiday,
+                              ),
+                            ),
+                          for (final item in markers.take(2))
+                            Container(
+                              key: ValueKey(
+                                'month-title-${date.day}-${item.id}',
+                              ),
+                              height: markerHeight,
+                              margin: const EdgeInsets.only(top: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: PlanActRadius.chip,
+                                color: CommitmentIdentityPalette.background(
+                                  item.color,
+                                  theme.brightness,
+                                ),
+                              ),
+                              child: Text(
+                                item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: CommitmentIdentityPalette.foreground(
+                                    item.color,
+                                    theme.brightness,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (markers.length > 2)
+                            Text(
+                              '+${PersianNumbers.format(markers.length - 2)}',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: selected
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurfaceVariant,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  if (markers.length > 2)
-                    Text(
-                      '+${PersianNumbers.format(markers.length - 2)}',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? scheme.onPrimaryContainer
-                            : scheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
+                  );
+                },
               ),
             ),
           ),

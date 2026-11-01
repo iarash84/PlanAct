@@ -16,7 +16,10 @@ import 'package:planact/features/reminders/domain/reminder.dart';
 /// Initializes Android notification delivery without making notifications a
 /// dependency of the reminder domain.
 class AndroidReminderPlatformAdapter
-    implements ReminderPlatformAdapter, ReminderPlatformInventory {
+    implements
+        ReminderPlatformAdapter,
+        ReminderPlatformInventory,
+        MorningReminderPlatform {
   AndroidReminderPlatformAdapter({
     FlutterLocalNotificationsPlugin? plugin,
     MethodChannel? settingsChannel,
@@ -80,6 +83,37 @@ class AndroidReminderPlatformAdapter
     return await android.areNotificationsEnabled() ?? false;
   }
 
+  @override
+  Future<void> showMorningReminder() async {
+    await initialize();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android == null ||
+        !(await android.areNotificationsEnabled() ?? false)) {
+      throw const ReminderPermissionUnavailable();
+    }
+    await _plugin.show(
+      id: 0x504d,
+      title: 'یادآوری صبحگاهی پلن‌اکت',
+      body: 'تعهدهای امروز شما نیاز به توجه دارند.',
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'planact_morning_reminders',
+          'یادآوری صبحگاهی',
+          channelDescription:
+              'یادآوری تعهدهای امروز هنگام شروع استفاده از گوشی',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          visibility: NotificationVisibility.private,
+        ),
+      ),
+      payload: 'planact:morning:today',
+    );
+  }
+
+  @override
   Future<bool> notificationsEnabled() async {
     await initialize();
     final android = _plugin

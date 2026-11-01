@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart';
@@ -21,6 +22,10 @@ DateTime at(int year, int month, int day) {
 }
 
 void main() {
+  // Rolling and snapshot-reopen coverage intentionally creates multiple
+  // independent database owners.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   test(
     'cold reopen, rolling concurrency, history, reminders and snapshot',
     () async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
@@ -36,6 +37,10 @@ class _StaleListing extends DriftReminderRepository {
 }
 
 void main() {
+  // Cold-reopen and restore coverage intentionally creates multiple
+  // file-backed database owners in this test process.
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+
   late Directory directory;
   late File live;
   late AppDatabase db;
@@ -76,64 +81,73 @@ void main() {
     await directory.delete(recursive: true);
   });
 
-  test('alarm intent, cold reopen, and portable snapshot preserve method and snooze', () async {
-    platform.denied = true;
-    final plan = await create(recurring: true);
-    expect(plan.reminderDeliveryPending, isTrue);
-    final instance = (await reminders.listInstances()).first;
-    platform.denied = false;
-    await service.snooze(instance, DateTime(2030, 1, 1, 17, 55));
-    await db.close();
-    db = AppDatabase(NativeDatabase(live));
-    bind();
-    expect(
-      (await reminders.listRules()).every(
-        (r) => r.delivery == ReminderDelivery.alarm,
-      ),
-      isTrue,
-    );
-    final reopened = await reminders.findInstance(instance.id);
-    expect(reopened!.delivery, ReminderDelivery.alarm);
-    expect(reopened.status, ReminderInstanceStatus.snoozed);
-    expect(reopened.snoozedUntil, DateTime(2030, 1, 1, 17, 55).toUtc());
-    final loaded = (await plans.findByCommitmentId(plan.commitment.id))!;
-    expect(loaded.schedule.generationReminderDelivery, ReminderDelivery.alarm);
-    expect(
-      loaded.schedule
-          .nextVersion(effectiveFrom: LocalDate(2030, 1, 2))
-          .generationReminderDelivery,
-      ReminderDelivery.alarm,
-    );
-
-    final bytes = await sqliteBackupSnapshot(
-      database: db,
-      target: File('${directory.path}/snapshot'),
-      redact: true,
-    );
-    final restored = File('${directory.path}/restored.sqlite');
-    await restored.writeAsBytes(bytes);
-    final restoredDb = AppDatabase(NativeDatabase(restored));
-    try {
-      final restoredReminders = DriftReminderRepository(restoredDb);
+  test(
+    'alarm intent, cold reopen, and portable snapshot preserve method and snooze',
+    () async {
+      platform.denied = true;
+      final plan = await create(recurring: true);
+      expect(plan.reminderDeliveryPending, isTrue);
+      final instance = (await reminders.listInstances()).first;
+      platform.denied = false;
+      await service.snooze(instance, DateTime(2030, 1, 1, 17, 55));
+      await db.close();
+      db = AppDatabase(NativeDatabase(live));
+      bind();
       expect(
-        (await restoredReminders.findInstance(instance.id))!.snoozedUntil,
-        reopened.snoozedUntil,
+        (await reminders.listRules()).every(
+          (r) => r.delivery == ReminderDelivery.alarm,
+        ),
+        isTrue,
       );
+      final reopened = await reminders.findInstance(instance.id);
+      expect(reopened!.delivery, ReminderDelivery.alarm);
+      expect(reopened.status, ReminderInstanceStatus.snoozed);
+      expect(reopened.snoozedUntil, DateTime(2030, 1, 1, 17, 55).toUtc());
+      final loaded = (await plans.findByCommitmentId(plan.commitment.id))!;
       expect(
-        (await restoredReminders.listRules()).first.delivery,
+        loaded.schedule.generationReminderDelivery,
         ReminderDelivery.alarm,
       );
       expect(
-        (await DriftCommitmentPlanRepository(restoredDb)
-                .findByCommitmentId(plan.commitment.id))!
-            .schedule
+        loaded.schedule
+            .nextVersion(effectiveFrom: LocalDate(2030, 1, 2))
             .generationReminderDelivery,
         ReminderDelivery.alarm,
       );
-    } finally {
-      await restoredDb.close();
-    }
-  });
+
+      final bytes = await sqliteBackupSnapshot(
+        database: db,
+        target: File('${directory.path}/snapshot'),
+        redact: true,
+      );
+      final restored = File('${directory.path}/restored.sqlite');
+      await restored.writeAsBytes(bytes);
+      final restoredDb = AppDatabase(NativeDatabase(restored));
+      try {
+        final restoredReminders = DriftReminderRepository(restoredDb);
+        expect(
+          (await restoredReminders.findInstance(instance.id))!.snoozedUntil,
+          reopened.snoozedUntil,
+        );
+        expect(
+          (await restoredReminders.listRules()).first.delivery,
+          ReminderDelivery.alarm,
+        );
+        expect(
+          (await DriftCommitmentPlanRepository(restoredDb)
+                  .findByCommitmentId(plan.commitment.id))!
+              .schedule
+              .generationReminderDelivery,
+          ReminderDelivery.alarm,
+        );
+      } finally {
+        await restoredDb.close();
+      }
+    },
+    // VACUUM INTO copies the complete SQLite database and can be slower when
+    // the full widget suite is running concurrently on Windows.
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 
   test('legacy absence of delivery metadata is notification; unknown data is rejected', () async {
     await create();
