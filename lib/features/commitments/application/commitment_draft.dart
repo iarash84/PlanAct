@@ -1,3 +1,4 @@
+import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
@@ -26,6 +27,7 @@ class CommitmentDraft {
     this.entitlementUnits,
     this.financialMeaning = CommitmentFinancialMeaning.none,
     this.financialAmount,
+    this.financialAccountId,
     this.priority = CommitmentPriority.normal,
     this.tags = const {},
     this.checklistTitles = const [],
@@ -52,6 +54,7 @@ class CommitmentDraft {
   final int? entitlementUnits;
   final CommitmentFinancialMeaning financialMeaning;
   final int? financialAmount;
+  final StableId? financialAccountId;
   final CommitmentPriority priority;
   final Set<String> tags;
   final List<String> checklistTitles;
@@ -86,6 +89,8 @@ class CommitmentDraft {
     CommitmentFinancialMeaning? financialMeaning,
     int? financialAmount,
     bool clearFinancialAmount = false,
+    StableId? financialAccountId,
+    bool clearFinancialAccount = false,
     CommitmentPriority? priority,
     Set<String>? tags,
     List<String>? checklistTitles,
@@ -117,6 +122,9 @@ class CommitmentDraft {
     financialAmount: clearFinancialAmount
         ? null
         : financialAmount ?? this.financialAmount,
+    financialAccountId: clearFinancialAccount
+        ? null
+        : financialAccountId ?? this.financialAccountId,
     priority: priority ?? this.priority,
     tags: tags ?? this.tags,
     checklistTitles: checklistTitles ?? this.checklistTitles,

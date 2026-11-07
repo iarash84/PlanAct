@@ -899,6 +899,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       builder: (_) => QuickCaptureSheet(
         onSave: _saveCapturedCommitment,
         tagRepository: _tagRepository,
+        financeRepository: _financeRepository,
       ),
     );
   }
@@ -930,6 +931,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           : null,
       financialDirection: draft.financialMeaning.expectationDirection,
       financialAmount: draft.financialAmount,
+      financialAccountId: draft.financialAccountId,
       checklistTitles: draft.checklistTitles,
     );
     try {
