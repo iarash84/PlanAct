@@ -1887,24 +1887,19 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
     final navigation = MediaQuery(
       data: MediaQuery.of(context).copyWith(
-        padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
-        viewPadding: MediaQuery.of(context).viewPadding
-            .copyWith(left: 0, right: 0),
-        textScaler: TextScaler.noScaling,
+        // The bottom bar must not inherit the status-bar inset as top spacing.
+        // NavigationBar retains ownership of the bottom/side safe areas.
+        padding: MediaQuery.of(context).padding.copyWith(top: 0),
+        viewPadding: MediaQuery.of(context).viewPadding.copyWith(top: 0),
       ),
       child: NavigationBarTheme(
         data: NavigationBarTheme.of(context).copyWith(
-          height: 64,
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,
           animationDuration: Duration.zero,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          labelTextStyle: WidgetStatePropertyAll(
-            theme.textTheme.labelMedium?.copyWith(fontSize: 1, height: 1),
-          ),
           onDestinationSelected: (index) {
             setState(() => _selectedIndex = index);
             final duration = PlanActMotion.duration(context);

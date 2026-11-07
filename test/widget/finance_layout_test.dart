@@ -91,7 +91,9 @@ void main() {
                 ),
               );
               await _settleDatabase(tester);
-              await tester.tap(find.text('مالی').last);
+              await tester.tap(
+                find.widgetWithText(NavigationDestination, 'مالی'),
+              );
               await _settleDatabase(tester);
               // Scope large-text evidence to Finance, not the unrelated Today
               // relationship-review cards shown on the shell's initial tab.
@@ -163,7 +165,14 @@ void main() {
               expect(menuRect.overlaps(navigationRect), isFalse);
               expect(addRect.bottom, lessThanOrEqualTo(navigationRect.top));
               expect(
-                tester.getRect(find.text('مالی').last).bottom,
+                tester
+                    .getRect(
+                      find.descendant(
+                        of: find.byType(NavigationBar),
+                        matching: find.byIcon(Icons.account_balance_wallet),
+                      ),
+                    )
+                    .bottom,
                 lessThanOrEqualTo(900 - 34),
               );
               await tester.tap(menu, warnIfMissed: true);
