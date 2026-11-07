@@ -52,6 +52,10 @@ void main() {
   testWidgets(
     'Today queue commits refreshes Attention; Finance detail discovers same queue and reopening',
     (tester) async {
+      tester.view.physicalSize = const Size(360, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         PlanActApp(
           repository: DriftCommitmentRepository(database),
@@ -77,10 +81,10 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
-      await tester.tap(find.text('مالی'));
+      await tester.tap(find.widgetWithText(NavigationDestination, 'مالی'));
       await tester.pumpAndSettle();
       // Finance retains the explicit relationship action for reviewed history.
-      final menu = find.byType(PopupMenuButton<String>);
+      final menu = find.byTooltip('عملیات تراکنش');
       await tester.scrollUntilVisible(
         menu,
         300,

@@ -2,6 +2,7 @@ import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
@@ -127,7 +128,7 @@ class _FinancialExpectationEditorState
     if (_loading) return const LinearProgressIndicator();
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PlanActSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -141,8 +142,14 @@ class _FinancialExpectationEditorState
               ),
               children: [
                 Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    PlanActSpacing.lg,
+                    PlanActSpacing.md,
+                    PlanActSpacing.lg,
+                    PlanActSpacing.lg,
+                  ),
                   child: Column(
+                    spacing: PlanActSpacing.md,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       SegmentedButton<FinancialExpectationDirection>(
@@ -190,6 +197,7 @@ class _FinancialExpectationEditorState
                         ),
                       ),
                       DropdownButtonFormField<FinancialAccount?>(
+                        isExpanded: true,
                         initialValue: _account,
                         decoration: InputDecoration(
                           labelText: planActL10n(context)
@@ -212,7 +220,6 @@ class _FinancialExpectationEditorState
                         ],
                         onChanged: (value) => setState(() => _account = value),
                       ),
-                      const SizedBox(height: 12),
                       FilledButton(
                         onPressed: _saving ? null : _save,
                         child: Text(

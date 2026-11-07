@@ -96,6 +96,45 @@ void main() {
   }
 
   for (final dark in [false, true]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('queue card separation dark=$dark scale=$scale', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(360, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await seed(2);
+        await show(tester, dark: dark, scale: scale);
+        final first = find.ancestor(
+          of: find.text('شرح 1'),
+          matching: find.byType(Card),
+        );
+        final second = find.ancestor(
+          of: find.text('شرح 0'),
+          matching: find.byType(Card),
+        );
+        await tester.scrollUntilVisible(
+          first,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.scrollUntilVisible(
+          second,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        final firstRect = tester.getRect(first);
+        final secondRect = tester.getRect(second);
+        final gap = firstRect.top < secondRect.top
+            ? secondRect.top - firstRect.bottom
+            : firstRect.top - secondRect.bottom;
+        expect(gap, greaterThanOrEqualTo(16));
+        expect(reviews.calls, 0);
+        expect(tester.takeException(), isNull);
+      });
+    }
     testWidgets(
       '50 visible not 51; cancellation filters page scope and explicit retry ($dark)',
       (tester) async {

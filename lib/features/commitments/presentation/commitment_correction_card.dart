@@ -1,6 +1,7 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -177,11 +178,13 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       ),
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(PlanActSpacing.lg),
           child: Column(
+            spacing: PlanActSpacing.md,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<bool>(
+                isExpanded: true,
                 initialValue: _credit,
                 decoration: InputDecoration(
                   labelText: planActL10n(context)
