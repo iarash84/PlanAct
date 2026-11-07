@@ -1760,6 +1760,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           appLockController: widget.appLockController,
           onAppLockChanged: widget.onAppLockChanged,
           onThemeModeChanged: widget.onThemeModeChanged,
+          onManageTags: () => showTagManager(
+            context,
+            repository: _tagRepository,
+            onChanged: _tagsChanged,
+          ),
           onAbout: () => Navigator.of(context)
               .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
         ),

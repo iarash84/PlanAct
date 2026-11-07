@@ -1,4 +1,5 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/reminders/domain/morning_reminder.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class SettingsPage extends StatefulWidget {
     this.appLockController,
     this.onAppLockChanged,
     this.onAbout,
+    this.onManageTags,
     this.enableReminders,
   });
   final HolidayPackageService? holidayPackages;
@@ -45,6 +47,7 @@ class SettingsPage extends StatefulWidget {
   final AppLockController? appLockController;
   final Future<void> Function(bool enabled)? onAppLockChanged;
   final VoidCallback? onAbout;
+  final VoidCallback? onManageTags;
   final Future<bool> Function()? enableReminders;
 
   @override
@@ -223,6 +226,17 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
       ),
+      if (widget.onManageTags != null) ...[
+        const SizedBox(height: PlanActSpacing.sm),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.label_outline),
+            title: Text(planActL10n(context).tagControlsContentChildren),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: widget.onManageTags,
+          ),
+        ),
+      ],
       if (widget.onBackgroundChanged != null) ...[
         const SizedBox(height: 12),
         BackgroundSettingsCard(
