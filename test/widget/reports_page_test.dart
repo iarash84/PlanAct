@@ -157,7 +157,7 @@ void main() {
       )(title: 'عنوان قبلی', startAt: DateTime.now());
       await tester.pumpWidget(PlanActApp(repository: commitments));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('بیشتر'));
+      await tester.tap(find.byIcon(Icons.more_horiz).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('گزارش‌ها'));
       await tester.pumpAndSettle();
@@ -297,7 +297,7 @@ void main() {
           PlanActApp(repository: DriftCommitmentRepository(database)),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.text('بیشتر'));
+        await tester.tap(find.byIcon(Icons.more_horiz).last);
         await tester.pumpAndSettle();
         await tester.tap(find.text('گزارش‌ها'));
         await tester.pumpAndSettle();
@@ -352,10 +352,17 @@ void main() {
         );
         await tester.tap(find.text('فیلترهای گزارش'));
         await tester.pumpAndSettle();
-        final chip = find.widgetWithText(FilterChip, '#ورزش');
-        await tester.ensureVisible(chip);
+        final open = find.descendant(
+          of: find.byKey(const ValueKey('report-included-tags')),
+          matching: find.byKey(const ValueKey('tag-selection-open')),
+        );
+        await tester.ensureVisible(open);
         await tester.pumpAndSettle();
-        await tester.tap(chip);
+        await tester.tap(open);
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(CheckboxListTile, '#ورزش'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('بستن').last);
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.text('خروجی: ۱۰۰ ریال'),
@@ -393,6 +400,37 @@ void main() {
             .widgetList<FinancialReportChart>(find.byType(FinancialReportChart))
             .firstWhere((chart) => chart.style == FinancialChartStyle.line);
         expect(balanceLine.series.single.values.last, -1050);
+        expect((await finance.listEntries()).length, 3);
+        Future<void> selectTag(String key) async {
+          final button = find.descendant(
+            of: find.byKey(ValueKey(key)),
+            matching: find.byKey(const ValueKey('tag-selection-open')),
+          );
+          await tester.scrollUntilVisible(button, -180, scrollable: scroll);
+          await tester.ensureVisible(button);
+          await tester.pumpAndSettle();
+          await tester.tap(button);
+          await tester.pumpAndSettle();
+          await tester.tap(find.widgetWithText(CheckboxListTile, '#ورزش'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byTooltip('بستن').last);
+          await tester.pumpAndSettle();
+        }
+
+        Finder summary(String key) => find.descendant(
+          of: find.byKey(ValueKey(key)),
+          matching: find.widgetWithText(Chip, '#ورزش'),
+        );
+        await selectTag('report-excluded-tags');
+        expect(summary('report-included-tags'), findsNothing);
+        expect(summary('report-excluded-tags'), findsOneWidget);
+        await selectTag('report-included-tags');
+        expect(summary('report-included-tags'), findsOneWidget);
+        expect(summary('report-excluded-tags'), findsNothing);
+        expect(
+          (await tags.tagsFor(tagged.id.value, TaggableType.accountEntry)),
+          {tag.id},
+        );
         expect((await finance.listEntries()).length, 3);
         await tester.pumpWidget(const SizedBox.shrink());
       },

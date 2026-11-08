@@ -94,6 +94,36 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Open the compact searchable tag selector.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب برچسب‌ها'**
+  String get tagSelectionChoose;
+
+  /// Pinned tag search field; typing does not save anything.
+  ///
+  /// In fa, this message translates to:
+  /// **'جست‌وجوی برچسب'**
+  String get tagSelectionSearch;
+
+  /// No tag matches the search.
+  ///
+  /// In fa, this message translates to:
+  /// **'برچسبی پیدا نشد.'**
+  String get tagSelectionEmpty;
+
+  /// Selected tags omitted from the bounded summary.
+  ///
+  /// In fa, this message translates to:
+  /// **'و {count} برچسب دیگر'**
+  String tagSelectionRemaining(String count);
+
+  /// Explicit creation action, draft-only inside creation forms.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن برچسب «{label}»'**
+  String tagSelectionCreate(String label);
+
   /// Application copy. Original usage: lib/app/app_lock.dart:30.
   ///
   /// In fa, this message translates to:

@@ -10,6 +10,25 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get tagSelectionChoose => 'انتخاب برچسب‌ها';
+
+  @override
+  String get tagSelectionSearch => 'جست‌وجوی برچسب';
+
+  @override
+  String get tagSelectionEmpty => 'برچسبی پیدا نشد.';
+
+  @override
+  String tagSelectionRemaining(String count) {
+    return 'و $count برچسب دیگر';
+  }
+
+  @override
+  String tagSelectionCreate(String label) {
+    return 'افزودن برچسب «$label»';
+  }
+
+  @override
   String get appLockAuthenticationReason =>
       'برای ورود به پلن‌اکت هویت خود را تأیید کنید.';
 
