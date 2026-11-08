@@ -65,16 +65,13 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
     final days = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: const Text(PersianCopy.smsScanCardDaysTitle),
         content: const Text(PersianCopy.smsScanCardDaysContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text(PersianCopy.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 0),
-            child: const Text(PersianCopy.smsScanCardDaysActions),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, 7),
@@ -88,6 +85,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
       ),
     );
     if (days == null || !mounted) return;
+    setState(() => _error = null);
     try {
       final now = DateTime.now();
       await _command.consent(
@@ -132,56 +130,46 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
     JalaliDate.fromDateTime(DateTime.fromMillisecondsSinceEpoch(milliseconds)),
   );
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(PlanActSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(planActL10n(context).smsScanCardBuildChildren),
-          if (_scan != null)
-            Text(
-              _scan!.newOnly
-                  ? planActL10n(
-                      context,
-                    ).smsScanCardBuildChildren2((_date(_scan!.from)).toString())
-                  : planActL10n(context).smsScanCardBuildChildren3(
-                      (_date(_scan!.from)).toString(),
-                      (_date(_scan!.until)).toString(),
-                    ),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(PlanActSpacing.md),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(planActL10n(context).smsScanCardBuildChildren),
+        if (_scan != null && !_scan!.newOnly)
+          Text(
+            planActL10n(context).smsScanCardBuildChildren3(
+              _date(_scan!.from),
+              _date(_scan!.until),
             ),
-          if (_scan != null)
-            Text(
-              planActL10n(context).smsScanCardBuildChildren4(
-                (PersianNumbers.format(_scan!.inspected.toString())).toString(),
-              ),
-            ),
-          if (_scan != null && _scan!.unsupported > 0)
-            Text(planActL10n(context).smsScanCardBuildChildren5),
-          if (_error != null) Text(_error!),
-          if (_busy) const LinearProgressIndicator(),
-          if (!_busy && _scan?.complete == true)
-            Text(planActL10n(context).smsScanCardBuildChildren6),
-          if (_busy)
-            TextButton(
-              onPressed: _command.cancel,
-              child: Text(planActL10n(context).smsScanCardBuildChildren7),
-            ),
-          if (!_busy && _scan != null && (!_scan!.complete || _scan!.newOnly))
-            TextButton(
-              onPressed: widget.access ? _run : null,
-              child: Text(
-                _scan!.complete
-                    ? planActL10n(context).smsScanCardBuildChildren8
-                    : planActL10n(context).smsScanCardBuildChildren9,
-              ),
-            ),
-          TextButton(
-            onPressed: !_busy && widget.access ? _choose : null,
-            child: Text(planActL10n(context).smsScanCardBuildChildren10),
           ),
-        ],
-      ),
+        if (_scan != null && !_scan!.newOnly)
+          Text(
+            planActL10n(context).smsScanCardBuildChildren4(
+              (PersianNumbers.format(_scan!.inspected.toString())).toString(),
+            ),
+          ),
+        if (_scan != null && !_scan!.newOnly && _scan!.unsupported > 0)
+          Text(planActL10n(context).smsScanCardBuildChildren5),
+        if (_error != null) Text(_error!),
+        if (_busy) const LinearProgressIndicator(),
+        if (!_busy && _scan?.complete == true && !_scan!.newOnly)
+          Text(planActL10n(context).smsScanCardBuildChildren6),
+        if (_busy)
+          TextButton(
+            onPressed: _command.cancel,
+            child: Text(planActL10n(context).smsScanCardBuildChildren7),
+          ),
+        if (!_busy && _scan != null && !_scan!.complete && !_scan!.newOnly)
+          TextButton(
+            onPressed: widget.access ? _run : null,
+            child: Text(planActL10n(context).smsScanCardBuildChildren9),
+          ),
+        TextButton(
+          onPressed: !_busy && widget.access ? _choose : null,
+          child: Text(planActL10n(context).smsScanCardBuildChildren10),
+        ),
+      ],
     ),
   );
 }

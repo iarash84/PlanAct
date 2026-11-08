@@ -25,7 +25,8 @@ class DriftInboxRepository
         AtomicInboxStaging,
         AtomicInboxReview,
         SmsScanStore,
-        AutomaticSmsScanStore {
+        AutomaticSmsScanStore,
+        ManualSmsScanStore {
   DriftInboxRepository(this.database);
 
   @override
@@ -34,6 +35,7 @@ class DriftInboxRepository
   final db.AppDatabase database;
   static const smsScanMetadataKey = 'sms_scan_v1';
   static const automaticSmsScanMetadataKey = 'sms_automatic_scan_v1';
+  static const manualSmsScanMetadataKey = 'sms_manual_scan_v1';
 
   String _key(String id) => 'inbox_review_v1:$id';
 
@@ -145,10 +147,54 @@ class DriftInboxRepository
   Future<void> writeAutomaticSmsScan(String? expected, String value) =>
       _writeScan(automaticSmsScanMetadataKey, expected, value);
 
+  @override
+  Future<String?> readManualSmsScan() => CommandGate.runFor(
+    this,
+    () => database.readMetadata(manualSmsScanMetadataKey),
+  );
+
+  @override
+  Future<void> writeManualSmsScan(String? expected, String value) =>
+      _writeScan(manualSmsScanMetadataKey, expected, value);
+
+  @override
+  Future<void> writeSmsSetup({
+    required String? expectedHistory,
+    required String? expectedManual,
+    required String? expectedAutomatic,
+    required String history,
+    required String manual,
+    required String? automatic,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await _admitScanWriter();
+      final changes = [
+        (smsScanMetadataKey, expectedHistory, history),
+        (manualSmsScanMetadataKey, expectedManual, manual),
+        (automaticSmsScanMetadataKey, expectedAutomatic, automatic),
+      ];
+      for (final (key, expected, _) in changes) {
+        if (await database.readMetadata(key) != expected) {
+          throw StateError('SMS consent changed; reload before retrying');
+        }
+      }
+      for (final (key, _, value) in changes) {
+        if (value != null) await database.writeMetadata(key, value);
+      }
+    }),
+  );
+
+  Future<void> _admitScanWriter() => database.customStatement(
+    'UPDATE schema_metadata SET value = value WHERE key = ?',
+    ['schema_version'],
+  );
+
   Future<void> _writeScan(String key, String? expected, String value) =>
       CommandGate.runFor(
         this,
         () => database.transaction(() async {
+          await _admitScanWriter();
           if (await database.readMetadata(key) != expected) {
             throw StateError('SMS scan changed; reload before retrying');
           }

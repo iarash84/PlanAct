@@ -173,13 +173,28 @@ void main() {
         await settle(tester);
         expect(source.reads, 0);
         expect(await repo.readAutomaticSmsScan(), isNull);
+        final setup = find.text('راه‌اندازی پیامک');
+        await tester.ensureVisible(setup);
+        await settle(tester);
+        await tester.tap(setup);
+        await settle(tester);
         final switchTile = find.byType(SwitchListTile);
         expect(tester.widget<SwitchListTile>(switchTile).value, isFalse);
+        expect(
+          tester
+              .widget<FilledButton>(find.widgetWithText(FilledButton, 'شروع'))
+              .onPressed,
+          isNull,
+        );
+        final fromNow = find.text('فقط پیامک‌های جدید از این لحظه');
+        await tester.ensureVisible(fromNow);
+        await tester.tap(fromNow);
         await tester.ensureVisible(switchTile);
-        await settle(tester);
         await tester.tap(switchTile);
         await settle(tester);
         expect(tester.widget<SwitchListTile>(switchTile).value, isTrue);
+        await tester.tap(find.text('شروع'));
+        await settle(tester);
         expect(source.subscriptions, 1);
         expect(await repo.listSuggestions(), isEmpty);
 

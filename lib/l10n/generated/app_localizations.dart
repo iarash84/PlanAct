@@ -8380,6 +8380,78 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'همهٔ برچسب‌ها'**
   String get inboxAllTags;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsControlsTitle
+  ///
+  /// In fa, this message translates to:
+  /// **'پیامک‌های بانکی'**
+  String get smsControlsTitle;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupOpen
+  ///
+  /// In fa, this message translates to:
+  /// **'راه‌اندازی پیامک'**
+  String get smsSetupOpen;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupDescription
+  ///
+  /// In fa, this message translates to:
+  /// **'بازهٔ نخست را انتخاب کنید. بررسی دستی پیام‌های جدید از لحظهٔ شروع فعال می‌شود؛ دریافت خودکار انتخابی جداگانه است و ثبت مالی همچنان به تأیید شما نیاز دارد.'**
+  String get smsSetupDescription;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupStart
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع'**
+  String get smsSetupStart;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationTitle
+  ///
+  /// In fa, this message translates to:
+  /// **'فعال‌سازی بررسی دستی'**
+  String get smsManualActivationTitle;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationBody
+  ///
+  /// In fa, this message translates to:
+  /// **'رضایت قبلی فقط برای بازهٔ گذشته بوده است. با تأیید، بررسی دستی پیامک‌های جدید از همین لحظه فعال می‌شود؛ تاریخچه و انتخاب خودکار تغییر نمی‌کنند.'**
+  String get smsManualActivationBody;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivate
+  ///
+  /// In fa, this message translates to:
+  /// **'فعال‌سازی از اکنون'**
+  String get smsManualActivate;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckNewMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی پیامک‌های جدید'**
+  String get smsCheckNewMessages;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckingMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'در حال بررسی پیامک‌ها…'**
+  String get smsCheckingMessages;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNoNewSuggestions
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشنهاد تازه‌ای پیدا نشد.'**
+  String get smsNoNewSuggestions;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNewSuggestionsCount
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} پیشنهاد تازه برای بررسی'**
+  String smsNewSuggestionsCount(String count);
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsOlderMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'پیام‌های قدیمی‌تر'**
+  String get smsOlderMessages;
 }
 
 class _AppLocalizationsDelegate

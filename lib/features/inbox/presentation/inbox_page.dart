@@ -134,6 +134,14 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     await _reload();
   }
 
+  // Only explicit Inbox gestures use manual consent. Lifecycle/permission
+  // reloads above retain the root automatic synchronization contract.
+  Future<void> _checkNewSms() async {
+    await _smsSync?.checkNewMessages();
+    await _reload();
+    await widget.onDataChanged?.call();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && !_working) _refreshSms();
@@ -688,7 +696,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null && _items.isEmpty) {
       return RefreshIndicator(
-        onRefresh: _refreshSms,
+        onRefresh: _checkNewSms,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -709,17 +717,18 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _inboxSection(
-          _SmsStatusCard(
-            access: _smsAccess,
-            error: _smsError,
-            onRefresh: _refreshSms,
-            onEnable:
-                widget.smsSource != null && !_working && _smsAccess != true
-                ? _enableSms
-                : null,
+        if (_smsAccess != true || _smsSync == null)
+          _inboxSection(
+            _SmsStatusCard(
+              access: _smsAccess,
+              error: _smsError,
+              onRefresh: _refreshSms,
+              onEnable:
+                  widget.smsSource != null && !_working && _smsAccess != true
+                  ? _enableSms
+                  : null,
+            ),
           ),
-        ),
         if (widget.smsSource != null && _smsAccess != true)
           _inboxSection(
             Card(
@@ -751,9 +760,19 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               ),
             ),
           ),
-        if (_smsSync != null)
-          _inboxSection(SmsAutomaticSyncCard(controller: _smsSync!)),
-        if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
+        if (_smsSync != null && widget.smsSource != null)
+          _inboxSection(
+            SmsAutomaticSyncCard(
+              controller: _smsSync!,
+              inbox: widget.inbox,
+              source: widget.smsSource!,
+              onCheck: _checkNewSms,
+              onChanged: _reload,
+            ),
+          ),
+        if (_smsSync == null &&
+            widget.smsSource != null &&
+            widget.inbox.repository is SmsScanStore)
           _inboxSection(
             SmsScanCard(
               inbox: widget.inbox,
@@ -879,7 +898,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       ],
     );
     return RefreshIndicator(
-      onRefresh: _refreshSms,
+      onRefresh: _checkNewSms,
       child: ListView.builder(
         controller: _scroll,
         key: const PageStorageKey('inbox-review'),
