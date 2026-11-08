@@ -52,6 +52,101 @@ Widget host(Widget child, {bool dark = false, double scale = 1}) => MaterialApp(
 
 void main() {
   for (final dark in [false, true]) {
+    testWidgets('bank menu uses Persian alphabetical order dark=$dark', (
+      tester,
+    ) async {
+      final repository = InMemoryFinanceRepository();
+      final key = GlobalKey<FinancePageState>();
+      await tester.pumpWidget(
+        host(
+          FinancePage(key: key, repository: repository),
+          dark: dark,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final pending = key.currentState!.openAccountForm();
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'نام حساب'),
+        'حساب آزمایشی',
+      );
+      await tester.tap(find.text('جزئیات حساب (اختیاری)'));
+      await tester.pumpAndSettle();
+      final bankFinder = find.byType(DropdownButtonFormField<IranianBank>);
+      final field = tester.widget<DropdownButton<IranianBank>>(
+        find.descendant(
+          of: bankFinder,
+          matching: find.byType(DropdownButton<IranianBank>),
+        ),
+      );
+      final items = field.items!;
+      expect(items.first.value, isNull);
+      expect(items.skip(1).map((item) => (item.child as Text).data).toList(), [
+        'آینده',
+        'اقتصاد نوین',
+        'انصار',
+        'ایران و ونزوئلا',
+        'ایران‌زمین',
+        'پارسیان',
+        'پاسارگاد',
+        'پست بانک',
+        'تجارت',
+        'توسعه تعاون',
+        'توسعه صادرات',
+        'حکمت ایرانیان',
+        'خاورمیانه',
+        'دی',
+        'رسالت',
+        'رفاه',
+        'سامان',
+        'سپه',
+        'سرمایه',
+        'سینا',
+        'شهر',
+        'صادرات',
+        'صنعت و معدن',
+        'قوامین',
+        'کارآفرین',
+        'کشاورزی',
+        'گردشگری',
+        'مسکن',
+        'ملت',
+        'ملل',
+        'ملی',
+        'مهر ایران',
+      ]);
+      expect(
+        items.skip(1).map((item) => item.value).toSet(),
+        IranianBank.values.toSet(),
+      );
+      expect(await repository.listAccounts(), isEmpty);
+      await tester.ensureVisible(bankFinder);
+      await tester.tap(bankFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('پارسیان').last);
+      await tester.pumpAndSettle();
+      expect(await repository.listAccounts(), isEmpty);
+      await tester.tap(find.text('افزودن').last);
+      await tester.pumpAndSettle();
+      await pending;
+      expect(
+        (await repository.listAccounts()).single.bank,
+        IranianBank.parsian,
+      );
+      await tester.tap(find.byTooltip('ویرایش حساب'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<FormFieldState<IranianBank>>(bankFinder).value,
+        IranianBank.parsian,
+      );
+      await tester.tap(find.text('انصراف'));
+      await tester.pumpAndSettle();
+      expect(
+        (await repository.listAccounts()).single.bank,
+        IranianBank.parsian,
+      );
+      expect(tester.takeException(), isNull);
+    });
     testWidgets(
       'masked informational card reveal/hide/background, narrow large text dark=$dark',
       (tester) async {

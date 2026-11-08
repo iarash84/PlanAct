@@ -217,12 +217,20 @@ class _AccountFormSheetState extends State<AccountFormSheet>
                     value: null,
                     child: Text(planActL10n(context).commonNoSelection),
                   ),
-                  ...IranianBank.values.map(
-                    (bank) => DropdownMenuItem(
-                      value: bank,
-                      child: Text(iranianBankLabel(context, bank)),
-                    ),
-                  ),
+                  ...([...IranianBank.values]..sort(
+                        (a, b) =>
+                            _persianBankSortKey(
+                              iranianBankLabel(context, a),
+                            ).compareTo(
+                              _persianBankSortKey(iranianBankLabel(context, b)),
+                            ),
+                      ))
+                      .map(
+                        (bank) => DropdownMenuItem(
+                          value: bank,
+                          child: Text(iranianBankLabel(context, bank)),
+                        ),
+                      ),
                 ],
                 onChanged: _saving
                     ? null
@@ -295,6 +303,18 @@ class _AccountFormSheetState extends State<AccountFormSheet>
       ),
     ),
     validator: validator,
+  );
+}
+
+// Unicode order places Persian additions (such as پ and گ) after ی.
+// Sort display copies only; catalog order and persisted bank identities stay fixed.
+String _persianBankSortKey(String label) {
+  const alphabet = 'آابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی';
+  return String.fromCharCodes(
+    label.replaceAll('‌', '').runes.map((rune) {
+      final index = alphabet.indexOf(String.fromCharCode(rune));
+      return index < 0 ? rune : 0x100 + index;
+    }),
   );
 }
 
