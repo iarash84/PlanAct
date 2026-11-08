@@ -149,7 +149,8 @@ abstract final class PlanActTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        height: 72,
+        height: 56,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         backgroundColor: scheme.surface,
         indicatorColor: scheme.primaryContainer,
         labelTextStyle: WidgetStatePropertyAll(

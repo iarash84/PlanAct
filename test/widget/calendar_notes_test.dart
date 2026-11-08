@@ -71,7 +71,7 @@ void main() {
       final notes = await repository.loadRange(day, day.addDays(1));
       expect(notes, hasLength(1));
       expect(notes.single.color, CommitmentColor.rose);
-      await tester.tap(find.text('تقویم').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'تقویم'));
       await settleIo(tester);
       expect(
         find.byKey(

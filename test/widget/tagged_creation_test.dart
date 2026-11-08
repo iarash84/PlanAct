@@ -15,16 +15,24 @@ import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/quick_add/presentation/quick_add_sheet.dart';
 
 Future<void> addTag(WidgetTester tester, String label) async {
-  final field = find.byKey(const ValueKey('draft-tag-label'));
-  await tester.ensureVisible(field);
+  final open = find.byKey(const ValueKey('tag-selection-open')).last;
+  await tester.ensureVisible(open);
   await tester.pumpAndSettle();
-  await tester.enterText(field, label);
-  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.tap(open);
   await tester.pumpAndSettle();
-  final button = find.text('افزودن برچسب به پیش‌نویس');
-  await tester.ensureVisible(button);
+  await tester.enterText(
+    find.byKey(const ValueKey('tag-selection-search')),
+    label,
+  );
   await tester.pumpAndSettle();
-  await tester.tap(button);
+  final result = find.byType(CheckboxListTile);
+  if (result.evaluate().isEmpty) {
+    await tester.tap(find.textContaining('افزودن برچسب «'));
+  } else if (!tester.widget<CheckboxListTile>(result.first).value!) {
+    await tester.tap(result.first);
+  }
+  await tester.pumpAndSettle();
+  await tester.tap(find.byTooltip('بستن').last);
   await tester.pumpAndSettle();
 }
 
@@ -85,7 +93,13 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(TextButton).last);
       await tester.pumpAndSettle();
-      expect(find.widgetWithText(FilterChip, '#خانه'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DraftTagPicker),
+          matching: find.widgetWithText(Chip, '#خانه'),
+        ),
+        findsOneWidget,
+      );
       await tester.tap(find.text('ثبت تعهد'));
       await tester.pumpAndSettle();
       expect(calls, 1);
@@ -110,18 +124,45 @@ void main() {
         await tester.tap(find.text('جزئیات بیشتر'));
         await tester.pumpAndSettle();
         await addTag(tester, ' #work ');
-        final chip = find.widgetWithText(FilterChip, '#Work');
-        expect(tester.widget<FilterChip>(chip).selected, isTrue);
+        expect(
+          find.descendant(
+            of: find.byType(DraftTagPicker),
+            matching: find.widgetWithText(Chip, '#Work'),
+          ),
+          findsOneWidget,
+        );
         await addTag(tester, 'خانه');
         await addTag(tester, '#خانه');
-        expect(find.widgetWithText(FilterChip, '#خانه'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(DraftTagPicker),
+            matching: find.widgetWithText(Chip, '#خانه'),
+          ),
+          findsOneWidget,
+        );
         expect(await tags.list(), hasLength(1));
         await tester.pumpAndSettle();
-        await tester.ensureVisible(chip);
+        final open = find.byKey(const ValueKey('tag-selection-open'));
+        await tester.scrollUntilVisible(
+          open,
+          150,
+          scrollable: find.byType(Scrollable).first,
+        );
         await tester.pumpAndSettle();
-        await tester.tap(chip);
+        await tester.tap(open);
         await tester.pumpAndSettle();
-        expect(tester.widget<FilterChip>(chip).selected, isFalse);
+        await tester.tap(find.widgetWithText(CheckboxListTile, '#Work'));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<CheckboxListTile>(
+                find.widgetWithText(CheckboxListTile, '#Work'),
+              )
+              .value,
+          isFalse,
+        );
+        await tester.tap(find.byTooltip('بستن').last);
+        await tester.pumpAndSettle();
         await tester.pumpWidget(const SizedBox());
         expect(await tags.list(), hasLength(1));
       },
@@ -168,12 +209,7 @@ void main() {
             find.textContaining('اطلاعات و برچسب‌های شما حفظ شده'),
             findsOneWidget,
           );
-          expect(
-            tester
-                .widget<FilterChip>(find.widgetWithText(FilterChip, '#خانه'))
-                .selected,
-            isTrue,
-          );
+          expect(find.widgetWithText(Chip, '#خانه'), findsOneWidget);
           expect(await tags.list(), isEmpty);
           await tester.ensureVisible(save);
           await tester.tap(save);

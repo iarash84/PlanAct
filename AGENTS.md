@@ -938,25 +938,36 @@ Do not report a task as complete when analysis or relevant tests fail.
 
 ## SMS bounded consent safeguards
 
-SMS permission is not historical-import consent. Inbox requires explicit bounded
-recent-range or new-only selection. User-approved 2026-10-14: a separate, initially
-off automatic-new-message choice starts a durable boundary at activation;
-startup/resume, foreground broadcasts and Today/Inbox pull-to-refresh may sync
-only that consented window. Existing import consent does not enable automation.
-Historical scans still require explicit start/resume. Source queries must
-bound dates and page in stable timestamp/row-ID order off the native UI thread.
-Persist consent, fixed scan horizon and resumable progress; checkpoint only safely
-handled rows/pages, preserve resolved suggestions and replay interrupted pages
-idempotently. Automatic consent/progress is separate from historical scans and
-survives restart/backup/restore; disabling preserves staged data and re-enabling
-starts a fresh boundary. Revoked permission prevents reads, never prompts silently,
-and must not hide other Today content. No permanent native service is implied.
-See ADR 0021. Native provider compatibility, delayed insertions, permission
-revocation and reference-device responsiveness require independent device evidence.
-Distinct provider SMS row IDs must remain distinct even when message bodies match;
-replay of one row ID remains idempotent. Global fingerprint behavior is not proof of
-lossless imports or of Inbox UI/device acceptance.
-See [SMS verification](docs/SMS_VERIFICATION.md).
+SMS permission is not import consent. User-approved 2026-11-08 unified setup has
+explicitly unselected 7-day/30-day/from-now choices and independent initially-off
+automatic ingestion. Capture Start synchronously at the user action before any
+async work; transactionally compare fresh state and store history/manual/automatic
+consent before provider reads. Keep the durable manual boundary/progress separate
+from history and automatic state. Setup feedback counts newly staged suggestions
+across both setup scans once, including their shared boundary.
+The always-visible manual button and Inbox pull invoke the same manual command,
+even with automatic off. This supersedes 2026-10-14 automatic-only Inbox refresh;
+startup/resume/broadcast and Today refresh remain automatic-only. Historical import
+and Resume are explicit actions, never refresh effects. Legacy manual checks inherit
+a valid historical new-only window, otherwise a valid automatic new-only window;
+range-only consent requires explicit activation from now. Preserve existing manual
+windows, enabled automatic boundaries/progress and resolved decisions. Automatic
+off/on must not move the manual boundary; re-enabling starts a fresh automatic one.
+Source queries bound dates and page in stable timestamp/row-ID order off the native
+UI thread. Persist fixed horizons and resumable progress; checkpoint only safely
+handled rows/pages and replay idempotently. Consent/progress must survive restart
+and personal backup/restore. Revoked permission prevents reads, never prompts
+silently, and must not hide other Today content. No permanent service or financial
+auto-save is authorized. Distinct provider SMS row IDs remain distinct even with
+identical bodies; replay preserves the existing suggestion and decision.
+The additive manual key in the existing metadata store needs no schema migration or
+dependency; this does not establish older-writer safety. Cold reopen and redacted
+SQLite snapshots are not full export/restore/in-flight rebind evidence. Populated
+filter/page/selection/scroll retention and concurrent history/manual overlap are not
+specifically established. Native permission/provider/lifecycle, delayed insertion,
+screen-reader/performance and final independent acceptance remain open; see
+[ADR 0021](docs/adr/0021-opt-in-new-sms-sync.md) and
+[SMS verification](docs/SMS_VERIFICATION.md). Local passing tests are not release sign-off.
 
 ## Inbox review safeguards
 
@@ -1018,3 +1029,7 @@ Canonical new Iranian monetary data uses integer IRR. Rial/toman is a durable di
 ## Financial account metadata safeguards
 
 Optional card/IR IBAN/account identifiers are validated strings normalized through the shared Persian digit formatter, preserving leading zeros; missing values never block otherwise valid creation. Bank and account type remain explicit, never inferred from names or arbitrary numbers. No PIN/CVV/password fields. Account metadata editing must compare original editable fields with fresh durable state transactionally, update only those fields, retain fresh status/currency and leave ledger/history/matches untouched. Archive/restore must not replay stale editable snapshots. Identifiers are masked by default in cards/forms and remasked on background; reveal and clipboard copy require explicit actions, with a separate clipboard privacy confirmation and Persian failure feedback. Masking is not encryption or clipboard control. Versioned account metadata must preserve legacy-empty defaults, cold reopen and strict backup compatibility; schema compatibility does not approve older writers. Native privacy and independent acceptance remain separate gates in [ACCOUNT verification](docs/ACCOUNT_BRAND_VERIFICATION.md).
+
+## Approved Inbox tag confirmation (2026-11-08)
+
+Optional Inbox tags are draft selections before final confirmation, never an automatic post-save editor. Commit the transaction, new reusable tags and memberships in the existing fresh-admitted SQLite transaction. Cancellation writes none; failed saving retains form/tag choices. Preserve Inbox evidence/revision/currency/account validation and the saved-ID relationship snackbar. Finance later editing remains explicit. See [tagging verification](docs/TAGGING_VERIFICATION.md).

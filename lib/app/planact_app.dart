@@ -899,6 +899,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       builder: (_) => QuickCaptureSheet(
         onSave: _saveCapturedCommitment,
         tagRepository: _tagRepository,
+        financeRepository: _financeRepository,
       ),
     );
   }
@@ -930,6 +931,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           : null,
       financialDirection: draft.financialMeaning.expectationDirection,
       financialAmount: draft.financialAmount,
+      financialAccountId: draft.financialAccountId,
       checklistTitles: draft.checklistTitles,
     );
     try {
@@ -1758,6 +1760,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           appLockController: widget.appLockController,
           onAppLockChanged: widget.onAppLockChanged,
           onThemeModeChanged: widget.onThemeModeChanged,
+          onManageTags: () => showTagManager(
+            context,
+            repository: _tagRepository,
+            onChanged: _tagsChanged,
+          ),
           onAbout: () => Navigator.of(context)
               .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
         ),
@@ -1887,24 +1894,19 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
     final navigation = MediaQuery(
       data: MediaQuery.of(context).copyWith(
-        padding: MediaQuery.of(context).padding.copyWith(left: 0, right: 0),
-        viewPadding: MediaQuery.of(context).viewPadding
-            .copyWith(left: 0, right: 0),
-        textScaler: TextScaler.noScaling,
+        // The bottom bar must not inherit the status-bar inset as top spacing.
+        // NavigationBar retains ownership of the bottom/side safe areas.
+        padding: MediaQuery.of(context).padding.copyWith(top: 0),
+        viewPadding: MediaQuery.of(context).viewPadding.copyWith(top: 0),
       ),
       child: NavigationBarTheme(
         data: NavigationBarTheme.of(context).copyWith(
-          height: 64,
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,
           animationDuration: Duration.zero,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          labelTextStyle: WidgetStatePropertyAll(
-            theme.textTheme.labelMedium?.copyWith(fontSize: 1, height: 1),
-          ),
           onDestinationSelected: (index) {
             setState(() => _selectedIndex = index);
             final duration = PlanActMotion.duration(context);

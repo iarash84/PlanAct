@@ -56,7 +56,7 @@ void main() {
         ),
         isTrue,
       );
-      await tester.tap(find.text('تقویم').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'تقویم'));
       await tester.pumpAndSettle();
       final calendar = tester.widget<CalendarPage>(
         find.byType(CalendarPage, skipOffstage: false),

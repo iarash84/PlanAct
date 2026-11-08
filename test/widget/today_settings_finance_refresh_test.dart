@@ -21,7 +21,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const PlanActApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بیشتر'));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('تنظیمات'));
     await tester.pumpAndSettle();

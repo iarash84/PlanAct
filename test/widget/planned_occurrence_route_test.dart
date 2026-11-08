@@ -193,7 +193,7 @@ void main() {
       await _tap(tester, find.byType(BackButton));
       await tester.binding.handlePopRoute();
       await _drain(tester);
-      await _tap(tester, find.text('امروز').last);
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'امروز'));
       await _drain(tester);
       expect(
         find.text('بارگذاری اقدامات انجام نشد؛ دوباره تلاش کنید.'),
@@ -209,7 +209,7 @@ void main() {
       await tester.runAsync(() async {
         expect((await db.select(db.occurrences).get()).length, initial + 1);
       });
-      await _tap(tester, find.text('تقویم').last);
+      await _tap(tester, find.widgetWithText(NavigationDestination, 'تقویم'));
       expect(find.byKey(const ValueKey('calendar-pick-date')), findsNothing);
       await _tap(tester, find.text('هفته'));
       await _tap(tester, find.byKey(const ValueKey('calendar-pick-date')));

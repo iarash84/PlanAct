@@ -4,6 +4,7 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/finance/application/financial_expectation_use_cases.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
+import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/sessions/data/drift_session_repositories.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
@@ -118,6 +119,7 @@ class CreateCommitmentPlan {
     DateTime? entitlementExpiry,
     FinancialExpectationDirection? financialDirection,
     int? financialAmount,
+    StableId? financialAccountId,
     List<String> checklistTitles = const [],
     @Deprecated('Use reminderOffsets to support multiple reminders.')
     Duration? reminderOffset,
@@ -216,6 +218,7 @@ class CreateCommitmentPlan {
               direction: financialDirection,
               amount: financialAmount!,
               currency: 'IRR',
+              accountId: financialAccountId,
             ),
     );
     final through = endDate == null
@@ -245,6 +248,19 @@ class CreateCommitmentPlan {
       reminders: List.unmodifiable(reminders),
     );
     Future<void> persist() => CommandGate.runFor(commitments, () async {
+      if (financialDirection != null && financialAccountId != null) {
+        final accounts = await financialExpectations!.repository.listAccounts();
+        final account = accounts
+            .where((account) => account.id == financialAccountId)
+            .firstOrNull;
+        if (account == null ||
+            account.status != FinancialAccountStatus.active ||
+            account.currency != 'IRR') {
+          throw const ValidationError(
+            'Expected account must be active and IRR',
+          );
+        }
+      }
       await commitments.save(commitment);
       if (checklistTitles.isNotEmpty) {
         final repository = checklists;
@@ -302,6 +318,7 @@ class CreateCommitmentPlan {
             direction: financialDirection,
             amount: financialAmount,
             currency: 'IRR',
+            accountId: financialAccountId,
           );
         }
       }

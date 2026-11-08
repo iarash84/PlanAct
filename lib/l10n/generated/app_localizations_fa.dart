@@ -10,6 +10,25 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get tagSelectionChoose => 'انتخاب برچسب‌ها';
+
+  @override
+  String get tagSelectionSearch => 'جست‌وجوی برچسب';
+
+  @override
+  String get tagSelectionEmpty => 'برچسبی پیدا نشد.';
+
+  @override
+  String tagSelectionRemaining(String count) {
+    return 'و $count برچسب دیگر';
+  }
+
+  @override
+  String tagSelectionCreate(String label) {
+    return 'افزودن برچسب «$label»';
+  }
+
+  @override
   String get appLockAuthenticationReason =>
       'برای ورود به پلن‌اکت هویت خود را تأیید کنید.';
 
@@ -4962,4 +4981,53 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get financeDeleteAccountFailed =>
       'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.';
+
+  @override
+  String get inboxOptionalTags => 'برچسب‌ها · اختیاری';
+
+  @override
+  String get inboxAddTag => 'افزودن برچسب';
+
+  @override
+  String get inboxAllTags => 'همهٔ برچسب‌ها';
+
+  @override
+  String get smsControlsTitle => 'پیامک‌های بانکی';
+
+  @override
+  String get smsSetupOpen => 'راه‌اندازی پیامک';
+
+  @override
+  String get smsSetupDescription =>
+      'بازهٔ نخست را انتخاب کنید. بررسی دستی پیام‌های جدید از لحظهٔ شروع فعال می‌شود؛ دریافت خودکار انتخابی جداگانه است و ثبت مالی همچنان به تأیید شما نیاز دارد.';
+
+  @override
+  String get smsSetupStart => 'شروع';
+
+  @override
+  String get smsManualActivationTitle => 'فعال‌سازی بررسی دستی';
+
+  @override
+  String get smsManualActivationBody =>
+      'رضایت قبلی فقط برای بازهٔ گذشته بوده است. با تأیید، بررسی دستی پیامک‌های جدید از همین لحظه فعال می‌شود؛ تاریخچه و انتخاب خودکار تغییر نمی‌کنند.';
+
+  @override
+  String get smsManualActivate => 'فعال‌سازی از اکنون';
+
+  @override
+  String get smsCheckNewMessages => 'بررسی پیامک‌های جدید';
+
+  @override
+  String get smsCheckingMessages => 'در حال بررسی پیامک‌ها…';
+
+  @override
+  String get smsNoNewSuggestions => 'پیشنهاد تازه‌ای پیدا نشد.';
+
+  @override
+  String smsNewSuggestionsCount(String count) {
+    return '$count پیشنهاد تازه برای بررسی';
+  }
+
+  @override
+  String get smsOlderMessages => 'پیام‌های قدیمی‌تر';
 }

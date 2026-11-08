@@ -53,7 +53,16 @@ void main() {
         200,
         scrollable: detailsScroll,
       );
-      await tester.tap(find.text('#آموزش'));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('tag-selection-open')),
+        100,
+        scrollable: detailsScroll,
+      );
+      await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, '#آموزش'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('بستن').last);
       await tester.pumpAndSettle();
       expect((await commitments.findById(commitment.id))!.tags, isEmpty);
       await tester.scrollUntilVisible(

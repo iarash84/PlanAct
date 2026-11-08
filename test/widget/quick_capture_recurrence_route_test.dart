@@ -198,7 +198,10 @@ void main() {
                   .toSet(),
               expected.toSet(),
             );
-            await _tap(tester, find.text('تقویم').last);
+            await _tap(
+              tester,
+              find.widgetWithText(NavigationDestination, 'تقویم'),
+            );
             final page = tester.widget<CalendarPage>(
               find.byType(CalendarPage, skipOffstage: false),
             );

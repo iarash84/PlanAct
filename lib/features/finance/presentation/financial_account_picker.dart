@@ -15,11 +15,13 @@ class FinancialAccountPicker extends StatefulWidget {
     required this.onCreateAccount,
     this.currency,
     this.enabled = true,
+    this.optional = false,
   });
 
   final FinanceRepository repository;
   final String? currency;
   final bool enabled;
+  final bool optional;
   final ValueChanged<FinancialAccount?> onChanged;
   final Future<void> Function() onCreateAccount;
 
@@ -85,7 +87,7 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
           onPressed: widget.enabled ? _load : null,
           child: Text(planActL10n(context).commonRetry),
         ),
-      ] else if (_accounts.isEmpty)
+      ] else if (_accounts.isEmpty && !widget.optional)
         Text(planActL10n(context).financialAccountPickerBuildChildren2)
       else
         DropdownButtonFormField<FinancialAccount>(
@@ -93,18 +95,26 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
           initialValue: _selected,
           isExpanded: true,
           decoration: InputDecoration(
-            labelText: planActL10n(context)
-                .financialAccountPickerBuildLabelText,
+            labelText: widget.optional
+                ? planActL10n(context).financialExpectationEditorBuildLabelText2
+                : planActL10n(context).financialAccountPickerBuildLabelText,
             hintText: planActL10n(context).financialAccountPickerBuildHintText,
           ),
-          items: _accounts
-              .map(
-                (account) => DropdownMenuItem(
-                  value: account,
-                  child: AccountIdentityLabel(account: account),
+          items: [
+            if (widget.optional)
+              DropdownMenuItem<FinancialAccount>(
+                value: null,
+                child: Text(
+                  planActL10n(context).financialExpectationEditorBuildItems,
                 ),
-              )
-              .toList(),
+              ),
+            ..._accounts.map(
+              (account) => DropdownMenuItem<FinancialAccount>(
+                value: account,
+                child: AccountIdentityLabel(account: account),
+              ),
+            ),
+          ],
           onChanged: widget.enabled
               ? (value) {
                   setState(() => _selected = value);

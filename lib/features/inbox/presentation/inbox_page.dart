@@ -134,6 +134,14 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     await _reload();
   }
 
+  // Only explicit Inbox gestures use manual consent. Lifecycle/permission
+  // reloads above retain the root automatic synchronization contract.
+  Future<void> _checkNewSms() async {
+    await _smsSync?.checkNewMessages();
+    await _reload();
+    await widget.onDataChanged?.call();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && !_working) _refreshSms();
@@ -348,6 +356,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           item: item,
           inbox: widget.inbox,
           finance: widget.finance,
+          tagRepository: widget.tagRepository,
         ),
       );
       if (imported != null) {
@@ -372,33 +381,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
     if (mounted && imported != null) {
       final id = imported.id;
-      if (widget.tagRepository != null) {
-        await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          builder: (_) => SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                PlanActSpacing.page,
-                PlanActSpacing.page,
-                PlanActSpacing.page,
-                PlanActSpacing.page + MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: RecordTagEditor(
-                repository: widget.tagRepository!,
-                recordId: id.value,
-                type: TaggableType.accountEntry,
-                onChanged: () async {
-                  await widget.onDataChanged?.call();
-                },
-              ),
-            ),
-          ),
-        );
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).clearSnackBars();
-      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -714,7 +696,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null && _items.isEmpty) {
       return RefreshIndicator(
-        onRefresh: _refreshSms,
+        onRefresh: _checkNewSms,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -735,17 +717,18 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _inboxSection(
-          _SmsStatusCard(
-            access: _smsAccess,
-            error: _smsError,
-            onRefresh: _refreshSms,
-            onEnable:
-                widget.smsSource != null && !_working && _smsAccess != true
-                ? _enableSms
-                : null,
+        if (_smsAccess != true || _smsSync == null)
+          _inboxSection(
+            _SmsStatusCard(
+              access: _smsAccess,
+              error: _smsError,
+              onRefresh: _refreshSms,
+              onEnable:
+                  widget.smsSource != null && !_working && _smsAccess != true
+                  ? _enableSms
+                  : null,
+            ),
           ),
-        ),
         if (widget.smsSource != null && _smsAccess != true)
           _inboxSection(
             Card(
@@ -777,9 +760,19 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
               ),
             ),
           ),
-        if (_smsSync != null)
-          _inboxSection(SmsAutomaticSyncCard(controller: _smsSync!)),
-        if (widget.smsSource != null && widget.inbox.repository is SmsScanStore)
+        if (_smsSync != null && widget.smsSource != null)
+          _inboxSection(
+            SmsAutomaticSyncCard(
+              controller: _smsSync!,
+              inbox: widget.inbox,
+              source: widget.smsSource!,
+              onCheck: _checkNewSms,
+              onChanged: _reload,
+            ),
+          ),
+        if (_smsSync == null &&
+            widget.smsSource != null &&
+            widget.inbox.repository is SmsScanStore)
           _inboxSection(
             SmsScanCard(
               inbox: widget.inbox,
@@ -905,7 +898,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       ],
     );
     return RefreshIndicator(
-      onRefresh: _refreshSms,
+      onRefresh: _checkNewSms,
       child: ListView.builder(
         controller: _scroll,
         key: const PageStorageKey('inbox-review'),
@@ -961,16 +954,19 @@ class _ConfirmationSheet extends StatefulWidget {
     required this.item,
     required this.inbox,
     required this.finance,
+    this.tagRepository,
   });
   final InboxReviewItem item;
   final InboxUseCases inbox;
   final FinanceRepository finance;
+  final TagRepository? tagRepository;
   @override
   State<_ConfirmationSheet> createState() => _ConfirmationSheetState();
 }
 
 class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   FinancialAccount? _account;
+  Set<String> _tags = {};
   bool _saving = false;
   String? _error;
   bool _dateAcknowledged = false;
@@ -1026,6 +1022,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         account: account,
         finance: widget.finance,
         selectedUnit: _proposedUnit,
+        tags: _tags,
       );
       if (mounted) {
         setState(() => _saving = false);
@@ -1171,6 +1168,16 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
             onCreateAccount: () =>
                 openFinancialAccountCreation(context, widget.finance),
           ),
+          if (widget.tagRepository != null) ...[
+            const SizedBox(height: PlanActSpacing.lg),
+            DraftTagPicker(
+              repository: widget.tagRepository,
+              selected: _tags,
+              enabled: !_saving,
+              inlineSuggestions: true,
+              onChanged: (tags) => setState(() => _tags = tags),
+            ),
+          ],
         ],
       ),
     ),

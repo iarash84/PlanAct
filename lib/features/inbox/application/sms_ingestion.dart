@@ -13,6 +13,30 @@ abstract interface class SmsScanStore {
   Future<void> writeSmsScan(String? expected, String value);
 }
 
+/// All three consent records are compared and committed together at setup start.
+abstract interface class ManualSmsScanStore {
+  Future<String?> readManualSmsScan();
+  Future<void> writeManualSmsScan(String? expected, String value);
+  Future<void> writeSmsSetup({
+    required String? expectedHistory,
+    required String? expectedManual,
+    required String? expectedAutomatic,
+    required String history,
+    required String manual,
+    required String? automatic,
+  });
+}
+
+class ManualSmsScanAdapter implements SmsScanStore {
+  ManualSmsScanAdapter(this.store);
+  final ManualSmsScanStore store;
+  @override
+  Future<String?> readSmsScan() => store.readManualSmsScan();
+  @override
+  Future<void> writeSmsScan(String? expected, String value) =>
+      store.writeManualSmsScan(expected, value);
+}
+
 abstract interface class AutomaticSmsScanStore {
   Future<String?> readAutomaticSmsScan();
   Future<void> writeAutomaticSmsScan(String? expected, String value);
@@ -135,20 +159,107 @@ class SmsIngestion {
     );
   });
 
-  Future<void> run({required void Function(SmsScan) onProgress}) {
+  /// A missing manual record may inherit only explicit new-only consent, never
+  /// a historical range. No compatibility read creates or enables consent.
+  Future<SmsScan?> loadManual() async {
+    final repository = inbox.repository as ManualSmsScanStore;
+    final saved = await repository.readManualSmsScan();
+    if (saved != null) return SmsScan.decode(saved);
+    final history = await (inbox.repository as SmsScanStore).readSmsScan();
+    if (history != null) {
+      final scan = SmsScan.decode(history);
+      if (scan.newOnly) return _manualBoundary(scan.from);
+    }
+    final automatic = await (inbox.repository as AutomaticSmsScanStore)
+        .readAutomaticSmsScan();
+    if (automatic != null) {
+      final scan = SmsScan.decode(automatic);
+      if (scan.newOnly) return _manualBoundary(scan.from);
+    }
+    return null;
+  }
+
+  SmsScan _manualBoundary(int from) =>
+      SmsScan(from: from, until: from, newOnly: true, complete: true);
+
+  Future<void> activateManual(DateTime now) => _exclusive(() async {
+    final store = inbox.repository as ManualSmsScanStore;
+    final saved = await store.readManualSmsScan();
+    if (saved != null) return;
+    final inherited = await loadManual();
+    await store.writeManualSmsScan(
+      saved,
+      (inherited ?? _manualBoundary(now.millisecondsSinceEpoch)).encode(),
+    );
+  });
+
+  Future<void> setup({
+    required int days,
+    required bool automatic,
+    required DateTime now,
+  }) => _exclusive(() async {
+    if (![0, 7, 30].contains(days)) {
+      throw const ValidationError(PersianCopy.smsIngestionConsentMessage);
+    }
+    final repository = inbox.repository;
+    final store = repository as ManualSmsScanStore;
+    final history = await (repository as SmsScanStore).readSmsScan();
+    final manual = await store.readManualSmsScan();
+    final auto = await (repository as AutomaticSmsScanStore)
+        .readAutomaticSmsScan();
+    final prior = await loadManual();
+    final at = now.millisecondsSinceEpoch;
+    // Setup never narrows an already consented manual window. Existing enabled
+    // automatic consent retains its own boundary and progress.
+    final autoScan = auto == null ? null : SmsScan.decode(auto);
+    await store.writeSmsSetup(
+      expectedHistory: history,
+      expectedManual: manual,
+      expectedAutomatic: auto,
+      history: SmsScan(
+        from: now.subtract(Duration(days: days)).millisecondsSinceEpoch,
+        until: at,
+        newOnly: days == 0,
+      ).encode(),
+      manual: (prior ?? _manualBoundary(at)).encode(),
+      automatic: automatic
+          ? (autoScan?.automatic == true
+                ? auto
+                : SmsScan(
+                    from: at,
+                    until: at,
+                    newOnly: true,
+                    automatic: true,
+                  ).encode())
+          : (autoScan == null ? null : (autoScan..automatic = false).encode()),
+    );
+  });
+
+  Future<void> run({
+    required void Function(SmsScan) onProgress,
+    void Function()? onNewSuggestion,
+    DateTime Function()? now,
+    bool Function()? canRun,
+  }) {
+    bool stopped() => _cancelled || (canRun != null && !canRun());
+    if (canRun != null && !canRun()) return Future.value();
     _cancelled = false;
     return _exclusive(() async {
-      if (_cancelled) return;
+      if (stopped()) return;
       var saved = await _store.readSmsScan();
       if (saved == null) {
         throw const ValidationError(PersianCopy.smsIngestionRunMessage);
       }
       final scan = SmsScan.decode(saved);
+      final knownIds = onNewSuggestion == null
+          ? null
+          : (await inbox.repository.listSuggestions()).map((s) => s.id).toSet();
       if (!await source.hasAccess()) {
         throw const ValidationError(PersianCopy.smsIngestionRunMessage2);
       }
+      if (stopped()) return;
       if (scan.complete && scan.newOnly) {
-        scan.until = DateTime.now().millisecondsSinceEpoch;
+        scan.until = (now ?? DateTime.now)().millisecondsSinceEpoch;
         // Explicit new-only refresh replays only the consented window so late
         // provider insertions cannot hide behind a previously completed cursor.
         scan.timestamp = -1;
@@ -160,7 +271,7 @@ class SmsIngestion {
         saved = scan.encode();
       }
       onProgress(scan);
-      while (!_cancelled && !scan.complete) {
+      while (!stopped() && !scan.complete) {
         final page = await source.readPage(
           from: scan.from,
           until: scan.until,
@@ -168,7 +279,7 @@ class SmsIngestion {
           afterId: scan.id,
         );
         for (final row in page.rows) {
-          if (_cancelled) break;
+          if (stopped()) break;
           if (row.timestamp < scan.from ||
               row.timestamp > scan.until ||
               row.timestamp < scan.timestamp ||
@@ -177,13 +288,16 @@ class SmsIngestion {
           }
           if (row.message != null) {
             try {
-              await inbox.stageSms(
+              final suggestion = await inbox.stageSms(
                 rawText: row.message!.body,
                 sourceKey: row.message!.sourceKey,
                 sourceAddress: row.message!.address,
                 currency: 'IRR',
                 importedAt: row.message!.receivedAt,
               );
+              if (knownIds != null && knownIds.add(suggestion.id)) {
+                onNewSuggestion!();
+              }
             } on DuplicateSmsImport {
               // Legacy fingerprint policy; never reopen a resolved suggestion.
             } on UnsupportedSmsFormat {
@@ -196,7 +310,7 @@ class SmsIngestion {
           onProgress(scan);
           await Future<void>.delayed(Duration.zero);
         }
-        if (!_cancelled && page.rows.length < 100) {
+        if (!stopped() && page.rows.length < 100) {
           scan.complete = true;
         }
         // Crash before this checkpoint replays the bounded page safely.

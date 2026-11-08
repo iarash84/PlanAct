@@ -54,6 +54,23 @@ Future<void> selectAccount(WidgetTester tester, String name) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> draftTag(WidgetTester tester, String label) async {
+  final open = find.byKey(const ValueKey('tag-selection-open'));
+  await tester.ensureVisible(open);
+  await tester.pumpAndSettle();
+  await tester.tap(open);
+  await tester.pumpAndSettle();
+  await tester.enterText(
+    find.byKey(const ValueKey('tag-selection-search')),
+    label,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('افزودن برچسب «$label»'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byTooltip('بستن').last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('ambiguous SMS suggests default only until explicit save', (
     tester,
@@ -220,19 +237,16 @@ void main() {
           expect(await finance.listEntries(), isEmpty);
           await selectAccount(tester, 'حساب دوم');
           expect(find.text('بایگانی'), findsNothing);
+          if (incoming) {
+            await draftTag(tester, 'route-tag');
+            expect(await DriftTagRepository(database).list(), isEmpty);
+            expect(await finance.listEntries(), isEmpty);
+          }
           await tester.tap(find.text('تأیید نهایی'));
           await tester.tap(find.text('تأیید نهایی'));
           await Future<void>.delayed(const Duration(milliseconds: 100));
           await tester.pumpAndSettle();
-          if (incoming) {
-            expect(find.byType(RecordTagEditor), findsOneWidget);
-            await tester.enterText(find.byType(TextField).last, 'route-tag');
-            await tester.testTextInput.receiveAction(TextInputAction.done);
-            await Future<void>.delayed(const Duration(milliseconds: 100));
-            await tester.pumpAndSettle();
-            Navigator.of(tester.element(find.byType(RecordTagEditor))).pop();
-            await tester.pumpAndSettle();
-          }
+          expect(find.byType(RecordTagEditor), findsNothing);
           final entries = await finance.listEntries();
           expect(entries, hasLength(1));
           expect(entries.single.accountId, second.id);
@@ -240,7 +254,7 @@ void main() {
             entries.single.type,
             incoming ? AccountEntryType.income : AccountEntryType.expense,
           );
-          expect(refreshes, incoming ? 2 : 1);
+          expect(refreshes, 1);
           expect(find.text('صف بررسی خالی است'), findsOneWidget);
           await tester.tap(find.text('تعیین ارتباط'));
           expect(relationshipId, entries.single.id);
@@ -303,7 +317,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: InboxPage(inbox: inbox, finance: finance),
+              body: InboxPage(
+                inbox: inbox,
+                finance: finance,
+                tagRepository: DriftTagRepository(database),
+              ),
             ),
           ),
         );
@@ -327,10 +345,12 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('تأیید پیشنهاد تراکنش'), findsOneWidget);
         await selectAccount(tester, 'حساب تازه');
+        await draftTag(tester, 'cancelled-tag');
         await tester.tap(find.text('انصراف'));
         await tester.pumpAndSettle();
         expect(await finance.listEntries(), isEmpty);
         expect(await finance.listAccounts(), hasLength(2));
+        expect(await DriftTagRepository(database).list(), isEmpty);
         expect(await inbox.listPendingSuggestions(), hasLength(1));
       });
     },
@@ -354,7 +374,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: InboxPage(inbox: inbox, finance: finance),
+              body: InboxPage(
+                inbox: inbox,
+                finance: finance,
+                tagRepository: DriftTagRepository(database),
+              ),
             ),
           ),
         );
@@ -374,6 +398,7 @@ void main() {
         await tester.tap(find.byType(Checkbox).last);
         await tester.pumpAndSettle();
         await selectAccount(tester, selected.name);
+        await draftTag(tester, 'retry-tag');
         await database.customStatement(
           "CREATE TRIGGER fail_confirmation BEFORE UPDATE ON inbox_suggestions BEGIN SELECT RAISE(ABORT, 'injected failure'); END",
         );
@@ -382,6 +407,8 @@ void main() {
         expect(find.textContaining('انتخاب شما حفظ شده‌اند'), findsOneWidget);
         expect(find.text(selected.name), findsOneWidget);
         expect(await finance.listEntries(), isEmpty);
+        expect(await DriftTagRepository(database).list(), isEmpty);
+        expect(find.text('#retry-tag'), findsOneWidget);
         await database.customStatement('DROP TRIGGER fail_confirmation');
         await finance.setAccountStatus(
           selected.id,
@@ -397,6 +424,13 @@ void main() {
         await tester.tap(find.text('تأیید نهایی'));
         await tester.pumpAndSettle();
         expect(await finance.listEntries(), hasLength(1));
+        expect(
+          await DriftTagRepository(database).tagsFor(
+            (await finance.listEntries()).single.id.value,
+            TaggableType.accountEntry,
+          ),
+          hasLength(1),
+        );
       });
     },
   );

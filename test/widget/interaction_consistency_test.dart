@@ -36,6 +36,7 @@ Future<void> _host(
   bool reducedMotion = false,
   Size size = const Size(320, 1000),
   TextDirection direction = TextDirection.rtl,
+  double bottomInset = 24,
   CommitmentPlanRepository? plans,
 }) async {
   tester.view.physicalSize = size;
@@ -49,8 +50,8 @@ Future<void> _host(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(scale),
           disableAnimations: reducedMotion,
-          padding: const EdgeInsets.only(top: 24, bottom: 24),
-          viewPadding: const EdgeInsets.only(top: 24, bottom: 24),
+          padding: EdgeInsets.only(top: 24, bottom: bottomInset),
+          viewPadding: EdgeInsets.only(top: 24, bottom: bottomInset),
         ),
         child: Directionality(textDirection: direction, child: child!),
       ),
@@ -92,6 +93,49 @@ Future<void> _open(WidgetTester tester, String title) async {
 }
 
 void main() {
+  for (final dark in [false, true]) {
+    for (final inset in [0.0, 24.0, 48.0]) {
+      testWidgets('compact navigation centers icons: dark=$dark inset=$inset', (
+        tester,
+      ) async {
+        await _host(
+          tester,
+          _Repository(),
+          dark: dark,
+          scale: 2,
+          bottomInset: inset,
+        );
+        final navigation = find.byType(NavigationBar);
+        final bar = tester.getRect(navigation);
+        expect(bar.height, 56 + inset);
+        for (final icon in [
+          Icons.today,
+          Icons.calendar_month_outlined,
+          Icons.account_balance_wallet_outlined,
+          Icons.more_horiz,
+        ]) {
+          final rect = tester.getRect(
+            find.descendant(of: navigation, matching: find.byIcon(icon)),
+          );
+          expect(rect.center.dy, closeTo(bar.top + 28, 0.01));
+        }
+        final destinations = find.descendant(
+          of: navigation,
+          matching: find.byType(NavigationDestination),
+        );
+        for (var index = 0; index < 4; index++) {
+          final target = tester.getRect(destinations.at(index));
+          expect(target.width, greaterThanOrEqualTo(48));
+          expect(target.height, greaterThanOrEqualTo(48));
+        }
+        await tester.tap(destinations.at(3));
+        await tester.pumpAndSettle();
+        expect(tester.widget<NavigationBar>(navigation).selectedIndex, 3);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   for (final direction in TextDirection.values) {
     testWidgets('floating Add follows logical end in $direction', (
       tester,
@@ -227,7 +271,9 @@ void main() {
             await tester.pumpAndSettle();
             await _dismissOccurrenceActions(tester);
 
-            await tester.tap(find.text('تقویم').last);
+            await tester.tap(
+              find.widgetWithText(NavigationDestination, 'تقویم'),
+            );
             await tester.pumpAndSettle();
             final calendar = find.byType(CalendarPage);
             await _scrollToEnd(
@@ -274,10 +320,16 @@ void main() {
               200,
               scrollable: find.byType(Scrollable).first,
             );
-            await tester.tap(
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(
               find.widgetWithText(FilledButton, 'ذخیره'),
-              warnIfMissed: true,
             );
+            await tester.pumpAndSettle();
+            expect(
+              find.widgetWithText(FilledButton, 'ذخیره').hitTestable(),
+              findsOneWidget,
+            );
+            await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
             await tester.pumpAndSettle();
             expect(
               (await repository.findById(last.id))!.title,
@@ -358,7 +410,9 @@ void main() {
             await tester.pumpAndSettle();
             await _dismissOccurrenceActions(tester);
 
-            await tester.tap(find.text('بیشتر').last);
+            await tester.tap(
+              find.widgetWithText(NavigationDestination, 'بیشتر'),
+            );
             await tester.pumpAndSettle();
             final settings = find.text('تنظیمات');
             final moreList = find.ancestor(
@@ -408,8 +462,9 @@ void main() {
           }
 
           expectFloatingContent();
+          final labels = ['امروز', 'تقویم', 'مالی', 'بیشتر'];
           for (final label in ['بیشتر', 'تقویم', 'مالی', 'امروز']) {
-            await tester.tap(find.text(label).last);
+            await tester.tap(find.widgetWithText(NavigationDestination, label));
             for (var frame = 0; frame < 6; frame++) {
               await tester.pump(const Duration(milliseconds: 50));
               expect(tester.element(fab), same(element));
@@ -418,6 +473,12 @@ void main() {
               expectFloatingContent();
             }
             await tester.pumpAndSettle();
+            expect(
+              tester
+                  .widget<NavigationBar>(find.byType(NavigationBar))
+                  .selectedIndex,
+              labels.indexOf(label),
+            );
           }
           await tester.tap(fab);
           await tester.pumpAndSettle();

@@ -20,10 +20,19 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/reminders/presentation/reminder_options.dart';
 import 'package:planact/features/reminders/presentation/reminder_delivery_picker.dart';
 import 'package:planact/features/reminders/domain/reminder.dart';
+import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/finance/presentation/financial_account_picker.dart';
+import 'package:planact/features/finance/presentation/finance_page.dart';
 
 class QuickCaptureSheet extends StatefulWidget {
-  const QuickCaptureSheet({super.key, this.onSave, this.tagRepository});
+  const QuickCaptureSheet({
+    super.key,
+    this.onSave,
+    this.tagRepository,
+    this.financeRepository,
+  });
   final TagRepository? tagRepository;
+  final FinanceRepository? financeRepository;
 
   /// Persists before closing; a failed save leaves the form intact for retry.
   final Future<void> Function(CommitmentDraft draft)? onSave;
@@ -656,6 +665,27 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
           onChanged: (_) => setState(_syncDraft),
         ),
       ],
+      if (widget.financeRepository case final repository?)
+        Offstage(
+          offstage: _draft.financialMeaning == CommitmentFinancialMeaning.none,
+          child: Padding(
+            padding: const EdgeInsets.only(top: PlanActSpacing.md),
+            child: FinancialAccountPicker(
+              repository: repository,
+              currency: 'IRR',
+              optional: true,
+              enabled: !_saving,
+              onChanged: (account) => setState(() {
+                _draft = _draft.copyWith(
+                  financialAccountId: account?.id,
+                  clearFinancialAccount: account == null,
+                );
+              }),
+              onCreateAccount: () =>
+                  openFinancialAccountCreation(context, repository),
+            ),
+          ),
+        ),
       const SizedBox(height: PlanActSpacing.lg),
       const Text(PersianCopy.quickCaptureSheetFinancialFieldsChildren),
       const SizedBox(height: PlanActSpacing.sm),

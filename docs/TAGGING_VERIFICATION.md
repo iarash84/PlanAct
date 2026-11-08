@@ -38,6 +38,49 @@
 
 پیاده‌سازی محدود و شواهد خودکار انجام شده‌اند؛ نگه‌دارنده باید قلم واقعی، متن بزرگ، لمس/تضاد، صفحه‌کلید/پنجره و صفحه‌خوان را مستقل بررسی کند. این مرحله ساخت اندروید یا آزمون دستگاه نداشت و دروازه‌های پشتیبان/یادآور/قفل/پیامک را معاف نمی‌کند.
 
+## دسترسی از تنظیمات؛ ۲۰۲۶-۱۱-۰۷
+
+قرارداد پذیرش: مسیر «بیشتر ← تنظیمات ← مدیریت برچسب‌ها» همان پنل مشترک مدیریت مالی را با همان مخزن تولید باز می‌کند؛ حساب، مجوز یا اتصال اینترنت لازم نیست. لینک مالی باقی می‌ماند. بازکردن و بستن بدون عمل صریح نوشتنی ندارد؛ ساخت/تغییر نام/حذف فقط از فرمان‌ها، تأییدها و بازخورد خطا/تلاش مجدد موجود استفاده می‌کند. پس از تغییر، بازخوانی مشترک ریشه مصرف‌کنندگان برچسب را تازه می‌کند. صفحهٔ تنظیمات پس از بستن پنل حفظ می‌شود.
+
+دامنه فقط افزودن ورودی ناوبری با عنوان فارسی موجود و کارت/ردیف هم‌سبک تنظیمات است؛ معنای حذف، طرح داده، مهاجرت، وابستگی و قالب پشتیبان تغییر نمی‌کند. ماندگاری و راه‌اندازی سرد بر همان مخزن پایدار موجود متکی‌اند، نه حالت جدید صفحه. شواهد لازم: مسیر واقعی ریشه تا تنظیمات، بازکردن/لغو بدون تغییر، ساخت برچسب در مخزن مشترک و بازکردن مجدد، حفظ ورودی مالی، و بررسی RTL روشن/تیره. بررسی مستقل دستگاه/صفحه‌خوان با نگه‌دارنده است و در این اصلاح ادعا نمی‌شود.
+
+پیاده‌سازی: گزینهٔ بخش عمومی تنظیمات از ریشه به همان پنل و مخزن مشترک وصل شد؛ تغییرات صریح همان بازخوانی مشترک ریشه را اجرا می‌کنند. عنوان از منبع ترجمهٔ موجود و ظاهر از کارت/ردیف و فاصلهٔ مشترک استفاده می‌کند. مدیریت مالی دست‌نخورده است؛ داده یا رفتار دامنهٔ جدیدی اضافه نشده است.
+
+شواهد خودکار: ۱۴ آزمون در فایل‌های مسیر جدید تنظیمات، چرخهٔ عمر مخزن و مخزن واحد موفق شدند؛ قالب‌بندی، تحلیل ایستا و بررسی اختلاف‌ها نیز موفق بودند. آزمون جدید با مخزن تولید SQLite، مسیر واقعی بیشتر/تنظیمات را در هر دو تم و RTL باز می‌کند؛ خروج بدون تغییر، حفظ شناسهٔ قبلی، ساخت برچسب و مشاهدهٔ همان برچسب از پنل مدیریت مالی را می‌سنجد. شکست‌های اولیه مربوط به هدف لمس ناوبری، روش بستن مسیر و وجود هم‌زمان نام در فیلتر و پنل تست بودند؛ اهداف و محدودهٔ بررسی اصلاح شدند، نه رفتار محصول.
+
+پذیرش محدود پیاده‌سازی و شواهد خودکار تکمیل است؛ آزمون جدید شاهد بازگشایی سرد فایل یا بازیابی پشتیبان نیست و برای آن‌ها به شواهد مخزن موجود تکیه می‌شود. کل مجموعهٔ آزمون‌ها، دستگاه، متن بزرگ/صفحه‌خوان و بازبینی مستقل در این اصلاح اجرا نشده‌اند. نگه‌دارنده مالک بررسی مستقل و تصمیم انتشار است؛ هیچ معافیتی برای دروازه‌های انتشار موجود ایجاد نمی‌شود.
+
+## قرارداد انتخاب فشردهٔ جست‌وجوپذیر؛ ۲۰۲۶-۱۱-۰۷
+
+پیش از پیاده‌سازی: فرم ثبت سریع تعهد، ثبت سریع درآمد/هزینه و فرم مالی فقط خلاصهٔ حداکثر سه انتخاب و شمار باقی‌مانده را نشان می‌دهند؛ دکمهٔ انتخاب، پنل پایین قابل گسترش با جست‌وجوی ثابت و نتایج عمودی تنبل باز می‌کند. انتخاب با تغییر جست‌وجو حفظ می‌شود. تایپ هیچ نوشتنی ندارد؛ ساخت نام فقط اقدام صریح است. پیش‌نویس تا ثبت والد فقط در فرم است و لغو والد هیچ نام/عضویتی نمی‌سازد. رکورد موجود همان ذخیرهٔ فوری با توضیح روشن، بدون دکمهٔ تأیید گمراه‌کننده، را حفظ می‌کند. شکست نوشتن از شکست بازخوانی پس از ثبت متمایز و تلاش مجدد محفوظ است.
+
+مسیر موجود: اقدام کاربر ← انتخاب نام در پیش‌نویس ← فرمان ساخت والد با نام‌ها ← عادی‌سازی و ثبت اتمیک موجود ← بازخوانی ریشه و امروز/تقویم/مالی. برای رکورد موجود: اقدام اتصال/جداسازی ← مخزن مشترک و قواعد موجود ← ثبت پایدار ← callback بازخوانی ← مصرف‌کنندگان. فیلتر مالی فقط یک شناسهٔ اختیاری است و «همه» نبود فیلتر؛ گزارش‌ها مجموعه‌های مستقل شمول/حذف و حالت یکی/همه/بدون‌برچسب خود را حفظ می‌کنند و تنها نمایش انتخاب عوض می‌شود. حساب، اینترنت یا مجوز جدید لازم نیست.
+
+دامنه: انتخابگر مشترک و مصرف‌کنندگان موجود؛ مدیریت تنظیمات/مالی، تغییرنام و حذف با تأیید موجود باقی می‌مانند و فقط مدیریت اجازهٔ تغییرنام/حذف دارد. رتبه‌بندی، علاقه‌مندی، معنا/طرح داده/مهاجرت/وابستگی و قالب پشتیبان جدید نداریم. دوام و بازیابی همان مخزن موجود است؛ جست‌وجو و فیلتر موقت‌اند. شواهد لازم: انتخاب پایدار میان جست‌وجوها، عدم نوشتن تایپ/لغو، ساخت صریح، ذخیرهٔ فوری و خطا/تلاش مجدد، تک‌انتخاب مالی، حفظ شمول/حذف گزارش، تنبل‌بودن با هزار برچسب، عرض باریک/متن بزرگ/صفحه‌کلید/RTL در دو تم و آزمون مسیرهای موجود. بودجهٔ دستگاه پیشنهادی برای بررسی نگه‌دارنده: بازشدن/جست‌وجوی هزار برچسب زیر ۳۰۰ میلی‌ثانیه و پیمایش بدون فریم بالای ۳۲ میلی‌ثانیه؛ تست ویجت ادعای تحقق این بودجه نیست.
+
+پوشش اولیه: فرم‌های ثبت سریع و مالی، ویرایش رکورد جزئیات/مالی/صندوق، فیلتر مالی و شمول/حذف گزارش‌ها باید Migrated شوند. نمایش فقط‌خواندنی امروز/تقویم و مدیریت تنظیمات/مالی Intentionally Unchanged هستند؛ اولی انتخابگر نیست و دومی قواعد مدیریت را حفظ می‌کند. وضعیت نهایی و شواهد پس از اجرا ثبت می‌شود. پذیرش بومی صفحه‌کلید/صفحه‌خوان، قلم و کنتراست واقعی، کارایی دستگاه مرجع و بازبینی مستقل با نگه‌دارنده است؛ تا ثبت آن‌ها ادعای آمادگی انتشار نمی‌شود.
+
+### نتیجهٔ اجرا؛ ۲۰۲۶-۱۱-۰۸
+
+پیاده‌سازی محدود تکمیل شد: خلاصهٔ سه انتخاب و شمار باقی‌مانده، پنل گسترش‌پذیر با عنوان/جست‌وجوی ثابت، نتایج عمودی تنبل، انتخاب مستقل از جست‌وجو و ساخت صریح از همان منابع ترجمهٔ فارسی مشترک استفاده می‌کنند. کل فهرست نام‌ها برای جست‌وجوی محلی خوانده می‌شود؛ تنبل‌بودن مربوط به ساخت ردیف‌هاست، نه صفحه‌بندی پایگاه داده. مسیرهای نوشتن و قواعد دامنه تغییر نکرده‌اند؛ طرح، مهاجرت، وابستگی یا فیلد پشتیبان اضافه نشده است.
+
+| سطح | وضعیت | شاهد/دلیل |
+| --- | --- | --- |
+| ثبت سریع تعهد و گزینه‌های بیشتر | Migrated | پیش‌نویس مشترک؛ حفظ انتخاب، عادی‌سازی/عدم تکرار، حذف انتخاب، لغو بدون نوشتن و تلاش مجدد |
+| درآمد/هزینهٔ سریع و فرم کامل مالی | Migrated | همان پیش‌نویس؛ حفظ انتخاب در شکست و ثبت اتمیک موجود |
+| ویرایش برچسب جزئیات تعهد و مالی | Migrated | ذخیرهٔ فوری، نام/اتصال/جداسازی و دفتر دست‌نخورده؛ خطای نوشتن در برابر ثبت موفق/بازخوانی ناموفق |
+| ویرایش برچسب صندوق | Migrated | همان ویرایشگر مشترک؛ مسیر مستقل صندوق در این اجرا آزموده نشده است |
+| فیلتر مالی | Migrated | تک‌شناسهٔ اختیاری، انتخاب و بازگشت به همهٔ رکوردها |
+| شمول/استثنای گزارش | Migrated | خلاصه/جست‌وجوی مشترک؛ انتقال دوطرفهٔ انتخاب، جمع/نمودار و تازه‌سازی از SQLite؛ قواعد یکی/همه/بی‌برچسب در آزمون دامنه |
+| نمایش فقط‌خواندنی امروز/تقویم | Intentionally Unchanged | انتخابگر نیست؛ منبع عضویت و نمایش موجود حفظ شده است |
+| مدیریت تنظیمات/مالی | Intentionally Unchanged | پنل مدیریت و تأیید حذف موجود؛ مسیر هر دو ورودی و تغییر نام/حذف دوباره آزموده شد |
+
+شواهد خودکار این اجرا: ۵۲ آزمون موفق در مجموعهٔ انتخابگر/ساخت/مالی/گزارش/جزئیات/تنظیمات، قواعد گزارش و مخازن چرخهٔ عمر/ساخت. آزمون مخزن فایل‌محور بازگشایی سرد و حفظ عضویت/تاریخچه را دوباره می‌سنجد. آزمون مشترک با ۱۰۰۰ برچسب، عرض ۳۶۰، مقیاس متن ۲، RTL و هر دو تم، کمتر از ۳۰ ردیف ساخته‌شده، گسترش/جمع‌کردن، حفظ انتخاب بین جست‌وجوها، فضای صفحه‌کلید شبیه‌سازی‌شده و عدم نوشتن پیش‌نویس حتی پس از ساخت صریح/لغو والد را سنجید. قالب‌بندی، تحلیل بدون مسئله، کنترل به‌روزبودن ترجمهٔ تولیدشده و بررسی اختلاف‌ها موفق‌اند.
+
+نکتهٔ رگرسیون: آزمون‌های قدیمی به ردیف‌های ازپیش‌ساخته و نمایش هم‌زمان همهٔ برچسب‌ها وابسته بودند. اکنون مسیر واقعی بازکردن پنل/جست‌وجو/پیمایش/انتخاب را می‌سنجند؛ انتظارات دفتر، عضویت، لغو، خطا و ماندگاری حذف نشده‌اند. هدف‌های خارج دید و نام تکراری در خلاصه/پیش‌نمایش با پیمایش و محدودهٔ معنایی درست اصلاح شدند. آزمون جدید ثبت موفق/بازخوانی ناموفق مانع از معرفی تغییر پایدار به‌عنوان شکست ثبت می‌شود.
+
+وضعیت پذیرش: پیاده‌سازی و شواهد خودکار محدود تکمیل‌اند، نه تأیید مستقل انتشار. کل مجموعهٔ مخزن، مسیر مستقل صندوق، بازیابی پشتیبان در این اجرا و آزمون بومی دستگاه اجرا نشده‌اند. نگه‌دارنده مالک اقدام بعدی است: بررسی مستقل صفحه‌کلید واقعی/صفحه‌خوان/قلم/کنتراست، لمس و حرکت کاهش‌یافته و اندازه‌گیری بودجهٔ پیشنهادی روی دستگاه مرجع مشخص؛ تا ثبت نتیجه، آمادگی دستگاه/کارایی و پذیرش مستقل ادعا نمی‌شود و دروازه‌های موجود انتشار پابرجایند.
+
 ## مراجع کد و شواهد
 
 - [<span dir="ltr">tag_lifecycle_test.dart</span>](../test/repository/tag_lifecycle_test.dart)
@@ -51,3 +94,19 @@
 - [<span dir="ltr">tagged_creation_test.dart</span>](../test/widget/tagged_creation_test.dart)
 
 </div>
+
+## Inbox pre-confirmation tags — acceptance contract (2026-11-08)
+
+Approved outcome: Inbox → Confirm and record offers optional draft tags before final confirmation. Existing account, classification, date and currency prerequisites remain unchanged. Show bounded recent-created reusable labels without automatic selection, full search, and an add action for an empty catalogue. Cancellation writes no transaction, tags or memberships; failure rolls everything back and retains form selections for retry. Success returns directly to Inbox with the existing relationship snackbar, never an automatic tag editor. Finance keeps explicit later editing.
+
+Trace: confirmation form → InboxUseCases.confirm → fresh transactional Drift admission/validation → ledger, reusable tags, memberships and Inbox decision in one commit → Inbox refresh and Finance/report consumers. No schema/dependency change; existing tag backup format remains. Evidence required: route success/cancel/retry, rollback, normalization, cold reopen, both themes/RTL/text scale and shared-picker regressions. Device accessibility and independent acceptance remain separate release gates.
+
+### Implementation and evidence
+
+Implemented: optional pre-confirmation draft picker; three newest-created reusable labels (not a new usage-history store), searchable full catalogue and explicit empty add action. Existing Finance immediate editing is intentionally unchanged. This supersedes the older Inbox automatic post-save editor coverage above; other DraftTagPicker consumers retain their existing compact mode. No schema or dependency additions; canonical tag/membership backup tables are unchanged.
+
+Verification: 63 targeted tests passed across Inbox routes, inline/shared pickers, Inbox domain, transactional tag creation/lifecycle, currency confirmation, Finance editing/creation, localization and full logical-state backup. The new Inbox repository regression injects membership failure and proves ledger/tag/review rollback, normalized reuse and idempotent retry. Route tests prove cancellation, failed-save draft retention, saved-ID relationship feedback and file-backed cold reopen. Inline tests cover RTL, both themes, 360dp width and text scale 2. Formatting, analyzer (no issues), generated-copy check and diff whitespace check passed.
+
+Escape note: the previous route regression explicitly expected the post-save editor; it did not enforce that final confirmation ends the workflow. It now selects tags before saving and rejects that automatic editor.
+
+Acceptance status: scoped implementation and automated verification complete, not independent release sign-off. Native device accessibility/keyboard/contrast review, dedicated Inbox-tag backup/restore journey and the full repository suite were not executed. Maintainer owns independent review and device acceptance; do not claim device/release readiness until these existing gates are accepted. Existing logical backup regression passed, but is not a fresh-install native restore proof.

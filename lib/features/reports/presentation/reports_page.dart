@@ -1,4 +1,5 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/classification/presentation/tag_selection.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
@@ -270,6 +271,41 @@ class _ReportsPageState extends State<ReportsPage> {
     ),
   );
 
+  Widget _tagSelection(ReportSnapshot data, {required bool excluded}) {
+    final selection = excluded ? _excludedTags : _tags;
+    final opposite = excluded ? _tags : _excludedTags;
+    final title = excluded
+        ? PersianCopy.reportsPageFiltersTitle2
+        : PersianCopy.reportsPageFiltersChildren;
+    return CompactTagSelection(
+      key: ValueKey(excluded ? 'report-excluded-tags' : 'report-included-tags'),
+      title: title,
+      enabled: !_loading,
+      labels: data.tags
+          .where((tag) => selection.contains(tag.id))
+          .map((tag) => tag.label),
+      onOpen: () => showTagSelection(
+        context,
+        title: title,
+        labels: () => data.tags.map((tag) => tag.label).toList(),
+        selected: (label) => selection.contains(
+          data.tags.firstWhere((tag) => tag.label == label).id,
+        ),
+        onToggle: (label, value) async {
+          final id = data.tags.firstWhere((tag) => tag.label == label).id;
+          setState(() {
+            if (value) {
+              selection.add(id);
+              opposite.remove(id);
+            } else {
+              selection.remove(id);
+            }
+          });
+        },
+      ),
+    );
+  }
+
   Widget _filters(ReportSnapshot data) => ExpansionTile(
     key: const PageStorageKey('report-filters'),
     title: const Text(PersianCopy.reportsPageFiltersTitle),
@@ -304,56 +340,8 @@ class _ReportsPageState extends State<ReportsPage> {
       if (data.tags.isEmpty)
         const Text(PersianCopy.reportsPageFiltersChildren5),
       if (_tagMode != ReportTagMode.untagged)
-        Wrap(
-          spacing: PlanActSpacing.sm,
-          children: [
-            for (final tag in data.tags)
-              FilterChip(
-                label: Text(tag.displayLabel),
-                selected: _tags.contains(tag.id),
-                onSelected: _loading
-                    ? null
-                    : (v) => setState(() {
-                        if (v) {
-                          _tags.add(tag.id);
-                          _excludedTags.remove(tag.id);
-                        } else {
-                          _tags.remove(tag.id);
-                        }
-                      }),
-              ),
-          ],
-        ),
-      ExpansionTile(
-        key: const PageStorageKey('report-excluded-tags'),
-        title: const Text(PersianCopy.reportsPageFiltersTitle2),
-        children: [
-          Wrap(
-            spacing: PlanActSpacing.sm,
-            children: [
-              for (final tag in data.tags)
-                FilterChip(
-                  label: Text(
-                    PersianCopy.reportsPageFiltersLabel(
-                      (tag.displayLabel).toString(),
-                    ),
-                  ),
-                  selected: _excludedTags.contains(tag.id),
-                  onSelected: _loading
-                      ? null
-                      : (v) => setState(() {
-                          if (v) {
-                            _excludedTags.add(tag.id);
-                            _tags.remove(tag.id);
-                          } else {
-                            _excludedTags.remove(tag.id);
-                          }
-                        }),
-                ),
-            ],
-          ),
-        ],
-      ),
+        _tagSelection(data, excluded: false),
+      _tagSelection(data, excluded: true),
       if (!_financial) ...[
         _select<StableId>(
           PersianCopy.calendarPageMarkerPainterText,

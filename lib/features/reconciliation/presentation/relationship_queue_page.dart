@@ -389,7 +389,8 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
           else if (_error == null && visible.isEmpty)
             Text(planActL10n(context).relationshipQueuePageBuildChildren8),
           if (!_loading && _error == null)
-            for (final item in visible)
+            for (final item in visible) ...[
+              const SizedBox(height: PlanActSpacing.lg),
               Card(
                 child: Column(
                   children: [
@@ -479,6 +480,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                   ],
                 ),
               ),
+            ],
         ],
       ),
     );

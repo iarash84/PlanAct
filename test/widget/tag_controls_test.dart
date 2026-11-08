@@ -67,11 +67,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('#آموزش'));
+    await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, '#آموزش'));
     await tester.pumpAndSettle();
     expect(await repository.tagsFor('one', TaggableType.commitment), {tag.id});
-    expect(tester.widget<FilterChip>(find.byType(FilterChip)).selected, isTrue);
-    await tester.tap(find.text('#آموزش'));
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      isTrue,
+    );
+    await tester.tap(find.widgetWithText(CheckboxListTile, '#آموزش'));
     await tester.pumpAndSettle();
     expect(await repository.tagsFor('one', TaggableType.commitment), isEmpty);
     expect(await repository.tagsFor('other', TaggableType.commitment), {
@@ -173,10 +178,7 @@ void main() {
       Navigator.of(tester.element(find.text('مدیریت برچسب‌ها').last)).pop();
       await tester.pumpAndSettle();
       expect(find.text('#جدید'), findsOneWidget);
-      expect(
-        tester.widget<FilterChip>(find.byType(FilterChip)).selected,
-        isTrue,
-      );
+      expect(find.widgetWithText(Chip, '#جدید'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -199,28 +201,91 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('#کار'));
+      await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, '#کار'));
       await tester.pump();
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsWidgets);
       expect(
-        tester.widget<FilterChip>(find.byType(FilterChip)).onSelected,
+        tester
+            .widget<CheckboxListTile>(find.byType(CheckboxListTile))
+            .onChanged,
         isNull,
       );
       repository.pending!.complete();
       await tester.pumpAndSettle();
-      expect(find.textContaining('تغییر برچسب انجام نشد'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('tag-selection-results')),
+          matching: find.textContaining('تغییر برچسب انجام نشد'),
+        ),
+        findsOneWidget,
+      );
       expect(
         await repository.tagsFor('one', TaggableType.accountEntry),
         isEmpty,
       );
       repository.failAttach = false;
-      await tester.tap(find.text('#کار'));
+      await tester.tap(find.widgetWithText(CheckboxListTile, '#کار'));
       await tester.pumpAndSettle();
       expect(await repository.tagsFor('one', TaggableType.accountEntry), {
         tag.id,
       });
     },
   );
+
+  testWidgets('committed assignment survives refresh failure and retry', (
+    tester,
+  ) async {
+    final repository = InMemoryTagRepository();
+    final tag = await repository.getOrCreate('کار');
+    var failRefresh = true;
+    await tester.pumpWidget(
+      host(
+        RecordTagEditor(
+          repository: repository,
+          recordId: 'one',
+          type: TaggableType.commitment,
+          onChanged: () async {
+            if (failRefresh) throw StateError('refresh failed');
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, '#کار'));
+    await tester.pumpAndSettle();
+    expect(await repository.tagsFor('one', TaggableType.commitment), {tag.id});
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      isTrue,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tag-selection-results')),
+        matching: find.textContaining(
+          'تغییر ذخیره شد؛ نمایش اطلاعات به‌روز نشد',
+        ),
+      ),
+      findsOneWidget,
+    );
+    failRefresh = false;
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('tag-selection-results')),
+        matching: find.text('تلاش دوباره'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(await repository.tagsFor('one', TaggableType.commitment), {tag.id});
+    expect(
+      find.textContaining('تغییر ذخیره شد؛ نمایش اطلاعات به‌روز نشد'),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('load failure is distinct from empty and can retry', (
     tester,
@@ -241,6 +306,8 @@ void main() {
     repository.failList = false;
     await repository.getOrCreate('کار');
     await tester.tap(find.text('تلاش دوباره'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
     await tester.pumpAndSettle();
     expect(find.text('#کار'), findsOneWidget);
   });
@@ -287,7 +354,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilterChip, '#خانه'));
+      await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, '#خانه'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.textContaining('تراکنش برچسب‌دار'),
@@ -295,8 +364,13 @@ void main() {
       );
       expect(find.textContaining('تراکنش دیگر'), findsNothing);
       expect(find.byType(TagLabels), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('همهٔ برچسب‌ها'), -200);
-      await tester.tap(find.text('همهٔ برچسب‌ها'));
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('tag-selection-open')),
+        -200,
+      );
+      await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('همهٔ برچسب‌ها').last);
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.textContaining('تراکنش دیگر'), 200);
       expect(find.textContaining('تراکنش دیگر'), findsOneWidget);

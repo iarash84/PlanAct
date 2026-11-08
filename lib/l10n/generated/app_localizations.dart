@@ -94,6 +94,36 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Open the compact searchable tag selector.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب برچسب‌ها'**
+  String get tagSelectionChoose;
+
+  /// Pinned tag search field; typing does not save anything.
+  ///
+  /// In fa, this message translates to:
+  /// **'جست‌وجوی برچسب'**
+  String get tagSelectionSearch;
+
+  /// No tag matches the search.
+  ///
+  /// In fa, this message translates to:
+  /// **'برچسبی پیدا نشد.'**
+  String get tagSelectionEmpty;
+
+  /// Selected tags omitted from the bounded summary.
+  ///
+  /// In fa, this message translates to:
+  /// **'و {count} برچسب دیگر'**
+  String tagSelectionRemaining(String count);
+
+  /// Explicit creation action, draft-only inside creation forms.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن برچسب «{label}»'**
+  String tagSelectionCreate(String label);
+
   /// Application copy. Original usage: lib/app/app_lock.dart:30.
   ///
   /// In fa, this message translates to:
@@ -8332,6 +8362,96 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.'**
   String get financeDeleteAccountFailed;
+
+  /// Optional draft tags in Inbox confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'برچسب‌ها · اختیاری'**
+  String get inboxOptionalTags;
+
+  /// Open draft tag creation when no reusable tags exist.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن برچسب'**
+  String get inboxAddTag;
+
+  /// Search all reusable tags before confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ برچسب‌ها'**
+  String get inboxAllTags;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsControlsTitle
+  ///
+  /// In fa, this message translates to:
+  /// **'پیامک‌های بانکی'**
+  String get smsControlsTitle;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupOpen
+  ///
+  /// In fa, this message translates to:
+  /// **'راه‌اندازی پیامک'**
+  String get smsSetupOpen;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupDescription
+  ///
+  /// In fa, this message translates to:
+  /// **'بازهٔ نخست را انتخاب کنید. بررسی دستی پیام‌های جدید از لحظهٔ شروع فعال می‌شود؛ دریافت خودکار انتخابی جداگانه است و ثبت مالی همچنان به تأیید شما نیاز دارد.'**
+  String get smsSetupDescription;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupStart
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع'**
+  String get smsSetupStart;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationTitle
+  ///
+  /// In fa, this message translates to:
+  /// **'فعال‌سازی بررسی دستی'**
+  String get smsManualActivationTitle;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationBody
+  ///
+  /// In fa, this message translates to:
+  /// **'رضایت قبلی فقط برای بازهٔ گذشته بوده است. با تأیید، بررسی دستی پیامک‌های جدید از همین لحظه فعال می‌شود؛ تاریخچه و انتخاب خودکار تغییر نمی‌کنند.'**
+  String get smsManualActivationBody;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivate
+  ///
+  /// In fa, this message translates to:
+  /// **'فعال‌سازی از اکنون'**
+  String get smsManualActivate;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckNewMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی پیامک‌های جدید'**
+  String get smsCheckNewMessages;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckingMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'در حال بررسی پیامک‌ها…'**
+  String get smsCheckingMessages;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNoNewSuggestions
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشنهاد تازه‌ای پیدا نشد.'**
+  String get smsNoNewSuggestions;
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNewSuggestionsCount
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} پیشنهاد تازه برای بررسی'**
+  String smsNewSuggestionsCount(String count);
+
+  /// Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsOlderMessages
+  ///
+  /// In fa, this message translates to:
+  /// **'پیام‌های قدیمی‌تر'**
+  String get smsOlderMessages;
 }
 
 class _AppLocalizationsDelegate

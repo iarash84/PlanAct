@@ -159,6 +159,62 @@ void main() {
     );
   });
 
+  for (final unit in SmsMoneyUnit.values) {
+    test(
+      'fallback confirmation preserves $unit evidence and retry identity',
+      () async {
+        final inbox = InMemoryInboxRepository();
+        final finance = InMemoryFinanceRepository();
+        final useCases = InboxUseCases(inbox);
+        final account = FinancialAccount(
+          id: StableId.generate(),
+          name: 'بانک',
+          currency: 'IRR',
+          type: FinancialAccountType.bank,
+        );
+        final suggestion = await useCases.stageSms(
+          rawText: 'type: deposit\namount: 123\ndate: 2026-09-20\ntime: 12:30\nmerchant: نمونه\nref: abc',
+          sourceKey: 'retry-$unit',
+          currency: 'IRR',
+        );
+        final first = await useCases.confirm(
+          suggestion: suggestion,
+          account: account,
+          finance: finance,
+          selectedUnit: unit,
+        );
+        final retry = await useCases.confirm(
+          suggestion: suggestion,
+          account: account,
+          finance: finance,
+          selectedUnit: unit,
+        );
+        expect(retry.id, first.id);
+        expect(await finance.listEntries(), hasLength(1));
+        expect(first.type, AccountEntryType.income);
+        expect(
+          first.amount.minorUnits,
+          unit == SmsMoneyUnit.toman ? 1230 : 123,
+        );
+        expect(first.accountId, account.id);
+        expect(first.occurredAt, suggestion.draft.occurredAt.toUtc());
+        expect(first.occurredAt.isUtc, isTrue);
+        expect(first.note, 'نمونه');
+        expect(first.referenceId, 'abc');
+        final saved = (await inbox.listSuggestions()).single;
+        expect(saved.status, SuggestionStatus.confirmed);
+        expect(saved.revision, suggestion.revision + 1);
+        expect(saved.draft.currencyEvidence!.selectedUnit, unit);
+        expect(suggestion.draft.currencyEvidence!.requiresSelection, isTrue);
+        expect(saved.extractedEvidence, same(suggestion.extractedEvidence));
+        expect(
+          (await inbox.listImports()).single.status,
+          StagedItemStatus.confirmed,
+        );
+      },
+    );
+  }
+
   test('reject preserves staging history and does not write ledger', () async {
     final inbox = InMemoryInboxRepository();
     final finance = InMemoryFinanceRepository();

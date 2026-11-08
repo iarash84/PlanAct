@@ -61,10 +61,12 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('خروجی: ۱,۰۰۰ ریال'), findsOneWidget);
-      final chip = find.widgetWithText(FilterChip, '#ورزش');
-      await tester.ensureVisible(chip);
+      final open = find.byKey(const ValueKey('tag-selection-open'));
+      await tester.ensureVisible(open);
       await tester.pumpAndSettle();
-      await tester.tap(chip);
+      await tester.tap(open);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, '#ورزش'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.text('خروجی: ۱۰۰ ریال'),

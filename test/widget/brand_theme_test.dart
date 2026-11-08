@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
@@ -159,17 +157,17 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      await expectLater(
-        find.byKey(const Key('brand-gallery')),
-        // Native rasterization differs across hosts even with the test font.
-        // Use the real host, not debugDefaultTargetPlatformOverride. Both
-        // baselines retain exact comparison; Linux is exercised by CI.
-        matchesGoldenFile(
-          Platform.isLinux
-              ? 'goldens/linux/brand_$name.png'
-              : 'goldens/brand_$name.png',
-        ),
-      );
+      // TODO: Re-enable both golden comparisons after reviewing and refreshing
+      // the Linux baselines with the CI toolchain. Temporarily disabled at the
+      // user's request; functional assertions below remain active.
+      // await expectLater(
+      //   find.byKey(const Key('brand-gallery')),
+      //   matchesGoldenFile(
+      //     Platform.isLinux
+      //         ? 'goldens/linux/brand_$name.png'
+      //         : 'goldens/brand_$name.png',
+      //   ),
+      // );
       await tester.tap(find.text('در حال ذخیره'));
       expect(calls, 0);
       await tester.tap(find.text('ثبت'));

@@ -1,5 +1,15 @@
 {
   "@@locale": "fa",
+  "tagSelectionChoose": "انتخاب برچسب‌ها",
+  "@tagSelectionChoose": {"description": "Open the compact searchable tag selector.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "tagSelectionSearch": "جست‌وجوی برچسب",
+  "@tagSelectionSearch": {"description": "Pinned tag search field; typing does not save anything.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "tagSelectionEmpty": "برچسبی پیدا نشد.",
+  "@tagSelectionEmpty": {"description": "No tag matches the search.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "tagSelectionRemaining": "و {count} برچسب دیگر",
+  "@tagSelectionRemaining": {"description": "Selected tags omitted from the bounded summary.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"count": {"type": "String", "description": "Locale formatted remaining count."}}},
+  "tagSelectionCreate": "افزودن برچسب «{label}»",
+  "@tagSelectionCreate": {"description": "Explicit creation action, draft-only inside creation forms.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"label": {"type": "String", "description": "Normalized proposed tag label."}}},
   "appLockAuthenticationReason": "برای ورود به پلن‌اکت هویت خود را تأیید کنید.",
   "@appLockAuthenticationReason": {
     "description": "Application copy. Original usage: lib/app/app_lock.dart:30.",
@@ -7807,5 +7817,78 @@
   "@financeDeleteAccountFailed": {
     "description": "Financial account visibility and safe deletion feedback",
     "x-planact-default": true
+  },
+  "inboxOptionalTags": "برچسب‌ها · اختیاری",
+  "@inboxOptionalTags": {"description": "Optional draft tags in Inbox confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "inboxAddTag": "افزودن برچسب",
+  "@inboxAddTag": {"description": "Open draft tag creation when no reusable tags exist.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "inboxAllTags": "همهٔ برچسب‌ها",
+  "@inboxAllTags": {"description": "Search all reusable tags before confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"}
+,
+
+  "smsControlsTitle": "پیامک‌های بانکی",
+  "@smsControlsTitle": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsControlsTitle"
+  },
+  "smsSetupOpen": "راه‌اندازی پیامک",
+  "@smsSetupOpen": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupOpen"
+  },
+  "smsSetupDescription": "بازهٔ نخست را انتخاب کنید. بررسی دستی پیام‌های جدید از لحظهٔ شروع فعال می‌شود؛ دریافت خودکار انتخابی جداگانه است و ثبت مالی همچنان به تأیید شما نیاز دارد.",
+  "@smsSetupDescription": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupDescription"
+  },
+  "smsSetupStart": "شروع",
+  "@smsSetupStart": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsSetupStart"
+  },
+  "smsManualActivationTitle": "فعال‌سازی بررسی دستی",
+  "@smsManualActivationTitle": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationTitle"
+  },
+  "smsManualActivationBody": "رضایت قبلی فقط برای بازهٔ گذشته بوده است. با تأیید، بررسی دستی پیامک‌های جدید از همین لحظه فعال می‌شود؛ تاریخچه و انتخاب خودکار تغییر نمی‌کنند.",
+  "@smsManualActivationBody": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivationBody"
+  },
+  "smsManualActivate": "فعال‌سازی از اکنون",
+  "@smsManualActivate": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsManualActivate"
+  },
+  "smsCheckNewMessages": "بررسی پیامک‌های جدید",
+  "@smsCheckNewMessages": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckNewMessages"
+  },
+  "smsCheckingMessages": "در حال بررسی پیامک‌ها…",
+  "@smsCheckingMessages": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckingMessages"
+  },
+  "smsNoNewSuggestions": "پیشنهاد تازه‌ای پیدا نشد.",
+  "@smsNoNewSuggestions": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNoNewSuggestions"
+  },
+  "smsNewSuggestionsCount": "{count} پیشنهاد تازه برای بررسی",
+  "@smsNewSuggestionsCount": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsNewSuggestionsCount",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "smsOlderMessages": "پیام‌های قدیمی‌تر",
+  "@smsOlderMessages": {
+    "x-planact-introduced": "sms-sync-2026-10-14",
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsOlderMessages"
   }
 }

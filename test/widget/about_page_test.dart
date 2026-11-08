@@ -79,7 +79,7 @@ void main() {
     metadata();
     await tester.pumpWidget(const PlanActApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بیشتر').last);
+    await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
     await tester.pumpAndSettle();
     await reveal(tester, find.text('تنظیمات'));
     await tester.tap(find.text('تنظیمات'));

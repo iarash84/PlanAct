@@ -6,6 +6,8 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
 
+import 'tag_selection.dart';
+
 /// Shared read-only metadata for commitment and financial surfaces.
 class TagLabels extends StatelessWidget {
   const TagLabels({super.key, required this.labels});
@@ -27,7 +29,9 @@ class DraftTagPicker extends StatefulWidget {
     required this.selected,
     required this.onChanged,
     this.enabled = true,
+    this.inlineSuggestions = false,
   });
+  final bool inlineSuggestions;
   final TagRepository? repository;
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
@@ -38,7 +42,6 @@ class DraftTagPicker extends StatefulWidget {
 }
 
 class _DraftTagPickerState extends State<DraftTagPicker> {
-  final _label = TextEditingController();
   List<Tag> _tags = [];
   bool _loading = false;
   String? _error;
@@ -47,12 +50,6 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _label.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -76,42 +73,45 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
     }
   }
 
-  void _toggle(String label, bool selected) {
-    final key = normalizeTagKey(label);
-    final labels = {...widget.selected}
-      ..removeWhere((value) => normalizeTagKey(value) == key);
-    if (selected) labels.add(label);
-    widget.onChanged(Set.unmodifiable(labels));
-  }
-
-  void _add() {
-    if (!widget.enabled) return;
-    final label = normalizeTagLabel(_label.text);
-    if (label.isEmpty) {
-      setState(() => _error = PersianCopy.tagControlsAddMessage);
-      return;
-    }
-    final existing = _tags
-        .where((tag) => tag.normalizedLabel == normalizeTagKey(label))
-        .firstOrNull;
-    _toggle(existing?.label ?? label, true);
-    _label.clear();
-    setState(() => _error = null);
+  Future<void> _open() async {
+    // Keep a local draft while the modal and parent rebuild independently.
+    var draft = {...widget.selected};
+    await showTagSelection(
+      context,
+      labels: () => <String, String>{
+        for (final tag in _tags) tag.normalizedLabel: tag.label,
+        for (final label in draft) normalizeTagKey(label): label,
+      }.values.toList(),
+      selected: (label) => draft.any(
+        (value) => normalizeTagKey(value) == normalizeTagKey(label),
+      ),
+      onToggle: (label, selected) async {
+        draft.removeWhere(
+          (value) => normalizeTagKey(value) == normalizeTagKey(label),
+        );
+        if (selected) draft.add(label);
+        widget.onChanged(Set.unmodifiable(draft));
+      },
+      onCreate: (label) async {
+        draft.add(label);
+        widget.onChanged(Set.unmodifiable(draft));
+      },
+      description: planActL10n(context).tagControlsBuildChildren2,
+      error: () => _error,
+      onRetry: _load,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final labels = <String, String>{
-      for (final tag in _tags) tag.normalizedLabel: tag.label,
-      for (final label in widget.selected) normalizeTagKey(label): label,
-    };
-    final selected = widget.selected.map(normalizeTagKey).toSet();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          planActL10n(context).tagControlsBuildChildren,
+          widget.inlineSuggestions
+              ? planActL10n(context).inboxOptionalTags
+              : planActL10n(context).tagControlsBuildChildren,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         Text(planActL10n(context).tagControlsBuildChildren2),
@@ -129,36 +129,56 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
             child: Text(planActL10n(context).commonRetry),
           ),
         ],
-        Wrap(
-          spacing: PlanActSpacing.sm,
-          runSpacing: PlanActSpacing.xs,
-          children: [
-            for (final entry in labels.entries)
-              FilterChip(
-                label: Text('#${entry.value}'),
-                selected: selected.contains(entry.key),
-                onSelected: widget.enabled
-                    ? (value) => _toggle(entry.value, value)
-                    : null,
-              ),
-          ],
-        ),
-        const SizedBox(height: PlanActSpacing.sm),
-        TextField(
-          key: const ValueKey('draft-tag-label'),
-          controller: _label,
-          enabled: widget.enabled,
-          decoration: InputDecoration(
-            labelText: planActL10n(context).tagControlsBuildLabelText,
+        if (widget.inlineSuggestions) ...[
+          Wrap(
+            spacing: PlanActSpacing.sm,
+            runSpacing: PlanActSpacing.xs,
+            children: [
+              for (final label in <String, String>{
+                for (final tag
+                    in (_tags.toList()
+                          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+                        .take(3))
+                  tag.normalizedLabel: tag.label,
+                for (final label in widget.selected)
+                  normalizeTagKey(label): label,
+              }.values)
+                FilterChip(
+                  label: Text('#$label'),
+                  selected: widget.selected.any(
+                    (value) => normalizeTagKey(value) == normalizeTagKey(label),
+                  ),
+                  onSelected: widget.enabled && !_loading
+                      ? (selected) {
+                          final draft = {...widget.selected}
+                            ..removeWhere(
+                              (value) =>
+                                  normalizeTagKey(value) ==
+                                  normalizeTagKey(label),
+                            );
+                          if (selected) draft.add(label);
+                          widget.onChanged(Set.unmodifiable(draft));
+                        }
+                      : null,
+                ),
+            ],
           ),
-          onSubmitted: (_) => _add(),
-        ),
-        const SizedBox(height: PlanActSpacing.sm),
-        OutlinedButton.icon(
-          onPressed: widget.enabled ? _add : null,
-          icon: const Icon(Icons.add),
-          label: Text(planActL10n(context).tagControlsBuildLabel),
-        ),
+          OutlinedButton.icon(
+            key: const ValueKey('tag-selection-open'),
+            onPressed: widget.enabled && !_loading ? _open : null,
+            icon: const Icon(Icons.label_outline),
+            label: Text(
+              _tags.isEmpty && widget.selected.isEmpty
+                  ? planActL10n(context).inboxAddTag
+                  : planActL10n(context).inboxAllTags,
+            ),
+          ),
+        ] else
+          CompactTagSelection(
+            labels: widget.selected,
+            enabled: widget.enabled && !_loading,
+            onOpen: _open,
+          ),
       ],
     );
   }
@@ -179,24 +199,23 @@ class TagFilter extends StatelessWidget {
   final bool enabled;
 
   @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: PlanActSpacing.sm,
-    runSpacing: PlanActSpacing.xs,
-    children: [
-      FilterChip(
-        label: Text(planActL10n(context).tagControlsBuildLabel2),
-        selected: selected == null,
-        onSelected: enabled ? (_) => onChanged(null) : null,
+  Widget build(BuildContext context) => CompactTagSelection(
+    labels: tags.where((tag) => tag.id == selected).map((tag) => tag.label),
+    title: selected == null
+        ? planActL10n(context).tagControlsBuildLabel2
+        : null,
+    enabled: enabled,
+    onOpen: () => showTagSelection(
+      context,
+      labels: () => tags.map((tag) => tag.label).toList(),
+      selected: (label) =>
+          tags.any((tag) => tag.label == label && tag.id == selected),
+      onToggle: (label, value) async => onChanged(
+        value ? tags.firstWhere((tag) => tag.label == label).id : null,
       ),
-      for (final tag in tags)
-        FilterChip(
-          label: Text(tag.displayLabel),
-          selected: selected == tag.id,
-          onSelected: enabled
-              ? (value) => onChanged(value ? tag.id : null)
-              : null,
-        ),
-    ],
+      single: true,
+      onAll: () => onChanged(null),
+    ),
   );
 }
 
@@ -297,30 +316,23 @@ class _TagPanelState extends State<_TagPanel> {
       final assigned = _manager
           ? <StableId>{}
           : await widget.repository.tagsFor(widget.recordId!, widget.type!);
-      if (mounted) {
-        setState(() {
-          _tags = tags;
-          _assigned = assigned;
-          _loading = false;
-          _error = null;
-        });
-      }
+      _tags = tags;
+      _assigned = assigned;
+      _loading = false;
+      _error = null;
+      if (mounted) setState(() {});
     } catch (_) {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _error = PersianCopy.tagControlsLoadMessage;
-        });
-      }
+      _loading = false;
+      _error = PersianCopy.tagControlsLoadMessage;
+      if (mounted) setState(() {});
     }
   }
 
   Future<void> _mutate(Future<void> Function() action) async {
     if (_busy || _loading) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
+    _busy = true;
+    _error = null;
+    if (mounted) setState(() {});
     var committed = false;
     try {
       await action();
@@ -333,20 +345,18 @@ class _TagPanelState extends State<_TagPanel> {
         );
       }
     } catch (_) {
-      if (mounted) {
-        setState(
-          () => _error = committed
-              ? PersianCopy.tagControlsMutateMessage
-              : PersianCopy.tagControlsMutateMessage2,
-        );
-      }
+      _error = committed
+          ? PersianCopy.tagControlsMutateMessage
+          : PersianCopy.tagControlsMutateMessage2;
+      if (mounted) setState(() {});
     } finally {
-      if (mounted) setState(() => _busy = false);
+      _busy = false;
+      if (mounted) setState(() {});
     }
   }
 
-  Future<void> _create() => _mutate(() async {
-    final tag = await widget.repository.getOrCreate(_label.text);
+  Future<void> _create([String? label]) => _mutate(() async {
+    final tag = await widget.repository.getOrCreate(label ?? _label.text);
     if (!_manager) {
       await widget.repository.attach(
         recordId: widget.recordId!,
@@ -423,18 +433,72 @@ class _TagPanelState extends State<_TagPanel> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_manager) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(planActL10n(context).tagControlsContentChildren3),
+          if (_loading || _busy) const LinearProgressIndicator(),
+          if (_error != null) Text(_error!),
+          CompactTagSelection(
+            title: planActL10n(context).tagControlsContentChildren2,
+            labels: _tags
+                .where((tag) => _assigned.contains(tag.id))
+                .map((tag) => tag.label),
+            enabled: !_loading && !_busy,
+            onOpen: () => showTagSelection(
+              context,
+              labels: () => _tags.map((tag) => tag.label).toList(),
+              selected: (label) => _tags.any(
+                (tag) => tag.label == label && _assigned.contains(tag.id),
+              ),
+              description: planActL10n(context).tagControlsContentChildren3,
+              error: () => _error,
+              onRetry: () => _mutate(() async {}),
+              onCreate: (label) => _create(label),
+              onToggle: (label, selected) => _mutate(() async {
+                final tag = _tags.firstWhere((tag) => tag.label == label);
+                if (selected) {
+                  await widget.repository.attach(
+                    recordId: widget.recordId!,
+                    tag: tag,
+                    type: widget.type!,
+                  );
+                  _assigned = {..._assigned, tag.id};
+                } else {
+                  await widget.repository.detach(
+                    recordId: widget.recordId!,
+                    tag: tag,
+                    type: widget.type!,
+                  );
+                  _assigned = {..._assigned}..remove(tag.id);
+                }
+              }),
+            ),
+          ),
+          if (_error != null)
+            TextButton(
+              onPressed: _busy ? null : _load,
+              child: Text(planActL10n(context).commonRetry),
+            ),
+          if (widget.onManage != null)
+            TextButton(
+              onPressed: _busy || _loading ? null : widget.onManage,
+              child: Text(planActL10n(context).tagControlsContentChildren),
+            ),
+        ],
+      );
+    }
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          _manager
-              ? planActL10n(context).tagControlsContentChildren
-              : planActL10n(context).tagControlsContentChildren2,
+          planActL10n(context).tagControlsContentChildren,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: PlanActSpacing.sm),
-        if (!_manager) Text(planActL10n(context).tagControlsContentChildren3),
         if (_loading || _busy) const LinearProgressIndicator(),
         if (_error != null) ...[
           Text(
@@ -448,59 +512,28 @@ class _TagPanelState extends State<_TagPanel> {
         ],
         if (!_loading && _error == null && _tags.isEmpty)
           Text(planActL10n(context).tagControlsContentChildren4),
-        if (!_manager)
-          Wrap(
-            spacing: PlanActSpacing.sm,
-            runSpacing: PlanActSpacing.xs,
-            children: [
-              for (final tag in _tags)
-                FilterChip(
-                  label: Text(tag.displayLabel),
-                  selected: _assigned.contains(tag.id),
-                  tooltip: _assigned.contains(tag.id)
-                      ? planActL10n(context).tagControlsContentTooltip
-                      : planActL10n(context).tagControlsContentTooltip2,
-                  onSelected: _busy || _loading
-                      ? null
-                      : (selected) => _mutate(
-                          () => selected
-                              ? widget.repository.attach(
-                                  recordId: widget.recordId!,
-                                  tag: tag,
-                                  type: widget.type!,
-                                )
-                              : widget.repository.detach(
-                                  recordId: widget.recordId!,
-                                  tag: tag,
-                                  type: widget.type!,
-                                ),
-                        ),
+        for (final tag in _tags)
+          ListTile(
+            title: Text(tag.displayLabel),
+            trailing: Wrap(
+              children: [
+                IconButton(
+                  tooltip: planActL10n(
+                    context,
+                  ).tagControlsContentTooltip3((tag.displayLabel).toString()),
+                  onPressed: _busy ? null : () => _rename(tag),
+                  icon: const Icon(Icons.edit_outlined),
                 ),
-            ],
-          )
-        else
-          for (final tag in _tags)
-            ListTile(
-              title: Text(tag.displayLabel),
-              trailing: Wrap(
-                children: [
-                  IconButton(
-                    tooltip: planActL10n(
-                      context,
-                    ).tagControlsContentTooltip3((tag.displayLabel).toString()),
-                    onPressed: _busy ? null : () => _rename(tag),
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
-                  IconButton(
-                    tooltip: planActL10n(
-                      context,
-                    ).tagControlsContentTooltip4((tag.displayLabel).toString()),
-                    onPressed: _busy ? null : () => _remove(tag),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                ],
-              ),
+                IconButton(
+                  tooltip: planActL10n(
+                    context,
+                  ).tagControlsContentTooltip4((tag.displayLabel).toString()),
+                  onPressed: _busy ? null : () => _remove(tag),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
             ),
+          ),
         const SizedBox(height: PlanActSpacing.sm),
         TextField(
           controller: _label,
@@ -514,11 +547,7 @@ class _TagPanelState extends State<_TagPanel> {
         OutlinedButton.icon(
           onPressed: _busy || _loading ? null : _create,
           icon: const Icon(Icons.add),
-          label: Text(
-            _manager
-                ? planActL10n(context).tagControlsContentLabel
-                : planActL10n(context).tagControlsContentLabel2,
-          ),
+          label: Text(planActL10n(context).tagControlsContentLabel),
         ),
         if (widget.onManage != null)
           TextButton(
@@ -527,7 +556,6 @@ class _TagPanelState extends State<_TagPanel> {
           ),
       ],
     );
-    if (!_manager) return content;
     return SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsetsDirectional.only(

@@ -67,13 +67,16 @@ void main() {
           ),
           findsOneWidget,
         );
+        await tester.tap(find.byKey(const ValueKey('tag-selection-open')).last);
+        await tester.pumpAndSettle();
         await tester.enterText(
-          find.widgetWithText(TextField, 'برچسب جدید'),
+          find.byKey(const ValueKey('tag-selection-search')),
           'خانه',
         );
-        FocusManager.instance.primaryFocus?.unfocus();
         await tester.pumpAndSettle();
-        await tester.tap(find.text('ساخت و افزودن برچسب'));
+        await tester.tap(find.text('افزودن برچسب «خانه»'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('بستن').last);
         await tester.pumpAndSettle();
         final tag = (await tags.list()).single;
         expect(await tags.tagsFor(entry.id.value, TaggableType.accountEntry), {
@@ -95,11 +98,17 @@ void main() {
         Navigator.of(tester.element(find.byTooltip('تغییر نام #خانواده')))
             .pop();
         await tester.pumpAndSettle();
-        final assignment = find.descendant(
-          of: find.byType(RecordTagEditor),
-          matching: find.widgetWithText(FilterChip, '#خانواده'),
+        expect(
+          find.descendant(
+            of: find.byType(RecordTagEditor),
+            matching: find.text('#خانواده'),
+          ),
+          findsOneWidget,
         );
-        expect(tester.widget<FilterChip>(assignment).selected, isTrue);
+        await tester.tap(find.byKey(const ValueKey('tag-selection-open')).last);
+        await tester.pumpAndSettle();
+        final assignment = find.widgetWithText(CheckboxListTile, '#خانواده');
+        expect(tester.widget<CheckboxListTile>(assignment).value, isTrue);
         await tester.tap(assignment);
         await tester.pumpAndSettle();
         expect(
@@ -107,6 +116,8 @@ void main() {
           isEmpty,
         );
         expect(await tags.list(), hasLength(1));
+        await tester.tap(find.byTooltip('بستن').last);
+        await tester.pumpAndSettle();
         Navigator.of(tester.element(find.text('برچسب‌های این مورد'))).pop();
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
@@ -115,7 +126,9 @@ void main() {
           scrollable: pageScroll,
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(FilterChip, '#خانواده'));
+        await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(CheckboxListTile, '#خانواده'));
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.text('تراکنشی با این فیلترها پیدا نشد.'),
@@ -124,12 +137,14 @@ void main() {
         );
         expect(find.textContaining('خرید روزانه'), findsNothing);
         await tester.scrollUntilVisible(
-          find.text('همهٔ برچسب‌ها'),
+          find.byKey(const ValueKey('tag-selection-open')),
           -200,
           scrollable: pageScroll,
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.text('همهٔ برچسب‌ها'));
+        await tester.tap(find.byKey(const ValueKey('tag-selection-open')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('همهٔ برچسب‌ها').last);
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
           find.textContaining('خرید روزانه'),
