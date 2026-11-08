@@ -29,7 +29,9 @@ class DraftTagPicker extends StatefulWidget {
     required this.selected,
     required this.onChanged,
     this.enabled = true,
+    this.inlineSuggestions = false,
   });
+  final bool inlineSuggestions;
   final TagRepository? repository;
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;
@@ -107,7 +109,9 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          planActL10n(context).tagControlsBuildChildren,
+          widget.inlineSuggestions
+              ? planActL10n(context).inboxOptionalTags
+              : planActL10n(context).tagControlsBuildChildren,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         Text(planActL10n(context).tagControlsBuildChildren2),
@@ -125,11 +129,56 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
             child: Text(planActL10n(context).commonRetry),
           ),
         ],
-        CompactTagSelection(
-          labels: widget.selected,
-          enabled: widget.enabled && !_loading,
-          onOpen: _open,
-        ),
+        if (widget.inlineSuggestions) ...[
+          Wrap(
+            spacing: PlanActSpacing.sm,
+            runSpacing: PlanActSpacing.xs,
+            children: [
+              for (final label in <String, String>{
+                for (final tag
+                    in (_tags.toList()
+                          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+                        .take(3))
+                  tag.normalizedLabel: tag.label,
+                for (final label in widget.selected)
+                  normalizeTagKey(label): label,
+              }.values)
+                FilterChip(
+                  label: Text('#$label'),
+                  selected: widget.selected.any(
+                    (value) => normalizeTagKey(value) == normalizeTagKey(label),
+                  ),
+                  onSelected: widget.enabled && !_loading
+                      ? (selected) {
+                          final draft = {...widget.selected}
+                            ..removeWhere(
+                              (value) =>
+                                  normalizeTagKey(value) ==
+                                  normalizeTagKey(label),
+                            );
+                          if (selected) draft.add(label);
+                          widget.onChanged(Set.unmodifiable(draft));
+                        }
+                      : null,
+                ),
+            ],
+          ),
+          OutlinedButton.icon(
+            key: const ValueKey('tag-selection-open'),
+            onPressed: widget.enabled && !_loading ? _open : null,
+            icon: const Icon(Icons.label_outline),
+            label: Text(
+              _tags.isEmpty && widget.selected.isEmpty
+                  ? planActL10n(context).inboxAddTag
+                  : planActL10n(context).inboxAllTags,
+            ),
+          ),
+        ] else
+          CompactTagSelection(
+            labels: widget.selected,
+            enabled: widget.enabled && !_loading,
+            onOpen: _open,
+          ),
       ],
     );
   }

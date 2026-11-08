@@ -1,3 +1,5 @@
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 
 import 'dart:convert';
@@ -207,6 +209,7 @@ class DriftInboxRepository
     required AccountEntry entry,
     int? expectedRevision,
     SmsMoneyUnit? selectedUnit,
+    Set<String> tags = const {},
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
@@ -285,6 +288,15 @@ class DriftInboxRepository
           throw StateError('Account is unavailable for this import');
         }
         await DriftFinanceRepository(database).saveEntry(entry);
+        final tagRepository = DriftTagRepository(database);
+        for (final label in tags) {
+          final tag = await tagRepository.getOrCreate(label);
+          await tagRepository.attach(
+            recordId: entry.id.value,
+            tag: tag,
+            type: TaggableType.accountEntry,
+          );
+        }
         await _decision(suggestion.id, metadata, 'confirmed');
         await (database.update(
           database.inboxSuggestions,

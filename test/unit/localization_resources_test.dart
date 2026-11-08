@@ -118,6 +118,7 @@ void main() {
                     'search-2026-10-14',
                     'counted-progress-2026-10-14',
                     'compact-tags-2026-11-08',
+                    'inbox-tags-2026-11-08',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

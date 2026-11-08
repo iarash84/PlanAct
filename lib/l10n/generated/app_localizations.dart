@@ -8362,6 +8362,24 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.'**
   String get financeDeleteAccountFailed;
+
+  /// Optional draft tags in Inbox confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'برچسب‌ها · اختیاری'**
+  String get inboxOptionalTags;
+
+  /// Open draft tag creation when no reusable tags exist.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن برچسب'**
+  String get inboxAddTag;
+
+  /// Search all reusable tags before confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ برچسب‌ها'**
+  String get inboxAllTags;
 }
 
 class _AppLocalizationsDelegate

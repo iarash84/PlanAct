@@ -94,3 +94,19 @@
 - [<span dir="ltr">tagged_creation_test.dart</span>](../test/widget/tagged_creation_test.dart)
 
 </div>
+
+## Inbox pre-confirmation tags — acceptance contract (2026-11-08)
+
+Approved outcome: Inbox → Confirm and record offers optional draft tags before final confirmation. Existing account, classification, date and currency prerequisites remain unchanged. Show bounded recent-created reusable labels without automatic selection, full search, and an add action for an empty catalogue. Cancellation writes no transaction, tags or memberships; failure rolls everything back and retains form selections for retry. Success returns directly to Inbox with the existing relationship snackbar, never an automatic tag editor. Finance keeps explicit later editing.
+
+Trace: confirmation form → InboxUseCases.confirm → fresh transactional Drift admission/validation → ledger, reusable tags, memberships and Inbox decision in one commit → Inbox refresh and Finance/report consumers. No schema/dependency change; existing tag backup format remains. Evidence required: route success/cancel/retry, rollback, normalization, cold reopen, both themes/RTL/text scale and shared-picker regressions. Device accessibility and independent acceptance remain separate release gates.
+
+### Implementation and evidence
+
+Implemented: optional pre-confirmation draft picker; three newest-created reusable labels (not a new usage-history store), searchable full catalogue and explicit empty add action. Existing Finance immediate editing is intentionally unchanged. This supersedes the older Inbox automatic post-save editor coverage above; other DraftTagPicker consumers retain their existing compact mode. No schema or dependency additions; canonical tag/membership backup tables are unchanged.
+
+Verification: 63 targeted tests passed across Inbox routes, inline/shared pickers, Inbox domain, transactional tag creation/lifecycle, currency confirmation, Finance editing/creation, localization and full logical-state backup. The new Inbox repository regression injects membership failure and proves ledger/tag/review rollback, normalized reuse and idempotent retry. Route tests prove cancellation, failed-save draft retention, saved-ID relationship feedback and file-backed cold reopen. Inline tests cover RTL, both themes, 360dp width and text scale 2. Formatting, analyzer (no issues), generated-copy check and diff whitespace check passed.
+
+Escape note: the previous route regression explicitly expected the post-save editor; it did not enforce that final confirmation ends the workflow. It now selects tags before saving and rejects that automatic editor.
+
+Acceptance status: scoped implementation and automated verification complete, not independent release sign-off. Native device accessibility/keyboard/contrast review, dedicated Inbox-tag backup/restore journey and the full repository suite were not executed. Maintainer owns independent review and device acceptance; do not claim device/release readiness until these existing gates are accepted. Existing logical backup regression passed, but is not a fresh-install native restore proof.

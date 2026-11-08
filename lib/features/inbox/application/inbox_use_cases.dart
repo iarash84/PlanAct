@@ -46,6 +46,7 @@ abstract interface class AtomicInboxConfirmation {
     required AccountEntry entry,
     int? expectedRevision,
     SmsMoneyUnit? selectedUnit,
+    Set<String> tags = const {},
   });
 }
 
@@ -668,7 +669,11 @@ class InboxUseCases {
     required FinancialAccount account,
     required FinanceRepository finance,
     SmsMoneyUnit? selectedUnit,
+    Set<String> tags = const {},
   }) => CommandGate.runFor(repository, () async {
+    if (tags.isNotEmpty && repository is! AtomicInboxConfirmation) {
+      throw const ValidationError('Atomic tag confirmation is unavailable');
+    }
     if (suggestion.status == SuggestionStatus.rejected ||
         suggestion.status == SuggestionStatus.confirmed) {
       throw const ValidationError('Resolved suggestions cannot be confirmed');
@@ -705,6 +710,7 @@ class InboxUseCases {
         entry: entry,
         expectedRevision: suggestion.revision,
         selectedUnit: selectedUnit,
+        tags: tags,
       );
     }
     final stored = (await repository.listSuggestions()).firstWhere(

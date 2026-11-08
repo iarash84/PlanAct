@@ -348,6 +348,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           item: item,
           inbox: widget.inbox,
           finance: widget.finance,
+          tagRepository: widget.tagRepository,
         ),
       );
       if (imported != null) {
@@ -372,33 +373,6 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
     if (mounted && imported != null) {
       final id = imported.id;
-      if (widget.tagRepository != null) {
-        await showModalBottomSheet<void>(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          builder: (_) => SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                PlanActSpacing.page,
-                PlanActSpacing.page,
-                PlanActSpacing.page,
-                PlanActSpacing.page + MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: RecordTagEditor(
-                repository: widget.tagRepository!,
-                recordId: id.value,
-                type: TaggableType.accountEntry,
-                onChanged: () async {
-                  await widget.onDataChanged?.call();
-                },
-              ),
-            ),
-          ),
-        );
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).clearSnackBars();
-      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -961,16 +935,19 @@ class _ConfirmationSheet extends StatefulWidget {
     required this.item,
     required this.inbox,
     required this.finance,
+    this.tagRepository,
   });
   final InboxReviewItem item;
   final InboxUseCases inbox;
   final FinanceRepository finance;
+  final TagRepository? tagRepository;
   @override
   State<_ConfirmationSheet> createState() => _ConfirmationSheetState();
 }
 
 class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   FinancialAccount? _account;
+  Set<String> _tags = {};
   bool _saving = false;
   String? _error;
   bool _dateAcknowledged = false;
@@ -1026,6 +1003,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         account: account,
         finance: widget.finance,
         selectedUnit: _proposedUnit,
+        tags: _tags,
       );
       if (mounted) {
         setState(() => _saving = false);
@@ -1171,6 +1149,16 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
             onCreateAccount: () =>
                 openFinancialAccountCreation(context, widget.finance),
           ),
+          if (widget.tagRepository != null) ...[
+            const SizedBox(height: PlanActSpacing.lg),
+            DraftTagPicker(
+              repository: widget.tagRepository,
+              selected: _tags,
+              enabled: !_saving,
+              inlineSuggestions: true,
+              onChanged: (tags) => setState(() => _tags = tags),
+            ),
+          ],
         ],
       ),
     ),

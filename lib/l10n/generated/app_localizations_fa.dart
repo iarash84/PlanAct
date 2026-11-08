@@ -4981,4 +4981,13 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get financeDeleteAccountFailed =>
       'حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.';
+
+  @override
+  String get inboxOptionalTags => 'برچسب‌ها · اختیاری';
+
+  @override
+  String get inboxAddTag => 'افزودن برچسب';
+
+  @override
+  String get inboxAllTags => 'همهٔ برچسب‌ها';
 }

@@ -7817,5 +7817,11 @@
   "@financeDeleteAccountFailed": {
     "description": "Financial account visibility and safe deletion feedback",
     "x-planact-default": true
-  }
+  },
+  "inboxOptionalTags": "برچسب‌ها · اختیاری",
+  "@inboxOptionalTags": {"description": "Optional draft tags in Inbox confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "inboxAddTag": "افزودن برچسب",
+  "@inboxAddTag": {"description": "Open draft tag creation when no reusable tags exist.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "inboxAllTags": "همهٔ برچسب‌ها",
+  "@inboxAllTags": {"description": "Search all reusable tags before confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"}
 }

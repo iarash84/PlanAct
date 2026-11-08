@@ -1148,3 +1148,7 @@
 آمادگی انتشارند. شرط‌های قبلی انتشار محصول تغییری نمی‌کنند.
 
 </div>
+
+### Approved Inbox confirmation tags (2026-11-08)
+
+Inbox confirmation includes optional draft tags before final save: a bounded recent-created reusable selection, full search, and an empty-catalogue add action, with no automatic selection. Transaction, new tags and memberships commit atomically; cancellation writes none and failure retains the draft for retry. Success returns directly to Inbox without an automatic post-save tag panel. Existing Finance actions retain explicit later editing. See [tagging evidence](../TAGGING_VERIFICATION.md).
