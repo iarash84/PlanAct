@@ -94,7 +94,7 @@ void main() {
       await settle(tester);
       expect(pendingOnToday(tester), 4);
 
-      await tester.tap(find.text('بیشتر').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
       await settle(tester);
       await tester.tap(find.text('صندوق ورودی').last);
       await settle(tester);
@@ -111,7 +111,7 @@ void main() {
       expect(await repo.listSuggestions(), hasLength(5));
       await tester.binding.handlePopRoute();
       await settle(tester);
-      await tester.tap(find.text('امروز').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'امروز'));
       await settle(tester);
       expect(pendingOnToday(tester), 5);
       expect(source.requests, 0);

@@ -156,7 +156,7 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
-          await tester.tap(find.text('بیشتر').last);
+          await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
           await tester.pumpAndSettle();
           for (final destination in [
             ('گزارش‌ها', ReportsPage),

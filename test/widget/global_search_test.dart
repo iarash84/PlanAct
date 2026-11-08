@@ -211,12 +211,19 @@ void main() {
       expect(find.text('یادداشت تازه'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await settleIo(tester);
-      await tester.tap(find.text('تقویم').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'تقویم'));
       await settleIo(tester);
       expect(find.text('یادداشت تازه'), findsWidgets);
       // Entry point remains available from Calendar, Finance and More.
       for (final tab in ['مالی', 'بیشتر']) {
-        await tester.tap(find.text(tab).last);
+        await tester.tap(find.widgetWithText(NavigationDestination, tab));
+        await tester.pumpAndSettle();
+        expect(
+          tester
+              .widget<NavigationBar>(find.byType(NavigationBar))
+              .selectedIndex,
+          tab == 'مالی' ? 2 : 3,
+        );
         await settleIo(tester);
         await tester.tap(find.byKey(const ValueKey('shell-search')));
         await settleIo(tester);

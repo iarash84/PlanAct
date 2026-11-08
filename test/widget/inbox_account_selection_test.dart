@@ -226,8 +226,18 @@ void main() {
           await tester.pumpAndSettle();
           if (incoming) {
             expect(find.byType(RecordTagEditor), findsOneWidget);
-            await tester.enterText(find.byType(TextField).last, 'route-tag');
-            await tester.testTextInput.receiveAction(TextInputAction.done);
+            await tester.tap(
+              find.byKey(const ValueKey('tag-selection-open')).last,
+            );
+            await tester.pumpAndSettle();
+            await tester.enterText(
+              find.byKey(const ValueKey('tag-selection-search')),
+              'route-tag',
+            );
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('افزودن برچسب «route-tag»'));
+            await tester.pumpAndSettle();
+            await tester.tap(find.byTooltip('بستن').last);
             await Future<void>.delayed(const Duration(milliseconds: 100));
             await tester.pumpAndSettle();
             Navigator.of(tester.element(find.byType(RecordTagEditor))).pop();

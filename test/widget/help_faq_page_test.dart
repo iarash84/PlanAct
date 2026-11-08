@@ -19,7 +19,7 @@ void main() {
   ) async {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بیشتر').last);
+    await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
     await tester.pumpAndSettle();
 
     final helpTitle = find.text('راهنما و سوالات متداول');

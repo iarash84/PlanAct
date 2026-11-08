@@ -63,7 +63,7 @@ void main() {
   testWidgets('ناوبری تقویم فارسی را نمایش می‌دهد', (tester) async {
     await tester.pumpWidget(const PlanActApp());
 
-    await tester.tap(find.text('تقویم'));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'تقویم'));
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('ماه قبل'), findsOneWidget);

@@ -320,10 +320,16 @@ void main() {
               200,
               scrollable: find.byType(Scrollable).first,
             );
-            await tester.tap(
+            await tester.pumpAndSettle();
+            await tester.ensureVisible(
               find.widgetWithText(FilledButton, 'ذخیره'),
-              warnIfMissed: true,
             );
+            await tester.pumpAndSettle();
+            expect(
+              find.widgetWithText(FilledButton, 'ذخیره').hitTestable(),
+              findsOneWidget,
+            );
+            await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
             await tester.pumpAndSettle();
             expect(
               (await repository.findById(last.id))!.title,
@@ -456,8 +462,9 @@ void main() {
           }
 
           expectFloatingContent();
+          final labels = ['امروز', 'تقویم', 'مالی', 'بیشتر'];
           for (final label in ['بیشتر', 'تقویم', 'مالی', 'امروز']) {
-            await tester.tap(find.text(label).last);
+            await tester.tap(find.widgetWithText(NavigationDestination, label));
             for (var frame = 0; frame < 6; frame++) {
               await tester.pump(const Duration(milliseconds: 50));
               expect(tester.element(fab), same(element));
@@ -466,6 +473,12 @@ void main() {
               expectFloatingContent();
             }
             await tester.pumpAndSettle();
+            expect(
+              tester
+                  .widget<NavigationBar>(find.byType(NavigationBar))
+                  .selectedIndex,
+              labels.indexOf(label),
+            );
           }
           await tester.tap(fab);
           await tester.pumpAndSettle();

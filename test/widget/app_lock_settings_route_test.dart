@@ -101,10 +101,13 @@ bool _value(WidgetTester tester) =>
     tester.widget<SwitchListTile>(_switch).value;
 
 Future<void> _openSettings(WidgetTester tester) async {
-  await tester.tap(find.text('بیشتر').last);
+  await tester.tap(find.widgetWithText(NavigationDestination, 'بیشتر'));
   await tester.pumpAndSettle();
   await tester.tap(find.text('تنظیمات'));
   await tester.pumpAndSettle();
+  await tester.ensureVisible(_switch);
+  await tester.pumpAndSettle();
+  expect(_switch.hitTestable(), findsOneWidget);
 }
 
 void main() {

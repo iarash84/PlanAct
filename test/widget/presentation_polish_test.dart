@@ -46,7 +46,7 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(find.text('چه چیزی نیاز به توجه دارد؟'), findsOneWidget);
-    await tester.tap(find.text('مالی').last);
+    await tester.tap(find.widgetWithText(NavigationDestination, 'مالی'));
     await tester.pumpAndSettle();
     expect(find.byType(AppBar), findsOneWidget);
     expect(find.text('مدیریت مالی'), findsOneWidget);

@@ -233,7 +233,7 @@ void main() {
             .where((a) => a.reason == AttentionReason.overdueUnpaidExpectation),
         isEmpty,
       );
-      await tester.tap(find.text('مالی').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'مالی'));
       await settle(tester);
       final menu = find.byKey(ValueKey('entry-menu:${entry.id.value}'));
       await tester.scrollUntilVisible(
@@ -255,7 +255,7 @@ void main() {
       await settle(tester);
       await tapText(tester, PersianCopy.financePageConfirmedTitle);
       await tapText(tester, PersianCopy.financePageConfirmedActions);
-      await tester.tap(find.text('امروز').last);
+      await tester.tap(find.widgetWithText(NavigationDestination, 'امروز'));
       await settle(tester);
       final attention = tester
           .widget<TodayPage>(find.byType(TodayPage))

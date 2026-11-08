@@ -97,8 +97,8 @@ void main() {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
     // must update this baseline with explicit review, not regenerate it in CI.
-    // New user-approved Undo/Inbox/SMS/browse/note messages are separately marked and are not part
-    // of the frozen pre-migration source. All catalog metadata is still checked.
+    // Post-migration message groups are explicitly marked and are not part of
+    // the frozen pre-migration source. All catalog metadata is still checked.
     final templates =
         catalog.entries
             .where((entry) => !entry.key.startsWith('@'))
@@ -117,6 +117,7 @@ void main() {
                     'checklist-2026-10-18',
                     'search-2026-10-14',
                     'counted-progress-2026-10-14',
+                    'compact-tags-2026-11-08',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -141,6 +142,27 @@ void main() {
           .toSet();
       final placeholders = metadata['placeholders'] as Map<String, dynamic>?;
       expect(referenced, (placeholders?.keys ?? []).toSet(), reason: entry.key);
+    }
+  });
+
+  test('compact tag copy is explicitly separate from migrated templates', () {
+    final messages = {
+      'tagSelectionChoose': 'انتخاب برچسب‌ها',
+      'tagSelectionSearch': 'جست‌وجوی برچسب',
+      'tagSelectionEmpty': 'برچسبی پیدا نشد.',
+      'tagSelectionRemaining': 'و {count} برچسب دیگر',
+      'tagSelectionCreate': 'افزودن برچسب «{label}»',
+    };
+    final markedKeys = catalog.keys.where(
+      (key) =>
+          key.startsWith('@') &&
+          catalog[key] is Map &&
+          (catalog[key] as Map)['x-planact-introduced'] ==
+              'compact-tags-2026-11-08',
+    );
+    expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
+    for (final entry in messages.entries) {
+      expect(catalog[entry.key], entry.value, reason: entry.key);
     }
   });
 
