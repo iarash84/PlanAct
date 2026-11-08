@@ -349,9 +349,15 @@ class AttentionEngine {
         .where((entry) => entry.type == AccountEntryType.reversal)
         .map((entry) => entry.referenceId)
         .toSet();
+    // Keep complete histories for review fingerprints, not just active matches.
+    final matchesByTransaction = <StableId, List<TransactionMatch>>{};
     final allocatedByOccurrence = <StableId, int>{};
-    for (final match in matches.where((m) => m.status == MatchStatus.active)) {
-      if (reversedIds.contains(match.transactionId.value)) continue;
+    for (final match in matches) {
+      (matchesByTransaction[match.transactionId] ??= []).add(match);
+      if (match.status != MatchStatus.active ||
+          reversedIds.contains(match.transactionId.value)) {
+        continue;
+      }
       for (final allocation in match.allocations) {
         allocatedByOccurrence[allocation.occurrenceId] =
             (allocatedByOccurrence[allocation.occurrenceId] ?? 0) +
@@ -443,7 +449,9 @@ class AttentionEngine {
     }
     final unmatched = <AccountEntry>[];
     final reviews = <StableId, RelationshipReview>{};
+    final entriesByAccount = <StableId, List<AccountEntry>>{};
     for (final entry in entries) {
+      (entriesByAccount[entry.accountId] ??= []).add(entry);
       if ((entry.type != AccountEntryType.income &&
               entry.type != AccountEntryType.expense) ||
           reversedIds.contains(entry.id.value)) {
@@ -452,7 +460,7 @@ class AttentionEngine {
       final review = RelationshipReview.project(
         transactionId: entry.id,
         transactionAmount: entry.amount,
-        matches: matches,
+        matches: matchesByTransaction[entry.id] ?? const [],
         latestDecision: latestReviews[entry.id],
       );
       if (review.remainderMinorUnits <= 0 || review.isIndependent) continue;
@@ -496,7 +504,10 @@ class AttentionEngine {
     )) {
       balances[account.currency] =
           (balances[account.currency] ?? 0) +
-          rebuildBalance(account, entries).minorUnits;
+          rebuildBalance(
+            account,
+            entriesByAccount[account.id] ?? const [],
+          ).minorUnits;
     }
 
     return TodayDashboard(

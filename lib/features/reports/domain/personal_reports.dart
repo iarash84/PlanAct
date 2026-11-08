@@ -338,6 +338,11 @@ PersonalReport buildPersonalReport(
       latestReview[review.transactionId] = review;
     }
   }
+  // Index complete histories once; inactive matches still invalidate old reviews.
+  final matchesByTransaction = <StableId, List<TransactionMatch>>{};
+  for (final match in data.matches) {
+    (matchesByTransaction[match.transactionId] ??= []).add(match);
+  }
   final unreviewed = <StableId, RelationshipReview>{};
   final movements = <ReportMovement>[];
   for (final e in data.entries) {
@@ -369,9 +374,9 @@ PersonalReport buildPersonalReport(
         filter.occurrenceStatus != null;
     if (related) {
       var allocated = 0;
-      for (final m in data.matches.where(
-        (m) => m.status == MatchStatus.active && m.transactionId == e.id,
-      )) {
+      for (final m
+          in matchesByTransaction[e.id] ?? const <TransactionMatch>[]) {
+        if (m.status != MatchStatus.active) continue;
         for (final a in m.allocations) {
           final r = allRows[a.occurrenceId];
           if (r != null &&
@@ -401,7 +406,7 @@ PersonalReport buildPersonalReport(
       final review = RelationshipReview.project(
         transactionId: e.id,
         transactionAmount: e.amount,
-        matches: data.matches,
+        matches: matchesByTransaction[e.id] ?? const [],
         latestDecision: latestReview[e.id],
       );
       if (review.remainderMinorUnits > 0 && !review.isIndependent) {
