@@ -5,6 +5,7 @@ import 'package:planact/app/planact_app.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
@@ -436,6 +437,75 @@ void main() {
       },
     );
   }
+  for (final dark in [false, true]) {
+    testWidgets('report filters have uniform spacing, dark=$dark', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.8)),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            ),
+          ),
+          home: ReportsPage(
+            reader: _Reader()..fail = false,
+            now: DateTime(2026, 10, 13),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      for (final kind in PersonalReportKind.values) {
+        await chooseReport(tester, kind);
+        final header = find.text('فیلترهای گزارش');
+        await tester.ensureVisible(header);
+        await tester.pumpAndSettle();
+        final tile = tester.widget<ExpansionTile>(
+          find.byKey(const PageStorageKey('report-filters')),
+        );
+        final controls = find.byKey(const ValueKey('report-filter-controls'));
+        if (controls.evaluate().isEmpty) {
+          await tester.tap(header);
+          await tester.pumpAndSettle();
+        }
+        final column = tester.widget<Column>(controls);
+        expect(tile.childrenPadding, const EdgeInsets.all(PlanActSpacing.lg));
+        expect(column.children.length, greaterThan(5));
+        for (var i = 1; i < column.children.length; i++) {
+          final previous = tester.getRect(
+            find.byWidget(column.children[i - 1]),
+          );
+          final current = tester.getRect(find.byWidget(column.children[i]));
+          expect(
+            current.top - previous.bottom,
+            closeTo(16, 0.01),
+            reason: '${kind.name}, controls ${i - 1} and $i',
+          );
+        }
+        final excluded = tester.getRect(
+          find.byKey(const ValueKey('report-excluded-tags')),
+        );
+        final index = column.children.indexWhere(
+          (child) => child.key == const ValueKey('report-excluded-tags'),
+        );
+        expect(
+          tester.getRect(find.byWidget(column.children[index + 1])).top -
+              excluded.bottom,
+          closeTo(16, 0.01),
+        );
+        expect(tester.takeException(), isNull, reason: kind.name);
+      }
+    });
+  }
+
   testWidgets('all report types support narrow large text without overflow', (
     tester,
   ) async {

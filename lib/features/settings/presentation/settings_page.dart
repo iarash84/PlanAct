@@ -10,6 +10,7 @@ import 'package:planact/app/app_lock.dart';
 import 'package:planact/app/app_settings.dart';
 import 'package:planact/features/settings/presentation/app_lock_settings_card.dart';
 import 'package:planact/features/settings/presentation/background_settings_card.dart';
+import 'package:planact/features/settings/presentation/theme_preset_settings.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({
@@ -223,6 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 onSelectionChanged: (selection) => _change(selection.first),
               ),
             ),
+            const ThemePresetSettings(),
           ],
         ),
       ),

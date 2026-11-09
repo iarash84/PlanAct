@@ -54,6 +54,7 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/theme_preset_controller.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
@@ -130,6 +131,7 @@ class PlanActApp extends StatefulWidget {
 
 class _PlanActAppState extends State<PlanActApp> {
   ThemeMode _themeMode = ThemeMode.system;
+  late final ThemePresetController _themePresets;
   AppBackground _background = AppBackground.none;
   bool _showArchivedAccounts = false;
   bool _backgroundLoaded = true;
@@ -158,8 +160,15 @@ class _PlanActAppState extends State<PlanActApp> {
       _loadShowArchivedAccounts();
       _loadAppLockSetting();
     }
+    _themePresets = ThemePresetController(_settings)
+      ..addListener(_refreshTheme)
+      ..load();
     _moneyUnits = MoneyUnitController(_settings);
     _loadMoneyUnit();
+  }
+
+  void _refreshTheme() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadMoneyUnit() async {
@@ -177,6 +186,7 @@ class _PlanActAppState extends State<PlanActApp> {
 
   @override
   void dispose() {
+    _themePresets.dispose();
     _moneyUnits.dispose();
     super.dispose();
   }
@@ -284,61 +294,71 @@ class _PlanActAppState extends State<PlanActApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
-      theme: _themeWithBackground(PlanActTheme.light(), _background),
-      darkTheme: _themeWithBackground(PlanActTheme.dark(), _background),
+      theme: _themeWithBackground(
+        PlanActTheme.light(preset: _themePresets.preset),
+        _background,
+      ),
+      darkTheme: _themeWithBackground(
+        PlanActTheme.dark(preset: _themePresets.preset),
+        _background,
+      ),
       themeMode: _themeMode,
-      builder: (context, child) => HolidayProviderScope(
-        readProvider: () =>
-            widget.holidayPackages?.provider ?? const IranianHolidayProvider(),
-        child: MoneyUnitScope(
-          controller: _moneyUnits,
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (_background.assetPath case final assetPath?)
-                  ExcludeSemantics(
-                    child: IgnorePointer(
-                      child: Image.asset(
-                        assetPath,
-                        fit: BoxFit.cover,
-                        gaplessPlayback: true,
+      builder: (context, child) => ThemePresetScope(
+        controller: _themePresets,
+        child: HolidayProviderScope(
+          readProvider: () =>
+              widget.holidayPackages?.provider ??
+              const IranianHolidayProvider(),
+          child: MoneyUnitScope(
+            controller: _moneyUnits,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (_background.assetPath case final assetPath?)
+                    ExcludeSemantics(
+                      child: IgnorePointer(
+                        child: Image.asset(
+                          assetPath,
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                        ),
                       ),
                     ),
-                  ),
-                if (_background.assetPath != null)
-                  IgnorePointer(
-                    child: ColoredBox(
-                      color: Theme.of(context).colorScheme.surface
-                          .withValues(alpha: 0.52),
+                  if (_background.assetPath != null)
+                    IgnorePointer(
+                      child: ColoredBox(
+                        color: Theme.of(context).colorScheme.surface
+                            .withValues(alpha: 0.52),
+                      ),
                     ),
-                  ),
-                AppLockGate(
-                  enabled: _appLockEnabled,
-                  controller: _appLockController,
-                  child: !_moneyUnits.ready
-                      ? Scaffold(
-                          body: Center(
-                            child: _moneyUnitError == null
-                                ? const CircularProgressIndicator()
-                                : Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(_moneyUnitError!),
-                                      TextButton(
-                                        onPressed: _loadMoneyUnit,
-                                        child: Text(
-                                          planActL10n(context).commonRetry,
+                  AppLockGate(
+                    enabled: _appLockEnabled,
+                    controller: _appLockController,
+                    child: !_moneyUnits.ready
+                        ? Scaffold(
+                            body: Center(
+                              child: _moneyUnitError == null
+                                  ? const CircularProgressIndicator()
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(_moneyUnitError!),
+                                        TextButton(
+                                          onPressed: _loadMoneyUnit,
+                                          child: Text(
+                                            planActL10n(context).commonRetry,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        )
-                      : child ?? const SizedBox.shrink(),
-                ),
-              ],
+                                      ],
+                                    ),
+                            ),
+                          )
+                        : child ?? const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

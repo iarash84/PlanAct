@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'theme_preset.dart';
+
 abstract final class PlanActColors {
   // Contrast-adjusted relatives of the launcher's green, navy and teal.
   // Brand hierarchy only: business meaning lives in PlanActStatusColors.
@@ -8,7 +10,21 @@ abstract final class PlanActColors {
   static const navy = Color(0xff16465b);
   static const teal = Color(0xff006b65);
 
-  static ColorScheme scheme(Brightness brightness) {
+  static ColorScheme scheme(
+    Brightness brightness, {
+    ThemePreset preset = ThemePreset.original,
+  }) {
+    // Material tonal palettes produce coordinated surfaces, outlines and
+    // foreground/container pairs for each brightness, not inverted RGB values.
+    if (preset != ThemePreset.original) {
+      final seed = switch (preset) {
+        ThemePreset.blue => const Color(0xff245a93),
+        ThemePreset.purple => const Color(0xff76508e),
+        ThemePreset.earth => const Color(0xff866044),
+        ThemePreset.original => navy,
+      };
+      return ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+    }
     final dark = brightness == Brightness.dark;
     return ColorScheme.fromSeed(
       seedColor: navy,

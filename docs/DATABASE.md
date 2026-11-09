@@ -2,7 +2,7 @@
 
 # راهنمای جامع پایگاه دادهٔ <span dir="ltr">PlanAct</span>
 
-این سند مرجع توسعه‌دهنده برای **ساختار فعلی ذخیره‌سازی**، جدول‌ها، ستون‌ها، ارتباط‌ها و قواعد کار با پایگاه داده است. مبنا: کد مخزن در <span dir="ltr">۲۰۲۶-۱۰-۱۴</span>، نسخهٔ برنامه <span dir="ltr">`0.1.15+8`</span> و طرحواره شخصی **۱۸**. وجود یک جدول به‌تنهایی به معنی آماده‌بودن قابلیت متناظر برای انتشار نیست.
+این سند مرجع توسعه‌دهنده برای **ساختار فعلی ذخیره‌سازی**، جدول‌ها، ستون‌ها، ارتباط‌ها و قواعد کار با پایگاه داده است. مبنای جاری: کد مخزن در <span dir="ltr">۲۰۲۶-۱۱-۰۹</span>، نسخهٔ برنامه <span dir="ltr">`0.2.2+14`</span> و طرحواره شخصی **۱۹** با ۲۴ جدول. بازبینی اولیهٔ بخش ۱۳ تاریخی است؛ تطبیق جاری، ستون ترتیب حساب، مهاجرت ۱۹ و فرادادهٔ تنظیمات/پیامک را نیز پوشش می‌دهد. وجود یک جدول به‌تنهایی به معنی آماده‌بودن قابلیت متناظر برای انتشار نیست.
 
 مرجع اجرایی طرحواره، [<span dir="ltr">app_database.dart</span>](../lib/core/database/app_database.dart) است؛ کد <span dir="ltr">SQL</span> تولیدشده در [<span dir="ltr">app_database.g.dart</span>](../lib/core/database/app_database.g.dart) قرار دارد. رفتار محصول از [<span dir="ltr">PRD</span>](product/PRD.md)، تصمیم‌های مصوب از [<span dir="ltr">ADR</span>ها](adr/) و قواعد پیاده‌سازی از [<span dir="ltr">AGENTS.md</span>](../AGENTS.md) می‌آیند. این سند آن منابع را توضیح می‌دهد و تصمیم جدیدی دربارهٔ رفتار داده‌ها ایجاد نمی‌کند.
 
@@ -30,7 +30,7 @@
 
 | فایل | کاربرد | نسخه / مالک |
 | ---: | ---: | ---: |
-| <span dir="ltr">`planact.sqlite`</span> | داده‌های شخصی، تعهد، زمان‌بندی، مالی، صندوق بررسی و تنظیمات | <span dir="ltr">`AppDatabase`</span>، طرحواره 18 |
+| <span dir="ltr">`planact.sqlite`</span> | داده‌های شخصی، تعهد، زمان‌بندی، مالی، صندوق بررسی و تنظیمات | <span dir="ltr">`AppDatabase`</span>، طرحواره 19 |
 | <span dir="ltr">`holiday-packages.sqlite`</span> | بسته‌های عمومی و امضاشدهٔ تعطیلات | <span dir="ltr">`SqliteHolidayPackageStore`</span>، <span dir="ltr">`user_version = 1`</span> |
 | <span dir="ltr">`planact-schema-reference.sqlite`</span> | ساخت موقت طرحواره مرجع برای اعتبارسنجی بازیابی؛ پس از خواندن حذف می‌شود | نقطهٔ اتصال وابستگی‌های برنامه |
 | <span dir="ltr">`planact.sqlite.restore-safety`</span> | نسخهٔ لحظه‌ای ایمنی پیش از جایگزینی | چرخهٔ بازیابی |
@@ -117,7 +117,7 @@
 
 ### ۳.۲. نمودار روابط پایگاه دادهٔ شخصی
 
-نمودار زیر **روابط <span dir="ltr">FK</span> تعریف‌شده در طرحوارهٔ تازهٔ ۱۸** را نشان می‌دهد. `||` یعنی دقیقاً یک والد و <span dir="ltr">`o{`</span> یعنی صفر یا چند فرزند؛ <span dir="ltr">`o|`</span> یعنی صفر یا یک. وجود <span dir="ltr">FK</span> به‌تنهایی الزام نمی‌کند والد فرزند داشته باشد. خط پیوسته برای رابطه‌ای است که <span dir="ltr">FK</span> بخشی از <span dir="ltr">PK</span> فرزند است؛ خط نقطه‌چین برای فرزند دارای هویت مستقل است؛ هر دو <span dir="ltr">FK</span> واقعی‌اند. <span dir="ltr">`schema_metadata`</span> و <span dir="ltr">`replacement_occurrences`</span> به دلیل نداشتن <span dir="ltr">FK</span> به‌صورت مستقل آمده‌اند. ردیف‌های جدول‌های واسط کلید مرکب دارند. نمودار در پیش‌نمایش <span dir="ltr">Markdown</span> سازگار با <span dir="ltr">Mermaid</span> نمایش داده می‌شود؛ نقشهٔ متنی بالا به نمایش‌دهنده وابسته نیست.
+نمودار زیر **روابط <span dir="ltr">FK</span> تعریف‌شده در طرحوارهٔ تازهٔ ۱۹** را نشان می‌دهد. `||` یعنی دقیقاً یک والد و <span dir="ltr">`o{`</span> یعنی صفر یا چند فرزند؛ <span dir="ltr">`o|`</span> یعنی صفر یا یک. وجود <span dir="ltr">FK</span> به‌تنهایی الزام نمی‌کند والد فرزند داشته باشد. خط پیوسته برای رابطه‌ای است که <span dir="ltr">FK</span> بخشی از <span dir="ltr">PK</span> فرزند است؛ خط نقطه‌چین برای فرزند دارای هویت مستقل است؛ هر دو <span dir="ltr">FK</span> واقعی‌اند. <span dir="ltr">`schema_metadata`</span> و <span dir="ltr">`replacement_occurrences`</span> به دلیل نداشتن <span dir="ltr">FK</span> به‌صورت مستقل آمده‌اند. ردیف‌های جدول‌های واسط کلید مرکب دارند. نمودار در پیش‌نمایش <span dir="ltr">Markdown</span> سازگار با <span dir="ltr">Mermaid</span> نمایش داده می‌شود؛ نقشهٔ متنی بالا به نمایش‌دهنده وابسته نیست.
 
 <div dir="ltr">
 
@@ -208,7 +208,7 @@ erDiagram
 
 ## ۵. فرهنگ ستون‌های تمام جدول‌ها
 
-قید <span dir="ltr">PK</span> و <span dir="ltr">FK</span> در این بخش برای **ساخت تازه با طرحواره 18** است؛ تفاوت مسیرهای مهاجرت پایگاه داده در بخش ۱۰ آمده است. قابل پذیرش مقدار تهی بودن، مقدار پیش‌فرض و نوع فیزیکی جدا از اعتبارسنجی دامنه‌اند.
+قید <span dir="ltr">PK</span> و <span dir="ltr">FK</span> در این بخش برای **ساخت تازه با طرحواره 19** است؛ تفاوت مسیرهای مهاجرت پایگاه داده در بخش ۱۰ آمده است. قابل پذیرش مقدار تهی بودن، مقدار پیش‌فرض و نوع فیزیکی جدا از اعتبارسنجی دامنه‌اند.
 
 ### ۵.۱. <span dir="ltr">`schema_metadata`</span> — کلید–مقدار پایدار
 
@@ -419,6 +419,7 @@ erDiagram
 | <span dir="ltr">`type`</span> | <span dir="ltr">INTEGER</span> | خیر | — | <span dir="ltr">`FinancialAccountType`</span> |
 | <span dir="ltr">`bank_code`</span> | <span dir="ltr">TEXT</span> | بله | — | کد متنی بانک؛ شمارهٔ نوع شمارشی نیست |
 | <span dir="ltr">`status`</span> | <span dir="ltr">INTEGER</span> | خیر | — | <span dir="ltr">`FinancialAccountStatus`</span> |
+| <span dir="ltr">`display_order`</span> | <span dir="ltr">INTEGER</span> | خیر | پیش‌فرض صفر | ترتیب پایدار نمایش حساب؛ خواندن با ترتیب این ستون و سپس شناسه انجام می‌شود |
 
 ### ۵.۱۵. <span dir="ltr">`account_entries`</span> — دفتر کل مالی
 
@@ -637,11 +638,17 @@ erDiagram
 | ---: | ---: | ---: |
 | <span dir="ltr">`schema_version`</span> | رشتهٔ <span dir="ltr">`19`</span>؛ باید با <span dir="ltr">`PRAGMA user_version`</span> سازگار باشد | <span dir="ltr">AppDatabase</span> |
 | <span dir="ltr">`theme_mode`</span> | <span dir="ltr">`light`</span>, <span dir="ltr">`dark`</span>, <span dir="ltr">`system`</span> | <span dir="ltr">AppSettings</span> |
+| <span dir="ltr">`theme_preset_v1`</span> | <span dir="ltr">`original`</span>، <span dir="ltr">`blue`</span>، <span dir="ltr">`purple`</span>، <span dir="ltr">`earth`</span>؛ مستقل از حالت نمایش؛ نبود/مقدار ناشناخته تم اصلی را بدون بازنویسی داده انتخاب می‌کند | <span dir="ltr">AppSettings</span> |
+| <span dir="ltr">`app_background_v1`</span> | <span dir="ltr">`none`</span>، <span dir="ltr">`botanical_paper`</span>، <span dir="ltr">`persian_waves`</span>، <span dir="ltr">`night_waves`</span> | <span dir="ltr">AppSettings</span> |
+| <span dir="ltr">`finance_show_archived_accounts_v1`</span> | رشتهٔ منطقی نمایش حساب‌های بایگانی‌شده؛ وضعیت خود حساب را تغییر نمی‌دهد | <span dir="ltr">AppSettings</span> |
+| <span dir="ltr">`morning_reminder_enabled_v1`</span>، <span dir="ltr">`morning_reminder_window_v1`</span>، <span dir="ltr">`morning_reminder_sent_day_v1`</span> | فعال‌سازی، پنجرهٔ یادآوری صبح و روز ارسال ثبت‌شده | <span dir="ltr">AppSettings</span> |
 | <span dir="ltr">`app_lock_enabled`</span> | رشتهٔ منطقی، <span dir="ltr">`true`</span> / <span dir="ltr">`false`</span> | <span dir="ltr">AppSettings</span> و مسیر تأیید احراز هویت |
 | <span dir="ltr">`iranian_money_unit_v1`</span> | <span dir="ltr">`rial`</span> / <span dir="ltr">`toman`</span>؛ فقط واحد ورودی و نمایش | <span dir="ltr">AppSettings</span> |
 | <span dir="ltr">`account_identifiers_v1:<accountId>`</span> | <span dir="ltr">JSON</span> با <span dir="ltr">`version: 1`</span> و <span dir="ltr">`cardNumber`</span>, <span dir="ltr">`iban`</span>, <span dir="ltr">`accountNumber`</span> قابل پذیرش مقدار تهی | <span dir="ltr">DriftFinanceRepository</span> |
 | <span dir="ltr">`inbox_review_v1:<suggestionId>`</span> | <span dir="ltr">JSON</span> نسخهٔ ۱ با شمارهٔ بازبینی و فیلدهای <span dir="ltr">`history`</span>، <span dir="ltr">`reviewed`</span>، <span dir="ltr">`extractedEvidence`</span> و <span dir="ltr">`currencyEvidence`</span>؛ شامل منشأ استخراج | <span dir="ltr">`DriftInboxRepository`</span> |
-| <span dir="ltr">`sms_scan_v1`</span> | دادهٔ نسخه‌دار رضایت، نشانگر ادامه و پیشرفت اسکن | مسیر ورود پیامک |
+| <span dir="ltr">`sms_scan_v1`</span> | دادهٔ نسخه‌دار رضایت، نشانگر ادامه و پیشرفت تاریخچه؛ ادامهٔ آن صریح است | مسیر ورود پیامک |
+| <span dir="ltr">`sms_automatic_scan_v1`</span> | رضایت مستقل و پیشرفت دریافت خودکار؛ پیش‌فرض خاموش و با مرز تازه هنگام فعال‌سازی دوباره | مسیر ورود پیامک |
+| <span dir="ltr">`sms_manual_scan_v1`</span> | مرز و پیشرفت پایدار بررسی دستی پیامک جدید؛ مستقل از تاریخچه و خودکار | مسیر ورود پیامک |
 | <span dir="ltr">`commitment_correction_v1:<auditId>`</span> | رکورد <span dir="ltr">JSON</span> ممیزی اصلاح شمار زمان‌بندی یا اعتبار | <span dir="ltr">DriftCommitmentCorrectionRepository</span> |
 
 مرجع تنظیمات [<span dir="ltr">app_settings.dart</span>](../lib/app/app_settings.dart)، شناسهٔ حساب [<span dir="ltr">drift_finance_repository.dart</span>](../lib/features/finance/data/drift_finance_repository.dart)، صندوق بررسی [<span dir="ltr">drift_inbox_repository.dart</span>](../lib/features/inbox/data/drift_inbox_repository.dart)، اسکن [<span dir="ltr">sms_ingestion.dart</span>](../lib/features/inbox/application/sms_ingestion.dart) و اصلاح [<span dir="ltr">drift_commitment_correction_repository.dart</span>](../lib/features/commitments/data/drift_commitment_correction_repository.dart) است.
@@ -794,10 +801,11 @@ erDiagram
 | 16 | <span dir="ltr">bank_code</span> حساب؛ عبور ۱۵←۱۶ هم ترمیم برچسب‌گذاری را انجام می‌دهد |
 | 17 | <span dir="ltr">relationship_reviews</span>، نمایه شمارهٔ بازبینی و محرک‌های پایگاه دادهٔ فقط با افزودن رکورد جدید |
 | 18 | <span dir="ltr">color_key</span> اختیاری تعهد با <span dir="ltr">CHECK</span> رنگ‌ها |
+| 19 | <span dir="ltr">financial_accounts.display_order</span> با مقدار پیش‌فرض صفر؛ ارتقا ترتیب اولیه را از <span dir="ltr">`rowid - 1`</span> می‌گیرد، بدون تغییر هویت حساب یا دفتر مالی |
 
-این جدول شرح گام‌های موجود است، نه <span dir="ltr">DDL</span> مناسب برای اجرای دستی. <span dir="ltr">`onCreate`</span> کل طرحواره جاری را با <span dir="ltr">`m.createAll()`</span> می‌سازد؛ <span dir="ltr">`onUpgrade`</span> مجموعهٔ شرط‌های <span dir="ltr">`from`</span> را اجرا می‌کند. ترتیب ستون‌ها/<span dir="ltr">DDL</span> یا <span dir="ltr">FK</span>ها و نمایه‌های بعضی جدول‌های قدیمی ممکن است با ساخت تازه تفاوت داشته باشد، حتی وقتی هر دو <span dir="ltr">`user_version = 18`</span> دارند. ارتقا جاری جدول‌های قدیمی را برای افزودن تمام <span dir="ltr">FK</span>های جدید بازسازی نمی‌کند.
+این جدول شرح گام‌های موجود است، نه <span dir="ltr">DDL</span> مناسب برای اجرای دستی. <span dir="ltr">`onCreate`</span> کل طرحواره جاری را با <span dir="ltr">`m.createAll()`</span> می‌سازد؛ <span dir="ltr">`onUpgrade`</span> مجموعهٔ شرط‌های <span dir="ltr">`from`</span> را اجرا می‌کند. ترتیب ستون‌ها/<span dir="ltr">DDL</span> یا <span dir="ltr">FK</span>ها و نمایه‌های بعضی جدول‌های قدیمی ممکن است با ساخت تازه تفاوت داشته باشد، حتی وقتی هر دو <span dir="ltr">`user_version = 19`</span> دارند. ارتقا جاری جدول‌های قدیمی را برای افزودن تمام <span dir="ltr">FK</span>های جدید بازسازی نمی‌کند.
 
-پشتیبان، علاوه بر طرحوارهٔ تازه، فقط ساختارهای تاریخیِ کامل و مورد اعتماد را می‌پذیرد که به نسخهٔ ۱۸ مهاجرت کرده‌اند. ترکیب دلخواه تعریف‌های <span dir="ltr">SQL</span> چند طرحواره، قید ناقص یا ساختار ناشناخته پذیرفته نیست. اعتبارسنج، ردیف‌های قدیمی را در یک پایگاه دادهٔ مرجع و جدا کپی می‌کند تا قیود جدید بررسی شوند؛ این کار دادهٔ اصلی را ترمیم نمی‌کند.
+پشتیبان، علاوه بر طرحوارهٔ تازه، فقط ساختارهای تاریخیِ کامل و مورد اعتماد را می‌پذیرد که به نسخهٔ جاری مهاجرت کرده‌اند. ترکیب دلخواه تعریف‌های <span dir="ltr">SQL</span> چند طرحواره، قید ناقص یا ساختار ناشناخته پذیرفته نیست. اعتبارسنج، ردیف‌های قدیمی را در یک پایگاه دادهٔ مرجع و جدا کپی می‌کند تا قیود جدید بررسی شوند؛ این کار دادهٔ اصلی را ترمیم نمی‌کند.
 
 برای تغییر طرحواره:
 
@@ -808,7 +816,7 @@ erDiagram
 5. تاثیر معنایی روی نسخهٔ اجرایی قدیمی را جدا از سازگاری فیزیکی طرحواره بررسی کنید.
 6. این سند و <span dir="ltr">ADR</span>/ارزیابی مربوط را همراه تغییر به‌روز کنید.
 
-[داده‌های آزمون طرحواره](../test/fixtures/backup_schema/)، [تست پایگاه داده](../test/repository/app_database_test.dart)، [تست دادهٔ آزمون بررسی](../test/repository/relationship_schema_fixture_test.dart) و [تست سازگاری پشتیبان](../test/repository/sqlite_backup_schema_compatibility_test.dart) منابع بررسی هستند. افزایش محتوای داده <span dir="ltr">JSON</span> یا افزودن نوع شمارشی نیز ممکن است بازگشت به نسخهٔ قدیمی را ناامن کند؛ ثابت‌ماندن طرحواره 18 اثبات امنیت بازگشت به نسخهٔ قدیمی با حفظ معنای داده نیست.
+[داده‌های آزمون طرحواره](../test/fixtures/backup_schema/)، [تست پایگاه داده](../test/repository/app_database_test.dart)، [تست دادهٔ آزمون بررسی](../test/repository/relationship_schema_fixture_test.dart) و [تست سازگاری پشتیبان](../test/repository/sqlite_backup_schema_compatibility_test.dart) منابع بررسی هستند. افزایش محتوای داده <span dir="ltr">JSON</span> یا افزودن نوع شمارشی نیز ممکن است بازگشت به نسخهٔ قدیمی را ناامن کند؛ ثابت‌ماندن نسخهٔ فیزیکی طرحواره اثبات امنیت بازگشت به نسخهٔ قدیمی با حفظ معنای داده نیست.
 
 <a id="11-backup"></a>
 

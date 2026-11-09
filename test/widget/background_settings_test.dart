@@ -31,7 +31,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('تاریک'));
     await tester.pumpAndSettle();
-    await tester.drag(settingsList, const Offset(0, -250));
+    await tester.scrollUntilVisible(
+      find.text('موج ایرانی'),
+      150,
+      scrollable: find
+          .descendant(of: settingsList, matching: find.byType(Scrollable))
+          .first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('موج ایرانی'));
     await tester.pumpAndSettle();
@@ -78,7 +84,13 @@ void main() {
       ),
       findsWidgets,
     );
-    await tester.drag(settingsList, const Offset(0, 650));
+    await tester.scrollUntilVisible(
+      find.text('روشن'),
+      -150,
+      scrollable: find
+          .descendant(of: settingsList, matching: find.byType(Scrollable))
+          .first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('روشن'));
     await tester.pumpAndSettle();

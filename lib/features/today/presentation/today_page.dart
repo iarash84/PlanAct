@@ -290,6 +290,7 @@ class _AttentionGroups extends StatelessWidget {
           Card(
             margin: const EdgeInsets.only(bottom: PlanActSpacing.xs),
             child: ExpansionTile(
+              key: PageStorageKey('today-attention:${entries[index].key}'),
               initiallyExpanded: index == 0,
               title: Text(entries[index].key),
               subtitle: Text(

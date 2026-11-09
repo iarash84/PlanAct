@@ -28,6 +28,87 @@ Future<void> settle(WidgetTester tester) async {
 
 void main() {
   testWidgets(
+    'Today transaction review retains disclosure across tabs, Inbox and refresh',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = DriftInboxRepository(db);
+      final source = TestSmsProvider();
+      addTearDown(source.events.close);
+      final now = DateTime.now();
+      source.add(
+        1,
+        now.subtract(const Duration(minutes: 1)).millisecondsSinceEpoch,
+      );
+      await SmsIngestion(
+        InboxUseCases(repo),
+        source,
+        store: AutomaticSmsScanAdapter(repo),
+      ).consent(
+        from: now.subtract(const Duration(hours: 1)),
+        until: now,
+        newOnly: true,
+        automatic: true,
+      );
+      await tester.pumpWidget(
+        PlanActApp(
+          repository: DriftCommitmentRepository(db),
+          smsSource: source,
+        ),
+      );
+      await settle(tester);
+      expect(pendingOnToday(tester), 1);
+      final header = find
+          .descendant(
+            of: find.byType(ExpansionTile),
+            matching: find.text('بازبینی تراکنش'),
+          )
+          .first;
+      final reviewAction = find.widgetWithText(TextButton, 'بازبینی تراکنش');
+      expect(reviewAction.hitTestable(), findsOneWidget);
+      await tester.tap(header);
+      await settle(tester);
+      expect(reviewAction.hitTestable(), findsNothing);
+
+      for (final tab in ['تقویم', 'مالی', 'بیشتر']) {
+        await tester.tap(find.widgetWithText(NavigationDestination, tab));
+        await settle(tester);
+        await tester.tap(find.widgetWithText(NavigationDestination, 'امروز'));
+        await settle(tester);
+        expect(header, findsOneWidget);
+        expect(reviewAction.hitTestable(), findsNothing, reason: tab);
+      }
+
+      source.add(2, now.millisecondsSinceEpoch);
+      final list = find
+          .descendant(
+            of: find.byType(TodayPage),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      await tester.drag(list, const Offset(0, 500));
+      await settle(tester);
+      expect(pendingOnToday(tester), 2);
+      expect(reviewAction.hitTestable(), findsNothing);
+      await tester.tap(header);
+      await settle(tester);
+      expect(reviewAction.hitTestable(), findsNWidgets(2));
+      await tester.tap(reviewAction.first);
+      await settle(tester);
+      expect(find.byType(InboxPage), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await settle(tester);
+      expect(reviewAction.hitTestable(), findsNWidgets(2));
+      expect(await repo.listSuggestions(), hasLength(2));
+      expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
     'root startup, resume, delayed broadcast and Today/Inbox pulls synchronize without Inbox being open',
     (tester) async {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
