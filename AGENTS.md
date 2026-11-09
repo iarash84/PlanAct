@@ -691,6 +691,16 @@ Use the logo primarily in appropriate brand moments such as the launcher, startu
 
 Before proposing a foundational palette or identity change, inspect the actual app icon/launcher assets and current theme implementation; do not infer palette values from this guidance alone.
 
+## Approved theme presets (2026-11-09)
+
+Settings offers four coordinated palettes (original PlanAct default, blue, purple,
+warm earth), each with light/dark variants independent of display mode. Keep palette
+roles centralized; do not recolor domain identity/status roles or native launcher,
+splash and alarm surfaces. Persist the stable preset metadata before changing the
+effective root theme; retain the prior palette on failure with Persian retry
+feedback. Missing/unknown keys use the original palette without rewriting history.
+See docs/THEME_PRESETS_VERIFICATION.md for evidence and independent/device gates.
+
 ## Design System First
 
 `docs/DESIGN_SYSTEM.md` is the authoritative concrete visual specification; `AGENTS.md` governs how that specification is maintained. Before adding or changing a recurring color, text style, radius, spacing, shadow/elevation, animation timing, or component pattern, inspect the specification, current theme/tokens, and shared components.

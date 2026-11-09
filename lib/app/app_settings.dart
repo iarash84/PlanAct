@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'theme/theme_preset.dart';
+
 import 'package:planact/core/money/iranian_money_unit.dart';
 import 'package:planact/core/database/app_database.dart';
 import 'package:planact/features/reminders/domain/morning_reminder.dart';
@@ -62,6 +65,12 @@ class AppSettings {
         ThemeMode.dark => 'dark',
         ThemeMode.system => 'system',
       });
+
+  Future<ThemePreset> readThemePreset() async =>
+      ThemePreset.fromStorage(await database.readMetadata('theme_preset_v1'));
+
+  Future<void> writeThemePreset(ThemePreset preset) =>
+      database.writeMetadata('theme_preset_v1', preset.storageValue);
 
   Future<AppBackground> readBackground() async =>
       AppBackgroundAsset.fromStorageValue(

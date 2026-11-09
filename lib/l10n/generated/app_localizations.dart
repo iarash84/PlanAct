@@ -94,6 +94,54 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Coordinated application palette selector title.
+  ///
+  /// In fa, this message translates to:
+  /// **'تم رنگی'**
+  String get settingsPaletteTitle;
+
+  /// Explains palette independence from display brightness.
+  ///
+  /// In fa, this message translates to:
+  /// **'هر تم نسخهٔ روشن و تاریک هماهنگ دارد؛ حالت نمایش را جداگانه انتخاب کنید.'**
+  String get settingsPaletteDescription;
+
+  /// Default original PlanAct palette.
+  ///
+  /// In fa, this message translates to:
+  /// **'اصلی پلن‌اکت'**
+  String get settingsPaletteOriginal;
+
+  /// Calm blue palette name.
+  ///
+  /// In fa, this message translates to:
+  /// **'آبی آرام'**
+  String get settingsPaletteBlue;
+
+  /// Soft purple palette name.
+  ///
+  /// In fa, this message translates to:
+  /// **'بنفش ملایم'**
+  String get settingsPalettePurple;
+
+  /// Warm earth palette name.
+  ///
+  /// In fa, this message translates to:
+  /// **'خاکی گرم'**
+  String get settingsPaletteEarth;
+
+  /// Palette save failed; previous effective selection retained and retry available.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ تم انجام نشد؛ تم قبلی حفظ شده است. دوباره انتخاب کنید.'**
+  String get settingsPaletteSaveError;
+
+  /// Palette load failure with retry and disabled selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'خواندن تم ذخیره‌شده انجام نشد. دوباره تلاش کنید.'**
+  String get settingsPaletteLoadError;
+
   /// Open the compact searchable tag selector.
   ///
   /// In fa, this message translates to:

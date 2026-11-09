@@ -10,6 +10,33 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get settingsPaletteTitle => 'تم رنگی';
+
+  @override
+  String get settingsPaletteDescription =>
+      'هر تم نسخهٔ روشن و تاریک هماهنگ دارد؛ حالت نمایش را جداگانه انتخاب کنید.';
+
+  @override
+  String get settingsPaletteOriginal => 'اصلی پلن‌اکت';
+
+  @override
+  String get settingsPaletteBlue => 'آبی آرام';
+
+  @override
+  String get settingsPalettePurple => 'بنفش ملایم';
+
+  @override
+  String get settingsPaletteEarth => 'خاکی گرم';
+
+  @override
+  String get settingsPaletteSaveError =>
+      'ذخیرهٔ تم انجام نشد؛ تم قبلی حفظ شده است. دوباره انتخاب کنید.';
+
+  @override
+  String get settingsPaletteLoadError =>
+      'خواندن تم ذخیره‌شده انجام نشد. دوباره تلاش کنید.';
+
+  @override
   String get tagSelectionChoose => 'انتخاب برچسب‌ها';
 
   @override

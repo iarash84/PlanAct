@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'planact_colors.dart';
+import 'theme_preset.dart';
 import 'planact_page_transitions.dart';
 import 'planact_radius.dart';
 import 'planact_spacing.dart';
@@ -8,12 +9,14 @@ import 'planact_typography.dart';
 import 'planact_status_colors.dart';
 
 abstract final class PlanActTheme {
-  static ThemeData light() => _build(Brightness.light);
+  static ThemeData light({ThemePreset preset = ThemePreset.original}) =>
+      _build(Brightness.light, preset);
 
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData dark({ThemePreset preset = ThemePreset.original}) =>
+      _build(Brightness.dark, preset);
 
-  static ThemeData _build(Brightness brightness) {
-    final scheme = PlanActColors.scheme(brightness);
+  static ThemeData _build(Brightness brightness, ThemePreset preset) {
+    final scheme = PlanActColors.scheme(brightness, preset: preset);
     final outline = scheme.outlineVariant;
     return ThemeData(
       useMaterial3: true,
