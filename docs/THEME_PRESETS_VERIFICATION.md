@@ -47,6 +47,12 @@ Verification: 21 tests passed across theme_presets, brand_theme, background_sett
 
 Scoped coverage: Settings selector migrated; neighboring display-mode/background controls intentionally unchanged and regression tested. Other application surfaces, palettes, status colors and native assets intentionally unchanged. Device screenshots, actual TalkBack/focus quality, physical-device light/dark review, full-suite execution and Android build were not performed. Maintainer owns device/independent review before release; this bounded presentation implementation is not independent release approval.
 
+### Localization baseline regression fix (2026-11-09)
+
+The full-suite run exposed missing post-migration metadata on the eight new palette messages: the frozen pre-migration copy test incorrectly included them in its digest. Acceptance for this behavior-neutral repair is to retain the existing digest and all prior copy, explicitly mark only the eight new messages, and independently assert their exact keys and text. Added `theme-presets-2026-11-09` catalog metadata and a dedicated regression test; no runtime copy, generated output, persistence, migration or dependency changes. The earlier scoped checks omitted the localization unit suite; include that suite whenever adding catalog messages, not just localization consumer widgets.
+
+Verification: all 12 tests across `test/unit/localization_resources_test.dart` and `test/widget/theme_presets_test.dart` passed, including the unchanged frozen digest and reproducible generated resources. `dart format`, `flutter analyze` (no issues) and `git diff --check` passed. The previously recorded Drift multiple-instance debug warning remains in the theme snapshot test. Full-suite rerun and independent review were not performed for this repair; existing device/native release gates remain unchanged.
+
 ### Remaining acceptance gates
 
 Independent visual/device acceptance is not established by passing tests. Owner: maintainer; next action: inspect all eight palettes on representative Android devices, including background-image combinations, disabled/selected/focus states, TalkBack and large text; independently accept accessibility and visual quality before release. Full application test suite, Android build and device checks were not run for this scoped change. Capability is implemented with bounded automated verification, not independently release-approved; existing backup/native release blockers remain unchanged.

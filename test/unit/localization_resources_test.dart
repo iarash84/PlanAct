@@ -119,6 +119,7 @@ void main() {
                     'counted-progress-2026-10-14',
                     'compact-tags-2026-11-08',
                     'inbox-tags-2026-11-08',
+                    'theme-presets-2026-11-09',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -160,6 +161,32 @@ void main() {
           catalog[key] is Map &&
           (catalog[key] as Map)['x-planact-introduced'] ==
               'compact-tags-2026-11-08',
+    );
+    expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
+    for (final entry in messages.entries) {
+      expect(catalog[entry.key], entry.value, reason: entry.key);
+    }
+  });
+
+  test('theme preset copy is explicitly separate from migrated templates', () {
+    final messages = {
+      'settingsPaletteTitle': 'تم رنگی',
+      'settingsPaletteDescription': 'هر تم نسخهٔ روشن و تاریک هماهنگ دارد؛ حالت نمایش را جداگانه انتخاب کنید.',
+      'settingsPaletteOriginal': 'اصلی پلن‌اکت',
+      'settingsPaletteBlue': 'آبی آرام',
+      'settingsPalettePurple': 'بنفش ملایم',
+      'settingsPaletteEarth': 'خاکی گرم',
+      'settingsPaletteSaveError':
+          'ذخیرهٔ تم انجام نشد؛ تم قبلی حفظ شده است. دوباره انتخاب کنید.',
+      'settingsPaletteLoadError':
+          'خواندن تم ذخیره‌شده انجام نشد. دوباره تلاش کنید.',
+    };
+    final markedKeys = catalog.keys.where(
+      (key) =>
+          key.startsWith('@') &&
+          catalog[key] is Map &&
+          (catalog[key] as Map)['x-planact-introduced'] ==
+              'theme-presets-2026-11-09',
     );
     expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
     for (final entry in messages.entries) {
