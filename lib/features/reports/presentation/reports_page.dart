@@ -250,25 +250,22 @@ class _ReportsPageState extends State<ReportsPage> {
     T? value,
     Map<T, String> choices,
     void Function(T?) changed,
-  ) => Padding(
-    padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
-    child: DropdownButtonFormField<T>(
-      key: ValueKey('$label:${value.toString()}'),
-      initialValue: value,
-      isExpanded: true,
-      itemHeight: null,
-      decoration: InputDecoration(labelText: label),
-      items: [
-        DropdownMenuItem<T>(
-          value: null,
-          child: const Text(PersianCopy.relationshipQueuePageBuildLabel),
-        ),
-        ...choices.entries.map(
-          (e) => DropdownMenuItem<T>(value: e.key, child: Text(e.value)),
-        ),
-      ],
-      onChanged: _loading ? null : (v) => setState(() => changed(v)),
-    ),
+  ) => DropdownButtonFormField<T>(
+    key: ValueKey('$label:${value.toString()}'),
+    initialValue: value,
+    isExpanded: true,
+    itemHeight: null,
+    decoration: InputDecoration(labelText: label),
+    items: [
+      DropdownMenuItem<T>(
+        value: null,
+        child: const Text(PersianCopy.relationshipQueuePageBuildLabel),
+      ),
+      ...choices.entries.map(
+        (e) => DropdownMenuItem<T>(value: e.key, child: Text(e.value)),
+      ),
+    ],
+    onChanged: _loading ? null : (v) => setState(() => changed(v)),
   );
 
   Widget _tagSelection(ReportSnapshot data, {required bool excluded}) {
@@ -318,163 +315,188 @@ class _ReportsPageState extends State<ReportsPage> {
     ),
     childrenPadding: const EdgeInsets.all(PlanActSpacing.lg),
     children: [
-      TextField(
-        key: const PageStorageKey('report-search'),
-        controller: _searchController,
-        decoration: const InputDecoration(
-          labelText: PersianCopy.reportsPageFiltersLabelText,
-        ),
-        onChanged: (v) => setState(() => _query = v),
-      ),
-      const SizedBox(height: PlanActSpacing.md),
-      _select<ReportTagMode>(
-        PersianCopy.reportsPageFiltersChildren,
-        _tagMode,
-        const {
-          ReportTagMode.any: PersianCopy.reportsPageFiltersChildren2,
-          ReportTagMode.all: PersianCopy.reportsPageFiltersChildren3,
-          ReportTagMode.untagged: PersianCopy.reportsPageFiltersChildren4,
-        },
-        (v) => _tagMode = v ?? ReportTagMode.any,
-      ),
-      if (data.tags.isEmpty)
-        const Text(PersianCopy.reportsPageFiltersChildren5),
-      if (_tagMode != ReportTagMode.untagged)
-        _tagSelection(data, excluded: false),
-      _tagSelection(data, excluded: true),
-      if (!_financial) ...[
-        _select<StableId>(
-          PersianCopy.calendarPageMarkerPainterText,
-          _commitment,
-          {for (final c in data.commitments) c.id: c.title},
-          (v) {
-            _commitment = v;
-            _cycle = null;
-          },
-        ),
-        _select<StableId>(PersianCopy.reportsPageFiltersChildren6, _cycle, {
-          for (final c in data.cycles.where(
-            (c) => _commitment == null || c.commitmentId == _commitment,
-          ))
-            c.id: PersianCopy.reportsPageFiltersChildren7(
-              (data.commitments
-                          .where((o) => o.id == c.commitmentId)
-                          .firstOrNull
-                          ?.title ??
-                      PersianCopy.calendarPageMarkerPainterText)
-                  .toString(),
-              (_date(c.startDate)).toString(),
+      Column(
+        key: const ValueKey('report-filter-controls'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: PlanActSpacing.lg,
+        children: [
+          TextField(
+            key: const PageStorageKey('report-search'),
+            controller: _searchController,
+            decoration: const InputDecoration(
+              labelText: PersianCopy.reportsPageFiltersLabelText,
             ),
-        }, (v) => _cycle = v),
-        _select<CommitmentKind>(
-          PersianCopy.reportsPageFiltersChildren8,
-          _commitmentKind,
-          const {
-            CommitmentKind.oneOff: PersianCopy.planactAppCommitmentKindOneOff,
-            CommitmentKind.recurring:
-                PersianCopy.planactAppCommitmentKindRecurring,
-          },
-          (v) => _commitmentKind = v,
-        ),
-        if (_kind != PersonalReportKind.packages)
-          _select<OccurrenceStatus>(
-            PersianCopy.reportsPageFiltersChildren9,
-            _status,
-            {
-              for (final s in OccurrenceStatus.values)
-                s: occurrenceStatusLabel(s),
-            },
-            (v) => _status = v,
+            onChanged: (v) => setState(() => _query = v),
           ),
-      ],
-      if (_financial ||
-          _kind == PersonalReportKind.settlement ||
-          _kind == PersonalReportKind.recurringFinance) ...[
-        _select<StableId>(PersianCopy.quickAddSheetBuildLabelText, _account, {
-          for (final a in data.accounts) a.id: a.name,
-        }, (v) => _account = v),
-        _select<String>(PersianCopy.reportsPageFiltersChildren10, _currency, {
-          for (final c in {
-            ...data.accounts.map((a) => a.currency),
-            ...data.entries.map((e) => e.amount.currency),
-          })
-            c: c,
-        }, (v) => _currency = v),
-        if (_kind != PersonalReportKind.accounts)
-          _select<AccountEntryType>(
-            PersianCopy.reportsPageFiltersChildren11,
-            _entryType,
+          _select<ReportTagMode>(
+            PersianCopy.reportsPageFiltersChildren,
+            _tagMode,
             const {
-              AccountEntryType.income: PersianCopy.financePageResultCategory,
-              AccountEntryType.expense:
-                  PersianCopy.reportsPageFiltersChildren12,
-              AccountEntryType.refund:
-                  PersianCopy.transactionDirectionAccountEntryTypeRefund,
+              ReportTagMode.any: PersianCopy.reportsPageFiltersChildren2,
+              ReportTagMode.all: PersianCopy.reportsPageFiltersChildren3,
+              ReportTagMode.untagged: PersianCopy.reportsPageFiltersChildren4,
             },
-            (v) => _entryType = v,
+            (v) => _tagMode = v ?? ReportTagMode.any,
           ),
-      ],
-      if (_kind == PersonalReportKind.cashFlow) ...[
-        _select<String>(PersianCopy.financePageBuildFiltersHint2, _category, {
-          for (final c
-              in data.entries
-                  .map((e) => e.category)
-                  .whereType<String>()
-                  .toSet())
-            c: c,
-        }, (v) => _category = v),
-        _select<AccountEntrySource>(
-          PersianCopy.reportsPageFiltersChildren13,
-          _source,
-          const {
-            AccountEntrySource.manual: PersianCopy.reportsPageFiltersChildren14,
-            AccountEntrySource.sms: PersianCopy.reportsPageFiltersChildren15,
-            AccountEntrySource.import: PersianCopy.reportsPageFiltersChildren16,
-          },
-          (v) => _source = v,
-        ),
-      ],
-      if (_kind == PersonalReportKind.cashFlow ||
-          _kind == PersonalReportKind.topic)
-        _select<ReportTagSource>(
-          PersianCopy.reportsPageFiltersChildren17,
-          _tagSource,
-          const {
-            ReportTagSource.direct: PersianCopy.reportsPageFiltersChildren18,
-            ReportTagSource.relatedAllocation:
-                PersianCopy.reportsPageFiltersChildren19,
-          },
-          (v) => _tagSource = v ?? ReportTagSource.direct,
-        ),
-      if (_kind == PersonalReportKind.settlement)
-        _select<ReportSettlementState>(
-          PersianCopy.reportsPageFiltersChildren20,
-          _settlement,
-          {
-            for (final s in ReportSettlementState.values)
-              s: _settlementLabel(s),
-          },
-          (v) => _settlement = v,
-        ),
-      if (_kind == PersonalReportKind.changes)
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text(PersianCopy.reportsPageFiltersTitle3),
-          value: _originalDate,
-          onChanged: (v) => setState(() => _originalDate = v),
-        ),
-      TextButton(
-        onPressed: _loading
-            ? null
-            : () => setState(() {
-                _clearDimensions();
-                _tags.clear();
-                _excludedTags.clear();
-                _tagMode = ReportTagMode.any;
-                _query = '';
-                _searchController.clear();
-              }),
-        child: const Text(PersianCopy.reportsPageFiltersChildren21),
+          if (data.tags.isEmpty)
+            const Text(PersianCopy.reportsPageFiltersChildren5),
+          if (_tagMode != ReportTagMode.untagged)
+            _tagSelection(data, excluded: false),
+          _tagSelection(data, excluded: true),
+          if (!_financial) ...[
+            _select<StableId>(
+              PersianCopy.calendarPageMarkerPainterText,
+              _commitment,
+              {for (final c in data.commitments) c.id: c.title},
+              (v) {
+                _commitment = v;
+                _cycle = null;
+              },
+            ),
+            _select<StableId>(PersianCopy.reportsPageFiltersChildren6, _cycle, {
+              for (final c in data.cycles.where(
+                (c) => _commitment == null || c.commitmentId == _commitment,
+              ))
+                c.id: PersianCopy.reportsPageFiltersChildren7(
+                  (data.commitments
+                              .where((o) => o.id == c.commitmentId)
+                              .firstOrNull
+                              ?.title ??
+                          PersianCopy.calendarPageMarkerPainterText)
+                      .toString(),
+                  (_date(c.startDate)).toString(),
+                ),
+            }, (v) => _cycle = v),
+            _select<CommitmentKind>(
+              PersianCopy.reportsPageFiltersChildren8,
+              _commitmentKind,
+              const {
+                CommitmentKind.oneOff:
+                    PersianCopy.planactAppCommitmentKindOneOff,
+                CommitmentKind.recurring:
+                    PersianCopy.planactAppCommitmentKindRecurring,
+              },
+              (v) => _commitmentKind = v,
+            ),
+            if (_kind != PersonalReportKind.packages)
+              _select<OccurrenceStatus>(
+                PersianCopy.reportsPageFiltersChildren9,
+                _status,
+                {
+                  for (final s in OccurrenceStatus.values)
+                    s: occurrenceStatusLabel(s),
+                },
+                (v) => _status = v,
+              ),
+          ],
+          if (_financial ||
+              _kind == PersonalReportKind.settlement ||
+              _kind == PersonalReportKind.recurringFinance) ...[
+            _select<StableId>(
+              PersianCopy.quickAddSheetBuildLabelText,
+              _account,
+              {for (final a in data.accounts) a.id: a.name},
+              (v) => _account = v,
+            ),
+            _select<String>(
+              PersianCopy.reportsPageFiltersChildren10,
+              _currency,
+              {
+                for (final c in {
+                  ...data.accounts.map((a) => a.currency),
+                  ...data.entries.map((e) => e.amount.currency),
+                })
+                  c: c,
+              },
+              (v) => _currency = v,
+            ),
+            if (_kind != PersonalReportKind.accounts)
+              _select<AccountEntryType>(
+                PersianCopy.reportsPageFiltersChildren11,
+                _entryType,
+                const {
+                  AccountEntryType.income:
+                      PersianCopy.financePageResultCategory,
+                  AccountEntryType.expense:
+                      PersianCopy.reportsPageFiltersChildren12,
+                  AccountEntryType.refund:
+                      PersianCopy.transactionDirectionAccountEntryTypeRefund,
+                },
+                (v) => _entryType = v,
+              ),
+          ],
+          if (_kind == PersonalReportKind.cashFlow) ...[
+            _select<String>(
+              PersianCopy.financePageBuildFiltersHint2,
+              _category,
+              {
+                for (final c
+                    in data.entries
+                        .map((e) => e.category)
+                        .whereType<String>()
+                        .toSet())
+                  c: c,
+              },
+              (v) => _category = v,
+            ),
+            _select<AccountEntrySource>(
+              PersianCopy.reportsPageFiltersChildren13,
+              _source,
+              const {
+                AccountEntrySource.manual:
+                    PersianCopy.reportsPageFiltersChildren14,
+                AccountEntrySource.sms:
+                    PersianCopy.reportsPageFiltersChildren15,
+                AccountEntrySource.import:
+                    PersianCopy.reportsPageFiltersChildren16,
+              },
+              (v) => _source = v,
+            ),
+          ],
+          if (_kind == PersonalReportKind.cashFlow ||
+              _kind == PersonalReportKind.topic)
+            _select<ReportTagSource>(
+              PersianCopy.reportsPageFiltersChildren17,
+              _tagSource,
+              const {
+                ReportTagSource.direct:
+                    PersianCopy.reportsPageFiltersChildren18,
+                ReportTagSource.relatedAllocation:
+                    PersianCopy.reportsPageFiltersChildren19,
+              },
+              (v) => _tagSource = v ?? ReportTagSource.direct,
+            ),
+          if (_kind == PersonalReportKind.settlement)
+            _select<ReportSettlementState>(
+              PersianCopy.reportsPageFiltersChildren20,
+              _settlement,
+              {
+                for (final s in ReportSettlementState.values)
+                  s: _settlementLabel(s),
+              },
+              (v) => _settlement = v,
+            ),
+          if (_kind == PersonalReportKind.changes)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(PersianCopy.reportsPageFiltersTitle3),
+              value: _originalDate,
+              onChanged: (v) => setState(() => _originalDate = v),
+            ),
+          TextButton(
+            onPressed: _loading
+                ? null
+                : () => setState(() {
+                    _clearDimensions();
+                    _tags.clear();
+                    _excludedTags.clear();
+                    _tagMode = ReportTagMode.any;
+                    _query = '';
+                    _searchController.clear();
+                  }),
+            child: const Text(PersianCopy.reportsPageFiltersChildren21),
+          ),
+        ],
       ),
     ],
   );
