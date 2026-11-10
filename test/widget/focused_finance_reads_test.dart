@@ -5,7 +5,6 @@ import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/money/money.dart';
-import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -108,11 +107,9 @@ void main() {
         expect(tags.reads, expectedReads);
         if (kind == FinanceRecordKind.account) {
           expect(
-            find.text(
-              PersianMoneyText.money(
-                const Money(minorUnits: -49900, currency: 'IRR'),
-              ),
-            ),
+            // Match the numeric bidi isolation used by account balances; the
+            // reversal cancels 700, leaving 499 expenses of 100 IRR each.
+            find.text('\u2066-۴۹,۹۰۰\u2069 ریال'),
             findsOneWidget,
           );
         } else {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
@@ -57,14 +59,14 @@ void main() {
       expect(s.primary, isNot(theme.extension<PlanActStatusColors>()!.success));
     });
 
-    testWidgets('$name shared controls, modal inheritance and artifact', (
-      tester,
-    ) async {
+    Future<void> pumpGallery(
+      WidgetTester tester, {
+      VoidCallback? onSubmit,
+    }) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      var calls = 0;
       await tester.pumpWidget(
         MaterialApp(
           theme: theme,
@@ -80,7 +82,7 @@ void main() {
                     children: [
                       const Text('برنامه، اقدام، نتیجه'),
                       FilledButton(
-                        onPressed: () => calls++,
+                        onPressed: onSubmit ?? () {},
                         child: const Text('ثبت'),
                       ),
                       const FilledButton(
@@ -157,17 +159,24 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      // TODO: Re-enable both golden comparisons after reviewing and refreshing
-      // the Linux baselines with the CI toolchain. Temporarily disabled at the
-      // user's request; functional assertions below remain active.
-      // await expectLater(
-      //   find.byKey(const Key('brand-gallery')),
-      //   matchesGoldenFile(
-      //     Platform.isLinux
-      //         ? 'goldens/linux/brand_$name.png'
-      //         : 'goldens/brand_$name.png',
-      //   ),
-      // );
+    }
+
+    testWidgets('$name shared controls and modal inheritance', (tester) async {
+      var calls = 0;
+      await pumpGallery(tester, onSubmit: () => calls++);
+      final navigation = find.byType(NavigationBar);
+      final navigationRect = tester.getRect(navigation);
+      expect(navigationRect.height, 56);
+      expect(
+        NavigationBarTheme.of(tester.element(navigation)).labelBehavior,
+        NavigationDestinationLabelBehavior.alwaysHide,
+      );
+      for (final icon in [Icons.today, Icons.calendar_month, Icons.wallet]) {
+        expect(
+          tester.getCenter(find.byIcon(icon)).dy,
+          closeTo(navigationRect.center.dy, .01),
+        );
+      }
       await tester.tap(find.text('در حال ذخیره'));
       expect(calls, 0);
       await tester.tap(find.text('ثبت'));
@@ -184,5 +193,19 @@ void main() {
       final context = tester.element(find.byKey(const Key('brand-gallery')));
       expect(Directionality.of(context), TextDirection.rtl);
     });
+
+    testWidgets(
+      '$name Linux reference golden (Linux only; behavior tested on all hosts)',
+      (tester) async {
+        await pumpGallery(tester);
+        await expectLater(
+          find.byKey(const Key('brand-gallery')),
+          matchesGoldenFile('goldens/linux/brand_$name.png'),
+        );
+      },
+      // Only the reference host generates/compares these images. Behavior above
+      // remains tested on every host. See docs/UI_MIGRATION_VERIFICATION.md.
+      skip: !Platform.isLinux,
+    );
   }
 }

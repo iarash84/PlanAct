@@ -9,6 +9,7 @@ abstract final class PersianMoneyText {
     int minorUnits,
     String currency, {
     IranianMoneyUnit unit = IranianMoneyUnit.rial,
+    bool isolateNumber = false,
   }) {
     final iranian = CurrencyCodes.same(currency, CurrencyCodes.irr);
     final raw = (iranian ? unit : IranianMoneyUnit.rial).inputText(minorUnits);
@@ -18,11 +19,21 @@ abstract final class PersianMoneyText {
       (_) => ',',
     );
     final number = '$grouped${parts.length == 2 ? '٫${parts.last}' : ''}';
-    return '${PersianNumbers.format(number)} ${iranian ? unit.label : currency}';
+    final localized = PersianNumbers.format(number);
+    // Isolate only the numeric run: Persian digits are weak bidi characters,
+    // so an unisolated leading minus otherwise moves right in RTL paragraphs.
+    final display = isolateNumber ? '\u2066$localized\u2069' : localized;
+    return '$display ${iranian ? unit.label : currency}';
   }
 
   static String money(
     Money value, {
     IranianMoneyUnit unit = IranianMoneyUnit.rial,
-  }) => amount(value.minorUnits, value.currency, unit: unit);
+    bool isolateNumber = false,
+  }) => amount(
+    value.minorUnits,
+    value.currency,
+    unit: unit,
+    isolateNumber: isolateNumber,
+  );
 }

@@ -1,4 +1,34 @@
 {
+  "reportsTransactionMetadata": "{date} · {type}\n{account}",
+  "@reportsTransactionMetadata": {
+    "description": "Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.",
+    "x-planact-introduced": "reports-cards-2026-11-10",
+    "placeholders": {
+      "date": {"type": "String"},
+      "type": {"type": "String"},
+      "account": {"type": "String"}
+    }
+  },
+  "reportsPreviousPage": "صفحهٔ قبل",
+  "@reportsPreviousPage": {
+    "description": "Previous page of read-only report transaction details.",
+    "x-planact-introduced": "reports-cards-2026-11-10"
+  },
+  "reportsNextPage": "صفحهٔ بعد",
+  "@reportsNextPage": {
+    "description": "Next page of read-only report transaction details.",
+    "x-planact-introduced": "reports-cards-2026-11-10"
+  },
+  "reportsPagePosition": "صفحهٔ {page} از {pages} · {count} تراکنش",
+  "@reportsPagePosition": {
+    "description": "Report detail pagination; numbers are preformatted Persian strings. Totals cover all results, not this page.",
+    "x-planact-introduced": "reports-cards-2026-11-10",
+    "placeholders": {
+      "page": {"type": "String"},
+      "pages": {"type": "String"},
+      "count": {"type": "String"}
+    }
+  },
   "@@locale": "fa",
   "settingsPaletteTitle": "تم رنگی",
   "@settingsPaletteTitle": {"description": "Coordinated application palette selector title.", "x-planact-introduced": "theme-presets-2026-11-09"},

@@ -1,3 +1,4 @@
+import 'package:planact/core/money/money.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/sms_parser_support.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -54,6 +55,12 @@ final class LayeredBankSmsProfiles {
     final sender = context.normalizedSourceAddress;
     final lines = context.lines;
 
+    final novin = _parseEghtesadNovin(lines, services);
+    if (novin != null) return novin;
+
+    final blu = _parseBlu(lines, services);
+    if (blu != null) return blu;
+
     final mellat = _parseMellat(sender, lines, services);
     if (mellat != null) return mellat;
 
@@ -67,6 +74,116 @@ final class LayeredBankSmsProfiles {
     if (parsian != null) return parsian;
 
     return _parseMelli(sender, lines, services);
+  }
+
+  /// Eghtesad Novin v1: explicit signed rial amounts and branded contact footer.
+  /// The source omits its year, so month/day and time remain partial evidence.
+  ParsedSms? _parseEghtesadNovin(
+    List<String> lines,
+    LayeredProfileServices services,
+  ) {
+    if (lines.length != 5 ||
+        !RegExp(r'^مرکز\s*آوای\s+نوین\s*:\s*0[0-9]{10}$').hasMatch(lines[4])) {
+      return null;
+    }
+    final operation = RegExp(
+      r'^(واریز|برداشت)\s*:\s*([0-9]{1,12}(?:-[0-9]{1,12}){3})$',
+    ).firstMatch(lines[0]);
+    final amount = RegExp('^([+-])($_number)\\s*ریال\$').firstMatch(lines[1]);
+    final balance = RegExp('^مانده\\s*:\\s*($_number)\\s*ریال\$')
+        .firstMatch(lines[2]);
+    final stamp = RegExp(r'^(\d{1,2}/\d{1,2})-(\d{2}):(\d{2})$')
+        .firstMatch(lines[3]);
+    if (operation == null ||
+        amount == null ||
+        balance == null ||
+        stamp == null) {
+      return null;
+    }
+    final incoming = operation.group(1) == 'واریز';
+    if ((amount.group(1) == '+') != incoming) return null;
+    final value = services.integer(amount.group(2)!, SmsMoneyUnit.rial);
+    final remaining = services.integer(balance.group(1)!, SmsMoneyUnit.rial);
+    final dateText = stamp.group(1)!;
+    if (value == null ||
+        value <= 0 ||
+        remaining == null ||
+        services.date(dateText) == null ||
+        int.parse(stamp.group(2)!) > 23 ||
+        int.parse(stamp.group(3)!) > 59) {
+      return null;
+    }
+    return ParsedSms(
+      amount: Money(minorUnits: value, currency: 'IRR'),
+      balance: Money(minorUnits: remaining, currency: 'IRR'),
+      currencyEvidence: SmsCurrencyEvidence(
+        sourceAmount: value,
+        detectedUnit: SmsMoneyUnit.rial,
+      ),
+      occurredAt: null,
+      sourceDate: dateText,
+      sourceTime: '${stamp.group(2)}:${stamp.group(3)}',
+      accountHint: operation.group(2),
+      bank: 'اقتصاد نوین',
+      direction: incoming
+          ? TransactionDirection.incoming
+          : TransactionDirection.outgoing,
+      quality: ParseQuality.medium,
+      confidence: 90,
+    );
+  }
+
+  /// Blu v1: the full branded layout is evidence, not an unverified sender
+  /// alias. Heading and conversational direction must agree; no account is
+  /// present in this layout and none may be inferred from the recipient name.
+  ParsedSms? _parseBlu(List<String> lines, LayeredProfileServices services) {
+    if (lines.length != 6 || lines[0] != 'بلو') return null;
+    final incoming = lines[1] == 'واریز پول';
+    if (!incoming && lines[1] != 'برداشت پول') return null;
+    final transaction = RegExp(
+      '^(?:[\\u0600-\\u06ff\\u200c ]{1,80}|<NAME>) عزیز،\\s*($_number)\\s*ریال '
+      r'(از حساب شما پرید\.|به حساب شما نشست\.)$',
+    ).firstMatch(lines[2]);
+    final balance = RegExp('^موجودی:\\s*($_number)\\s+ریال\$')
+        .firstMatch(lines[3]);
+    final time = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(lines[4]);
+    if (transaction == null ||
+        balance == null ||
+        time == null ||
+        !RegExp(r'^14\d{2}\.\d{2}\.\d{2}$').hasMatch(lines[5])) {
+      return null;
+    }
+    if ((transaction.group(2) == 'به حساب شما نشست.') != incoming) return null;
+    final amount = services.integer(transaction.group(1)!, SmsMoneyUnit.rial);
+    final remaining = services.integer(balance.group(1)!, SmsMoneyUnit.rial);
+    final date = services.date(lines[5].replaceAll('.', '/'))?.$1;
+    final hour = int.parse(time.group(1)!);
+    final minute = int.parse(time.group(2)!);
+    if (amount == null ||
+        amount <= 0 ||
+        remaining == null ||
+        date == null ||
+        hour > 23 ||
+        minute > 59) {
+      return null;
+    }
+    return ParsedSms(
+      amount: Money(minorUnits: amount, currency: 'IRR'),
+      balance: Money(minorUnits: remaining, currency: 'IRR'),
+      currencyEvidence: SmsCurrencyEvidence(
+        sourceAmount: amount,
+        detectedUnit: SmsMoneyUnit.rial,
+      ),
+      occurredAt: DateTime(date.year, date.month, date.day, hour, minute),
+      sourceDate: lines[5],
+      sourceTime: lines[4],
+      direction: incoming
+          ? TransactionDirection.incoming
+          : TransactionDirection.outgoing,
+      quality: ParseQuality.high,
+      confidence: 90,
+      bank: 'بلو',
+    );
   }
 
   ParsedSms? _parseMellat(
@@ -97,7 +214,7 @@ final class LayeredBankSmsProfiles {
       return null;
     }
     final sign = transaction.group(3);
-    final incoming = transaction.group(1) == 'واریز' || sign == '+';
+    final incoming = transaction.group(1) == 'واریز';
     if (sign == '-' && incoming || sign == '+' && !incoming) return null;
     return services.buildProfiled(
       amountText: transaction.group(2)!,
@@ -208,6 +325,12 @@ final class LayeredBankSmsProfiles {
     LayeredProfileServices services,
   ) {
     if (sender != 'PARSIANBANK' || lines.length < 4) return null;
+    // Legacy redacted tail evidence is opaque, but must never hide a second
+    // transaction, balance or conflicting unit behind the recognized prefix.
+    if (RegExp(r'مبلغ|مانده|موجودی|واریز|برداشت|انتقال|ریال|تومان|[+-]\s*[0-9]')
+        .hasMatch(lines.skip(4).join('\n'))) {
+      return null;
+    }
     final account = RegExp(r'^([0-9]{8,32})$').firstMatch(lines[0]);
     final transaction = RegExp('^مبلغ\\s*:?\\s*($_number)([+-])\$')
         .firstMatch(lines[1]);

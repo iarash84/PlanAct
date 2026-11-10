@@ -120,6 +120,7 @@ void main() {
                     'compact-tags-2026-11-08',
                     'inbox-tags-2026-11-08',
                     'theme-presets-2026-11-09',
+                    'reports-cards-2026-11-10',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -161,6 +162,26 @@ void main() {
           catalog[key] is Map &&
           (catalog[key] as Map)['x-planact-introduced'] ==
               'compact-tags-2026-11-08',
+    );
+    expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
+    for (final entry in messages.entries) {
+      expect(catalog[entry.key], entry.value, reason: entry.key);
+    }
+  });
+
+  test('report card copy is explicitly separate from migrated templates', () {
+    final messages = {
+      'reportsTransactionMetadata': '{date} · {type}\n{account}',
+      'reportsPreviousPage': 'صفحهٔ قبل',
+      'reportsNextPage': 'صفحهٔ بعد',
+      'reportsPagePosition': 'صفحهٔ {page} از {pages} · {count} تراکنش',
+    };
+    final markedKeys = catalog.keys.where(
+      (key) =>
+          key.startsWith('@') &&
+          catalog[key] is Map &&
+          (catalog[key] as Map)['x-planact-introduced'] ==
+              'reports-cards-2026-11-10',
     );
     expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
     for (final entry in messages.entries) {

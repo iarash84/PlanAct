@@ -1,4 +1,6 @@
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/inbox/application/device_bank_sms_profiles.dart';
+import 'package:planact/features/inbox/application/evidence_bank_sms_fallback.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/sms_parser_support.dart';
 import 'package:planact/features/inbox/application/layered_bank_sms_profiles.dart';
@@ -125,11 +127,14 @@ class RealBankSmsParser implements SmsFormatParser {
       };
       if (parsed != null) return parsed;
     }
-    return null;
+    final device = const DeviceBankSmsProfiles().parse(context);
+    if (device != null) return device;
+    if (const SmsProfileRegistry().isKnownFamily(context)) return null;
+    return const EvidenceBankSmsFallback().parse(context);
   }
 
   bool _rejectNonTransactional(String text) => RegExp(
-    r'رمز|ناموفق|لغو|خطا|otp|password|fail|declined',
+    r'(?<![\u0600-\u06ff])رمز|شناسه\s*تایید|Code\s*:|ناموفق|لغو|خطا|otp|password|fail|declined',
     caseSensitive: false,
   ).hasMatch(text);
 
@@ -283,7 +288,13 @@ class RealBankSmsParser implements SmsFormatParser {
   ParsedSms? _tryParseIranZamin(String text, {String? sourceAddress}) {
     if (sourceAddress?.trim().toUpperCase() != 'IZBANK') return null;
     final lines = text.split('\n');
-    if (lines.length != 4) return null;
+    if (lines.length != 4 &&
+        !(lines.length == 5 &&
+            RegExp(
+              r'^شماره چک\s+[0-9]+ایران زمین[0-9]+شماره رهگیری [A-Z0-9]+ چک شماره [0-9]+$',
+            ).hasMatch(lines[4]))) {
+      return null;
+    }
     final account = RegExp(r'^\d{1,12}(?:-\d{1,12}){2,4}$')
         .firstMatch(lines[0]);
     final amount = RegExp(r'^([+-])(' + _number + r')$').firstMatch(lines[1]);
@@ -502,7 +513,7 @@ class RealBankSmsParser implements SmsFormatParser {
             balance != null &&
             stamp != null) {
           final sign = transaction.group(3);
-          final incoming = transaction.group(1) == 'واریز' || sign == '+';
+          final incoming = transaction.group(1) == 'واریز';
           if (sign == '-' && incoming || sign == '+' && !incoming) return null;
           return _buildProfiledSms(
             amountText: transaction.group(2)!,
@@ -649,6 +660,11 @@ class RealBankSmsParser implements SmsFormatParser {
     // time/evidence line. The absent time is preserved as incomplete evidence.
     if (sender == 'PARSIANBANK') {
       if (lines.length >= 4) {
+        if (RegExp(
+          r'مبلغ|مانده|موجودی|واریز|برداشت|انتقال|ریال|تومان|[+-]\s*[0-9]',
+        ).hasMatch(lines.skip(4).join('\n'))) {
+          return null;
+        }
         final account = RegExp(r'^([0-9]{8,32})$').firstMatch(lines[0]);
         final transaction = RegExp(
           r'^مبلغ\s*:?\s*((?:[0-9]{1,3}(?:[,،٬][0-9]{3})+|[0-9]+))([+-])$',

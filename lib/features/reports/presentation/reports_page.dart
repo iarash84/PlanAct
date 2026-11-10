@@ -1,5 +1,8 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/classification/presentation/tag_selection.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/features/reports/presentation/report_movement_list.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
@@ -633,7 +636,13 @@ class _ReportsPageState extends State<ReportsPage> {
                             .toString(),
                       ),
                     ),
-                  if (!_loading && report != null) ..._content(report, data),
+                  if (!_loading && report != null)
+                    ..._content(report, data).expand(
+                      (widget) => [
+                        const SizedBox(height: PlanActSpacing.lg),
+                        widget,
+                      ],
+                    ),
                 ],
               ],
             ),
@@ -744,7 +753,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   (_money(total.value.net, total.key)).toString(),
                 ),
               ),
-              ...rows.map((m) => _movementTile(m, data)),
+              _movementList('cash:${total.key}', rows, data),
             ],
             expanded: true,
           ),
@@ -832,7 +841,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   PersianCopy.reportsPageContentMessage8: total.net,
                 },
               ),
-              ...group.value.map((m) => _movementTile(m, data)),
+              _movementList('group:$_grouping:${group.key}', group.value, data),
             ],
           ),
         );
@@ -1137,26 +1146,20 @@ class _ReportsPageState extends State<ReportsPage> {
             (PersianNumbers.format(report.unreviewed.length)).toString(),
           ),
           [
-            for (final m in report.movements.where(
-              (m) => report.unreviewed.containsKey(m.entry.id),
-            ))
-              ListTile(
-                title: Text(
-                  m.entry.note ?? PersianCopy.reportsPageContentTitle6,
+            _movementList(
+              'unreviewed',
+              report.movements
+                  .where((m) => report.unreviewed.containsKey(m.entry.id))
+                  .toList(),
+              data,
+              detail: (m) => PersianCopy.reportsPageContentSubtitle5(
+                _money(
+                  report.unreviewed[m.entry.id]!.remainderMinorUnits,
+                  m.entry.amount.currency,
                 ),
-                subtitle: Text(
-                  PersianCopy.reportsPageContentSubtitle5(
-                    (_money(
-                      report.unreviewed[m.entry.id]!.remainderMinorUnits,
-                      m.entry.amount.currency,
-                    )).toString(),
-                    (_date(m.entry.occurredAt)).toString(),
-                  ),
-                ),
-                onTap: widget.onOpenTransaction == null
-                    ? null
-                    : () => _open(() => widget.onOpenTransaction!(m.entry.id)),
+                _date(m.entry.occurredAt),
               ),
+            ),
           ],
           expanded: true,
         ),
@@ -1212,9 +1215,13 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ),
             const Text(PersianCopy.reportsPageContentMessage49),
-            ...report.movements
-                .where((m) => m.entry.accountId == a.account.id)
-                .map((m) => _movementTile(m, data)),
+            _movementList(
+              'account:${a.account.id}',
+              report.movements
+                  .where((m) => m.entry.accountId == a.account.id)
+                  .toList(),
+              data,
+            ),
           ], expanded: true),
         );
       }
@@ -1378,7 +1385,13 @@ class _ReportsPageState extends State<ReportsPage> {
     title: Text(title),
     initiallyExpanded: expanded,
     childrenPadding: const EdgeInsets.all(PlanActSpacing.md),
-    children: children,
+    children: [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: PlanActSpacing.md,
+        children: children,
+      ),
+    ],
   );
   Widget _occurrenceTile(ReportOccurrence r) => ListTile(
     title: Text(r.commitment.title),
@@ -1406,30 +1419,132 @@ class _ReportsPageState extends State<ReportsPage> {
         ? null
         : () => _open(() => widget.onOpenCommitment!(r.commitment)),
   );
-  Widget _movementTile(ReportMovement m, ReportSnapshot data) => ListTile(
-    title: Text(m.entry.note ?? m.entry.category ?? _entryLabel(m.entry.type)),
-    subtitle: Text(
-      PersianCopy.reportsPageMovementTileSubtitle(
-        (_date(m.entry.occurredAt)).toString(),
-        (_entryLabel(m.entry.type)).toString(),
-        (_money(m.minorUnits, m.entry.amount.currency)).toString(),
-        (data.accounts
-                    .where((a) => a.id == m.entry.accountId)
-                    .firstOrNull
-                    ?.name ??
-                PersianCopy.quickAddSheetBuildLabelText)
-            .toString(),
-      ),
-    ),
-    onTap:
+  Widget _movementList(
+    String section,
+    List<ReportMovement> movements,
+    ReportSnapshot data, {
+    String Function(ReportMovement)? detail,
+  }) => ReportMovementList(
+    key: ValueKey('$_generation:$_kind:$section'),
+    movements: movements,
+    itemBuilder: (m) => _movementTile(m, data, detail: detail?.call(m)),
+  );
+
+  Widget _movementTile(
+    ReportMovement m,
+    ReportSnapshot data, {
+    String? detail,
+  }) {
+    final labels = data.tags
+        .where(
+          (tag) => (data.entryTags[m.entry.id] ?? const <StableId>{}).contains(
+            tag.id,
+          ),
+        )
+        .map((tag) => tag.label)
+        .toList();
+    final onTap =
         widget.onOpenTransaction == null ||
             ![
               AccountEntryType.income,
               AccountEntryType.expense,
             ].contains(m.entry.type)
         ? null
-        : () => _open(() => widget.onOpenTransaction!(m.entry.id)),
-  );
+        : () => _open(() => widget.onOpenTransaction!(m.entry.id));
+    final theme = Theme.of(context);
+    final secondaryStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final description = m.entry.note ?? m.entry.category;
+    final accountName =
+        data.accounts
+            .where((a) => a.id == m.entry.accountId)
+            .firstOrNull
+            ?.name ??
+        PersianCopy.quickAddSheetBuildLabelText;
+    return Card(
+      key: ValueKey('report-transaction:${m.entry.id}'),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(PlanActSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: PlanActSpacing.md,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TransactionDirectionIcon(entry: m.entry),
+                  const SizedBox(width: PlanActSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: PlanActSpacing.xs,
+                      children: [
+                        Text(transactionLabel(m.entry), style: secondaryStyle),
+                        Text(
+                          _money(m.minorUnits, m.entry.amount.currency),
+                          style: theme.textTheme.titleLarge,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (onTap != null) ...[
+                    const SizedBox(width: PlanActSpacing.sm),
+                    Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ],
+              ),
+              if (description != null && description.trim().isNotEmpty)
+                Text(description, style: theme.textTheme.bodyLarge),
+              const Divider(height: PlanActSpacing.xs),
+              DefaultTextStyle.merge(
+                style: secondaryStyle,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: PlanActSpacing.sm,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: theme.textTheme.bodyLarge?.fontSize,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: PlanActSpacing.sm),
+                        Expanded(child: Text(accountName)),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: theme.textTheme.bodyLarge?.fontSize,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: PlanActSpacing.sm),
+                        Expanded(child: Text(_date(m.entry.occurredAt))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (detail != null)
+                Text(detail, style: theme.textTheme.bodyMedium),
+              if (labels.isNotEmpty) TagLabels(labels: labels),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 String _settlementLabel(ReportSettlementState state) => switch (state) {
@@ -1471,20 +1586,4 @@ String _outcome(ActualOutcome outcome) => switch (outcome) {
   ActualOutcome.noShow => PersianCopy.occurrenceSkipped,
   ActualOutcome.partial => PersianCopy.reportsPageActualOutcomePartial,
   ActualOutcome.reopened => PersianCopy.reportsPageActualOutcomeReopened,
-};
-String _entryLabel(AccountEntryType type) => switch (type) {
-  AccountEntryType.openingBalance =>
-    PersianCopy.transactionDirectionAccountEntryTypeOpeningBalance,
-  AccountEntryType.income => PersianCopy.financePageResultCategory,
-  AccountEntryType.expense => PersianCopy.reportsPageFiltersChildren12,
-  AccountEntryType.transferIn =>
-    PersianCopy.transactionDirectionAccountEntryTypeTransferIn,
-  AccountEntryType.transferOut =>
-    PersianCopy.transactionDirectionAccountEntryTypeTransferOut,
-  AccountEntryType.adjustment =>
-    PersianCopy.reportsPageAccountEntryTypeAdjustment,
-  AccountEntryType.refund =>
-    PersianCopy.transactionDirectionAccountEntryTypeRefund,
-  AccountEntryType.reversal =>
-    PersianCopy.transactionDirectionAccountEntryTypeReversal,
 };

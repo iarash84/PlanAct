@@ -94,6 +94,30 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.
+  ///
+  /// In fa, this message translates to:
+  /// **'{date} · {type}\n{account}'**
+  String reportsTransactionMetadata(String date, String type, String account);
+
+  /// Previous page of read-only report transaction details.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ قبل'**
+  String get reportsPreviousPage;
+
+  /// Next page of read-only report transaction details.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ بعد'**
+  String get reportsNextPage;
+
+  /// Report detail pagination; numbers are preformatted Persian strings. Totals cover all results, not this page.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ {page} از {pages} · {count} تراکنش'**
+  String reportsPagePosition(String page, String pages, String count);
+
   /// Coordinated application palette selector title.
   ///
   /// In fa, this message translates to:

@@ -31,23 +31,24 @@ final class SmsNormalizer {
     required String text,
     required String currency,
     String? sourceAddress,
-    required String Function(String) canonicalizeHeader,
+    String Function(String)? canonicalizeHeader,
   }) {
     final normalized = text
         .replaceAll(RegExp(r'[\u200e\u200f\u202a-\u202e\u2066-\u2069]'), '')
         .replaceAll('ي', 'ی')
         .replaceAll('ك', 'ک')
+        .replaceAll('：', ':')
         .replaceAllMapped(RegExp(r'[۰-۹٠-٩]'), (match) {
           final code = match[0]!.codeUnitAt(0);
           return String.fromCharCode(
             code - (code >= 0x6f0 ? 0x6f0 : 0x660) + 48,
           );
         })
-        .split(RegExp(r'\r?\n'))
+        .split(RegExp(r'\r\n|[\r\n]'))
         .map((line) => line.trim())
         .join('\n')
         .trim();
-    final canonical = canonicalizeHeader(normalized);
+    final canonical = canonicalizeHeader?.call(normalized) ?? normalized;
     final lines = List<String>.unmodifiable(canonical.split('\n'));
     final normalizedSender = sourceAddress?.trim().toUpperCase();
     return SmsParseContext(
@@ -77,6 +78,31 @@ enum SmsProfileFamily {
 
 final class SmsProfileRegistry {
   const SmsProfileRegistry();
+
+  /// Fail closed for known families: a failed exact grammar is not permission
+  /// to reinterpret the same message using weaker evidence.
+  bool isKnownFamily(SmsParseContext context) =>
+      const {
+        'RESALATBANK',
+        'IZBANK',
+        'B.QMEHRIRAN',
+        'BANK MELLAT',
+        'بانک رفاه',
+        'BANK REFAH',
+        'SINA BANK',
+        'BANK MELLI',
+        'PARSIANBANK',
+        'PARSIAN',
+        'PERSIANBANK',
+        'PARSIAN BANK',
+        '+98700717',
+        'MELLI',
+        'MELLIBANK',
+        '100025',
+        '98700719',
+        'BANKSADERAT',
+      }.contains(context.normalizedSourceAddress) ||
+      RegExp(r'بانک(?!\s*:)|بلو|مرکز\s*آوای\s+نوین').hasMatch(context.text);
 
   Iterable<SmsProfileFamily> candidates(SmsParseContext context) sync* {
     yield SmsProfileFamily.resalatCompact;
