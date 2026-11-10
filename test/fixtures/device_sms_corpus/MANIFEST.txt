@@ -1,16 +1,24 @@
 B.QMEHRIRAN`t60`tD:\repos\planact\test\fixtures\device_sms_corpus\B.QMEHRIRAN.txt
-Bank_Mellat`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Mellat.txt
-Bank_Melli`t47`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Melli.txt
+Bank_Mellat`t204`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Mellat.txt
+Bank_Melli`t51`tD:\repos\planact\test\fixtures\device_sms_corpus\Bank_Melli.txt
 IZBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\IZBANK.txt
-PARSIANBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\PARSIANBANK.txt
+PARSIANBANK`t204`tD:\repos\planact\test\fixtures\device_sms_corpus\PARSIANBANK.txt
 ResalatBank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\ResalatBank.txt
 Sina_Bank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\Sina_Bank.txt
-BLU_SYNTHETIC`t21`ttest/fixtures/device_sms_corpus/Blu_synthetic.txt
+BLU_SYNTHETIC`t24`ttest/fixtures/device_sms_corpus/Blu_synthetic.txt
 # Blu_synthetic: user-reported layout, NOT a device export. All names, amounts,
-# balances, dates, times, row IDs and provider timestamps are synthetic.
 # BLU_SYNTHETIC is a fixture sender placeholder; actual sender was not supplied.
 NOVIN_SYNTHETIC`t15`ttest/fixtures/device_sms_corpus/Eghtesad_Novin_synthetic.txt
 # Eghtesad_Novin_synthetic: user-reported layout, NOT a device export.
-# Account, amounts, balances, dates, times, contact phone, row IDs and provider
 # timestamps are synthetic. Missing source year is deliberately preserved.
 # NOVIN_SYNTHETIC is a fixture sender placeholder; actual sender was not supplied.
+KHAVARMIANEH`t12`ttest/fixtures/device_sms_corpus/Khavarmianeh.txt
+PASARGAD`t5`ttest/fixtures/device_sms_corpus/Pasargad.txt
+REFAH`t2`ttest/fixtures/device_sms_corpus/Refah.txt
+SADERAT`t5`ttest/fixtures/device_sms_corpus/Saderat.txt
+SAMAN`t3`ttest/fixtures/device_sms_corpus/Saman.txt
+GARDESHGARI`t1`ttest/fixtures/device_sms_corpus/Gardeshgari.txt
+MASKAN`t3`ttest/fixtures/device_sms_corpus/Maskan.txt
+SEPAH`t4`ttest/fixtures/device_sms_corpus/Sepah.txt
+SHAHR`t1`ttest/fixtures/device_sms_corpus/Shahr.txt
+TEJARAT`t10`ttest/fixtures/device_sms_corpus/Tejarat.txt
