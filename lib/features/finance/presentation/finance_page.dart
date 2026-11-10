@@ -616,8 +616,11 @@ class FinancePageState extends State<FinancePage> {
     showRecordedActionFeedback(context, message);
   }
 
-  String _money(Money money) =>
-      PersianMoneyText.money(money, unit: MoneyUnitScope.of(context));
+  String _money(Money money) => PersianMoneyText.money(
+    money,
+    unit: MoneyUnitScope.of(context),
+    isolateNumber: true,
+  );
 
   Future<void> _reorderAccounts() async {
     final ordered = List<FinancialAccount>.from(_accounts);
@@ -1027,7 +1030,11 @@ class FinancePageState extends State<FinancePage> {
                                 ],
                               ),
                               Text(
-                                '${transactionLabel(entry)} · ${_money(entry.amount)}',
+                                transactionLabel(entry),
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                _money(entry.amount),
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: PlanActSpacing.sm),

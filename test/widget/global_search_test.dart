@@ -155,7 +155,7 @@ void main() {
         find.byKey(ValueKey('search-result-transaction-${entry.id.value}')),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('۱,۲۳۴,۵۶۷ ریال'), findsOneWidget);
+      expect(find.text('\u2066۱,۲۳۴,۵۶۷\u2069 ریال'), findsOneWidget);
       expect(find.textContaining('واریز'), findsWidgets);
       await tester.binding.handlePopRoute();
       await settleIo(tester);
@@ -173,7 +173,7 @@ void main() {
         find.byKey(ValueKey('search-result-account-${account.id.value}')),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('۱,۲۳۴,۵۶۷ ریال'), findsOneWidget);
+      expect(find.text('\u2066۱,۲۳۴,۵۶۷\u2069 ریال'), findsOneWidget);
       await tester.binding.handlePopRoute();
       await settleIo(tester);
 

@@ -140,6 +140,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
               PersianMoneyText.money(
                 widget.balance,
                 unit: MoneyUnitScope.of(context),
+                isolateNumber: true,
               ),
             ),
             if (account.identifiers.cardNumber case final String value)

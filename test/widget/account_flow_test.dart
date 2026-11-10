@@ -190,7 +190,7 @@ void main() {
           find.text('−۱۲۳,۴۵۶,۷۸۹ ریال'),
           findsNothing,
         ); // Formatter uses exact ASCII sign, not an invented value.
-        expect(find.text('-۱۲۳,۴۵۶,۷۸۹ ریال'), findsOneWidget);
+        expect(find.text('\u2066-۱۲۳,۴۵۶,۷۸۹\u2069 ریال'), findsOneWidget);
         final semantics = tester.ensureSemantics();
         expect(
           tester
@@ -349,7 +349,7 @@ void main() {
       expect((await repository.listEntries()).single.amount.minorUnits, 101);
       expect(refreshes, 1);
       expect(find.text('حساب افزوده شد.'), findsOneWidget);
-      expect(find.text('۱۰۱ ریال'), findsWidgets);
+      expect(find.text('\u2066۱۰۱\u2069 ریال'), findsWidgets);
       expect(tester.takeException(), isNull);
     },
   );
