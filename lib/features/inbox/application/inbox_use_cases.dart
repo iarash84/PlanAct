@@ -14,6 +14,7 @@ import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 import 'package:planact/features/inbox/application/real_bank_sms_parser.dart';
+import 'package:planact/features/inbox/application/sms_parser_support.dart';
 
 abstract interface class InboxRepository {
   Future<List<StagedImport>> listImports();
@@ -160,7 +161,7 @@ abstract interface class SmsFormatParser {
 
 class LocalSmsParser implements SmsFormatParser {
   const LocalSmsParser({
-    this.parsers = const [GenericBankSmsParser(), RealBankSmsParser()],
+    this.parsers = const [RealBankSmsParser(), GenericBankSmsParser()],
   });
 
   final List<SmsFormatParser> parsers;
@@ -171,6 +172,18 @@ class LocalSmsParser implements SmsFormatParser {
     String? sourceAddress,
   }) {
     for (final parser in parsers) {
+      // A rejected bank family must not be reinterpreted as a weaker labelled
+      // import. Explicit custom parsers retain their own admission contracts.
+      if (parser is GenericBankSmsParser &&
+          const SmsProfileRegistry().isKnownFamily(
+            const SmsNormalizer().normalize(
+              text: text,
+              currency: currency,
+              sourceAddress: sourceAddress,
+            ),
+          )) {
+        continue;
+      }
       final result = parser.tryParse(
         text: text,
         currency: currency,
@@ -248,10 +261,12 @@ class GenericBankSmsParser implements SmsFormatParser {
     String? sourceAddress,
   }) {
     if (text.length > 4096) return null;
-    final normalized = _normalizeDigits(text).trim();
+    final normalized = const SmsNormalizer()
+        .normalize(text: text, currency: currency, sourceAddress: sourceAddress)
+        .text;
     // Reject these anywhere, including an otherwise valid labelled message.
     if (RegExp(
-      r'رمز|ناموفق|لغو|خطا|اعلان|otp|password|failed|failure|declined|unsuccessful|notification',
+      r'رمز|شناسه\s*تایید|ناموفق|لغو|خطا|اعلان|otp|password|failed|failure|declined|unsuccessful|notification',
       caseSensitive: false,
     ).hasMatch(normalized)) {
       return null;
@@ -366,12 +381,6 @@ class GenericBankSmsParser implements SmsFormatParser {
       bank: fields['bank'],
     );
   }
-
-  String _normalizeDigits(String text) =>
-      text.replaceAllMapped(RegExp(r'[۰-۹٠-٩]'), (m) {
-        final code = m.group(0)!.codeUnitAt(0);
-        return String.fromCharCode(code - (code >= 0x6f0 ? 0x6f0 : 0x660) + 48);
-      });
 
   (int, SmsMoneyUnit?)? _amount(String? text) {
     if (text == null) return null;

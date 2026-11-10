@@ -214,7 +214,7 @@ final class LayeredBankSmsProfiles {
       return null;
     }
     final sign = transaction.group(3);
-    final incoming = transaction.group(1) == 'واریز' || sign == '+';
+    final incoming = transaction.group(1) == 'واریز';
     if (sign == '-' && incoming || sign == '+' && !incoming) return null;
     return services.buildProfiled(
       amountText: transaction.group(2)!,
@@ -325,6 +325,12 @@ final class LayeredBankSmsProfiles {
     LayeredProfileServices services,
   ) {
     if (sender != 'PARSIANBANK' || lines.length < 4) return null;
+    // Legacy redacted tail evidence is opaque, but must never hide a second
+    // transaction, balance or conflicting unit behind the recognized prefix.
+    if (RegExp(r'مبلغ|مانده|موجودی|واریز|برداشت|انتقال|ریال|تومان|[+-]\s*[0-9]')
+        .hasMatch(lines.skip(4).join('\n'))) {
+      return null;
+    }
     final account = RegExp(r'^([0-9]{8,32})$').firstMatch(lines[0]);
     final transaction = RegExp('^مبلغ\\s*:?\\s*($_number)([+-])\$')
         .firstMatch(lines[1]);
