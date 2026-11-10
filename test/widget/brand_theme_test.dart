@@ -164,6 +164,19 @@ void main() {
     testWidgets('$name shared controls and modal inheritance', (tester) async {
       var calls = 0;
       await pumpGallery(tester, onSubmit: () => calls++);
+      final navigation = find.byType(NavigationBar);
+      final navigationRect = tester.getRect(navigation);
+      expect(navigationRect.height, 56);
+      expect(
+        NavigationBarTheme.of(tester.element(navigation)).labelBehavior,
+        NavigationDestinationLabelBehavior.alwaysHide,
+      );
+      for (final icon in [Icons.today, Icons.calendar_month, Icons.wallet]) {
+        expect(
+          tester.getCenter(find.byIcon(icon)).dy,
+          closeTo(navigationRect.center.dy, .01),
+        );
+      }
       await tester.tap(find.text('در حال ذخیره'));
       expect(calls, 0);
       await tester.tap(find.text('ثبت'));
