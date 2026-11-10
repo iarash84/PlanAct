@@ -141,12 +141,12 @@ final class LayeredBankSmsProfiles {
     final incoming = lines[1] == 'واریز پول';
     if (!incoming && lines[1] != 'برداشت پول') return null;
     final transaction = RegExp(
-      '^[\\u0600-\\u06ff\\u200c ]{1,80} عزیز،\\s*($_number)\\s*ریال '
+      '^(?:[\\u0600-\\u06ff\\u200c ]{1,80}|<NAME>) عزیز،\\s*($_number)\\s*ریال '
       r'(از حساب شما پرید\.|به حساب شما نشست\.)$',
     ).firstMatch(lines[2]);
     final balance = RegExp('^موجودی:\\s*($_number)\\s+ریال\$')
         .firstMatch(lines[3]);
-    final time = RegExp(r'^(\d{2}):(\d{2})$').firstMatch(lines[4]);
+    final time = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(lines[4]);
     if (transaction == null ||
         balance == null ||
         time == null ||

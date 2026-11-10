@@ -22,8 +22,8 @@ void main() {
       .toList();
 
   test('all 21 anonymized Blu rows preserve exact financial and time evidence', () {
-    expect(rows, hasLength(21));
-    for (var index = 0; index < bodies.length; index++) {
+    expect(rows, hasLength(24));
+    for (var index = 0; index < 21; index++) {
       final i = index + 1;
       final incoming = {3, 8, 15, 19}.contains(i);
       final parsed = parser.tryParse(
@@ -56,6 +56,28 @@ void main() {
         parsed.occurredAt,
         DateTime(date.year, date.month, date.day, 7 + i % 12, i * 7 % 60),
       );
+    }
+  });
+
+  test('three appended Blu rows preserve redacted name and one-digit hour', () {
+    final expected = [
+      (2500000, 488152, 22, 7, 28, TransactionDirection.outgoing),
+      (3000000, 8151152, 20, 22, 14, TransactionDirection.outgoing),
+      (70000000, 71087723, 18, 11, 49, TransactionDirection.incoming),
+    ];
+    for (var i = 0; i < expected.length; i++) {
+      final (amount, balance, day, hour, minute, direction) = expected[i];
+      final parsed = parser.parse(text: bodies[21 + i], currency: 'IRR');
+      expect(parsed.amount.minorUnits, amount);
+      expect(parsed.balance!.minorUnits, balance);
+      expect(parsed.direction, direction);
+      expect(parsed.currencyEvidence!.detectedUnit, SmsMoneyUnit.rial);
+      final date = Jalali(1405, 3, day).toGregorian();
+      expect(
+        parsed.occurredAt,
+        DateTime(date.year, date.month, date.day, hour, minute),
+      );
+      expect(parsed.accountHint, isNull);
     }
   });
 

@@ -28,8 +28,12 @@ void main() {
           currency: 'IRR',
           sourceAddress: row.address,
         );
-        final expectedTransaction = _looksTransactional(row.body);
-        final expectedNonTransaction = _looksNonTransactional(row.body);
+        final key = '${file.uri.pathSegments.last}:${row.id}';
+        final expectedTransaction =
+            _additionalTransactions.contains(key) ||
+            (_looksTransactional(row.body) &&
+                !_reviewedNonTransactions.contains(key));
+        final expectedNonTransaction = !expectedTransaction;
 
         if (expectedTransaction) {
           report.transactionRows++;
@@ -58,14 +62,33 @@ void main() {
       _printReport(report);
     }
 
-    // This is an audit, not a release gate: the output deliberately exposes
-    // unsupported and ambiguous rows instead of hiding them behind a failure.
-    // The test must still prove that every corpus file was actually visited.
-    expect(files, isNotEmpty);
-    expect(totals.rows, greaterThan(0));
+    expect(files, hasLength(19));
+    expect(totals.rows, 1204);
     _printTotals(totals);
+    expect(totals.unrecognizedTransactions, isEmpty);
+    expect(totals.falsePositives, isEmpty);
+    expect(totals.uncertainRows, isEmpty);
   });
 }
+
+// Reviewed exceptions to the original broad audit heuristic. Authorization
+// requests and promotional balances are not evidence of completed transactions.
+const _reviewedNonTransactions = {
+  'Bank_Melli.txt:1019',
+  'PARSIANBANK.txt:1062',
+  'PARSIANBANK.txt:1064',
+  'PARSIANBANK.txt:1066',
+  'PARSIANBANK.txt:1070',
+  'PARSIANBANK.txt:1073',
+  'PARSIANBANK.txt:1075',
+  'PARSIANBANK.txt:1088',
+  'PARSIANBANK.txt:1091',
+  'PARSIANBANK.txt:1181',
+};
+const _additionalTransactions = {
+  'Gardeshgari.txt:5001',
+  'Khavarmianeh.txt:4009', // Completed SMS service fee, not a password.
+};
 
 class _SmsRow {
   const _SmsRow({required this.id, required this.address, required this.body});

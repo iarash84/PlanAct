@@ -16,6 +16,72 @@ import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 import '../fixtures/real_bank_sms.dart';
 
 void main() {
+  test(
+    'new device layouts stage and retain evidence across cold reopen',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('device-layouts-');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/live.sqlite');
+      var db = AppDatabase.forTesting(NativeDatabase(file));
+      final repo = DriftInboxRepository(db);
+      final inbox = InboxUseCases(repo);
+      final expected = <String, Map<String, Object?>>{};
+      for (final name in [
+        'Khavarmianeh',
+        'Maskan',
+        'Refah',
+        'Saderat',
+        'Saman',
+        'Sepah',
+        'Shahr',
+        'Tejarat',
+        'Gardeshgari',
+      ]) {
+        final source = File('test/fixtures/device_sms_corpus/$name.txt')
+            .readAsStringSync();
+        for (final chunk in source.split(
+          RegExp(r'(?=^Row:)', multiLine: true),
+        )) {
+          final header = RegExp(r'^Row:\s*(\S+).*?address=([^,]+),\s*body=')
+              .firstMatch(chunk);
+          if (header == null) continue;
+          final body = chunk
+              .substring(header.end)
+              .replaceFirst(RegExp(r',\s*date=\d+\s*$'), '')
+              .trim();
+          final key = '$name:${header.group(1)}';
+          final suggestion = await inbox.stageSms(
+            rawText: body,
+            sourceAddress: header.group(2)!.trim(),
+            sourceKey: key,
+            currency: 'IRR',
+            importedAt: DateTime.utc(2026, 11, 10),
+          );
+          expected[suggestion.id.value] = suggestion.extractedEvidence!
+              .toJson();
+          final replay = await inbox.stageSms(
+            rawText: body,
+            sourceAddress: header.group(2)!.trim(),
+            sourceKey: key,
+            currency: 'IRR',
+            importedAt: DateTime.utc(2026, 11, 10),
+          );
+          expect(replay.id, suggestion.id);
+        }
+      }
+      expect(expected, hasLength(41));
+      expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+      await db.close();
+      db = AppDatabase.forTesting(NativeDatabase(file));
+      addTearDown(db.close);
+      final reopened = await DriftInboxRepository(db).listSuggestions();
+      expect({
+        for (final s in reopened) s.id.value: s.extractedEvidence!.toJson(),
+      }, expected);
+      expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+    },
+  );
+
   test('all 18 stage, replay, cold reopen and redacted production backup preserve evidence without ledger writes', () async {
     final dir = await Directory.systemTemp.createTemp('real-sms-');
     addTearDown(() => dir.delete(recursive: true));

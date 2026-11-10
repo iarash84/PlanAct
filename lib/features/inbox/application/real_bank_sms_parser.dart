@@ -1,4 +1,5 @@
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/inbox/application/device_bank_sms_profiles.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/sms_parser_support.dart';
 import 'package:planact/features/inbox/application/layered_bank_sms_profiles.dart';
@@ -125,11 +126,11 @@ class RealBankSmsParser implements SmsFormatParser {
       };
       if (parsed != null) return parsed;
     }
-    return null;
+    return const DeviceBankSmsProfiles().parse(context);
   }
 
   bool _rejectNonTransactional(String text) => RegExp(
-    r'رمز|ناموفق|لغو|خطا|otp|password|fail|declined',
+    r'(?<![\u0600-\u06ff])رمز|شناسه\s*تایید|Code\s*:|ناموفق|لغو|خطا|otp|password|fail|declined',
     caseSensitive: false,
   ).hasMatch(text);
 
@@ -283,7 +284,13 @@ class RealBankSmsParser implements SmsFormatParser {
   ParsedSms? _tryParseIranZamin(String text, {String? sourceAddress}) {
     if (sourceAddress?.trim().toUpperCase() != 'IZBANK') return null;
     final lines = text.split('\n');
-    if (lines.length != 4) return null;
+    if (lines.length != 4 &&
+        !(lines.length == 5 &&
+            RegExp(
+              r'^شماره چک\s+[0-9]+ایران زمین[0-9]+شماره رهگیری [A-Z0-9]+ چک شماره [0-9]+$',
+            ).hasMatch(lines[4]))) {
+      return null;
+    }
     final account = RegExp(r'^\d{1,12}(?:-\d{1,12}){2,4}$')
         .firstMatch(lines[0]);
     final amount = RegExp(r'^([+-])(' + _number + r')$').firstMatch(lines[1]);
