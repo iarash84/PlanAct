@@ -10,6 +10,22 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String reportsTransactionMetadata(String date, String type, String account) {
+    return '$date · $type\n$account';
+  }
+
+  @override
+  String get reportsPreviousPage => 'صفحهٔ قبل';
+
+  @override
+  String get reportsNextPage => 'صفحهٔ بعد';
+
+  @override
+  String reportsPagePosition(String page, String pages, String count) {
+    return 'صفحهٔ $page از $pages · $count تراکنش';
+  }
+
+  @override
   String get settingsPaletteTitle => 'تم رنگی';
 
   @override

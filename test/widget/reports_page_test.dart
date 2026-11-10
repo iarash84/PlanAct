@@ -9,6 +9,9 @@ import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/domain/tag.dart';
+import 'package:planact/features/reports/presentation/report_movement_list.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
@@ -30,6 +33,7 @@ import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 class _Reader implements ReportsReader {
   bool fail = true;
   int reads = 0;
+  ReportSnapshot snapshot = const ReportSnapshot();
   @override
   Future<ReportSnapshot> read(
     ReportFilter filter, {
@@ -38,7 +42,7 @@ class _Reader implements ReportsReader {
   }) async {
     reads++;
     if (fail) throw StateError('injected');
-    return const ReportSnapshot();
+    return snapshot;
   }
 }
 
@@ -77,6 +81,273 @@ Future<void> chooseReport(WidgetTester tester, PersonalReportKind kind) async {
 }
 
 void main() {
+  for (final dark in [false, true]) {
+    testWidgets(
+      'report cards show direct tags, ledger direction and section gaps ($dark)',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final account = FinancialAccount(
+          id: StableId.generate(),
+          name: 'حساب نقدی خانواده با نام طولانی برای بررسی شکست متن',
+          currency: 'IRR',
+          type: FinancialAccountType.cash,
+        );
+        final tags = [
+          Tag(
+            id: StableId.generate(),
+            label: 'ورزش',
+            createdAt: DateTime(2026, 10, 13),
+          ),
+          Tag(
+            id: StableId.generate(),
+            label: 'خانواده',
+            createdAt: DateTime(2026, 10, 13),
+          ),
+        ];
+        final entries = [
+          for (final type in [
+            AccountEntryType.income,
+            AccountEntryType.expense,
+            AccountEntryType.transferIn,
+            AccountEntryType.transferOut,
+            AccountEntryType.reversal,
+          ])
+            AccountEntry(
+              id: StableId.generate(),
+              accountId: account.id,
+              type: type,
+              amount: Money(
+                minorUnits: type == AccountEntryType.reversal ? -100 : 100,
+                currency: 'IRR',
+              ),
+              occurredAt: DateTime(2026, 10, 13),
+              note: type == AccountEntryType.reversal
+                  ? null
+                  : 'عنوان بلند تراکنش برای بررسی شکست طبیعی متن',
+            ),
+        ];
+        final reader = _Reader()
+          ..fail = false
+          ..snapshot = ReportSnapshot(
+            accounts: [account],
+            entries: entries,
+            tags: tags,
+            entryTags: {entries.first.id: tags.map((t) => t.id).toSet()},
+          );
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(1.8)),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
+            ),
+            home: ReportsPage(reader: reader, now: DateTime(2026, 10, 13)),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await chooseReport(tester, PersonalReportKind.accounts);
+        final scroll = find
+            .descendant(
+              of: find.byType(ReportsPage),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        final list = find.byType(ReportMovementList);
+        await tester.scrollUntilVisible(list, 220, scrollable: scroll);
+        final cards = find.descendant(of: list, matching: find.byType(Card));
+        expect(cards, findsNWidgets(5));
+        expect(
+          find.descendant(of: cards, matching: find.text('#ورزش')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: cards, matching: find.text('#خانواده')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: cards,
+            matching: find.byType(TransactionDirectionIcon),
+          ),
+          findsNWidgets(5),
+        );
+        expect(
+          find.descendant(of: cards, matching: find.byIcon(Icons.south_west)),
+          findsNWidgets(2),
+        );
+        expect(
+          find.descendant(of: cards, matching: find.byIcon(Icons.north_east)),
+          findsNWidgets(3),
+        );
+        expect(
+          find.descendant(
+            of: cards,
+            matching: find.byIcon(Icons.account_balance_wallet_outlined),
+          ),
+          findsNWidgets(5),
+        );
+        expect(
+          find.descendant(
+            of: cards,
+            matching: find.byIcon(Icons.calendar_today_outlined),
+          ),
+          findsNWidgets(5),
+        );
+        expect(
+          find.descendant(of: cards, matching: find.byType(Divider)),
+          findsNWidgets(5),
+        );
+        for (final entry in entries) {
+          final card = find.byKey(ValueKey('report-transaction:${entry.id}'));
+          final type = find.descendant(
+            of: card,
+            matching: find.text(transactionLabel(entry)),
+          );
+          expect(type, findsOneWidget);
+          final accountText = find.descendant(
+            of: card,
+            matching: find.text(account.name),
+          );
+          expect(accountText, findsOneWidget);
+          final amount = find.descendant(
+            of: card,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is Text &&
+                  widget.style ==
+                      Theme.of(tester.element(card)).textTheme.titleLarge,
+            ),
+          );
+          expect(amount, findsOneWidget);
+          expect(
+            tester.getTopLeft(amount).dy,
+            greaterThan(tester.getTopLeft(type).dy),
+          );
+          expect(
+            tester.getTopLeft(accountText).dy,
+            greaterThan(tester.getTopLeft(amount).dy),
+          );
+        }
+        expect(tester.takeException(), isNull);
+        await chooseReport(tester, PersonalReportKind.cashFlow);
+        final grouping = find.byType(DropdownButtonFormField<ReportGrouping>);
+        await tester.scrollUntilVisible(grouping, 220, scrollable: scroll);
+        final element = tester.element(grouping);
+        final parent = element.findAncestorWidgetOfExactType<ListView>()!;
+        final children =
+            (parent.childrenDelegate as SliverChildListDelegate).children;
+        final index = children.indexWhere(
+          (w) => w is DropdownButtonFormField<ReportGrouping>,
+        );
+        expect((children[index - 1] as SizedBox).height, PlanActSpacing.lg);
+        expect((children[index + 1] as SizedBox).height, PlanActSpacing.lg);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'movement details paginate 41 rows without changing complete totals and reset on refresh',
+    (tester) async {
+      final account = FinancialAccount(
+        id: StableId.generate(),
+        name: 'کیف',
+        currency: 'IRR',
+        type: FinancialAccountType.cash,
+      );
+      final entries = [
+        for (var i = 0; i < 41; i++)
+          AccountEntry(
+            id: StableId.generate(),
+            accountId: account.id,
+            type: AccountEntryType.expense,
+            amount: Money(minorUnits: 100, currency: 'IRR'),
+            occurredAt: DateTime(2026, 10, 13, 0, i),
+            note: 'ردیف $i',
+          ),
+      ];
+      final reader = _Reader()
+        ..fail = false
+        ..snapshot = ReportSnapshot(accounts: [account], entries: entries);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: PlanActTheme.light(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: ReportsPage(reader: reader, now: DateTime(2026, 10, 13)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await chooseReport(tester, PersonalReportKind.accounts);
+      final scroll = find
+          .descendant(
+            of: find.byType(ReportsPage),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      final list = find.byType(ReportMovementList);
+      await tester.scrollUntilVisible(list, 250, scrollable: scroll);
+      Finder cards() => find.descendant(of: list, matching: find.byType(Card));
+      expect(cards(), findsNWidgets(20));
+      expect(find.text('ردیف 40'), findsOneWidget);
+      expect(find.text('ردیف 20'), findsNothing);
+      Future<void> next() async {
+        final button = find
+            .descendant(
+              of: list,
+              matching: find.widgetWithText(OutlinedButton, 'صفحهٔ بعد'),
+            )
+            .first;
+        await tester.ensureVisible(button);
+        await tester.pumpAndSettle();
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+      }
+
+      await next();
+      expect(cards(), findsNWidgets(20));
+      expect(find.text('ردیف 20'), findsOneWidget);
+      expect(find.text('ردیف 40'), findsNothing);
+      await next();
+      expect(cards(), findsOneWidget);
+      expect(find.text('ردیف 0'), findsOneWidget);
+      expect(
+        tester
+            .widget<OutlinedButton>(
+              find
+                  .descendant(
+                    of: list,
+                    matching: find.widgetWithText(OutlinedButton, 'صفحهٔ بعد'),
+                  )
+                  .first,
+            )
+            .onPressed,
+        isNull,
+      );
+      final report = buildPersonalReport(
+        reader.snapshot,
+        ReportFilter(from: DateTime(2026, 10, 1), to: DateTime(2026, 10, 31)),
+        kind: PersonalReportKind.accounts,
+        now: DateTime(2026, 10, 13),
+      );
+      expect(report.accounts.single.closing, -4100);
+      await tester.tap(find.byIcon(Icons.refresh));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(list, -250, scrollable: scroll);
+      expect(cards(), findsNWidgets(20));
+      expect(find.text('ردیف 40'), findsOneWidget);
+      expect(reader.reads, 3);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets(
     'SQLite recurring report excludes one-off expense and classifies due time independently',
     (tester) async {
@@ -374,6 +645,13 @@ void main() {
         expect(cashChart().data.map((d) => d.value), [0, 100, -100]);
         expect(find.text('هزینهٔ دیگر'), findsNothing);
         expect(find.text('هزینهٔ ورزش'), findsWidgets);
+        expect(
+          find.descendant(
+            of: find.byType(ReportMovementList),
+            matching: find.text('#ورزش'),
+          ),
+          findsWidgets,
+        );
         await expectShares(100);
         final extra = await add(50, 'ورزش دوم');
         await tags.attach(
