@@ -5,3 +5,12 @@ IZBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\IZBANK.txt
 PARSIANBANK`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\PARSIANBANK.txt
 ResalatBank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\ResalatBank.txt
 Sina_Bank`t200`tD:\repos\planact\test\fixtures\device_sms_corpus\Sina_Bank.txt
+BLU_SYNTHETIC`t21`ttest/fixtures/device_sms_corpus/Blu_synthetic.txt
+# Blu_synthetic: user-reported layout, NOT a device export. All names, amounts,
+# balances, dates, times, row IDs and provider timestamps are synthetic.
+# BLU_SYNTHETIC is a fixture sender placeholder; actual sender was not supplied.
+NOVIN_SYNTHETIC`t15`ttest/fixtures/device_sms_corpus/Eghtesad_Novin_synthetic.txt
+# Eghtesad_Novin_synthetic: user-reported layout, NOT a device export.
+# Account, amounts, balances, dates, times, contact phone, row IDs and provider
+# timestamps are synthetic. Missing source year is deliberately preserved.
+# NOVIN_SYNTHETIC is a fixture sender placeholder; actual sender was not supplied.
