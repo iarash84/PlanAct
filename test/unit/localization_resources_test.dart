@@ -121,6 +121,9 @@ void main() {
                     'inbox-tags-2026-11-08',
                     'theme-presets-2026-11-09',
                     'reports-cards-2026-11-10',
+                    'today-relationship-preview-2026-11-11',
+                    'today-inbox-preview-2026-11-11',
+                    'finance-pagination-2026-11-11',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -145,6 +148,53 @@ void main() {
           .toSet();
       final placeholders = metadata['placeholders'] as Map<String, dynamic>?;
       expect(referenced, (placeholders?.keys ?? []).toSet(), reason: entry.key);
+    }
+  });
+
+  test('finance pagination copy is separate from migrated templates', () {
+    final messages = {
+      'financeTransactionPreviousPage': 'صفحهٔ قبل',
+      'financeTransactionNextPage': 'صفحهٔ بعد',
+      'financeTransactionPageRange':
+          'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}',
+    };
+    final markedKeys = catalog.keys.where(
+      (key) =>
+          key.startsWith('@') &&
+          catalog[key] is Map &&
+          (catalog[key] as Map)['x-planact-introduced'] ==
+              'finance-pagination-2026-11-11',
+    );
+    expect(markedKeys, unorderedEquals(messages.keys.map((key) => '@$key')));
+    for (final entry in messages.entries) {
+      expect(catalog[entry.key], entry.value, reason: entry.key);
+    }
+  });
+
+  test('Today preview copy is explicitly separate from migrated templates', () {
+    final groups = {
+      'today-relationship-preview-2026-11-11': {
+        'todayRelationshipViewAll': 'مشاهدهٔ همه در تعیین ارتباط',
+        'todayRelationshipDate': 'تاریخ تراکنش: {date}',
+      },
+      'today-inbox-preview-2026-11-11': {
+        'todayInboxViewAll': 'مشاهدهٔ همه در صندوق بررسی',
+      },
+    };
+    for (final group in groups.entries) {
+      final markedKeys = catalog.keys.where(
+        (key) =>
+            key.startsWith('@') &&
+            catalog[key] is Map &&
+            (catalog[key] as Map)['x-planact-introduced'] == group.key,
+      );
+      expect(
+        markedKeys,
+        unorderedEquals(group.value.keys.map((key) => '@$key')),
+      );
+      for (final entry in group.value.entries) {
+        expect(catalog[entry.key], entry.value, reason: entry.key);
+      }
     }
   });
 

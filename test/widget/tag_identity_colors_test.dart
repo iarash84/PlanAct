@@ -28,7 +28,13 @@ void main() {
         2000,
         (i) => TagIdentityColors.forLabel('برچسب$i', brightness),
       );
-      expect(samples.toSet().length, greaterThan(1900));
+      expect(
+        List.generate(
+          2000,
+          (i) => TagIdentityColors.forLabel('برچسب${1999 - i}', brightness),
+        ),
+        samples.reversed.toList(),
+      );
       for (final pair in [...colors, ...samples]) {
         final a = pair.foreground.computeLuminance();
         final b = pair.container.computeLuminance();

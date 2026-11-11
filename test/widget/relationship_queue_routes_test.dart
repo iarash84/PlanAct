@@ -63,7 +63,23 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      final relationshipGroup = find.byKey(
+        const PageStorageKey('today-attention:تعیین ارتباط'),
+      );
+      expect(relationshipGroup, findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
+      await tester.ensureVisible(relationshipGroup);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: relationshipGroup,
+          matching: find.text('تعیین ارتباط'),
+        ),
+      );
+      await tester.pumpAndSettle();
       expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsOneWidget);
+      await tester.ensureVisible(find.text('صف بررسی ارتباط تراکنش‌ها'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('صف بررسی ارتباط تراکنش‌ها'));
       await tester.pumpAndSettle();
       expect(find.byType(RelationshipQueuePage), findsOneWidget);

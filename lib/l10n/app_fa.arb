@@ -7955,15 +7955,18 @@
   },
   "financeTransactionPreviousPage": "صفحهٔ قبل",
   "@financeTransactionPreviousPage": {
-    "description": "رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی"
+    "description": "رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی",
+    "x-planact-introduced": "finance-pagination-2026-11-11"
   },
   "financeTransactionNextPage": "صفحهٔ بعد",
   "@financeTransactionNextPage": {
-    "description": "رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی"
+    "description": "رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی",
+    "x-planact-introduced": "finance-pagination-2026-11-11"
   },
   "financeTransactionPageRange": "تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}",
   "@financeTransactionPageRange": {
     "description": "بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی",
+    "x-planact-introduced": "finance-pagination-2026-11-11",
     "placeholders": {
       "start": {
         "type": "String"

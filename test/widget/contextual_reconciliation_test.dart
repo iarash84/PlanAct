@@ -525,7 +525,27 @@ void main() {
           PlanActApp(repository: commitments, planRepository: plans),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(TextButton, 'تعیین ارتباط'));
+        final relationshipGroup = find.byKey(
+          const PageStorageKey('today-attention:تعیین ارتباط'),
+        );
+        await tester.ensureVisible(relationshipGroup);
+        await tester.pumpAndSettle();
+        expect(find.widgetWithText(TextButton, 'تعیین ارتباط'), findsNothing);
+        await tester.tap(
+          find.descendant(
+            of: relationshipGroup,
+            matching: find.text('تعیین ارتباط'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final relationshipAction = find.widgetWithText(
+          TextButton,
+          'تعیین ارتباط',
+        );
+        await tester.ensureVisible(relationshipAction);
+        await tester.pumpAndSettle();
+        expect(relationshipAction.hitTestable(), findsOneWidget);
+        await tester.tap(relationshipAction);
         await tester.pumpAndSettle();
         expect(find.byType(TransactionRelationshipPage), findsOneWidget);
         expect(
@@ -544,7 +564,10 @@ void main() {
         expect((await flow.load(transaction.id)).review!.revision, 0);
         expect(await reconciliation.repository.list(), isEmpty);
         expect(await finance.listEntries(), hasLength(1));
-        await tester.tap(find.widgetWithText(TextButton, 'تعیین ارتباط'));
+        await tester.ensureVisible(relationshipAction);
+        await tester.pumpAndSettle();
+        expect(relationshipAction.hitTestable(), findsOneWidget);
+        await tester.tap(relationshipAction);
         await tester.pumpAndSettle();
         await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();

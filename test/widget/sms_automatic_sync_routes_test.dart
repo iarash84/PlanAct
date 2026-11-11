@@ -67,10 +67,13 @@ void main() {
           )
           .first;
       final reviewAction = find.widgetWithText(TextButton, 'بازبینی تراکنش');
+      expect(reviewAction, findsNothing);
+      await tester.tap(header);
+      await settle(tester);
       expect(reviewAction.hitTestable(), findsOneWidget);
       await tester.tap(header);
       await settle(tester);
-      expect(reviewAction.hitTestable(), findsNothing);
+      expect(reviewAction, findsNothing);
 
       for (final tab in ['تقویم', 'مالی', 'بیشتر']) {
         await tester.tap(find.widgetWithText(NavigationDestination, tab));
