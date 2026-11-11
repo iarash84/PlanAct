@@ -7952,5 +7952,34 @@
   "@smsOlderMessages": {
     "x-planact-introduced": "sms-sync-2026-10-14",
     "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsOlderMessages"
+  },
+  "financeTransactionPreviousPage": "صفحهٔ قبل",
+  "@financeTransactionPreviousPage": {
+    "description": "رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی"
+  },
+  "financeTransactionNextPage": "صفحهٔ بعد",
+  "@financeTransactionNextPage": {
+    "description": "رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی"
+  },
+  "financeTransactionPageRange": "تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}",
+  "@financeTransactionPageRange": {
+    "description": "بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      }
+    }
   }
 }

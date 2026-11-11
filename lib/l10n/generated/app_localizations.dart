@@ -8542,6 +8542,30 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'پیام‌های قدیمی‌تر'**
   String get smsOlderMessages;
+
+  /// رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ قبل'**
+  String get financeTransactionPreviousPage;
+
+  /// رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ بعد'**
+  String get financeTransactionNextPage;
+
+  /// بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}'**
+  String financeTransactionPageRange(
+    String start,
+    String end,
+    String total,
+    String page,
+    String pages,
+  );
 }
 
 class _AppLocalizationsDelegate

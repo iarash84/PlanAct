@@ -5084,4 +5084,21 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get smsOlderMessages => 'پیام‌های قدیمی‌تر';
+
+  @override
+  String get financeTransactionPreviousPage => 'صفحهٔ قبل';
+
+  @override
+  String get financeTransactionNextPage => 'صفحهٔ بعد';
+
+  @override
+  String financeTransactionPageRange(
+    String start,
+    String end,
+    String total,
+    String page,
+    String pages,
+  ) {
+    return 'تراکنش $start تا $end از $total؛ صفحهٔ $page از $pages';
+  }
 }
