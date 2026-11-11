@@ -7,6 +7,8 @@ import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/commitments/data/drift_commitment_repository.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -65,11 +67,18 @@ void main() {
         type: FinancialAccountType.cash,
       );
       await finance.saveAccount(account);
-      await FinanceUseCases(finance).record(
+      final entry = await FinanceUseCases(finance).record(
         account: account,
         type: AccountEntryType.expense,
         amount: const Money(minorUnits: 1000, currency: 'IRR'),
         occurredAt: DateTime.now(),
+      );
+      final tags = DriftTagRepository(database);
+      final tag = await tags.getOrCreate('خرید');
+      await tags.attach(
+        recordId: entry.id.value,
+        tag: tag,
+        type: TaggableType.accountEntry,
       );
       final list = find
           .descendant(
@@ -84,6 +93,14 @@ void main() {
         find.text('همه‌چیز مرتب است؛ موردی نیاز به توجه ندارد.'),
         findsNothing,
       );
+      await tester.tap(find.byType(ExpansionTile));
+      await tester.pumpAndSettle();
+      expect(find.text('#خرید'), findsOneWidget);
+      await tags.rename(tag.id, 'خرید خانه');
+      await tester.drag(list, const Offset(0, 400));
+      await tester.pumpAndSettle();
+      expect(find.text('#خرید'), findsNothing);
+      expect(find.text('#خرید خانه'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );

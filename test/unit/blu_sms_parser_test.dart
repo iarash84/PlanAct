@@ -86,7 +86,9 @@ void main() {
       'موجودی: 23,483,928 ریال\n۰۸:۰۷\n۱۴۰۴.۰۳.۰۱';
 
   test('header identifies layout without guessing an account or sender', () {
-    expect(bodies.first, outgoing);
+    // Git may check out the corpus with CRLF on Windows. Ignore only that
+    // transport difference here; keep the original bodies as parser inputs.
+    expect(bodies.first.replaceAll('\r\n', '\n'), outgoing);
     expect(parser.tryParse(text: outgoing, currency: 'IRR'), isNotNull);
     expect(
       parser.tryParse(
@@ -98,6 +100,32 @@ void main() {
       isNotNull,
     );
   });
+
+  for (final lineEnding in ['\n', '\r\n']) {
+    final label = lineEnding == '\n' ? 'LF' : 'CRLF';
+    test(
+      'preserves Blu financial and time evidence with $label line endings',
+      () {
+        final parsed = parser.parse(
+          text: outgoing.replaceAll('\n', lineEnding),
+          currency: 'IRR',
+        );
+        expect(parsed.amount.minorUnits, 140777);
+        expect(parsed.balance!.minorUnits, 23483928);
+        expect(parsed.direction, TransactionDirection.outgoing);
+        expect(parsed.bank, 'بلو');
+        expect(parsed.accountHint, isNull);
+        expect(parsed.currencyEvidence!.detectedUnit, SmsMoneyUnit.rial);
+        expect(parsed.sourceDate, '1404.03.01');
+        expect(parsed.sourceTime, '08:07');
+        final date = Jalali(1404, 3, 1).toGregorian();
+        expect(
+          parsed.occurredAt,
+          DateTime(date.year, date.month, date.day, 8, 7),
+        );
+      },
+    );
+  }
 
   final invalid = <String, String>{
     'contradictory heading': outgoing.replaceFirst('برداشت پول', 'واریز پول'),

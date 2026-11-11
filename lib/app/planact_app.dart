@@ -762,6 +762,23 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       final accounts = await _financeRepository.listAccounts();
       final entries = await _financeRepository.listEntries();
       final inboxSuggestions = await _inboxUseCases.listPendingSuggestions();
+      final transactionMemberships = _tagRepository is BatchTagRepository
+          ? await (_tagRepository as BatchTagRepository).tagsForMany(
+              entries.map((entry) => entry.id.value),
+              TaggableType.accountEntry,
+            )
+          : null;
+      final transactionTags = <StableId, List<String>>{};
+      for (final entry in entries) {
+        final ids =
+            transactionMemberships?[entry.id.value] ??
+            await _tagRepository.tagsFor(
+              entry.id.value,
+              TaggableType.accountEntry,
+            );
+        transactionTags[entry.id] = [for (final id in ids) ?labelsById[id]]
+          ..sort();
+      }
       final reviewEntries = <RelationshipReviewEntry>[];
       final reviewRepository = _reconciliation.repository;
       if (reviewRepository is RelationshipReviewRepository) {
@@ -782,6 +799,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         entries: entries,
         accounts: accounts,
         reviewEntries: reviewEntries,
+        transactionTags: transactionTags,
       );
       final actionCenter = _attentionEngine.buildActionCenter(
         now: DateTime.now(),
@@ -793,6 +811,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         entries: entries,
         accounts: accounts,
         reviewEntries: reviewEntries,
+        transactionTags: transactionTags,
       );
       if (mounted) {
         setState(() {
@@ -1693,6 +1712,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         checklists: _checklistSnapshots,
         onChecklistChanged: _toggleChecklistItem,
         onChecklistUpdated: _refresh,
+        onOpenInbox: _openInbox,
         onReview: (item) {
           if (item.attentionAction == AttentionAction.classifyTransaction &&
               item.sourceReference != null) {

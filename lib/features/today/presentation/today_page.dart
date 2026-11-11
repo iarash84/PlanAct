@@ -17,6 +17,8 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
+import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
 
 class TodayPage extends StatelessWidget {
   const TodayPage({
@@ -40,6 +42,7 @@ class TodayPage extends StatelessWidget {
     this.onChecklistUpdated,
     this.onEditCommitment,
     this.onOpenRelationshipQueue,
+    this.onOpenInbox,
     this.bottomContentPadding = 0,
   });
 
@@ -67,6 +70,7 @@ class TodayPage extends StatelessWidget {
   )?
   onChecklistChanged;
   final VoidCallback? onOpenRelationshipQueue;
+  final VoidCallback? onOpenInbox;
   final double bottomContentPadding;
 
   @override
@@ -131,6 +135,8 @@ class TodayPage extends StatelessWidget {
               onOpen: onCommitmentTap,
               onOccurrenceTap: onOccurrenceTap,
               onReview: onReview,
+              onOpenInbox: onOpenInbox,
+              onOpenRelationshipQueue: onOpenRelationshipQueue,
               checklists: checklists,
               checklistRepository: checklistRepository,
               onEditCommitment: onEditCommitment,
@@ -254,9 +260,15 @@ class _AttentionSummary extends StatelessWidget {
   }
 }
 
+bool _boundedPreview(TodayActionItem item) =>
+    item.type == TodayActionItemType.inboxReview ||
+    item.attentionAction == AttentionAction.classifyTransaction;
+
 class _AttentionGroups extends StatelessWidget {
   const _AttentionGroups({
     required this.items,
+    this.onOpenInbox,
+    this.onOpenRelationshipQueue,
     required this.onOpen,
     this.onOccurrenceTap,
     required this.onReview,
@@ -269,6 +281,8 @@ class _AttentionGroups extends StatelessWidget {
 
   final List<TodayActionItem> items;
   final ValueChanged<Commitment> onOpen;
+  final VoidCallback? onOpenInbox;
+  final VoidCallback? onOpenRelationshipQueue;
   final ValueChanged<TodayActionItem>? onOccurrenceTap;
   final ValueChanged<TodayActionItem> onReview;
   final Map<StableId, CommitmentChecklist> checklists;
@@ -287,34 +301,66 @@ class _AttentionGroups extends StatelessWidget {
     return Column(
       children: [
         for (var index = 0; index < entries.length; index++)
-          Card(
-            margin: const EdgeInsets.only(bottom: PlanActSpacing.xs),
+          _AttentionGroupSurface(
+            independentItems: _boundedPreview(entries[index].value.first),
             child: ExpansionTile(
               key: PageStorageKey('today-attention:${entries[index].key}'),
-              initiallyExpanded: index == 0,
+              initiallyExpanded:
+                  index == 0 && !_boundedPreview(entries[index].value.first),
               title: Text(entries[index].key),
               subtitle: Text(
                 planActL10n(context).todayPageBuildSubtitle(
-                  (entries[index].value.length).toString(),
+                  PersianNumbers.format(entries[index].value.length),
                 ),
               ),
               children: [
-                for (final item in entries[index].value)
-                  _ActionItemCard(
-                    item: item,
-                    grouped: true,
-                    onOpen: onOpen,
-                    onOccurrenceTap: onOccurrenceTap == null
-                        ? null
-                        : () => onOccurrenceTap!(item),
-                    onReview: () => onReview(item),
-                    checklist: item.commitment == null
-                        ? null
-                        : checklists[item.commitment!.id],
-                    checklistRepository: checklistRepository,
-                    onEditCommitment: onEditCommitment,
-                    onChecklistChanged: onChecklistChanged,
-                    onChecklistUpdated: onChecklistUpdated,
+                for (final item in entries[index].value.take(
+                  _boundedPreview(entries[index].value.first)
+                      ? 3
+                      : entries[index].value.length,
+                ))
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: _boundedPreview(item) ? PlanActSpacing.sm : 0,
+                    ),
+                    child: _ActionItemCard(
+                      item: item,
+                      grouped: !_boundedPreview(item),
+                      onOpen: onOpen,
+                      onOccurrenceTap: onOccurrenceTap == null
+                          ? null
+                          : () => onOccurrenceTap!(item),
+                      onReview: () => onReview(item),
+                      checklist: item.commitment == null
+                          ? null
+                          : checklists[item.commitment!.id],
+                      checklistRepository: checklistRepository,
+                      onEditCommitment: onEditCommitment,
+                      onChecklistChanged: onChecklistChanged,
+                      onChecklistUpdated: onChecklistUpdated,
+                    ),
+                  ),
+                if (_boundedPreview(entries[index].value.first) &&
+                    entries[index].value.length > 3)
+                  TextButton(
+                    key: ValueKey(
+                      entries[index].value.first.type ==
+                              TodayActionItemType.inboxReview
+                          ? 'today-inbox-view-all'
+                          : 'today-relationship-view-all',
+                    ),
+                    onPressed:
+                        entries[index].value.first.type ==
+                            TodayActionItemType.inboxReview
+                        ? onOpenInbox ??
+                              () => onReview(entries[index].value.first)
+                        : onOpenRelationshipQueue,
+                    child: Text(
+                      entries[index].value.first.type ==
+                              TodayActionItemType.inboxReview
+                          ? planActL10n(context).todayInboxViewAll
+                          : planActL10n(context).todayRelationshipViewAll,
+                    ),
                   ),
               ],
             ),
@@ -322,6 +368,24 @@ class _AttentionGroups extends StatelessWidget {
       ],
     );
   }
+}
+
+class _AttentionGroupSurface extends StatelessWidget {
+  const _AttentionGroupSurface({
+    required this.independentItems,
+    required this.child,
+  });
+
+  final bool independentItems;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
+    child: independentItems
+        ? child
+        : Card(margin: EdgeInsets.zero, child: child),
+  );
 }
 
 class _ActionItemCard extends StatefulWidget {
@@ -401,20 +465,30 @@ class _ActionItemCardState extends State<_ActionItemCard> {
               commitmentId: commitment.id,
               onChanged: widget.onChecklistUpdated,
             ),
-      tags: commitment == null || commitment.tags.isEmpty
+      tags:
+          item.attentionAction == AttentionAction.classifyTransaction &&
+              details != null &&
+              details.tags.isNotEmpty
+          ? TagLabels(labels: details.tags)
+          : commitment == null || commitment.tags.isEmpty
           ? null
           : TagLabels(labels: commitment.tags),
-      metadata: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            [
-              item.subtitle,
-              if (financial.isNotEmpty) financial.first,
-            ].join(' · '),
-          ),
-        ],
-      ),
+      metadata: details?.inboxDraft != null
+          ? _InboxPreviewMetadata(draft: details!.inboxDraft!)
+          : item.attentionAction == AttentionAction.classifyTransaction &&
+                details != null
+          ? _RelationshipPreviewMetadata(item: details)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  [
+                    item.subtitle,
+                    if (financial.isNotEmpty) financial.first,
+                  ].join(' · '),
+                ),
+              ],
+            ),
       actions: [
         if (commitment != null)
           IconButton(
@@ -425,14 +499,15 @@ class _ActionItemCardState extends State<_ActionItemCard> {
                 : () => widget.onEditCommitment!(commitment),
             icon: const Icon(Icons.edit_outlined),
           ),
-        IconButton(
-          key: ValueKey('today-details-${item.id}'),
-          tooltip: _expanded
-              ? planActL10n(context).detailsHide
-              : planActL10n(context).detailsShow,
-          onPressed: () => setState(() => _expanded = !_expanded),
-          icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-        ),
+        if (!_boundedPreview(item))
+          IconButton(
+            key: ValueKey('today-details-${item.id}'),
+            tooltip: _expanded
+                ? planActL10n(context).detailsHide
+                : planActL10n(context).detailsShow,
+            onPressed: () => setState(() => _expanded = !_expanded),
+            icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+          ),
         TextButton(
           onPressed:
               item.type == TodayActionItemType.occurrence &&
@@ -466,6 +541,95 @@ class _ActionItemCardState extends State<_ActionItemCard> {
         PlanActSpacing.md,
       ),
       child: Text(description),
+    );
+  }
+}
+
+class _RelationshipPreviewMetadata extends StatelessWidget {
+  const _RelationshipPreviewMetadata({required this.item});
+
+  final AttentionItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = planActL10n(context);
+    final occurredAt = item.occurredAt;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (item.amountMinorUnits != null)
+          Text(
+            PersianMoneyText.amount(
+              item.amountMinorUnits!,
+              item.currency ?? '',
+              unit: MoneyUnitScope.of(context),
+            ),
+          ),
+        Text(
+          [
+            l10n.transactionRelationshipPageBuildChildren3(
+              item.accountName ?? l10n.commonUnknown,
+            ),
+            l10n.inboxPageBuildChildren12(item.bankName ?? l10n.commonUnknown),
+          ].join(' · '),
+        ),
+        Text(
+          l10n.todayRelationshipDate(
+            occurredAt == null
+                ? l10n.commonUnknown
+                : PersianDateFormatter.date(
+                    JalaliDate.fromDateTime(
+                      occurredAt.isUtc ? occurredAt.toLocal() : occurredAt,
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// پیش‌نمایش فقط‌خواندنی شواهد صندوق؛ زمان دریافت، تاریخ استخراج‌شده نیست.
+class _InboxPreviewMetadata extends StatelessWidget {
+  const _InboxPreviewMetadata({required this.draft});
+
+  final TransactionDraft draft;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = planActL10n(context);
+    final evidence = draft.currencyEvidence;
+    final amount = evidence != null && evidence.requiresSelection
+        ? l10n.inboxPageAmountMessage(
+            PersianMoneyText.amount(evidence.sourceAmount, '').trim(),
+          )
+        : PersianMoneyText.money(
+            draft.amount,
+            unit: MoneyUnitScope.of(context),
+          );
+    final bank = draft.bank?.trim();
+    final sender = draft.sourceAddress?.trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          [
+            amount,
+            if (bank != null && bank.isNotEmpty)
+              l10n.inboxPageBuildChildren12(bank),
+          ].join(' · '),
+        ),
+        if (sender != null && sender.isNotEmpty)
+          Text(l10n.inboxPageSmsSenderLabel(sender)),
+        if (draft.dateSource == TransactionDateSource.extracted)
+          Text(
+            l10n.inboxPageBuildChildren8(
+              PersianDateFormatter.date(
+                JalaliDate.fromDateTime(draft.occurredAt),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -10,6 +10,17 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get todayRelationshipViewAll => 'مشاهدهٔ همه در تعیین ارتباط';
+
+  @override
+  String todayRelationshipDate(String date) {
+    return 'تاریخ تراکنش: $date';
+  }
+
+  @override
+  String get todayInboxViewAll => 'مشاهدهٔ همه در صندوق بررسی';
+
+  @override
   String reportsTransactionMetadata(String date, String type, String account) {
     return '$date · $type\n$account';
   }

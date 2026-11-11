@@ -1,4 +1,20 @@
 {
+  "todayRelationshipViewAll": "مشاهدهٔ همه در تعیین ارتباط",
+  "@todayRelationshipViewAll": {
+    "description": "بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.",
+    "x-planact-introduced": "today-relationship-preview-2026-11-11"
+  },
+  "todayRelationshipDate": "تاریخ تراکنش: {date}",
+  "@todayRelationshipDate": {
+    "description": "تاریخ واقعی تراکنش به جلالی در پیش‌نمایش تعیین ارتباط امروز؛ بدون حدس تاریخ مفقود.",
+    "x-planact-introduced": "today-relationship-preview-2026-11-11",
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "todayInboxViewAll": "مشاهدهٔ همه در صندوق بررسی",
+  "@todayInboxViewAll": {
+    "description": "بازکردن صندوق بررسی کامل از پیش‌نمایش حداکثر سه تراکنش در صفحهٔ امروز.",
+    "x-planact-introduced": "today-inbox-preview-2026-11-11"
+  },
   "reportsTransactionMetadata": "{date} · {type}\n{account}",
   "@reportsTransactionMetadata": {
     "description": "Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.",

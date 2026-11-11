@@ -94,6 +94,24 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ همه در تعیین ارتباط'**
+  String get todayRelationshipViewAll;
+
+  /// تاریخ واقعی تراکنش به جلالی در پیش‌نمایش تعیین ارتباط امروز؛ بدون حدس تاریخ مفقود.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ تراکنش: {date}'**
+  String todayRelationshipDate(String date);
+
+  /// بازکردن صندوق بررسی کامل از پیش‌نمایش حداکثر سه تراکنش در صفحهٔ امروز.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ همه در صندوق بررسی'**
+  String get todayInboxViewAll;
+
   /// Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.
   ///
   /// In fa, this message translates to:
