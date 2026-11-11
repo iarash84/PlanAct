@@ -82,8 +82,10 @@ final class LayeredBankSmsProfiles {
     List<String> lines,
     LayeredProfileServices services,
   ) {
+    // The branded footer identifies the layout, not the transaction. Contact
+    // digit count and prefix are incidental and must not gate recognition.
     if (lines.length != 5 ||
-        !RegExp(r'^مرکز\s*آوای\s+نوین\s*:\s*0[0-9]{10}$').hasMatch(lines[4])) {
+        !RegExp(r'^مرکز\s*آوای\s+نوین\s*:\s*[0-9]+$').hasMatch(lines[4])) {
       return null;
     }
     final operation = RegExp(

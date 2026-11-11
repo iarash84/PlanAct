@@ -7,17 +7,16 @@ import 'package:planact/features/inbox/domain/sms_currency_evidence.dart';
 
 void main() {
   const parser = LocalSmsParser();
-  final bodies =
-      File('test/fixtures/device_sms_corpus/Eghtesad_Novin_synthetic.txt')
-          .readAsStringSync()
-          .split(RegExp(r'(?=^Row:)', multiLine: true))
-          .where((row) => row.startsWith('Row:'))
-          .map(
-            (row) => row
-                .substring(row.indexOf('body=') + 5)
-                .replaceFirst(RegExp(r', date=\d+\s*$'), ''),
-          )
-          .toList();
+  final bodies = File('test/fixtures/device_sms_corpus/ENBANK.txt')
+      .readAsStringSync()
+      .split(RegExp(r'(?=^Row:)', multiLine: true))
+      .where((row) => row.startsWith('Row:'))
+      .map(
+        (row) => row
+            .substring(row.indexOf('body=') + 5)
+            .replaceFirst(RegExp(r', date=\d+\s*$'), ''),
+      )
+      .toList();
 
   test('all 15 synthetic Novin rows preserve exact evidence without inventing year', () {
     expect(bodies, hasLength(15));
@@ -56,7 +55,7 @@ void main() {
 
   const incoming =
       'واريز: 246-135-90246-8 \n+367,025ريال\n'
-      'مانده:45710874ريال\n4/3-07:11\nمرکزآواي نوين:02100000000';
+      'مانده:45710874ريال\n4/3-07:11\nمرکزآواي نوين:02100000';
 
   test(
     'normalizes Arabic/Persian spelling and digits without sender guessing',
@@ -83,6 +82,67 @@ void main() {
     expect(parsed!.sourceDate, '12/30');
     expect(parsed.occurredAt, isNull);
   });
+
+  test('redacted corpus preserves eight-digit contact shape', () {
+    for (final body in bodies) {
+      expect(body.split('\n').last, 'مرکزآواي نوين:02100000');
+    }
+  });
+
+  for (final contact in [
+    '0',
+    '12',
+    '0210000',
+    '02100000',
+    '021000000',
+    '0210000000',
+    '02100000000',
+    '021000000000',
+    '12100000',
+    '123456789012345678901234567890',
+    '۰۲۱۰۰۰۰۰',
+    '٠٢١٠٠٠٠٠',
+    '۱۲۳۴۵',
+    '١٢٣٤٥',
+  ]) {
+    test(
+      'contact length and prefix do not change transaction evidence: $contact',
+      () {
+        for (final body in bodies) {
+          final shortBody = body.replaceFirst('02100000', contact);
+          final original = parser.tryParse(text: body, currency: 'IRR');
+          final parsed = parser.tryParse(
+            text: shortBody,
+            currency: 'IRR',
+            sourceAddress: 'ENBANK',
+          );
+          expect(parsed, isNotNull);
+          expect(parsed!.amount.minorUnits, original!.amount.minorUnits);
+          expect(parsed.balance!.minorUnits, original.balance!.minorUnits);
+          expect(parsed.direction, original.direction);
+          expect(parsed.accountHint, original.accountHint);
+          expect(parsed.bank, 'اقتصاد نوین');
+          expect(parsed.currencyEvidence!.detectedUnit, SmsMoneyUnit.rial);
+          expect(parsed.sourceDate, original.sourceDate);
+          expect(parsed.sourceTime, original.sourceTime);
+          expect(parsed.occurredAt, isNull);
+        }
+      },
+    );
+  }
+
+  for (final contact in ['021abc00', '', '02100000 مبلغ: 100 ریال']) {
+    test('rejects malformed contact footer $contact', () {
+      expect(
+        parser.tryParse(
+          text: incoming.replaceFirst('02100000', contact),
+          currency: 'IRR',
+          sourceAddress: 'ENBANK',
+        ),
+        isNull,
+      );
+    });
+  }
 
   final invalid = <String, String>{
     'contradictory sign': incoming.replaceFirst('+367', '-367'),

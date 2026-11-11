@@ -17,6 +17,102 @@ import 'package:planact/features/inbox/domain/inbox.dart';
 import 'sms_bounded_ingestion_test.dart' show PagedSource;
 
 void main() {
+  test(
+    'Novin corpus survives consented ingestion, replay and cold reopen',
+    () async {
+      final rows = File('test/fixtures/device_sms_corpus/ENBANK.txt')
+          .readAsStringSync()
+          .split(RegExp(r'(?=^Row:)', multiLine: true))
+          .where((row) => row.startsWith('Row:'))
+          .toList();
+      expect(rows, hasLength(15));
+      final messages = [
+        for (final row in rows)
+          AndroidSmsMessage(
+            sourceKey:
+                'android-sms:${RegExp(r'_id=(\d+)').firstMatch(row)!.group(1)}',
+            address: 'ENBANK',
+            body: row
+                .substring(row.indexOf('body=') + 5)
+                .replaceFirst(RegExp(r', date=\d+\s*$'), ''),
+            receivedAt: DateTime.fromMillisecondsSinceEpoch(
+              int.parse(RegExp(r', date=(\d+)').firstMatch(row)!.group(1)!),
+              isUtc: true,
+            ),
+          ),
+      ];
+      final dir = await Directory.systemTemp.createTemp('novin-sms-');
+      final file = File('${dir.path}/state.sqlite');
+      var db = AppDatabase.forTesting(NativeDatabase(file));
+      addTearDown(() async {
+        await db.close();
+        await dir.delete(recursive: true);
+      });
+      var repo = DriftInboxRepository(db);
+      final source = PagedSource([
+        for (var i = 0; i < messages.length; i++)
+          SmsProviderRow(
+            messages[i].receivedAt.millisecondsSinceEpoch,
+            i + 1,
+            messages[i],
+          ),
+      ]);
+      final command = SmsIngestion(InboxUseCases(repo), source);
+      await expectLater(
+        command.run(onProgress: (_) {}),
+        throwsA(isA<ValidationError>()),
+      );
+      expect(source.reads, 0);
+      await command.consent(
+        from: messages.first.receivedAt.subtract(const Duration(seconds: 1)),
+        until: messages.last.receivedAt.add(const Duration(seconds: 1)),
+        newOnly: false,
+      );
+      await command.run(onProgress: (_) {});
+      expect((await command.load())!.unsupported, 0);
+      final suggestions = await repo.listSuggestions();
+      expect(suggestions, hasLength(15));
+      for (var i = 0; i < messages.length; i++) {
+        final item = suggestions.singleWhere(
+          (s) => s.draft.amount.minorUnits == 345678 + (i + 1) * 21347,
+        );
+        expect(item.status, SuggestionStatus.pending);
+        expect(item.draft.bank, 'اقتصاد نوین');
+        expect(item.draft.sourceAddress, 'ENBANK');
+        expect(item.draft.balance!.minorUnits, 45678901 + (i + 1) * 31973);
+        expect(
+          item.draft.direction,
+          {0, 11}.contains(i)
+              ? TransactionDirection.incoming
+              : TransactionDirection.outgoing,
+        );
+        expect(item.draft.dateSource, TransactionDateSource.receipt);
+        expect(item.extractedEvidence!.sourceDate, '4/${i + 3}');
+        expect(item.extractedEvidence!.occurredAt, isNull);
+        final replay = await InboxUseCases(repo).stageSms(
+          rawText: messages[i].body,
+          sourceKey: messages[i].sourceKey,
+          sourceAddress: messages[i].address,
+          importedAt: messages[i].receivedAt,
+          currency: 'IRR',
+        );
+        expect(replay.id, item.id);
+      }
+      final originals = {
+        for (final s in suggestions) s.id.value: s.extractedEvidence!.toJson(),
+      };
+      expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+      await db.close();
+      db = AppDatabase.forTesting(NativeDatabase(file));
+      repo = DriftInboxRepository(db);
+      expect({
+        for (final s in await repo.listSuggestions())
+          s.id.value: s.extractedEvidence!.toJson(),
+      }, originals);
+      expect(await DriftFinanceRepository(db).listEntries(), isEmpty);
+    },
+  );
+
   test('consented ingestion preserves bounded evidence, replay and confirmation across reopen', () async {
     final dir = await Directory.systemTemp.createTemp('evidence-sms-');
     final file = File('${dir.path}/state.sqlite');
