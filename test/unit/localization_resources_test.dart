@@ -124,6 +124,7 @@ void main() {
                     'today-relationship-preview-2026-11-11',
                     'today-inbox-preview-2026-11-11',
                     'finance-pagination-2026-11-11',
+                    'bank-balance-2026-11-11',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

@@ -94,6 +94,84 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// جلوگیری از دوباره‌شماری ثبت دیرهنگام پس از تطبیق حساب.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.'**
+  String get bankBalanceBackdatedBlocked;
+
+  /// رد تأیید تطبیق کهنه یا مبهم.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.'**
+  String get bankBalanceStale;
+
+  /// دلیل صریح هزینه در تطبیق حساب.
+  ///
+  /// In fa, this message translates to:
+  /// **'کارمزد مشخص بانک'**
+  String get bankBalanceKnownFee;
+
+  /// دلیل تعدیل علامت‌دار، نه درآمد یا هزینه.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعدیل اختلاف نامعلوم حساب'**
+  String get bankBalanceUnknownAdjustment;
+
+  /// مانده تاریخی مستقل از دفتر، نه مانده زنده بانک.
+  ///
+  /// In fa, this message translates to:
+  /// **'آخرین ماندهٔ گزارش‌شدهٔ بانک از پیامک'**
+  String get bankBalanceReported;
+
+  /// ابهام شاهد مانده، بدون جایگزینی زمان دریافت.
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.'**
+  String get bankBalanceAmbiguous;
+
+  /// ورود به پیش‌نمایش بدون نوشتن.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی و تطبیق حساب'**
+  String get bankBalanceReconcile;
+
+  /// دفتر محدود به زمان معتبر گزارش، نه موجودی اکنون.
+  ///
+  /// In fa, this message translates to:
+  /// **'ماندهٔ دفتر تا زمان گزارش'**
+  String get bankBalanceLedgerAtReport;
+
+  /// اختلاف علامت‌دار صحیح.
+  ///
+  /// In fa, this message translates to:
+  /// **'اختلاف گزارش و دفتر'**
+  String get bankBalanceDifference;
+
+  /// افشای اثر و محدودیت تطبیق پیش از تأیید.
+  ///
+  /// In fa, this message translates to:
+  /// **'این گزارش تاریخی است، نه موجودی زندهٔ بانک. فقط با انتخاب دلیل و تأیید، یک ثبت جدید ایجاد می‌شود. برای ورود ثبت قدیمی‌تر باید ابتدا ثبت تطبیق را برگشت دهید.'**
+  String get bankBalanceDisclosure;
+
+  /// تأیید صریح ثبت مالی تطبیق.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید ثبت اختلاف'**
+  String get bankBalanceConfirm;
+
+  /// بازخورد ثبت و مسیر برگشت.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق حساب ثبت شد؛ برگشت از عملیات همان تراکنش در دسترس است.'**
+  String get bankBalanceSaved;
+
+  /// خطای قابل اقدام بدون نمایش جزئیات حساس.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت تطبیق انجام نشد. اطلاعات را تازه کنید و دوباره تلاش کنید.'**
+  String get bankBalanceFailure;
+
   /// بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.
   ///
   /// In fa, this message translates to:

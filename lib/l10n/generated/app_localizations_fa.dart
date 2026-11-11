@@ -10,6 +10,51 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get bankBalanceBackdatedBlocked =>
+      'این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.';
+
+  @override
+  String get bankBalanceStale =>
+      'اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.';
+
+  @override
+  String get bankBalanceKnownFee => 'کارمزد مشخص بانک';
+
+  @override
+  String get bankBalanceUnknownAdjustment => 'تعدیل اختلاف نامعلوم حساب';
+
+  @override
+  String get bankBalanceReported => 'آخرین ماندهٔ گزارش‌شدهٔ بانک از پیامک';
+
+  @override
+  String get bankBalanceAmbiguous =>
+      'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.';
+
+  @override
+  String get bankBalanceReconcile => 'بررسی و تطبیق حساب';
+
+  @override
+  String get bankBalanceLedgerAtReport => 'ماندهٔ دفتر تا زمان گزارش';
+
+  @override
+  String get bankBalanceDifference => 'اختلاف گزارش و دفتر';
+
+  @override
+  String get bankBalanceDisclosure =>
+      'این گزارش تاریخی است، نه موجودی زندهٔ بانک. فقط با انتخاب دلیل و تأیید، یک ثبت جدید ایجاد می‌شود. برای ورود ثبت قدیمی‌تر باید ابتدا ثبت تطبیق را برگشت دهید.';
+
+  @override
+  String get bankBalanceConfirm => 'تأیید ثبت اختلاف';
+
+  @override
+  String get bankBalanceSaved =>
+      'تطبیق حساب ثبت شد؛ برگشت از عملیات همان تراکنش در دسترس است.';
+
+  @override
+  String get bankBalanceFailure =>
+      'ثبت تطبیق انجام نشد. اطلاعات را تازه کنید و دوباره تلاش کنید.';
+
+  @override
   String get todayRelationshipViewAll => 'مشاهدهٔ همه در تعیین ارتباط';
 
   @override

@@ -181,6 +181,19 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+SMS bank-balance checkpoint (2026-11-11, Partial): reported balances are immutable
+source observations, separate from the ledger and ordered only by complete source
+transaction time. Receipt/import/confirmation order never establishes recency;
+equal or unknown times block reconciliation. Preserve independent balance-unit
+evidence and canonical integer IRR. Explicit reconciliation compares corrected
+ledger history through the report boundary; known fees are expenses and unknown
+differences are signed adjustments, never inferred income/expense. Fresh SQLite
+writer admission and preview comparison must commit decision metadata with the
+entry. The bounded implementation rejects backdated effects until the relevant
+reconciliation is reversed; do not bypass this guard or silently double count late
+imports. Source correction, full recovery journeys, older-writer safety and native/
+independent acceptance remain open in docs/BANK_BALANCE_VERIFICATION.md.
+
 Financial accounts include bank accounts, cash wallets, digital wallets, and potentially credit accounts later.
 
 - Store money as integer minor units, never floating-point.

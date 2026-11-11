@@ -1,4 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/finance/domain/bank_balance.dart';
+import 'package:planact/features/finance/presentation/bank_balance_panel.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
@@ -115,6 +117,7 @@ class FinancePageState extends State<FinancePage> {
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
+  Map<String, BankBalanceSnapshot> _bankBalances = {};
   static const _entriesPerPage = 20;
   int _entryPage = 0;
   final _transactionsKey = GlobalKey();
@@ -142,6 +145,14 @@ class FinancePageState extends State<FinancePage> {
     try {
       final accounts = await widget.repository.listAccounts();
       final entries = await widget.repository.listEntries();
+      final bankBalances = <String, BankBalanceSnapshot>{};
+      if (widget.repository case final BankBalanceRepository repository) {
+        for (final account in accounts.where((a) => a.currency == 'IRR')) {
+          bankBalances[account.id.value] = await repository.bankBalance(
+            account.id.value,
+          );
+        }
+      }
       final tags = await widget.tagRepository?.list() ?? <Tag>[];
       final memberships = <String, Set<StableId>>{};
       if (widget.tagRepository case final TagRepository repository) {
@@ -175,6 +186,7 @@ class FinancePageState extends State<FinancePage> {
           _tagFilter = selected;
           _tagMatches = matches;
           _accounts = accounts;
+          _bankBalances = bankBalances;
           _entries = entries;
           final count = _filteredEntries.length;
           _entryPage = _entryPage.clamp(
@@ -1007,6 +1019,21 @@ class FinancePageState extends State<FinancePage> {
                           key: ValueKey(account.id),
                           account: account,
                           balance: rebuildBalance(account, _entries),
+                          bankBalance: _bankBalances[account.id.value] == null
+                              ? null
+                              : BankBalancePanel(
+                                  snapshot: _bankBalances[account.id.value]!,
+                                  repository:
+                                      widget.repository
+                                          as BankBalanceRepository,
+                                  enabled:
+                                      account.status ==
+                                      FinancialAccountStatus.active,
+                                  onChanged: () async {
+                                    await _refresh();
+                                    widget.onDataChanged?.call();
+                                  },
+                                ),
                           operations: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:planact/features/finance/domain/bank_balance.dart';
+import 'package:planact/features/finance/data/bank_balance_store.dart';
+
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/database/undo_journal.dart';
 import 'package:planact/core/application/undo_token.dart';
@@ -18,6 +21,7 @@ class DriftFinanceRepository
     implements
         CommandGateProvider,
         FinanceRepository,
+        BankBalanceRepository,
         AtomicAccountEditing,
         AtomicFinanceCorrection,
         AtomicFinanceReversal,
@@ -28,6 +32,32 @@ class DriftFinanceRepository
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<BankBalanceSnapshot> bankBalance(String accountId) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(
+          () async =>
+              BankBalanceStore(database)
+                  .snapshot(accountId, await listEntries()),
+        ),
+      );
+
+  @override
+  Future<AccountEntry> reconcileBankBalance(
+    BankBalanceSnapshot expected,
+    BankReconciliationReason reason,
+  ) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
+      final entry = await BankBalanceStore(database)
+          .prepare(expected, reason, await listEntries());
+      await saveEntry(entry);
+      return entry;
+    }),
+  );
 
   @override
   Future<UndoToken?> accountStatusUndo(StableId id) =>
@@ -390,6 +420,7 @@ class DriftFinanceRepository
   Future<void> saveEntry(AccountEntry entry) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
       final existing = await (database.select(
         database.accountEntries,
       )..where((table) => table.id.equals(entry.id.value))).getSingleOrNull();
@@ -421,6 +452,7 @@ class DriftFinanceRepository
               entry.type != AccountEntryType.refund)) {
         throw StateError('Account is unavailable for this entry');
       }
+      await BankBalanceStore(database).guardWrite(entry, await listEntries());
       await database
           .into(database.accountEntries)
           .insert(_entryCompanion(entry));

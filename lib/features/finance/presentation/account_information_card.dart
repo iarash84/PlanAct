@@ -19,10 +19,12 @@ class AccountInformationCard extends StatefulWidget {
     required this.account,
     required this.balance,
     required this.operations,
+    this.bankBalance,
   });
   final FinancialAccount account;
   final Money balance;
   final Widget operations;
+  final Widget? bankBalance;
   @override
   State<AccountInformationCard> createState() => _AccountInformationCardState();
 }
@@ -143,6 +145,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                 isolateNumber: true,
               ),
             ),
+            ?widget.bankBalance,
             if (account.identifiers.cardNumber case final String value)
               _identifier(
                 planActL10n(context).accountInformationCardBuildChildren3,

@@ -5,6 +5,10 @@
 // dart format off
 
 abstract final class PersianCopy {
+  static const bankBalanceBackdatedBlocked = "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.";
+  static const bankBalanceStale = "اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.";
+  static const bankBalanceKnownFee = "کارمزد مشخص بانک";
+  static const bankBalanceUnknownAdjustment = "تعدیل اختلاف نامعلوم حساب";
   static const appLockAuthenticationReason = "برای ورود به پلن‌اکت هویت خود را تأیید کنید.";
   static const appLockLockAndAuthenticateMessage = "احراز هویت انجام نشد. برای تلاش دوباره دکمه را بزنید.";
   static const appLockLockAndAuthenticateMessage2 = "احراز هویت در دسترس نیست. قفل دستگاه را بررسی و دوباره تلاش کنید.";

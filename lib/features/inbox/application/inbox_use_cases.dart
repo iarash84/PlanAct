@@ -129,12 +129,16 @@ class ParsedSms {
     this.currencyEvidence,
     this.sourceDate,
     this.sourceTime,
+    this.reportedBalanceAmount,
+    this.reportedBalanceUnit,
     this.isTransfer = false,
   });
 
   /// Validated original calendar date/time, not a receipt fallback or instant.
   final String? sourceDate;
   final String? sourceTime;
+  final int? reportedBalanceAmount;
+  final SmsMoneyUnit? reportedBalanceUnit;
   final bool isTransfer;
 
   final Money amount;
@@ -587,6 +591,8 @@ class InboxUseCases {
         sourceTime: parsed.sourceTime,
         occurredAt: parsed.occurredAt,
         isTransfer: parsed.isTransfer,
+        reportedBalanceAmount: parsed.reportedBalanceAmount,
+        reportedBalanceUnit: parsed.reportedBalanceUnit,
       ),
     );
     if (repository case final AtomicInboxStaging atomic) {

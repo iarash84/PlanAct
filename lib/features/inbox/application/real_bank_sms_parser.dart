@@ -213,10 +213,14 @@ class RealBankSmsParser implements SmsFormatParser {
         balance: balanceUnit == null
             ? null
             : Money(
-                minorUnits: balanceUnit.canonicalIrr(balance),
+                minorUnits: balance == 0
+                    ? 0
+                    : balanceUnit.canonicalIrr(balance),
                 currency: 'IRR',
               ),
         currencyEvidence: evidence,
+        reportedBalanceAmount: balance,
+        reportedBalanceUnit: unit(field('balanceUnit')),
         occurredAt: occurredAt,
         sourceDate: dateText,
         sourceTime: timeText,
@@ -770,7 +774,7 @@ class RealBankSmsParser implements SmsFormatParser {
         currency: 'IRR',
       ),
       balance: Money(
-        minorUnits: balanceUnit.canonicalIrr(balance),
+        minorUnits: balance == 0 ? 0 : balanceUnit.canonicalIrr(balance),
         currency: 'IRR',
       ),
       currencyEvidence: SmsCurrencyEvidence(
@@ -785,6 +789,8 @@ class RealBankSmsParser implements SmsFormatParser {
       confidence: confidence,
       accountHint: account,
       bank: 'سینا',
+      reportedBalanceAmount: balance,
+      reportedBalanceUnit: balanceUnit,
     );
   }
 
