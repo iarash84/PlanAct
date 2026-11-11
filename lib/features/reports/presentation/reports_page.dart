@@ -1,3 +1,4 @@
+import 'package:planact/features/classification/presentation/tag_badge.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/classification/presentation/tag_selection.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
@@ -622,8 +623,9 @@ class _ReportsPageState extends State<ReportsPage> {
                 if (data != null && _error == null) ...[
                   _filters(data),
                   if (_tags.isNotEmpty || _excludedTags.isNotEmpty)
-                    Text(
-                      planActL10n(context).reportsPageBuildChildren5(
+                    TagSummaryText(
+                      labels: data.tags.map((tag) => tag.label),
+                      text: planActL10n(context).reportsPageBuildChildren5(
                         (data.tags
                                 .where((t) => _tags.contains(t.id))
                                 .map((t) => t.displayLabel)

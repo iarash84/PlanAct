@@ -1051,3 +1051,7 @@ Optional card/IR IBAN/account identifiers are validated strings normalized throu
 ## Approved Inbox tag confirmation (2026-11-08)
 
 Optional Inbox tags are draft selections before final confirmation, never an automatic post-save editor. Commit the transaction, new reusable tags and memberships in the existing fresh-admitted SQLite transaction. Cancellation writes none; failed saving retains form/tag choices. Preserve Inbox evidence/revision/currency/account validation and the saved-ID relationship snackbar. Finance later editing remains explicit. See [tagging verification](docs/TAGGING_VERIFICATION.md).
+
+## Automatic tag identity colors (2026-11-11)
+
+All tag-name presentation must reuse the shared tag badge/summary and centralized identity color roles. Derive colors deterministically from the existing normalized label, independent of runtime hash, list order and theme preset; renaming derives the new name identity. Keep brightness-specific readable foreground/container pairs, textual identity and explicit selection semantics. This is a rebuildable presentation projection, not a new mutable source of truth or status color. Finite colors cannot guarantee unlimited perceptual uniqueness. See docs/TAGGING_VERIFICATION.md.

@@ -4,6 +4,8 @@ import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/classification/domain/tag.dart';
 
+import 'tag_badge.dart';
+
 /// Bounded form summary; the catalogue is only built lazily inside the sheet.
 class CompactTagSelection extends StatelessWidget {
   const CompactTagSelection({
@@ -32,7 +34,7 @@ class CompactTagSelection extends StatelessWidget {
           spacing: PlanActSpacing.sm,
           runSpacing: PlanActSpacing.xs,
           children: [
-            for (final label in selected.take(3)) Chip(label: Text('#$label')),
+            for (final label in selected.take(3)) TagBadge(label: label),
             if (selected.length > 3)
               Chip(
                 label: Text(
@@ -264,6 +266,10 @@ class _TagSelectionSheetState extends State<_TagSelectionSheet> {
                                   normalizeTagLabel(_query.text),
                                 ),
                               ),
+                              subtitle: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: TagBadge(label: _query.text),
+                              ),
                               onTap: _busy
                                   ? null
                                   : () => _run(() async {
@@ -283,7 +289,10 @@ class _TagSelectionSheetState extends State<_TagSelectionSheet> {
                     final label = results[index - 1];
                     return CheckboxListTile(
                       key: ValueKey('tag-result-${normalizeTagKey(label)}'),
-                      title: Text('#$label'),
+                      title: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TagBadge(label: label),
+                      ),
                       value: widget.selected(label),
                       onChanged: _busy
                           ? null

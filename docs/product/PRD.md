@@ -1176,3 +1176,11 @@
 ### Approved Inbox confirmation tags (2026-11-08)
 
 Inbox confirmation includes optional draft tags before final save: a bounded recent-created reusable selection, full search, and an empty-catalogue add action, with no automatic selection. Transaction, new tags and memberships commit atomically; cancellation writes none and failure retains the draft for retry. Success returns directly to Inbox without an automatic post-save tag panel. Existing Finance actions retain explicit later editing. See [tagging evidence](../TAGGING_VERIFICATION.md).
+
+<div dir="rtl" lang="fa">
+
+### رنگ خودکار هشتگ — تصمیم کاربر ۲۰۲۶-۱۱-۱۱
+
+هر نام هشتگ رنگ هویتی خودکار دارد و در تمام نمایش‌ها با همان هویت دیده می‌شود؛ تون خوانای روشن/تیره مستقل از پالت ظاهر است. هویت از نام نرمال‌شده بازسازی می‌شود و تغییر نام سراسری رنگ نام تازه را می‌گیرد. نام و علامت هشتگ و تیک انتخاب حفظ می‌شوند؛ هیچ اثر مالی، عضویت یا تغییر قالب پشتیبانی ایجاد نمی‌شود. محدودیت فضای رنگ و پذیرش مستقل در [قرارداد هشتگ](../TAGGING_VERIFICATION.md) ثبت شده‌اند.
+
+</div>
