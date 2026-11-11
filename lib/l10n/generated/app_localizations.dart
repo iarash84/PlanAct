@@ -94,6 +94,24 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ همه در تعیین ارتباط'**
+  String get todayRelationshipViewAll;
+
+  /// تاریخ واقعی تراکنش به جلالی در پیش‌نمایش تعیین ارتباط امروز؛ بدون حدس تاریخ مفقود.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ تراکنش: {date}'**
+  String todayRelationshipDate(String date);
+
+  /// بازکردن صندوق بررسی کامل از پیش‌نمایش حداکثر سه تراکنش در صفحهٔ امروز.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ همه در صندوق بررسی'**
+  String get todayInboxViewAll;
+
   /// Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.
   ///
   /// In fa, this message translates to:
@@ -8524,6 +8542,30 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'پیام‌های قدیمی‌تر'**
   String get smsOlderMessages;
+
+  /// رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ قبل'**
+  String get financeTransactionPreviousPage;
+
+  /// رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ بعد'**
+  String get financeTransactionNextPage;
+
+  /// بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}'**
+  String financeTransactionPageRange(
+    String start,
+    String end,
+    String total,
+    String page,
+    String pages,
+  );
 }
 
 class _AppLocalizationsDelegate

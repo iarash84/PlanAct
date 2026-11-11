@@ -10,6 +10,17 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get todayRelationshipViewAll => 'مشاهدهٔ همه در تعیین ارتباط';
+
+  @override
+  String todayRelationshipDate(String date) {
+    return 'تاریخ تراکنش: $date';
+  }
+
+  @override
+  String get todayInboxViewAll => 'مشاهدهٔ همه در صندوق بررسی';
+
+  @override
   String reportsTransactionMetadata(String date, String type, String account) {
     return '$date · $type\n$account';
   }
@@ -5073,4 +5084,21 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get smsOlderMessages => 'پیام‌های قدیمی‌تر';
+
+  @override
+  String get financeTransactionPreviousPage => 'صفحهٔ قبل';
+
+  @override
+  String get financeTransactionNextPage => 'صفحهٔ بعد';
+
+  @override
+  String financeTransactionPageRange(
+    String start,
+    String end,
+    String total,
+    String page,
+    String pages,
+  ) {
+    return 'تراکنش $start تا $end از $total؛ صفحهٔ $page از $pages';
+  }
 }

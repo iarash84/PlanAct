@@ -4,6 +4,14 @@ This file is the repository-level execution contract for human developers and AI
 It defines **how PlanAct must be implemented**, while `docs/product/PRD.md` defines **what product behavior must exist and why**.
 Read both files before changing product behavior. Read `docs/DESIGN_SYSTEM.md` before meaningful presentation or design-system work. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.
 
+## Project documentation language — approved decision 2026-11-11
+
+All new documentation and explanatory sections added to or rewritten in existing documents must use fluent, readable, natural Persian. Existing English text does not authorize new English explanations. This rule covers acceptance contracts, implementation plans, architecture decisions, test and verification reports, limitations, and release notes. Headings and explanations must be Persian, with readable right-to-left layout.
+
+**Explicit exception: `AGENTS.md` must be maintained in English, including new and rewritten instructions.** This exception does not extend to other project documents; the PRD and feature verification records remain subject to the Persian documentation rule.
+
+File names and paths, code and interface identifiers, executable commands, official technology names, quotations, and raw tool output may retain their original form; surrounding explanations must follow the document's required language. Translation must preserve technical meaning, evidence, limitations, and acceptance status. This policy aligns with the documentation-language section in the [PRD](docs/product/PRD.md) and does not authorize broad translation or rewriting of unrelated legacy documentation.
+
 ## 1. Product mission
 
 The product answers three questions reliably:
@@ -1043,3 +1051,7 @@ Optional card/IR IBAN/account identifiers are validated strings normalized throu
 ## Approved Inbox tag confirmation (2026-11-08)
 
 Optional Inbox tags are draft selections before final confirmation, never an automatic post-save editor. Commit the transaction, new reusable tags and memberships in the existing fresh-admitted SQLite transaction. Cancellation writes none; failed saving retains form/tag choices. Preserve Inbox evidence/revision/currency/account validation and the saved-ID relationship snackbar. Finance later editing remains explicit. See [tagging verification](docs/TAGGING_VERIFICATION.md).
+
+## Automatic tag identity colors (2026-11-11)
+
+All tag-name presentation must reuse the shared tag badge/summary and centralized identity color roles. Derive colors deterministically from the existing normalized label, independent of runtime hash, list order and theme preset; renaming derives the new name identity. Keep brightness-specific readable foreground/container pairs, textual identity and explicit selection semantics. This is a rebuildable presentation projection, not a new mutable source of truth or status color. Finite colors cannot guarantee unlimited perceptual uniqueness. See docs/TAGGING_VERIFICATION.md.

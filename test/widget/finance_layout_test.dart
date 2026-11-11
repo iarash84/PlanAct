@@ -126,6 +126,20 @@ void main() {
                     .value,
                 AccountEntryType.expense,
               );
+              if (count > 20) {
+                final nextPage = find
+                    .widgetWithText(OutlinedButton, 'صفحهٔ بعد')
+                    .first;
+                await tester.scrollUntilVisible(
+                  find.text('آخرین تراکنش‌ها'),
+                  400,
+                  scrollable: scrollable,
+                );
+                await tester.ensureVisible(nextPage);
+                await tester.pumpAndSettle();
+                await tester.tap(nextPage);
+                await tester.pumpAndSettle();
+              }
               // Reach the actual list end, rather than ensureVisible on a
               // control that could still be hit-tested behind a shell FAB.
               for (var i = 0; i < 100; i++) {
@@ -143,6 +157,8 @@ void main() {
                     matching: find.byType(Card),
                   )
                   .first;
+              await tester.ensureVisible(row);
+              await tester.pumpAndSettle();
               final menu = find.descendant(
                 of: row,
                 matching: find.byTooltip('عملیات تراکنش'),

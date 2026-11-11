@@ -73,6 +73,9 @@ class AttentionItem {
     this.occurredAt,
     this.accountName,
     this.description,
+    this.inboxDraft,
+    this.bankName,
+    this.tags = const [],
   });
 
   final String id;
@@ -85,6 +88,9 @@ class AttentionItem {
   final DateTime? occurredAt;
   final String? accountName;
   final String? description;
+  final TransactionDraft? inboxDraft;
+  final String? bankName;
+  final List<String> tags;
 
   AttentionAction get action => reason.action;
 
@@ -185,6 +191,7 @@ class AttentionEngine {
     required Iterable<AccountEntry> entries,
     required Iterable<FinancialAccount> accounts,
     Iterable<RelationshipReviewEntry> reviewEntries = const [],
+    Map<StableId, List<String>> transactionTags = const {},
   }) {
     final dashboard = build(
       now: now,
@@ -196,6 +203,7 @@ class AttentionEngine {
       entries: entries,
       accounts: accounts,
       reviewEntries: reviewEntries,
+      transactionTags: transactionTags,
     );
     final byCommitment = {for (final item in commitments) item.id: item};
     final occurrenceById = <String, Occurrence>{};
@@ -310,6 +318,7 @@ class AttentionEngine {
     required Iterable<AccountEntry> entries,
     required Iterable<FinancialAccount> accounts,
     Iterable<RelationshipReviewEntry> reviewEntries = const [],
+    Map<StableId, List<String>> transactionTags = const {},
   }) {
     final activeCommitments = commitments.where(
       (item) => item.status != CommitmentStatus.archived,
@@ -426,9 +435,15 @@ class AttentionEngine {
           (item) => AttentionItem(
             id: 'inbox:${item.id.value}',
             reason: AttentionReason.inboxReview,
-            title: item.draft.type.isEmpty
-                ? PersianCopy.attentionEngineInboxTitle
-                : item.draft.type,
+            title: switch (item.draft.direction) {
+              TransactionDirection.incoming =>
+                PersianCopy.transactionDirectionAccountEntryTypeIncome,
+              TransactionDirection.outgoing =>
+                PersianCopy.transactionDirectionAccountEntryTypeExpense,
+              TransactionDirection.unknown =>
+                PersianCopy.inboxPageTransactionDirectionUnknown,
+            },
+            inboxDraft: item.draft,
             explanation: PersianCopy.attentionEngineInboxExplanation,
             urgency: 70,
             amountMinorUnits: item.draft.amount.minorUnits,
@@ -467,9 +482,7 @@ class AttentionEngine {
       unmatched.add(entry);
       reviews[entry.id] = review;
     }
-    final accountNames = {
-      for (final account in accounts) account.id: account.name,
-    };
+    final accountsById = {for (final account in accounts) account.id: account};
     for (final entry in unmatched) {
       attention.add(
         AttentionItem(
@@ -481,7 +494,9 @@ class AttentionEngine {
           amountMinorUnits: reviews[entry.id]!.remainderMinorUnits,
           currency: entry.amount.currency,
           occurredAt: entry.occurredAt,
-          accountName: accountNames[entry.accountId],
+          accountName: accountsById[entry.accountId]?.name,
+          bankName: accountsById[entry.accountId]?.bank?.label,
+          tags: List.unmodifiable(transactionTags[entry.id] ?? const []),
           description: entry.note ?? entry.category,
         ),
       );

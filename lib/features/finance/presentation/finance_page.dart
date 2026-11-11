@@ -115,6 +115,9 @@ class FinancePageState extends State<FinancePage> {
   late final FinanceUseCases _finance = FinanceUseCases(widget.repository);
   List<FinancialAccount> _accounts = const [];
   List<AccountEntry> _entries = const [];
+  static const _entriesPerPage = 20;
+  int _entryPage = 0;
+  final _transactionsKey = GlobalKey();
   bool _loading = true;
   String? _loadError;
   bool _hasLoaded = false;
@@ -173,6 +176,11 @@ class FinancePageState extends State<FinancePage> {
           _tagMatches = matches;
           _accounts = accounts;
           _entries = entries;
+          final count = _filteredEntries.length;
+          _entryPage = _entryPage.clamp(
+            0,
+            count == 0 ? 0 : (count - 1) ~/ _entriesPerPage,
+          );
           _hasLoaded = true;
           _loadError = null;
           _loading = false;
@@ -206,6 +214,7 @@ class FinancePageState extends State<FinancePage> {
         setState(() {
           _tagFilter = id;
           _tagMatches = matches;
+          _entryPage = 0;
         });
       }
     } catch (_) {
@@ -674,16 +683,73 @@ class FinancePageState extends State<FinancePage> {
                   classification(entry).category == _categoryFilter,
             )
             .toList()
-          ..sort((a, b) => b.occurredAt.compareTo(a.occurredAt));
+          ..sort((a, b) {
+            final byTime = b.occurredAt.compareTo(a.occurredAt);
+            return byTime != 0 ? byTime : b.id.value.compareTo(a.id.value);
+          });
     return entries;
   }
 
-  Widget _buildSummary() {
+  void _changeEntryPage(int page) {
+    setState(() => _entryPage = page);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _transactionsKey.currentContext;
+      if (mounted && target != null) {
+        Scrollable.ensureVisible(target);
+      }
+    });
+  }
+
+  Widget _buildPagination(int count, int page) {
+    final pages = (count + _entriesPerPage - 1) ~/ _entriesPerPage;
+    final start = page * _entriesPerPage + 1;
+    final end = ((page + 1) * _entriesPerPage).clamp(0, count);
+    final l10n = planActL10n(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: PlanActSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              l10n.financeTransactionPageRange(
+                PersianNumbers.format('$start'),
+                PersianNumbers.format('$end'),
+                PersianNumbers.format('$count'),
+                PersianNumbers.format('${page + 1}'),
+                PersianNumbers.format('$pages'),
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: PlanActSpacing.sm,
+            children: [
+              OutlinedButton.icon(
+                onPressed: page == 0 ? null : () => _changeEntryPage(page - 1),
+                icon: const Icon(Icons.arrow_back),
+                label: Text(l10n.financeTransactionPreviousPage),
+              ),
+              OutlinedButton.icon(
+                onPressed: page + 1 >= pages
+                    ? null
+                    : () => _changeEntryPage(page + 1),
+                icon: const Icon(Icons.arrow_forward),
+                label: Text(l10n.financeTransactionNextPage),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummary(List<AccountEntry> filteredEntries) {
     final currency = _accounts.isEmpty
         ? CurrencyCodes.irr
         : _accounts.first.currency;
     final summary = cashFlowSummary(
-      _filteredEntries.where((entry) => entry.amount.currency == currency),
+      filteredEntries.where((entry) => entry.amount.currency == currency),
       currency,
       sourceEntries: _entries,
     );
@@ -763,7 +829,10 @@ class FinancePageState extends State<FinancePage> {
               child: Text(PersianCopy.financePageBuildFiltersItems3),
             ),
           ],
-          onChanged: (value) => setState(() => _typeFilter = value),
+          onChanged: (value) => setState(() {
+            _typeFilter = value;
+            _entryPage = 0;
+          }),
         ),
         DropdownButton<String?>(
           isExpanded: true,
@@ -779,7 +848,10 @@ class FinancePageState extends State<FinancePage> {
               (item) => DropdownMenuItem(value: item, child: Text(item)),
             ),
           ],
-          onChanged: (value) => setState(() => _categoryFilter = value),
+          onChanged: (value) => setState(() {
+            _categoryFilter = value;
+            _entryPage = 0;
+          }),
         ),
       ],
     );
@@ -787,6 +859,18 @@ class FinancePageState extends State<FinancePage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredEntries = _filteredEntries;
+    final lastPage = filteredEntries.isEmpty
+        ? 0
+        : (filteredEntries.length - 1) ~/ _entriesPerPage;
+    final page = _entryPage.clamp(0, lastPage);
+    final visibleEntries = widget.focusedRecordId == null
+        ? filteredEntries.skip(page * _entriesPerPage).take(_entriesPerPage)
+        : filteredEntries.where(
+            (entry) =>
+                widget.focusedKind == FinanceRecordKind.entry &&
+                entry.id.value == widget.focusedRecordId,
+          );
     return PopScope(
       canPop:
           widget.focusedRecordId == null ||
@@ -838,7 +922,7 @@ class FinancePageState extends State<FinancePage> {
                         ),
                       ),
                     if (widget.focusedRecordId == null) ...[
-                      _buildSummary(),
+                      _buildSummary(filteredEntries),
                       const SizedBox(height: 12),
                       _buildFilters(),
                       if (widget.tagRepository != null) ...[
@@ -979,113 +1063,134 @@ class FinancePageState extends State<FinancePage> {
                         ),
                       ),
                     const SizedBox(height: 20),
-                    if (widget.focusedRecordId == null)
-                      Text(
-                        planActL10n(context).financePageBuildChildren3,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    if ((widget.focusedRecordId == null &&
-                            _filteredEntries.isEmpty) ||
-                        (widget.focusedRecordId != null &&
-                            (widget.focusedKind == FinanceRecordKind.account
-                                ? !_accounts.any(
-                                    (a) => a.id.value == widget.focusedRecordId,
-                                  )
-                                : !_entries.any(
-                                    (e) => e.id.value == widget.focusedRecordId,
-                                  ))))
-                      Card(
-                        child: ListTile(
-                          title: Text(
-                            planActL10n(context).financePageBuildTitle4,
+                    Column(
+                      key: _transactionsKey,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (widget.focusedRecordId == null)
+                          Text(
+                            planActL10n(context).financePageBuildChildren3,
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
-                        ),
-                      ),
-                    for (final entry in _filteredEntries.where(
-                      (e) =>
-                          widget.focusedRecordId == null ||
-                          (widget.focusedKind == FinanceRecordKind.entry &&
-                              e.id.value == widget.focusedRecordId),
-                    ))
-                      Card(
-                        margin: const EdgeInsets.only(
-                          bottom: PlanActSpacing.md,
-                        ),
-                        elevation: 0,
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: PlanActRadius.card,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(PlanActSpacing.lg),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                        if (widget.focusedRecordId == null &&
+                            filteredEntries.isNotEmpty)
+                          _buildPagination(filteredEntries.length, page),
+                        if ((widget.focusedRecordId == null &&
+                                filteredEntries.isEmpty) ||
+                            (widget.focusedRecordId != null &&
+                                (widget.focusedKind == FinanceRecordKind.account
+                                    ? !_accounts.any(
+                                        (a) =>
+                                            a.id.value ==
+                                            widget.focusedRecordId,
+                                      )
+                                    : !_entries.any(
+                                        (e) =>
+                                            e.id.value ==
+                                            widget.focusedRecordId,
+                                      ))))
+                          Card(
+                            child: ListTile(
+                              title: Text(
+                                planActL10n(context).financePageBuildTitle4,
+                              ),
+                            ),
+                          ),
+                        for (final entry in visibleEntries)
+                          Card(
+                            margin: const EdgeInsets.only(
+                              bottom: PlanActSpacing.md,
+                            ),
+                            elevation: 0,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainer,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: PlanActRadius.card,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(PlanActSpacing.lg),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  TransactionDirectionIcon(entry: entry),
-                                  _entryOperations(entry),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TransactionDirectionIcon(entry: entry),
+                                      _entryOperations(entry),
+                                    ],
+                                  ),
+                                  Text(
+                                    transactionLabel(entry),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
+                                  Text(
+                                    _money(entry.amount),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
+                                  const SizedBox(height: PlanActSpacing.sm),
+                                  DefaultTextStyle.merge(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          [
+                                            if (widget.focusedRecordId != null)
+                                              _accounts
+                                                      .where(
+                                                        (a) =>
+                                                            a.id ==
+                                                            entry.accountId,
+                                                      )
+                                                      .firstOrNull
+                                                      ?.name ??
+                                                  '',
+                                            PersianDateFormatter.date(
+                                              JalaliDate.fromDateTime(
+                                                entry.occurredAt.toLocal(),
+                                              ),
+                                            ),
+                                            PersianNumbers.format(
+                                              '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                            ),
+                                            if (entry.category != null)
+                                              entry.category!,
+                                            entry.note ??
+                                                planActL10n(context)
+                                                    .financePageBuildChildren4,
+                                          ].join(' · '),
+                                        ),
+                                        TagLabels(
+                                          labels: _tags
+                                              .where(
+                                                (tag) =>
+                                                    _entryTags[entry.id.value]
+                                                        ?.contains(tag.id) ??
+                                                    false,
+                                              )
+                                              .map((tag) => tag.label),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
-                              Text(
-                                transactionLabel(entry),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                _money(entry.amount),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: PlanActSpacing.sm),
-                              DefaultTextStyle.merge(
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      [
-                                        if (widget.focusedRecordId != null)
-                                          _accounts
-                                                  .where(
-                                                    (a) =>
-                                                        a.id == entry.accountId,
-                                                  )
-                                                  .firstOrNull
-                                                  ?.name ??
-                                              '',
-                                        PersianDateFormatter.date(
-                                          JalaliDate.fromDateTime(
-                                            entry.occurredAt.toLocal(),
-                                          ),
-                                        ),
-                                        PersianNumbers.format(
-                                          '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                                        ),
-                                        if (entry.category != null)
-                                          entry.category!,
-                                        entry.note ??
-                                            planActL10n(context)
-                                                .financePageBuildChildren4,
-                                      ].join(' · '),
-                                    ),
-                                    TagLabels(
-                                      labels: _tags
-                                          .where(
-                                            (tag) =>
-                                                _entryTags[entry.id.value]
-                                                    ?.contains(tag.id) ??
-                                                false,
-                                          )
-                                          .map((tag) => tag.label),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
+                        if (widget.focusedRecordId == null &&
+                            filteredEntries.length > _entriesPerPage)
+                          _buildPagination(filteredEntries.length, page),
+                      ],
+                    ),
                   ],
                 ),
               ),

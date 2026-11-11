@@ -7,6 +7,7 @@ import 'package:planact/features/classification/application/tag_repository.dart'
 import 'package:planact/features/classification/domain/tag.dart';
 
 import 'tag_selection.dart';
+import 'tag_badge.dart';
 
 /// Shared read-only metadata for commitment and financial surfaces.
 class TagLabels extends StatelessWidget {
@@ -17,7 +18,7 @@ class TagLabels extends StatelessWidget {
   Widget build(BuildContext context) => Wrap(
     spacing: PlanActSpacing.sm,
     runSpacing: PlanActSpacing.xs,
-    children: [for (final label in labels) Chip(label: Text('#$label'))],
+    children: [for (final label in labels) TagBadge(label: label)],
   );
 }
 
@@ -143,8 +144,9 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
                 for (final label in widget.selected)
                   normalizeTagKey(label): label,
               }.values)
-                FilterChip(
-                  label: Text('#$label'),
+                TagBadge(
+                  label: label,
+                  selectable: true,
                   selected: widget.selected.any(
                     (value) => normalizeTagKey(value) == normalizeTagKey(label),
                   ),
@@ -409,10 +411,11 @@ class _TagPanelState extends State<_TagPanel> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(PersianCopy.tagControlsConfirmedTitle),
-        content: Text(
-          PersianCopy.tagControlsConfirmedContent(
+        content: TagSummaryText(
+          text: PersianCopy.tagControlsConfirmedContent(
             (tag.displayLabel).toString(),
           ),
+          labels: [tag.label],
         ),
         actions: [
           TextButton(
@@ -514,7 +517,10 @@ class _TagPanelState extends State<_TagPanel> {
           Text(planActL10n(context).tagControlsContentChildren4),
         for (final tag in _tags)
           ListTile(
-            title: Text(tag.displayLabel),
+            title: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TagBadge(label: tag.label),
+            ),
             trailing: Wrap(
               children: [
                 IconButton(
