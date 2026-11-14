@@ -1,6 +1,7 @@
 import 'package:planact/features/calendar/domain/calendar_visibility.dart';
 import 'package:planact/features/calendar/domain/calendar_transaction.dart';
 import 'package:planact/features/calendar/presentation/calendar_transaction_tile.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/notes/domain/calendar_note.dart';
 import 'package:planact/features/notes/presentation/calendar_note_tile.dart';
@@ -999,17 +1000,42 @@ class _CalendarDay extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            for (final label in financialLabels.take(
+                            for (final item in transactions.take(
                               math.max(0, 2 - markers.length),
                             ))
-                              SizedBox(
-                                height: markerHeight + 2,
+                              Container(
+                                key: ValueKey(
+                                  'month-transaction-${date.day}-${item.entry.id.value}',
+                                ),
+                                height: markerHeight,
+                                margin: const EdgeInsets.only(top: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: PlanActRadius.chip,
+                                  color: transactionDirectionColors(
+                                    context,
+                                    item.entry,
+                                  ).container,
+                                  border: Border.all(
+                                    color: transactionDirectionColors(
+                                      context,
+                                      item.entry,
+                                    ).foreground,
+                                  ),
+                                ),
                                 child: Text(
-                                  label,
+                                  calendarTransactionLabel(context, item),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
-                                  style: theme.textTheme.labelSmall,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: transactionDirectionColors(
+                                      context,
+                                      item.entry,
+                                    ).foreground,
+                                  ),
                                 ),
                               ),
                             if (markerCount > 2)

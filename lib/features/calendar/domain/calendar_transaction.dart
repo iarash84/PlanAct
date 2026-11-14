@@ -1,4 +1,5 @@
 import 'package:planact/features/calendar/domain/calendar_visibility.dart';
+import 'package:planact/features/classification/domain/tag.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
@@ -9,7 +10,11 @@ final class CalendarTransaction {
     required this.entry,
     required this.kind,
     required this.reversed,
+    this.accounts = const [],
+    this.tags = const [],
   });
+  final List<FinancialAccount> accounts;
+  final List<Tag> tags;
   final AccountEntry entry;
   final CalendarTransactionKind kind;
   final bool reversed;
