@@ -5205,4 +5205,33 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get calendarTransactionReversed => 'برگشت‌خورده؛ فقط تاریخچه';
+
+  @override
+  String get financeAccountsTitle => 'حساب‌ها';
+
+  @override
+  String get financeAccountsSearch => 'جست‌وجوی نام یا بانک حساب';
+
+  @override
+  String get financeAccountsShowArchived => 'نمایش حساب‌های بایگانی‌شده';
+
+  @override
+  String get financeAccountsArchived => 'بایگانی‌شده';
+
+  @override
+  String get financeAccountsNoResults => 'حسابی برای نمایش وجود ندارد.';
+
+  @override
+  String get financeAccountsAll => 'همهٔ حساب‌ها';
+
+  @override
+  String get financeAccountsFilter => 'حساب تراکنش‌ها';
+
+  @override
+  String get financeAccountTransactions => 'مشاهدهٔ تراکنش‌های این حساب';
+
+  @override
+  String financeAccountsCount(String count) {
+    return '$count حساب';
+  }
 }

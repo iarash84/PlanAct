@@ -8745,6 +8745,60 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'برگشت‌خورده؛ فقط تاریخچه'**
   String get calendarTransactionReversed;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌ها'**
+  String get financeAccountsTitle;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'جست‌وجوی نام یا بانک حساب'**
+  String get financeAccountsSearch;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش حساب‌های بایگانی‌شده'**
+  String get financeAccountsShowArchived;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'بایگانی‌شده'**
+  String get financeAccountsArchived;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'حسابی برای نمایش وجود ندارد.'**
+  String get financeAccountsNoResults;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ حساب‌ها'**
+  String get financeAccountsAll;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب تراکنش‌ها'**
+  String get financeAccountsFilter;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ تراکنش‌های این حساب'**
+  String get financeAccountTransactions;
+
+  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  ///
+  /// In fa, this message translates to:
+  /// **'{count} حساب'**
+  String financeAccountsCount(String count);
 }
 
 class _AppLocalizationsDelegate

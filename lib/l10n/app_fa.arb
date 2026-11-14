@@ -8080,5 +8080,47 @@
   "calendarTransactionReversed": "برگشت‌خورده؛ فقط تاریخچه",
   "@calendarTransactionReversed": {
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "financeAccountsTitle": "حساب‌ها",
+  "@financeAccountsTitle": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsSearch": "جست‌وجوی نام یا بانک حساب",
+  "@financeAccountsSearch": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsShowArchived": "نمایش حساب‌های بایگانی‌شده",
+  "@financeAccountsShowArchived": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsArchived": "بایگانی‌شده",
+  "@financeAccountsArchived": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsNoResults": "حسابی برای نمایش وجود ندارد.",
+  "@financeAccountsNoResults": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsAll": "همهٔ حساب‌ها",
+  "@financeAccountsAll": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsFilter": "حساب تراکنش‌ها",
+  "@financeAccountsFilter": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountTransactions": "مشاهدهٔ تراکنش‌های این حساب",
+  "@financeAccountTransactions": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
+  },
+  "financeAccountsCount": "{count} حساب",
+  "@financeAccountsCount": {
+    "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "example": "۱۲"
+      }
+    }
   }
 }

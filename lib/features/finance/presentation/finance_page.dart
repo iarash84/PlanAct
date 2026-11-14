@@ -1,4 +1,5 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/finance/presentation/accounts_management_view.dart';
 import 'package:planact/features/finance/domain/bank_balance.dart';
 import 'package:planact/features/finance/presentation/bank_balance_panel.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
@@ -82,6 +83,8 @@ class FinancePage extends StatefulWidget {
     this.embedded = false,
     this.bottomContentPadding = 0,
     this.showArchivedAccounts = false,
+    this.manageAccounts = false,
+    this.initialAccountFilter,
     this.focusedRecordId,
     this.focusedKind = FinanceRecordKind.entry,
   });
@@ -94,6 +97,8 @@ class FinancePage extends StatefulWidget {
   final bool embedded;
   final double bottomContentPadding;
   final bool showArchivedAccounts;
+  final bool manageAccounts;
+  final StableId? initialAccountFilter;
 
   /// Search opens the existing controls for exactly one durable record.
   final String? focusedRecordId;
@@ -127,6 +132,7 @@ class FinancePageState extends State<FinancePage> {
   List<Tag> _tags = [];
   Map<String, Set<StableId>> _entryTags = {};
   StableId? _tagFilter;
+  late StableId? _accountFilter = widget.initialAccountFilter;
   Set<String>? _tagMatches;
   bool _filterBusy = false;
   String? _categoryFilter;
@@ -186,6 +192,9 @@ class FinancePageState extends State<FinancePage> {
           _tagFilter = selected;
           _tagMatches = matches;
           _accounts = accounts;
+          if (!accounts.any((account) => account.id == _accountFilter)) {
+            _accountFilter = null;
+          }
           _bankBalances = bankBalances;
           _entries = entries;
           final count = _filteredEntries.length;
@@ -261,6 +270,90 @@ class FinancePageState extends State<FinancePage> {
       ),
     ),
   );
+
+  Future<void> _openFinanceRoute({
+    bool manageAccounts = false,
+    FinancialAccount? account,
+    bool transactions = false,
+  }) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => FinancePage(
+          repository: widget.repository,
+          expectationRepository: widget.expectationRepository,
+          tagRepository: widget.tagRepository,
+          onTagsChanged: widget.onTagsChanged,
+          onDataChanged: widget.onDataChanged,
+          onDetermineRelationship: widget.onDetermineRelationship,
+          showArchivedAccounts: widget.showArchivedAccounts,
+          manageAccounts: manageAccounts,
+          focusedRecordId: transactions ? null : account?.id.value,
+          focusedKind: FinanceRecordKind.account,
+          initialAccountFilter: transactions ? account?.id : null,
+        ),
+      ),
+    );
+    if (mounted) await _refresh();
+  }
+
+  Future<void> _openAccountDetails(FinancialAccount account) =>
+      _openFinanceRoute(account: account);
+
+  Future<void> _openAccountTransactions(FinancialAccount account) =>
+      _openFinanceRoute(account: account, transactions: true);
+
+  Widget _buildAccountsEntry() {
+    final count = _accounts
+        .where(
+          (account) =>
+              widget.showArchivedAccounts ||
+              account.status == FinancialAccountStatus.active,
+        )
+        .length;
+    final l10n = planActL10n(context);
+    return Card(
+      child: ListTile(
+        key: const ValueKey('finance-accounts-entry'),
+        leading: const Icon(Icons.account_balance_wallet_outlined),
+        title: Text(l10n.financeAccountsTitle),
+        subtitle: Text(
+          l10n.financeAccountsCount(PersianNumbers.format('$count')),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => _openFinanceRoute(manageAccounts: true),
+      ),
+    );
+  }
+
+  Widget _buildAccountFilter() {
+    final l10n = planActL10n(context);
+    return DropdownButtonFormField<StableId>(
+      key: ValueKey('finance-account-filter:${_accountFilter?.value}'),
+      initialValue: _accountFilter,
+      isExpanded: true,
+      itemHeight: null,
+      decoration: InputDecoration(labelText: l10n.financeAccountsFilter),
+      hint: Text(l10n.financeAccountsAll),
+      items: [
+        DropdownMenuItem(value: null, child: Text(l10n.financeAccountsAll)),
+        for (final account in _accounts)
+          DropdownMenuItem(
+            value: account.id,
+            child: Text(
+              [
+                account.name,
+                if (account.status == FinancialAccountStatus.archived)
+                  l10n.financeAccountsArchived,
+              ].join(' · '),
+            ),
+          ),
+      ],
+      onChanged: (id) => setState(() {
+        _accountFilter = id;
+        _entryPage = 0;
+      }),
+    );
+  }
 
   Future<void> _editAccount(FinancialAccount account) =>
       _accountForm(account: account);
@@ -678,6 +771,10 @@ class FinancePageState extends State<FinancePage> {
         _entries
             .where(
               (entry) =>
+                  _accountFilter == null || entry.accountId == _accountFilter,
+            )
+            .where(
+              (entry) =>
                   _tagMatches == null || _tagMatches!.contains(entry.id.value),
             )
             .where(
@@ -753,9 +850,12 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Widget _buildSummary(List<AccountEntry> filteredEntries) {
-    final currency = _accounts.isEmpty
-        ? CurrencyCodes.irr
-        : _accounts.first.currency;
+    final selectedAccount = _accounts
+        .where((account) => account.id == _accountFilter)
+        .firstOrNull;
+    final currency =
+        selectedAccount?.currency ??
+        (_accounts.isEmpty ? CurrencyCodes.irr : _accounts.first.currency);
     final summary = cashFlowSummary(
       filteredEntries.where((entry) => entry.amount.currency == currency),
       currency,
@@ -886,7 +986,13 @@ class FinancePageState extends State<FinancePage> {
       child: Scaffold(
         appBar: widget.embedded
             ? null
-            : AppBar(title: Text(planActL10n(context).navigationFinance)),
+            : AppBar(
+                title: Text(
+                  widget.manageAccounts
+                      ? planActL10n(context).financeAccountsTitle
+                      : planActL10n(context).navigationFinance,
+                ),
+              ),
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : !_hasLoaded
@@ -907,315 +1013,343 @@ class FinancePageState extends State<FinancePage> {
               )
             : RefreshIndicator(
                 onRefresh: _refresh,
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    PlanActSpacing.lg,
-                    PlanActSpacing.lg,
-                    PlanActSpacing.lg,
-                    PlanActSpacing.lg + widget.bottomContentPadding,
-                  ),
-                  children: [
-                    if (_loadError != null)
-                      Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.warning_amber_outlined),
-                          title: Text(
-                            planActL10n(context).financePageBuildTitle2,
-                          ),
-                          subtitle: Text(_loadError!),
-                          trailing: TextButton(
-                            onPressed: _refresh,
-                            child: Text(planActL10n(context).commonRetry),
-                          ),
+                child: widget.manageAccounts
+                    ? AccountsManagementView(
+                        accounts: _accounts,
+                        loadError: _loadError,
+                        onRetry: _refresh,
+                        entries: _entries,
+                        showArchivedInitially: widget.showArchivedAccounts,
+                        onOpen: _openAccountDetails,
+                        onCreate: _addAccount,
+                        onReorder: _accounts.length < 2
+                            ? null
+                            : _reorderAccounts,
+                      )
+                    : ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(
+                          PlanActSpacing.lg,
+                          PlanActSpacing.lg,
+                          PlanActSpacing.lg,
+                          PlanActSpacing.lg + widget.bottomContentPadding,
                         ),
-                      ),
-                    if (widget.focusedRecordId == null) ...[
-                      _buildSummary(filteredEntries),
-                      const SizedBox(height: 12),
-                      _buildFilters(),
-                      if (widget.tagRepository != null) ...[
-                        if (_filterBusy) const LinearProgressIndicator(),
-                        TagFilter(
-                          tags: _tags,
-                          selected: _tagFilter,
-                          enabled: !_filterBusy,
-                          onChanged: _filterTag,
-                        ),
-                        TextButton(
-                          onPressed: () => showTagManager(
-                            context,
-                            repository: widget.tagRepository!,
-                            onChanged: _tagsChanged,
-                          ),
-                          child: Text(
-                            planActL10n(context).tagControlsContentChildren,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              planActL10n(context).financePageBuildChildren2,
-                              style: Theme.of(context).textTheme.titleLarge,
+                          if (_loadError != null)
+                            Card(
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.warning_amber_outlined,
+                                ),
+                                title: Text(
+                                  planActL10n(context).financePageBuildTitle2,
+                                ),
+                                subtitle: Text(_loadError!),
+                                trailing: TextButton(
+                                  onPressed: _refresh,
+                                  child: Text(planActL10n(context).commonRetry),
+                                ),
+                              ),
                             ),
-                          ),
-                          Wrap(
-                            spacing: 4,
-                            children: [
-                              IconButton(
-                                onPressed: _addIncome,
-                                tooltip: planActL10n(context)
-                                    .financePageBuildTooltip,
-                                icon: const Icon(Icons.add_circle_outline),
+                          if (widget.focusedRecordId == null) ...[
+                            _buildAccountsEntry(),
+                            const SizedBox(height: PlanActSpacing.lg),
+                            _buildSummary(filteredEntries),
+                            const SizedBox(height: PlanActSpacing.lg),
+                            _buildAccountFilter(),
+                            const SizedBox(height: PlanActSpacing.lg),
+                            _buildFilters(),
+                            if (widget.tagRepository != null) ...[
+                              if (_filterBusy) const LinearProgressIndicator(),
+                              TagFilter(
+                                tags: _tags,
+                                selected: _tagFilter,
+                                enabled: !_filterBusy,
+                                onChanged: _filterTag,
                               ),
-                              IconButton(
-                                onPressed: _addAccount,
-                                tooltip: planActL10n(context)
-                                    .accountFormSheetBuildTitle,
-                                icon: const Icon(Icons.add_card),
-                              ),
-                              IconButton(
-                                onPressed: _accounts.length < 2
-                                    ? null
-                                    : _reorderAccounts,
-                                tooltip: planActL10n(context)
-                                    .financePageReorderAccounts,
-                                icon: const Icon(Icons.swap_vert),
+                              TextButton(
+                                onPressed: () => showTagManager(
+                                  context,
+                                  repository: widget.tagRepository!,
+                                  onChanged: _tagsChanged,
+                                ),
+                                child: Text(
+                                  planActL10n(context)
+                                      .tagControlsContentChildren,
+                                ),
                               ),
                             ],
-                          ),
-                        ],
-                      ),
-                    ],
-                    if (_accounts.isEmpty)
-                      Card(
-                        child: ListTile(
-                          title: Text(
-                            planActL10n(context).financePageBuildTitle3,
-                          ),
-                        ),
-                      ),
-                    for (final account in _accounts.where(
-                      (a) =>
-                          widget.focusedRecordId != null &&
-                              widget.focusedKind == FinanceRecordKind.account &&
-                              a.id.value == widget.focusedRecordId ||
-                          widget.focusedRecordId == null &&
-                              (widget.showArchivedAccounts ||
-                                  a.status == FinancialAccountStatus.active),
-                    ))
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: PlanActSpacing.md,
-                        ),
-                        child: AccountInformationCard(
-                          key: ValueKey(account.id),
-                          account: account,
-                          balance: rebuildBalance(account, _entries),
-                          bankBalance: _bankBalances[account.id.value] == null
-                              ? null
-                              : BankBalancePanel(
-                                  snapshot: _bankBalances[account.id.value]!,
-                                  repository:
-                                      widget.repository
-                                          as BankBalanceRepository,
-                                  enabled:
-                                      account.status ==
-                                      FinancialAccountStatus.active,
-                                  onChanged: () async {
-                                    await _refresh();
-                                    widget.onDataChanged?.call();
-                                  },
+                            const SizedBox(height: PlanActSpacing.lg),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton.icon(
+                                onPressed: _addIncome,
+                                icon: const Icon(Icons.add_circle_outline),
+                                label: Text(
+                                  planActL10n(context).financePageBuildTooltip,
                                 ),
-                          operations: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: planActL10n(context)
-                                    .accountFormSheetBuildTitle2,
-                                onPressed: _pendingAccounts.contains(account.id)
-                                    ? null
-                                    : () => _editAccount(account),
-                                icon: const Icon(Icons.edit_outlined),
                               ),
-                              PopupMenuButton<String>(
-                                key: ValueKey(
-                                  'account-menu:${account.id.value}',
+                            ),
+                          ],
+                          if (_accounts.isEmpty)
+                            Card(
+                              child: ListTile(
+                                title: Text(
+                                  planActL10n(context).financePageBuildTitle3,
                                 ),
-                                tooltip:
-                                    account.status ==
-                                        FinancialAccountStatus.active
-                                    ? planActL10n(context)
-                                          .financeArchivedAccountAction
-                                    : planActL10n(context)
-                                          .financeRestoreAccountAction,
-                                enabled: !_pendingAccounts.contains(account.id),
-                                onSelected: (action) {
-                                  if (action == 'delete') {
-                                    _deleteAccount(account);
-                                  } else {
-                                    _changeAccountStatus(account);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'status',
-                                    child: Text(
-                                      account.status ==
+                              ),
+                            ),
+                          for (final account in _accounts.where(
+                            (a) =>
+                                widget.focusedRecordId != null &&
+                                widget.focusedKind ==
+                                    FinanceRecordKind.account &&
+                                a.id.value == widget.focusedRecordId,
+                          ))
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: PlanActSpacing.md,
+                              ),
+                              child: AccountInformationCard(
+                                key: ValueKey(account.id),
+                                account: account,
+                                balance: rebuildBalance(account, _entries),
+                                bankBalance:
+                                    _bankBalances[account.id.value] == null
+                                    ? null
+                                    : BankBalancePanel(
+                                        snapshot:
+                                            _bankBalances[account.id.value]!,
+                                        repository:
+                                            widget.repository
+                                                as BankBalanceRepository,
+                                        enabled:
+                                            account.status ==
+                                            FinancialAccountStatus.active,
+                                        onChanged: () async {
+                                          await _refresh();
+                                          widget.onDataChanged?.call();
+                                        },
+                                      ),
+                                operations: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: planActL10n(context)
+                                          .financeAccountTransactions,
+                                      onPressed: () =>
+                                          _openAccountTransactions(account),
+                                      icon: const Icon(
+                                        Icons.receipt_long_outlined,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: planActL10n(context)
+                                          .accountFormSheetBuildTitle2,
+                                      onPressed:
+                                          _pendingAccounts.contains(account.id)
+                                          ? null
+                                          : () => _editAccount(account),
+                                      icon: const Icon(Icons.edit_outlined),
+                                    ),
+                                    PopupMenuButton<String>(
+                                      key: ValueKey(
+                                        'account-menu:${account.id.value}',
+                                      ),
+                                      tooltip:
+                                          account.status ==
                                               FinancialAccountStatus.active
                                           ? planActL10n(context)
                                                 .financeArchivedAccountAction
                                           : planActL10n(context)
                                                 .financeRestoreAccountAction,
+                                      enabled: !_pendingAccounts.contains(
+                                        account.id,
+                                      ),
+                                      onSelected: (action) {
+                                        if (action == 'delete') {
+                                          _deleteAccount(account);
+                                        } else {
+                                          _changeAccountStatus(account);
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        PopupMenuItem(
+                                          value: 'status',
+                                          child: Text(
+                                            account.status ==
+                                                    FinancialAccountStatus
+                                                        .active
+                                                ? planActL10n(
+                                                    context,
+                                                  ).financeArchivedAccountAction
+                                                : planActL10n(
+                                                    context,
+                                                  ).financeRestoreAccountAction,
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'delete',
+                                          child: Text(
+                                            planActL10n(context)
+                                                .financeDeleteAccountAction,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text(
+                                  ],
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: PlanActSpacing.lg),
+                          Column(
+                            key: _transactionsKey,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (widget.focusedRecordId == null)
+                                Text(
+                                  planActL10n(context)
+                                      .financePageBuildChildren3,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              if (widget.focusedRecordId == null &&
+                                  filteredEntries.isNotEmpty)
+                                _buildPagination(filteredEntries.length, page),
+                              if ((widget.focusedRecordId == null &&
+                                      filteredEntries.isEmpty) ||
+                                  (widget.focusedRecordId != null &&
+                                      (widget.focusedKind ==
+                                              FinanceRecordKind.account
+                                          ? !_accounts.any(
+                                              (a) =>
+                                                  a.id.value ==
+                                                  widget.focusedRecordId,
+                                            )
+                                          : !_entries.any(
+                                              (e) =>
+                                                  e.id.value ==
+                                                  widget.focusedRecordId,
+                                            ))))
+                                Card(
+                                  child: ListTile(
+                                    title: Text(
                                       planActL10n(context)
-                                          .financeDeleteAccountAction,
+                                          .financePageBuildTitle4,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 20),
-                    Column(
-                      key: _transactionsKey,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (widget.focusedRecordId == null)
-                          Text(
-                            planActL10n(context).financePageBuildChildren3,
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        if (widget.focusedRecordId == null &&
-                            filteredEntries.isNotEmpty)
-                          _buildPagination(filteredEntries.length, page),
-                        if ((widget.focusedRecordId == null &&
-                                filteredEntries.isEmpty) ||
-                            (widget.focusedRecordId != null &&
-                                (widget.focusedKind == FinanceRecordKind.account
-                                    ? !_accounts.any(
-                                        (a) =>
-                                            a.id.value ==
-                                            widget.focusedRecordId,
-                                      )
-                                    : !_entries.any(
-                                        (e) =>
-                                            e.id.value ==
-                                            widget.focusedRecordId,
-                                      ))))
-                          Card(
-                            child: ListTile(
-                              title: Text(
-                                planActL10n(context).financePageBuildTitle4,
-                              ),
-                            ),
-                          ),
-                        for (final entry in visibleEntries)
-                          Card(
-                            margin: const EdgeInsets.only(
-                              bottom: PlanActSpacing.md,
-                            ),
-                            elevation: 0,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainer,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: PlanActRadius.card,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(PlanActSpacing.lg),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      TransactionDirectionIcon(entry: entry),
-                                      _entryOperations(entry),
-                                    ],
+                                ),
+                              for (final entry in visibleEntries)
+                                Card(
+                                  margin: const EdgeInsets.only(
+                                    bottom: PlanActSpacing.md,
                                   ),
-                                  Text(
-                                    transactionLabel(entry),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
+                                  elevation: 0,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainer,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: PlanActRadius.card,
                                   ),
-                                  Text(
-                                    _money(entry.amount),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                  const SizedBox(height: PlanActSpacing.sm),
-                                  DefaultTextStyle.merge(
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(
+                                      PlanActSpacing.lg,
+                                    ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          [
-                                            if (widget.focusedRecordId != null)
-                                              _accounts
-                                                      .where(
-                                                        (a) =>
-                                                            a.id ==
-                                                            entry.accountId,
-                                                      )
-                                                      .firstOrNull
-                                                      ?.name ??
-                                                  '',
-                                            PersianDateFormatter.date(
-                                              JalaliDate.fromDateTime(
-                                                entry.occurredAt.toLocal(),
-                                              ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            TransactionDirectionIcon(
+                                              entry: entry,
                                             ),
-                                            PersianNumbers.format(
-                                              '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                                            ),
-                                            if (entry.category != null)
-                                              entry.category!,
-                                            entry.note ??
-                                                planActL10n(context)
-                                                    .financePageBuildChildren4,
-                                          ].join(' · '),
+                                            _entryOperations(entry),
+                                          ],
                                         ),
-                                        TagLabels(
-                                          labels: _tags
-                                              .where(
-                                                (tag) =>
-                                                    _entryTags[entry.id.value]
-                                                        ?.contains(tag.id) ??
-                                                    false,
-                                              )
-                                              .map((tag) => tag.label),
+                                        Text(
+                                          transactionLabel(entry),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                        Text(
+                                          _money(entry.amount),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                        const SizedBox(
+                                          height: PlanActSpacing.sm,
+                                        ),
+                                        DefaultTextStyle.merge(
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                [
+                                                  if (widget.focusedRecordId !=
+                                                      null)
+                                                    _accounts
+                                                            .where(
+                                                              (a) =>
+                                                                  a.id ==
+                                                                  entry
+                                                                      .accountId,
+                                                            )
+                                                            .firstOrNull
+                                                            ?.name ??
+                                                        '',
+                                                  PersianDateFormatter.date(
+                                                    JalaliDate.fromDateTime(
+                                                      entry.occurredAt
+                                                          .toLocal(),
+                                                    ),
+                                                  ),
+                                                  PersianNumbers.format(
+                                                    '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                                  ),
+                                                  if (entry.category != null)
+                                                    entry.category!,
+                                                  entry.note ??
+                                                      planActL10n(
+                                                        context,
+                                                      ).financePageBuildChildren4,
+                                                ].join(' · '),
+                                              ),
+                                              TagLabels(
+                                                labels: _tags
+                                                    .where(
+                                                      (tag) =>
+                                                          _entryTags[entry
+                                                                  .id
+                                                                  .value]
+                                                              ?.contains(
+                                                                tag.id,
+                                                              ) ??
+                                                          false,
+                                                    )
+                                                    .map((tag) => tag.label),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              if (widget.focusedRecordId == null &&
+                                  filteredEntries.length > _entriesPerPage)
+                                _buildPagination(filteredEntries.length, page),
+                            ],
                           ),
-                        if (widget.focusedRecordId == null &&
-                            filteredEntries.length > _entriesPerPage)
-                          _buildPagination(filteredEntries.length, page),
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
               ),
       ),
     );

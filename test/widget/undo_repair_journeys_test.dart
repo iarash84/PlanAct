@@ -320,6 +320,14 @@ void main() {
       expect((await FinanceUseCases(finance).balance(bank)).minorUnits, 0);
       expect(refreshes, 1);
       expect(tester.widget<PopupMenuButton<String>>(menu).enabled, false);
+      final accountsEntry = find.byKey(
+        const ValueKey('finance-accounts-entry'),
+      );
+      await tester.ensureVisible(accountsEntry);
+      await tester.tap(accountsEntry);
+      await settle(tester);
+      await tester.tap(find.byKey(ValueKey('account-row:${bank.id.value}')));
+      await settle(tester);
       final accountMenu = find.byKey(ValueKey('account-menu:${bank.id.value}'));
       await tester.ensureVisible(accountMenu);
       await tester.tap(accountMenu);
