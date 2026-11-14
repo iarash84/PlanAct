@@ -8010,5 +8010,65 @@
         "type": "String"
       }
     }
+  },
+  "calendarVisibilityTitle": "تقویم",
+  "@calendarVisibilityTitle": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityItems": "موارد نمایان",
+  "@calendarVisibilityItems": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityDescription": "این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.",
+  "@calendarVisibilityDescription": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityCommitments": "تعهدها",
+  "@calendarVisibilityCommitments": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityNotes": "یادداشت‌ها",
+  "@calendarVisibilityNotes": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityIncome": "درآمد",
+  "@calendarVisibilityIncome": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityExpense": "هزینه",
+  "@calendarVisibilityExpense": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityTransfers": "انتقال بین حساب‌های خود",
+  "@calendarVisibilityTransfers": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityError": "تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.",
+  "@calendarVisibilityError": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityLoadError": "تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.",
+  "@calendarVisibilityLoadError": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarVisibilityFiltered": "نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.",
+  "@calendarVisibilityFiltered": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarTransactionIncome": "درآمد ثبت‌شده",
+  "@calendarTransactionIncome": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarTransactionExpense": "هزینهٔ ثبت‌شده",
+  "@calendarTransactionExpense": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarTransactionTransfer": "انتقال ثبت‌شده بین حساب‌های خود",
+  "@calendarTransactionTransfer": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
+  },
+  "calendarTransactionReversed": "برگشت‌خورده؛ فقط تاریخچه",
+  "@calendarTransactionReversed": {
+    "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   }
 }

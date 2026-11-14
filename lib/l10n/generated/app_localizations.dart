@@ -8644,6 +8644,96 @@ abstract class AppLocalizations {
     String page,
     String pages,
   );
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'تقویم'**
+  String get calendarVisibilityTitle;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'موارد نمایان'**
+  String get calendarVisibilityItems;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.'**
+  String get calendarVisibilityDescription;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدها'**
+  String get calendarVisibilityCommitments;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت‌ها'**
+  String get calendarVisibilityNotes;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'درآمد'**
+  String get calendarVisibilityIncome;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'هزینه'**
+  String get calendarVisibilityExpense;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتقال بین حساب‌های خود'**
+  String get calendarVisibilityTransfers;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.'**
+  String get calendarVisibilityError;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.'**
+  String get calendarVisibilityLoadError;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.'**
+  String get calendarVisibilityFiltered;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'درآمد ثبت‌شده'**
+  String get calendarTransactionIncome;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'هزینهٔ ثبت‌شده'**
+  String get calendarTransactionExpense;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتقال ثبت‌شده بین حساب‌های خود'**
+  String get calendarTransactionTransfer;
+
+  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت‌خورده؛ فقط تاریخچه'**
+  String get calendarTransactionReversed;
 }
 
 class _AppLocalizationsDelegate

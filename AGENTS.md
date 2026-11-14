@@ -1068,3 +1068,7 @@ Optional Inbox tags are draft selections before final confirmation, never an aut
 ## Automatic tag identity colors (2026-11-11)
 
 All tag-name presentation must reuse the shared tag badge/summary and centralized identity color roles. Derive colors deterministically from the existing normalized label, independent of runtime hash, list order and theme preset; renaming derives the new name identity. Keep brightness-specific readable foreground/container pairs, textual identity and explicit selection semantics. This is a rebuildable presentation projection, not a new mutable source of truth or status color. Finite colors cannot guarantee unlimited perceptual uniqueness. See docs/TAGGING_VERIFICATION.md.
+
+## Calendar visibility safeguards (2026-11-14)
+
+Settings > Calendar persists versioned display-only choices before publishing them: commitments and notes default on, income/expense/own-account transfers default off. Apply to Month and Week; disclose hidden categories. Financial calendar rows read confirmed durable ledger entries at their persisted transaction time, never SMS receipt/confirmation time. Deduplicate grouped transfers, retain explicit reversed-history labels and keep actual payments distinct from commitment due dates. Hiding must not mutate money, matches, occurrences or reminders. Preserve metadata through restart and personal backup. Holidays remain independent. See docs/CALENDAR_VISIBILITY_VERIFICATION.md for bounded evidence and independent/device gates.

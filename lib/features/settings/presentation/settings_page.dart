@@ -1,4 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/calendar/presentation/calendar_visibility_controller.dart';
+import 'package:planact/features/settings/presentation/calendar_visibility_settings.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/reminders/domain/morning_reminder.dart';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
@@ -18,6 +20,7 @@ class SettingsPage extends StatefulWidget {
     this.holidayPackages,
     this.onHolidaysChanged,
     this.settings,
+    this.calendarVisibility,
     this.backupActions,
     this.backupMessage,
     required this.themeMode,
@@ -36,6 +39,7 @@ class SettingsPage extends StatefulWidget {
   final HolidayPackageService? holidayPackages;
   final VoidCallback? onHolidaysChanged;
   final AppSettings? settings;
+  final CalendarVisibilityController? calendarVisibility;
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
@@ -185,6 +189,10 @@ class _SettingsPageState extends State<SettingsPage> {
     padding: const EdgeInsets.all(16),
     children: [
       const MoneyUnitSettingsCard(),
+      if (widget.calendarVisibility != null) ...[
+        CalendarVisibilitySettings(controller: widget.calendarVisibility!),
+        const SizedBox(height: PlanActSpacing.md),
+      ],
       Text(
         planActL10n(context).commonGeneral,
         style: Theme.of(context).textTheme.titleLarge,

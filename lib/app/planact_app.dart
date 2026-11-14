@@ -1,4 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/calendar/presentation/calendar_visibility_controller.dart';
+import 'package:planact/features/calendar/data/drift_calendar_transaction_reader.dart';
 import 'package:planact/features/commitments/application/commitment_progress_reader.dart';
 import 'package:planact/features/commitments/data/drift_commitment_progress_reader.dart';
 import 'package:planact/features/commitments/presentation/commitment_progress_section.dart';
@@ -519,6 +521,15 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       ? DriftCalendarNoteRepository(_repository.database)
       : InMemoryCalendarNoteRepository();
   int _notesRevision = 0;
+  late final CalendarVisibilityController _calendarVisibility =
+      CalendarVisibilityController(widget.settings)
+        ..addListener(_calendarVisibilityChanged)
+        ..load();
+
+  void _calendarVisibilityChanged() {
+    if (mounted) setState(() {});
+  }
+
   late final PageController _pageController = PageController();
   late final CommitmentRepository _repository =
       widget.repository ?? InMemoryCommitmentRepository();
@@ -618,6 +629,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _calendarVisibility;
     if (_repository is DriftCommitmentRepository) {
       _smsSync = SmsSyncController(
         inbox: _inboxUseCases,
@@ -1680,6 +1692,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _smsSync?.removeListener(_smsSyncChanged);
+    _calendarVisibility.removeListener(_calendarVisibilityChanged);
+    _calendarVisibility.dispose();
     _smsSync?.dispose();
     _pageController.dispose();
     _commitmentViewsRevision.dispose();
@@ -1732,6 +1746,32 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         },
       ),
       CalendarPage(
+        visibility: _calendarVisibility.value,
+        visibilityReady: _calendarVisibility.ready,
+        visibilityLoadFailed: _calendarVisibility.loadFailed,
+        onRetryVisibility: _calendarVisibility.load,
+        transactionLoader: _repository is DriftCommitmentRepository
+            ? (start, end) =>
+                  DriftCalendarTransactionReader(_repository.database)
+                      .loadRange(start, end, _calendarVisibility.value)
+            : null,
+        onTransactionTap: (item) async {
+          await Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) => FinancePage(
+                repository: _financeRepository,
+                expectationRepository: _expectationRepository,
+                tagRepository: _tagRepository,
+                onTagsChanged: _tagsChanged,
+                onDataChanged: _refresh,
+                onDetermineRelationship: _openRelationship,
+                focusedRecordId: item.entry.id.value,
+                focusedKind: FinanceRecordKind.entry,
+              ),
+            ),
+          );
+          if (mounted) await _refresh();
+        },
         bottomContentPadding: _quickAddScrollClearance,
         noteLoader: _noteRepository.loadRange,
         notesRevision: _notesRevision,
@@ -1783,6 +1823,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         backupActions: widget.backupActions,
         backupMessage: widget.backupMessage,
         settings: SettingsPage(
+          calendarVisibility: _calendarVisibility,
           holidayPackages: widget.holidayPackages,
           onHolidaysChanged: () => setState(() {}),
           enableReminders: _repository is DriftCommitmentRepository

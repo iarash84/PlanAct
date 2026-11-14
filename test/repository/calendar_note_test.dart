@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:planact/app/app_settings.dart';
+import 'package:planact/features/calendar/domain/calendar_visibility.dart';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/core/application/command_gate.dart';
@@ -172,6 +175,12 @@ void main() {
     );
     old.close();
     final database = AppDatabase.forTesting(NativeDatabase(live));
+    const visibility = CalendarVisibility(
+      commitments: false,
+      income: true,
+      transfers: true,
+    );
+    await AppSettings(database).writeCalendarVisibility(visibility);
     final repository = DriftCalendarNoteRepository(database);
     final first = note();
     await repository.save(first, expectedRevision: 0);
@@ -235,6 +244,10 @@ void main() {
         'اصلاح',
       );
       expect(await reopened.readMetadata('legacy_marker'), 'preserved');
+      expect(
+        (await AppSettings(reopened).readCalendarVisibility()).storageValue,
+        visibility.storageValue,
+      );
     } finally {
       await reopened.close();
     }

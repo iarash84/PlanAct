@@ -5146,4 +5146,53 @@ class AppLocalizationsFa extends AppLocalizations {
   ) {
     return 'تراکنش $start تا $end از $total؛ صفحهٔ $page از $pages';
   }
+
+  @override
+  String get calendarVisibilityTitle => 'تقویم';
+
+  @override
+  String get calendarVisibilityItems => 'موارد نمایان';
+
+  @override
+  String get calendarVisibilityDescription =>
+      'این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.';
+
+  @override
+  String get calendarVisibilityCommitments => 'تعهدها';
+
+  @override
+  String get calendarVisibilityNotes => 'یادداشت‌ها';
+
+  @override
+  String get calendarVisibilityIncome => 'درآمد';
+
+  @override
+  String get calendarVisibilityExpense => 'هزینه';
+
+  @override
+  String get calendarVisibilityTransfers => 'انتقال بین حساب‌های خود';
+
+  @override
+  String get calendarVisibilityError =>
+      'تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
+  String get calendarVisibilityLoadError =>
+      'تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.';
+
+  @override
+  String get calendarVisibilityFiltered =>
+      'نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.';
+
+  @override
+  String get calendarTransactionIncome => 'درآمد ثبت‌شده';
+
+  @override
+  String get calendarTransactionExpense => 'هزینهٔ ثبت‌شده';
+
+  @override
+  String get calendarTransactionTransfer => 'انتقال ثبت‌شده بین حساب‌های خود';
+
+  @override
+  String get calendarTransactionReversed => 'برگشت‌خورده؛ فقط تاریخچه';
 }
