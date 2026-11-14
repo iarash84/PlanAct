@@ -13,7 +13,7 @@ import 'package:planact/features/finance/presentation/account_identity_icon.dart
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
-import 'package:planact/app/theme/planact_radius.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/classification/domain/tag.dart';
@@ -136,7 +136,6 @@ class FinancePageState extends State<FinancePage> {
   late StableId? _accountFilter = widget.initialAccountFilter;
   Set<String>? _tagMatches;
   bool _filterBusy = false;
-  String? _categoryFilter;
   AccountEntryType? _typeFilter;
   final Set<StableId> _pendingEntries = {};
   final Set<StableId> _pendingAccounts = {};
@@ -780,11 +779,6 @@ class FinancePageState extends State<FinancePage> {
                   _typeFilter == null ||
                   classification(entry).type == _typeFilter,
             )
-            .where(
-              (entry) =>
-                  _categoryFilter == null ||
-                  classification(entry).category == _categoryFilter,
-            )
             .toList()
           ..sort((a, b) {
             final byTime = b.occurredAt.compareTo(a.occurredAt);
@@ -908,11 +902,6 @@ class FinancePageState extends State<FinancePage> {
   }
 
   Widget _buildFilters() {
-    final categories = _entries
-        .map((entry) => entry.category)
-        .whereType<String>()
-        .toSet()
-        .toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -937,25 +926,6 @@ class FinancePageState extends State<FinancePage> {
           ],
           onChanged: (value) => setState(() {
             _typeFilter = value;
-            _entryPage = 0;
-          }),
-        ),
-        DropdownButton<String?>(
-          isExpanded: true,
-          itemHeight: null,
-          value: _categoryFilter,
-          hint: const Text(PersianCopy.financePageBuildFiltersHint2),
-          items: [
-            const DropdownMenuItem(
-              value: null,
-              child: Text(PersianCopy.financePageBuildFiltersItems4),
-            ),
-            ...categories.map(
-              (item) => DropdownMenuItem(value: item, child: Text(item)),
-            ),
-          ],
-          onChanged: (value) => setState(() {
-            _categoryFilter = value;
             _entryPage = 0;
           }),
         ),
@@ -1148,97 +1118,77 @@ class FinancePageState extends State<FinancePage> {
                                   ),
                                 ),
                               for (final entry in visibleEntries)
-                                Card(
-                                  margin: const EdgeInsets.only(
-                                    bottom: PlanActSpacing.md,
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: PlanActSpacing.lg,
                                   ),
-                                  elevation: 0,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainer,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: PlanActRadius.card,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                      PlanActSpacing.lg,
+                                  child: TransactionCard(
+                                    key: ValueKey(
+                                      'finance-transaction:${entry.id.value}',
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                    entry: entry,
+                                    label: transactionLabel(entry),
+                                    amount: _money(entry.amount),
+                                    operations: _entryOperations(entry),
+                                    children: [
+                                      DefaultTextStyle.merge(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            TransactionDirectionIcon(
-                                              entry: entry,
+                                            Text(
+                                              [
+                                                PersianDateFormatter.date(
+                                                  JalaliDate.fromDateTime(
+                                                    entry.occurredAt.toLocal(),
+                                                  ),
+                                                ),
+                                                PersianNumbers.format(
+                                                  '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
+                                                ),
+                                              ].join(' · '),
                                             ),
-                                            _entryOperations(entry),
+                                            const SizedBox(
+                                              height: PlanActSpacing.sm,
+                                            ),
+                                            Text(
+                                              [
+                                                if (entry.category != null)
+                                                  entry.category!,
+                                                entry.note ??
+                                                    planActL10n(
+                                                      context,
+                                                    ).financePageBuildChildren4,
+                                              ].join(' · '),
+                                            ),
+                                            const SizedBox(
+                                              height: PlanActSpacing.sm,
+                                            ),
+                                            _buildEntryAccountIdentity(entry),
+                                            const SizedBox(
+                                              height: PlanActSpacing.sm,
+                                            ),
+                                            TagLabels(
+                                              labels: _tags
+                                                  .where(
+                                                    (tag) =>
+                                                        _entryTags[entry
+                                                                .id
+                                                                .value]
+                                                            ?.contains(
+                                                              tag.id,
+                                                            ) ??
+                                                        false,
+                                                  )
+                                                  .map((tag) => tag.label),
+                                            ),
                                           ],
                                         ),
-                                        _buildEntryAccountIdentity(entry),
-                                        Text(
-                                          transactionLabel(entry),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
-                                        ),
-                                        Text(
-                                          _money(entry.amount),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
-                                        ),
-                                        const SizedBox(
-                                          height: PlanActSpacing.sm,
-                                        ),
-                                        DefaultTextStyle.merge(
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                [
-                                                  PersianDateFormatter.date(
-                                                    JalaliDate.fromDateTime(
-                                                      entry.occurredAt
-                                                          .toLocal(),
-                                                    ),
-                                                  ),
-                                                  PersianNumbers.format(
-                                                    '${entry.occurredAt.toLocal().hour.toString().padLeft(2, '0')}:${entry.occurredAt.toLocal().minute.toString().padLeft(2, '0')}',
-                                                  ),
-                                                  if (entry.category != null)
-                                                    entry.category!,
-                                                  entry.note ??
-                                                      planActL10n(
-                                                        context,
-                                                      ).financePageBuildChildren4,
-                                                ].join(' · '),
-                                              ),
-                                              TagLabels(
-                                                labels: _tags
-                                                    .where(
-                                                      (tag) =>
-                                                          _entryTags[entry
-                                                                  .id
-                                                                  .value]
-                                                              ?.contains(
-                                                                tag.id,
-                                                              ) ??
-                                                          false,
-                                                    )
-                                                    .map((tag) => tag.label),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               if (widget.focusedRecordId == null &&

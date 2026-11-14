@@ -3,6 +3,7 @@ import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/classification/presentation/tag_selection.dart';
 import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 import 'package:planact/features/reports/presentation/report_movement_list.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -1464,87 +1465,51 @@ class _ReportsPageState extends State<ReportsPage> {
             .firstOrNull
             ?.name ??
         PersianCopy.quickAddSheetBuildLabelText;
-    return Card(
+    return TransactionCard(
       key: ValueKey('report-transaction:${m.entry.id}'),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(PlanActSpacing.lg),
+      entry: m.entry,
+      label: transactionLabel(m.entry),
+      amount: _money(m.minorUnits, m.entry.amount.currency),
+      onTap: onTap,
+      children: [
+        if (description != null && description.trim().isNotEmpty)
+          Text(description, style: theme.textTheme.bodyLarge),
+        DefaultTextStyle.merge(
+          style: secondaryStyle,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: PlanActSpacing.md,
+            spacing: PlanActSpacing.sm,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TransactionDirectionIcon(entry: m.entry),
-                  const SizedBox(width: PlanActSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: PlanActSpacing.xs,
-                      children: [
-                        Text(transactionLabel(m.entry), style: secondaryStyle),
-                        Text(
-                          _money(m.minorUnits, m.entry.amount.currency),
-                          style: theme.textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: theme.textTheme.bodyLarge?.fontSize,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  if (onTap != null) ...[
-                    const SizedBox(width: PlanActSpacing.sm),
-                    Icon(
-                      Icons.chevron_right,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ],
+                  const SizedBox(width: PlanActSpacing.sm),
+                  Expanded(child: Text(accountName)),
                 ],
               ),
-              if (description != null && description.trim().isNotEmpty)
-                Text(description, style: theme.textTheme.bodyLarge),
-              const Divider(height: PlanActSpacing.xs),
-              DefaultTextStyle.merge(
-                style: secondaryStyle,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: PlanActSpacing.sm,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.account_balance_wallet_outlined,
-                          size: theme.textTheme.bodyLarge?.fontSize,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: PlanActSpacing.sm),
-                        Expanded(child: Text(accountName)),
-                      ],
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          size: theme.textTheme.bodyLarge?.fontSize,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: PlanActSpacing.sm),
-                        Expanded(child: Text(_date(m.entry.occurredAt))),
-                      ],
-                    ),
-                  ],
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: theme.textTheme.bodyLarge?.fontSize,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: PlanActSpacing.sm),
+                  Expanded(child: Text(_date(m.entry.occurredAt))),
+                ],
               ),
-              if (detail != null)
-                Text(detail, style: theme.textTheme.bodyMedium),
-              if (labels.isNotEmpty) TagLabels(labels: labels),
             ],
           ),
         ),
-      ),
+        if (detail != null) Text(detail, style: theme.textTheme.bodyMedium),
+        if (labels.isNotEmpty) TagLabels(labels: labels),
+      ],
     );
   }
 }

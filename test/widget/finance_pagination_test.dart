@@ -107,6 +107,47 @@ Finder get menus => find.byWidgetPredicate(
 );
 
 void main() {
+  testWidgets(
+    'finance omits category filter without changing stored categories',
+    (tester) async {
+      final repository = await _seed(0);
+      final account = (await repository.listAccounts()).single;
+      for (final category in ['خوراک', 'درمان']) {
+        await repository.saveEntry(
+          AccountEntry(
+            id: StableId.generate(),
+            accountId: account.id,
+            type: AccountEntryType.expense,
+            amount: const Money(minorUnits: 100, currency: 'IRR'),
+            occurredAt: DateTime(2026, 11, 14),
+            category: category,
+          ),
+        );
+      }
+      await _open(tester, repository);
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(0);
+      await tester.pumpAndSettle();
+      expect(find.text('همه دسته‌ها'), findsNothing);
+      expect(find.byType(DropdownButton<String?>), findsNothing);
+      expect(find.byType(DropdownButton<AccountEntryType?>), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('آخرین تراکنش‌ها'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(menus, findsNWidgets(2));
+      expect(
+        (await repository.listEntries()).map((entry) => entry.category),
+        unorderedEquals(['خوراک', 'درمان']),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final count in [0, 20, 21, 45]) {
     testWidgets('bounded transaction pages for $count entries', (tester) async {
       final repository = await _seed(count);

@@ -7,7 +7,7 @@ import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/features/calendar/domain/calendar_transaction.dart';
 import 'package:planact/features/classification/presentation/tag_badge.dart';
 import 'package:planact/features/finance/presentation/account_identity_icon.dart';
-import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 
 String calendarTransactionLabel(
   BuildContext context,
@@ -32,83 +32,54 @@ class CalendarTransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = item.localTime;
     final theme = Theme.of(context);
-    final colors = transactionDirectionColors(context, item.entry);
     return Padding(
       padding: const EdgeInsets.only(bottom: PlanActSpacing.sm),
-      child: Card(
+      child: TransactionCard(
         key: ValueKey('calendar-transaction-${item.entry.id.value}'),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(PlanActSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: PlanActSpacing.sm,
+        entry: item.entry,
+        label: calendarTransactionLabel(context, item),
+        amount: PersianMoneyText.amount(
+          item.entry.amount.minorUnits,
+          item.entry.amount.currency,
+          unit: MoneyUnitScope.of(context),
+        ),
+        onTap: onTap,
+        children: [
+          Text(
+            PersianNumbers.format(
+              '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+            ),
+            style: theme.textTheme.bodyMedium,
+          ),
+          if (item.entry.note?.isNotEmpty ?? false)
+            Text(item.entry.note!, style: theme.textTheme.bodyMedium),
+          for (final account in item.accounts)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TransactionDirectionIcon(entry: item.entry),
-                    const SizedBox(width: PlanActSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        calendarTransactionLabel(context, item),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: colors.foreground,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  PersianMoneyText.amount(
-                    item.entry.amount.minorUnits,
-                    item.entry.amount.currency,
-                    unit: MoneyUnitScope.of(context),
-                  ),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colors.foreground,
+                AccountIdentityIcon(account: account),
+                const SizedBox(width: PlanActSpacing.sm),
+                Expanded(
+                  child: Text(
+                    [
+                      account.name,
+                      if (account.bank != null)
+                        iranianBankLabel(context, account.bank!),
+                    ].join(' · '),
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ),
-                Text(
-                  PersianNumbers.format(
-                    '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-                  ),
-                  style: theme.textTheme.bodyMedium,
-                ),
-                if (item.entry.note?.isNotEmpty ?? false)
-                  Text(item.entry.note!, style: theme.textTheme.bodyMedium),
-                for (final account in item.accounts)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AccountIdentityIcon(account: account),
-                      const SizedBox(width: PlanActSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          [
-                            account.name,
-                            if (account.bank != null)
-                              iranianBankLabel(context, account.bank!),
-                          ].join(' · '),
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-                if (item.tags.isNotEmpty)
-                  Wrap(
-                    spacing: PlanActSpacing.xs,
-                    runSpacing: PlanActSpacing.xs,
-                    children: [
-                      for (final tag in item.tags) TagBadge(label: tag.label),
-                    ],
-                  ),
               ],
             ),
-          ),
-        ),
+          if (item.tags.isNotEmpty)
+            Wrap(
+              spacing: PlanActSpacing.xs,
+              runSpacing: PlanActSpacing.xs,
+              children: [
+                for (final tag in item.tags) TagBadge(label: tag.label),
+              ],
+            ),
+        ],
       ),
     );
   }
