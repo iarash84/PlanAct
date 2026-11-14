@@ -326,8 +326,6 @@ void main() {
       await tester.ensureVisible(accountsEntry);
       await tester.tap(accountsEntry);
       await settle(tester);
-      await tester.tap(find.byKey(ValueKey('account-row:${bank.id.value}')));
-      await settle(tester);
       final accountMenu = find.byKey(ValueKey('account-menu:${bank.id.value}'));
       await tester.ensureVisible(accountMenu);
       await tester.tap(accountMenu);
@@ -433,6 +431,26 @@ void main() {
         -50,
       );
       expect(find.text(PersianCopy.undoRefreshPending), findsOneWidget);
+      final replacement = (await finance.listEntries()).singleWhere(
+        (e) => e.accountId == destination.id,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(
+            ValueKey('transaction-account:${replacement.id.value}'),
+          ),
+          matching: find.text(destination.name),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('transaction-account:${entry.id.value}')),
+          matching: find.text(bank.name),
+        ),
+        findsOneWidget,
+      );
+
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     },

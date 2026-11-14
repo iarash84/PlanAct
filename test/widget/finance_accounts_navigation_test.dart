@@ -80,7 +80,7 @@ Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
 void main() {
   for (final dark in [false, true]) {
     testWidgets(
-      '80 accounts: compact root, lazy management, search and detail at 320dp 2x dark=$dark',
+      '80 accounts: compact root, lazy cards, search and inline actions at 320dp 2x dark=$dark',
       (tester) async {
         tester.view.physicalSize = const Size(320, 900);
         tester.view.devicePixelRatio = 1;
@@ -98,8 +98,11 @@ void main() {
           tester,
           find.byKey(const ValueKey('finance-accounts-entry')),
         );
-        expect(find.byType(AccountInformationCard), findsNothing);
-        expect(find.byType(ListTile).evaluate().length, lessThan(30));
+        expect(find.byType(AccountInformationCard), findsWidgets);
+        expect(
+          find.byType(AccountInformationCard).evaluate().length,
+          lessThan(10),
+        );
         await tester.enterText(
           find.byKey(const ValueKey('accounts-search')),
           'حساب 79',
@@ -114,11 +117,12 @@ void main() {
           200,
           scrollable: find.byType(Scrollable).first,
         );
-        await _tapVisible(tester, row);
+        await _tapVisible(tester, find.byTooltip('ویرایش حساب'));
+        expect(find.byType(FinancePage), findsOneWidget);
+        await tester.tap(find.text('انصراف'));
+        await tester.pumpAndSettle();
         expect(find.byType(AccountInformationCard), findsOneWidget);
         expect(find.textContaining('USD'), findsWidgets);
-        await tester.pageBack();
-        await tester.pumpAndSettle();
         expect(
           tester
                   .widget<TextField>(
@@ -164,12 +168,21 @@ void main() {
       final retainedOffset = scroll.pixels;
       await tester.tap(accountsEntry);
       await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey(account.id)),
+          matching: find.text('\u2066۱۰۰\u2069 ریال'),
+        ),
+        findsOneWidget,
+      );
       await _tapVisible(
         tester,
-        find.byKey(ValueKey('account-row:${account.id.value}')),
+        find.descendant(
+          of: find.byKey(ValueKey(account.id)),
+          matching: find.byTooltip('مشاهدهٔ تراکنش‌های این حساب'),
+        ),
       );
-      expect(find.text('\u2066۱۰۰\u2069 ریال'), findsOneWidget);
-      await _tapVisible(tester, find.byTooltip('مشاهدهٔ تراکنش‌های این حساب'));
       expect(
         tester
             .widget<DropdownButtonFormField<StableId>>(
@@ -187,9 +200,6 @@ void main() {
           occurredAt: DateTime(2026, 11, 2),
         ),
       );
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-      expect(find.text('\u2066۸۰۰\u2069 ریال'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('\u2066۸۰۰\u2069 ریال'), findsOneWidget);

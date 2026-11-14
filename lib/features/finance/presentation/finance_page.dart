@@ -9,6 +9,7 @@ import 'package:planact/core/money/money_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
 import 'package:planact/features/finance/presentation/account_information_card.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
@@ -295,9 +296,6 @@ class FinancePageState extends State<FinancePage> {
     );
     if (mounted) await _refresh();
   }
-
-  Future<void> _openAccountDetails(FinancialAccount account) =>
-      _openFinanceRoute(account: account);
 
   Future<void> _openAccountTransactions(FinancialAccount account) =>
       _openFinanceRoute(account: account, transactions: true);
@@ -1018,9 +1016,9 @@ class FinancePageState extends State<FinancePage> {
                         accounts: _accounts,
                         loadError: _loadError,
                         onRetry: _refresh,
-                        entries: _entries,
                         showArchivedInitially: widget.showArchivedAccounts,
-                        onOpen: _openAccountDetails,
+                        accountBuilder: (context, account) =>
+                            _buildAccountCard(account),
                         onCreate: _addAccount,
                         onReorder: _accounts.length < 2
                             ? null
@@ -1110,96 +1108,7 @@ class FinancePageState extends State<FinancePage> {
                               padding: const EdgeInsets.only(
                                 bottom: PlanActSpacing.md,
                               ),
-                              child: AccountInformationCard(
-                                key: ValueKey(account.id),
-                                account: account,
-                                balance: rebuildBalance(account, _entries),
-                                bankBalance:
-                                    _bankBalances[account.id.value] == null
-                                    ? null
-                                    : BankBalancePanel(
-                                        snapshot:
-                                            _bankBalances[account.id.value]!,
-                                        repository:
-                                            widget.repository
-                                                as BankBalanceRepository,
-                                        enabled:
-                                            account.status ==
-                                            FinancialAccountStatus.active,
-                                        onChanged: () async {
-                                          await _refresh();
-                                          widget.onDataChanged?.call();
-                                        },
-                                      ),
-                                operations: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      tooltip: planActL10n(context)
-                                          .financeAccountTransactions,
-                                      onPressed: () =>
-                                          _openAccountTransactions(account),
-                                      icon: const Icon(
-                                        Icons.receipt_long_outlined,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: planActL10n(context)
-                                          .accountFormSheetBuildTitle2,
-                                      onPressed:
-                                          _pendingAccounts.contains(account.id)
-                                          ? null
-                                          : () => _editAccount(account),
-                                      icon: const Icon(Icons.edit_outlined),
-                                    ),
-                                    PopupMenuButton<String>(
-                                      key: ValueKey(
-                                        'account-menu:${account.id.value}',
-                                      ),
-                                      tooltip:
-                                          account.status ==
-                                              FinancialAccountStatus.active
-                                          ? planActL10n(context)
-                                                .financeArchivedAccountAction
-                                          : planActL10n(context)
-                                                .financeRestoreAccountAction,
-                                      enabled: !_pendingAccounts.contains(
-                                        account.id,
-                                      ),
-                                      onSelected: (action) {
-                                        if (action == 'delete') {
-                                          _deleteAccount(account);
-                                        } else {
-                                          _changeAccountStatus(account);
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                          value: 'status',
-                                          child: Text(
-                                            account.status ==
-                                                    FinancialAccountStatus
-                                                        .active
-                                                ? planActL10n(
-                                                    context,
-                                                  ).financeArchivedAccountAction
-                                                : planActL10n(
-                                                    context,
-                                                  ).financeRestoreAccountAction,
-                                          ),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'delete',
-                                          child: Text(
-                                            planActL10n(context)
-                                                .financeDeleteAccountAction,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              child: _buildAccountCard(account),
                             ),
                           const SizedBox(height: PlanActSpacing.lg),
                           Column(
@@ -1268,6 +1177,7 @@ class FinancePageState extends State<FinancePage> {
                                             _entryOperations(entry),
                                           ],
                                         ),
+                                        _buildEntryAccountIdentity(entry),
                                         Text(
                                           transactionLabel(entry),
                                           style: Theme.of(context)
@@ -1293,18 +1203,6 @@ class FinancePageState extends State<FinancePage> {
                                             children: [
                                               Text(
                                                 [
-                                                  if (widget.focusedRecordId !=
-                                                      null)
-                                                    _accounts
-                                                            .where(
-                                                              (a) =>
-                                                                  a.id ==
-                                                                  entry
-                                                                      .accountId,
-                                                            )
-                                                            .firstOrNull
-                                                            ?.name ??
-                                                        '',
                                                   PersianDateFormatter.date(
                                                     JalaliDate.fromDateTime(
                                                       entry.occurredAt
@@ -1352,6 +1250,101 @@ class FinancePageState extends State<FinancePage> {
                       ),
               ),
       ),
+    );
+  }
+
+  Widget _buildAccountCard(FinancialAccount account) => AccountInformationCard(
+    key: ValueKey(account.id),
+    account: account,
+    balance: rebuildBalance(account, _entries),
+    bankBalance: _bankBalances[account.id.value] == null
+        ? null
+        : BankBalancePanel(
+            snapshot: _bankBalances[account.id.value]!,
+            repository: widget.repository as BankBalanceRepository,
+            enabled: account.status == FinancialAccountStatus.active,
+            onChanged: () async {
+              await _refresh();
+              widget.onDataChanged?.call();
+            },
+          ),
+    operations: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: planActL10n(context).financeAccountTransactions,
+          onPressed: () => _openAccountTransactions(account),
+          icon: const Icon(Icons.receipt_long_outlined),
+        ),
+        IconButton(
+          tooltip: planActL10n(context).accountFormSheetBuildTitle2,
+          onPressed: _pendingAccounts.contains(account.id)
+              ? null
+              : () => _editAccount(account),
+          icon: const Icon(Icons.edit_outlined),
+        ),
+        PopupMenuButton<String>(
+          key: ValueKey('account-menu:${account.id.value}'),
+          tooltip: account.status == FinancialAccountStatus.active
+              ? planActL10n(context).financeArchivedAccountAction
+              : planActL10n(context).financeRestoreAccountAction,
+          enabled: !_pendingAccounts.contains(account.id),
+          onSelected: (action) {
+            if (action == 'delete') {
+              _deleteAccount(account);
+            } else {
+              _changeAccountStatus(account);
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'status',
+              child: Text(
+                account.status == FinancialAccountStatus.active
+                    ? planActL10n(context).financeArchivedAccountAction
+                    : planActL10n(context).financeRestoreAccountAction,
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Text(planActL10n(context).financeDeleteAccountAction),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildEntryAccountIdentity(AccountEntry entry) {
+    final account = _accounts.where((a) => a.id == entry.accountId).firstOrNull;
+    if (account == null) {
+      return Text(planActL10n(context).financeTransactionAccountUnavailable);
+    }
+    return Row(
+      key: ValueKey('transaction-account:${entry.id.value}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AccountIdentityIcon(account: account),
+        const SizedBox(width: PlanActSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(account.name),
+              Text(
+                [
+                  accountTypeLabel(account.type),
+                  if (account.bank != null)
+                    iranianBankLabel(context, account.bank!),
+                  if (account.status == FinancialAccountStatus.archived)
+                    planActL10n(context).financeAccountsArchived,
+                ].join(' · '),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

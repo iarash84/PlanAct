@@ -379,8 +379,6 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('finance-accounts-entry')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(ValueKey('account-row:${account.id.value}')));
-      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('ویرایش حساب'));
       await tester.pumpAndSettle();
       await tester.enterText(

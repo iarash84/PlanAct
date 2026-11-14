@@ -5234,4 +5234,8 @@ class AppLocalizationsFa extends AppLocalizations {
   String financeAccountsCount(String count) {
     return '$count حساب';
   }
+
+  @override
+  String get financeTransactionAccountUnavailable =>
+      'اطلاعات حساب در دسترس نیست';
 }

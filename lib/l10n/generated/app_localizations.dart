@@ -8799,6 +8799,12 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'{count} حساب'**
   String financeAccountsCount(String count);
+
+  /// نمایش صریح نبود اطلاعات حساب متصل به ثبت مالی؛ بدون حدس هویت
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات حساب در دسترس نیست'**
+  String get financeTransactionAccountUnavailable;
 }
 
 class _AppLocalizationsDelegate

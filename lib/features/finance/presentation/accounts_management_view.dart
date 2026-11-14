@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
-import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
 import 'package:planact/features/finance/presentation/account_identity_icon.dart';
@@ -14,9 +12,8 @@ class AccountsManagementView extends StatefulWidget {
   const AccountsManagementView({
     super.key,
     required this.accounts,
-    required this.entries,
     required this.showArchivedInitially,
-    required this.onOpen,
+    required this.accountBuilder,
     required this.onCreate,
     required this.onReorder,
     this.loadError,
@@ -24,9 +21,8 @@ class AccountsManagementView extends StatefulWidget {
   });
 
   final List<FinancialAccount> accounts;
-  final List<AccountEntry> entries;
   final bool showArchivedInitially;
-  final ValueChanged<FinancialAccount> onOpen;
+  final Widget Function(BuildContext, FinancialAccount) accountBuilder;
   final VoidCallback onCreate;
   final VoidCallback? onReorder;
   final String? loadError;
@@ -133,37 +129,10 @@ class _AccountsManagementViewState extends State<AccountsManagementView> {
             itemCount: accounts.length,
             itemBuilder: (context, index) {
               final account = accounts[index];
-              return ListTile(
+              return Padding(
                 key: ValueKey('account-row:${account.id.value}'),
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: PlanActSpacing.sm,
-                ),
-                leading: AccountIdentityIcon(account: account),
-                title: Text(account.name),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      [
-                        accountTypeLabel(account.type),
-                        if (account.bank != null)
-                          iranianBankLabel(context, account.bank!),
-                        if (account.status == FinancialAccountStatus.archived)
-                          l10n.financeAccountsArchived,
-                      ].join(' · '),
-                    ),
-                    Text(
-                      PersianMoneyText.money(
-                        rebuildBalance(account, widget.entries),
-                        unit: MoneyUnitScope.of(context),
-                        isolateNumber: true,
-                      ),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => widget.onOpen(account),
+                padding: const EdgeInsets.only(bottom: PlanActSpacing.lg),
+                child: widget.accountBuilder(context, account),
               );
             },
           ),

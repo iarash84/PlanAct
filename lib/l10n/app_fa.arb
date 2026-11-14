@@ -8122,5 +8122,7 @@
         "example": "۱۲"
       }
     }
-  }
+  },
+  "financeTransactionAccountUnavailable": "اطلاعات حساب در دسترس نیست",
+  "@financeTransactionAccountUnavailable": {"description": "نمایش صریح نبود اطلاعات حساب متصل به ثبت مالی؛ بدون حدس هویت"}
 }

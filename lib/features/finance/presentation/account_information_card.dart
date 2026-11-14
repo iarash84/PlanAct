@@ -119,8 +119,11 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                widget.operations,
               ],
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: widget.operations,
             ),
             Text(
               [
