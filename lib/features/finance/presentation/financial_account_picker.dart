@@ -14,12 +14,14 @@ class FinancialAccountPicker extends StatefulWidget {
     required this.onChanged,
     required this.onCreateAccount,
     this.currency,
+    this.initialAccount,
     this.enabled = true,
     this.optional = false,
   });
 
   final FinanceRepository repository;
   final String? currency;
+  final FinancialAccount? initialAccount;
   final bool enabled;
   final bool optional;
   final ValueChanged<FinancialAccount?> onChanged;
@@ -38,6 +40,7 @@ class _FinancialAccountPickerState extends State<FinancialAccountPicker> {
   @override
   void initState() {
     super.initState();
+    _selected = widget.initialAccount;
     _load();
   }
 

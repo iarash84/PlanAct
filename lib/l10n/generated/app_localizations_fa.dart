@@ -4646,6 +4646,16 @@ class AppLocalizationsFa extends AppLocalizations {
       'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟';
 
   @override
+  String financeCorrectAccountEffects(
+    String originalAccount,
+    String reversalEffect,
+    String selectedAccount,
+    String correctedEffect,
+  ) {
+    return 'اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «$originalAccount»: $reversalEffect\nاثر تراکنش اصلاح‌شده بر ماندهٔ «$selectedAccount»: $correctedEffect\nاین عملیات اصلاح ثبت است، نه انتقال وجه.';
+  }
+
+  @override
   String get financeCorrectMessage =>
       'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.';
 

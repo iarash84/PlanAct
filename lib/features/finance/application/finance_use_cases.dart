@@ -395,7 +395,7 @@ class FinanceUseCases {
     if (repository case AtomicFinanceReversal atomic) {
       await atomic.reverseEntry(
         expected: original,
-        accountId: account.id,
+        accountId: original.accountId,
         occurredAt: occurredAt,
         corrected: corrected,
       );
@@ -508,8 +508,19 @@ List<AccountEntry> prepareFinanceReversal({
       );
     }
   }
+  final destination = corrected == null
+      ? null
+      : accounts.where((a) => a.id == corrected.accountId).firstOrNull;
   if (corrected != null &&
-      (corrected.accountId != accountId ||
+      (destination == null ||
+          destination.status != FinancialAccountStatus.active ||
+          destination.currency != corrected.amount.currency ||
+          corrected.referenceId != original.id.value ||
+          corrected.transferGroupId != null ||
+          !{
+            AccountEntryType.income,
+            AccountEntryType.expense,
+          }.contains(original.type) ||
           corrected.amount.currency != original.amount.currency ||
           !{
             AccountEntryType.income,

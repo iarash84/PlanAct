@@ -7787,6 +7787,17 @@ abstract class AppLocalizations {
   /// **'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟'**
   String get financeCancelTransferMessage;
 
+  /// تأیید اصلاح تراکنش با نام حساب مبدأ و مقصد و اثر علامت‌دار هر ثبت بر مانده؛ اثرها با واحد نمایشی ثابت فرم قالب‌بندی شده‌اند.
+  ///
+  /// In fa, this message translates to:
+  /// **'اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.'**
+  String financeCorrectAccountEffects(
+    String originalAccount,
+    String reversalEffect,
+    String selectedAccount,
+    String correctedEffect,
+  );
+
   /// Undo repair: explicit operation feedback and confirmation.
   ///
   /// In fa, this message translates to:

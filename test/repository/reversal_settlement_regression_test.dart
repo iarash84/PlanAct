@@ -38,7 +38,7 @@ void main() {
   });
 
   for (final type in [AccountEntryType.expense, AccountEntryType.income]) {
-    for (final operation in ['void', 'correct', 'partial']) {
+    for (final operation in ['void', 'correct', 'cross-account', 'partial']) {
       test(
         '$operation ${type.name} restores unpaid remainder without changing match history, including reopen and backup',
         () async {
@@ -101,10 +101,21 @@ void main() {
             await DriftReconciliationRepository(database).list(),
           );
           AccountEntry? corrected;
-          if (operation == 'correct') {
+          if (operation == 'correct' || operation == 'cross-account') {
+            final destination = operation == 'cross-account'
+                ? FinancialAccount(
+                    id: StableId.generate(),
+                    name: 'corrected account',
+                    currency: 'IRR',
+                    type: FinancialAccountType.bank,
+                  )
+                : bank;
+            if (operation == 'cross-account') {
+              await FinanceUseCases(finance).createAccount(destination);
+            }
             corrected = await FinanceUseCases(finance).correctEntry(
               original: original,
-              account: bank,
+              account: destination,
               type: type,
               amount: const Money(minorUnits: 60, currency: 'IRR'),
               occurredAt: now,

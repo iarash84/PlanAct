@@ -7174,6 +7174,16 @@
     "x-planact-introduced": "undo-2026-10-14",
     "x-planact-default": true
   },
+  "financeCorrectAccountEffects": "اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.",
+  "@financeCorrectAccountEffects": {
+    "description": "تأیید اصلاح تراکنش با نام حساب مبدأ و مقصد و اثر علامت‌دار هر ثبت بر مانده؛ اثرها با واحد نمایشی ثابت فرم قالب‌بندی شده‌اند.",
+    "placeholders": {
+      "originalAccount": { "type": "String" },
+      "reversalEffect": { "type": "String" },
+      "selectedAccount": { "type": "String" },
+      "correctedEffect": { "type": "String" }
+    }
+  },
   "financeCorrectMessage": "تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.",
   "@financeCorrectMessage": {
     "description": "Undo repair: explicit operation feedback and confirmation.",

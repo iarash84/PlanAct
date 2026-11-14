@@ -306,6 +306,7 @@ class FinancePageState extends State<FinancePage> {
     FinancialAccount? account = original == null
         ? null
         : _accounts.where((a) => a.id == original.accountId).firstOrNull;
+    final originalAccount = account;
     var occurredAt = original?.occurredAt.toLocal() ?? DateTime.now();
     String? formError;
     var saving = false;
@@ -357,7 +358,7 @@ class FinancePageState extends State<FinancePage> {
                     if (original != null) {
                       if (!await confirmRecordedAction(
                             context,
-                            planActL10n(context).financeCorrectMessage,
+                            '${planActL10n(context).financeCorrectAccountEffects(originalAccount?.name ?? original.accountId.value, PersianMoneyText.money(-original.signedAmount, unit: moneyInput.unit, isolateNumber: true), selectedAccount.name, PersianMoneyText.amount(income ? value : -value, selectedAccount.currency, unit: moneyInput.unit, isolateNumber: true))}\n\n${planActL10n(context).financeCorrectMessage}',
                           ) ||
                           !context.mounted) {
                         if (context.mounted) {
@@ -421,23 +422,18 @@ class FinancePageState extends State<FinancePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (original == null)
-                      FinancialAccountPicker(
-                        repository: widget.repository,
-                        enabled: !saving && original == null,
-                        onChanged: (value) =>
-                            setDialogState(() => account = value),
-                        onCreateAccount: () => openFinancialAccountCreation(
-                          context,
-                          widget.repository,
-                        ),
-                      )
-                    else
-                      Text(
-                        account?.name ??
-                            planActL10n(context)
-                                .transactionRelationshipPageBuildChildren2,
+                    FinancialAccountPicker(
+                      repository: widget.repository,
+                      initialAccount: originalAccount,
+                      currency: original?.amount.currency,
+                      enabled: !saving,
+                      onChanged: (value) =>
+                          setDialogState(() => account = value),
+                      onCreateAccount: () => openFinancialAccountCreation(
+                        context,
+                        widget.repository,
                       ),
+                    ),
                     TextField(
                       controller: amount,
                       keyboardType: const TextInputType.numberWithOptions(
