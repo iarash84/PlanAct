@@ -142,6 +142,59 @@ void main() {
         },
       );
 
+      test('mostUsed ranks by usage and limits suggestions to five', () async {
+        final tags = [
+          for (final label in [
+            'اول',
+            'دوم',
+            'سوم',
+            'چهارم',
+            'پنجم',
+            'ششم',
+            'هفتم',
+          ])
+            await repository.getOrCreate(label),
+        ];
+        final records = <String>[];
+        if (durable) {
+          final commitments = DriftCommitmentRepository(database!);
+          for (var i = 0; i < tags.length; i++) {
+            await commitments.save(
+              Commitment.create(
+                title: 'Tag record $i',
+                now: DateTime.utc(2026),
+              ),
+            );
+          }
+          records.addAll(
+            (await commitments.list()).map((item) => item.id.value),
+          );
+        } else {
+          records.addAll(
+            List.generate(tags.length, (index) => 'record-$index'),
+          );
+        }
+        for (var tagIndex = 0; tagIndex < tags.length; tagIndex++) {
+          for (var recordIndex = 0; recordIndex <= tagIndex; recordIndex++) {
+            await repository.attach(
+              recordId: records[recordIndex],
+              tag: tags[tagIndex],
+              type: TaggableType.commitment,
+            );
+          }
+        }
+
+        final result = await repository.mostUsed();
+        expect(result, hasLength(5));
+        expect(result.map((tag) => tag.label).toList(), [
+          'هفتم',
+          'ششم',
+          'پنجم',
+          'چهارم',
+          'سوم',
+        ]);
+      });
+
       test('retired CommandGate rejects reads and mutations', () async {
         final tag = await repository.getOrCreate('work');
         final gate = CommandGate();
@@ -153,6 +206,7 @@ void main() {
           () => repository.remove(tag.id),
           () => repository.list(),
           () => repository.autocomplete(''),
+          () => repository.mostUsed(),
           () => repository.tagsFor('record', TaggableType.commitment),
           () => (repository as BatchTagRepository).tagsForMany([
             'record',
