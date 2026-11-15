@@ -1,5 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 
@@ -23,6 +24,9 @@ String iranianBankLabel(BuildContext context, IranianBank bank) =>
     };
 
 /// Bank artwork is static presentation data; identity comes from the saved bank.
+///
+/// Bundled bank artwork is an opaque square, so it is kept intact in a compact
+/// soft-corner frame rather than placed inside a larger circular container.
 class AccountIdentityIcon extends StatelessWidget {
   const AccountIdentityIcon({super.key, required this.account});
 
@@ -36,16 +40,33 @@ class AccountIdentityIcon extends StatelessWidget {
           ? Icons.account_balance
           : Icons.account_balance_wallet,
     );
-    if (bank == null) return fallback;
-    return Image.asset(
-      'assets/banks/${bank.code}.png',
-      width: 32,
-      height: 32,
-      fit: BoxFit.contain,
-      semanticLabel: planActL10n(
-        context,
-      ).accountIdentityIconBuildSemanticLabel(iranianBankLabel(context, bank)),
-      errorBuilder: (context, error, stackTrace) => fallback,
+    final theme = Theme.of(context);
+    final icon = bank == null
+        ? fallback
+        : Image.asset(
+            'assets/banks/${bank.code}.png',
+            width: 28,
+            height: 28,
+            fit: BoxFit.contain,
+            semanticLabel: planActL10n(context)
+                .accountIdentityIconBuildSemanticLabel(
+                  iranianBankLabel(context, bank),
+                ),
+            errorBuilder: (context, error, stackTrace) => fallback,
+          );
+    return SizedBox(
+      key: const ValueKey('account-identity-icon-frame'),
+      width: 40,
+      height: 40,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: bank == null
+              ? theme.colorScheme.surfaceContainerHighest
+              : Colors.white,
+          borderRadius: PlanActRadius.input,
+        ),
+        child: Center(child: icon),
+      ),
     );
   }
 }

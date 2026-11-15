@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:planact/features/finance/presentation/account_form_sheet.dart';
 import 'package:planact/features/finance/presentation/account_information_card.dart';
 import 'package:planact/features/finance/presentation/account_identity_icon.dart';
+import 'package:planact/features/finance/presentation/transaction_account_icon.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/features/finance/presentation/financial_account_picker.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
@@ -1272,13 +1273,15 @@ class FinancePageState extends State<FinancePage> {
     }
     return Row(
       key: ValueKey('transaction-account:${entry.id.value}'),
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        AccountIdentityIcon(account: account),
+        TransactionAccountIcon(account: account),
         const SizedBox(width: PlanActSpacing.sm),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: PlanActSpacing.sm,
+            runSpacing: PlanActSpacing.xs,
             children: [
               Text(account.name),
               Text(

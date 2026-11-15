@@ -109,7 +109,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AccountIdentityIcon(account: account),
                 const SizedBox(width: PlanActSpacing.sm),

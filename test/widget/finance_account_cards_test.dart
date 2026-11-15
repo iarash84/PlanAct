@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -249,6 +250,68 @@ void main() {
       expect(await repository.listEntries(), hasLength(2));
       expect(find.byType(AccountInformationCard), findsWidgets);
       expect(find.byType(FinancePage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'account card uses shared bordered surface and centers identity',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      final account = FinancialAccount(
+        id: StableId.generate(),
+        name: 'حساب بانکی با نام بلند برای متن بزرگ',
+        currency: 'IRR',
+        type: FinancialAccountType.bank,
+        bank: IranianBank.mellat,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: PlanActTheme.dark(),
+          builder: (context, child) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: const TextScaler.linear(2)),
+              child: child!,
+            ),
+          ),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AccountInformationCard(
+                account: account,
+                balance: const Money(minorUnits: 1234, currency: 'IRR'),
+                operations: IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.more_vert),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = find.byType(AccountInformationCard);
+      final outerCard = find.descendant(of: card, matching: find.byType(Card));
+      final cardWidget = tester.widget<Card>(outerCard);
+      final theme = Theme.of(tester.element(card));
+      expect(cardWidget.color, isNull);
+      expect(cardWidget.shape, isNull);
+      final material = find
+          .descendant(of: outerCard, matching: find.byType(Material))
+          .first;
+      final surface = tester.widget<Material>(material);
+      expect(surface.color, theme.cardTheme.color);
+      final shape = surface.shape! as RoundedRectangleBorder;
+      expect(shape.borderRadius, PlanActRadius.card);
+      expect(shape.side.color, theme.colorScheme.outlineVariant);
+
+      final iconRect = tester.getRect(find.byType(AccountIdentityIcon));
+      final nameRect = tester.getRect(find.text(account.name));
+      expect((nameRect.center.dy - iconRect.center.dy).abs(), lessThan(1));
+      expect(tester.getSize(find.byType(IconButton)), const Size(48, 48));
       expect(tester.takeException(), isNull);
     },
   );

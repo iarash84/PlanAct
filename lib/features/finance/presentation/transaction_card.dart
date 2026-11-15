@@ -33,39 +33,98 @@ class TransactionCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(PlanActSpacing.lg),
+          padding: const EdgeInsets.all(PlanActSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: PlanActSpacing.md,
+            spacing: PlanActSpacing.xs,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TransactionDirectionIcon(entry: entry),
-                  const SizedBox(width: PlanActSpacing.md),
-                  Expanded(
-                    child: Text(label, style: theme.textTheme.titleMedium),
-                  ),
-                  if (operations != null) ...[
-                    const SizedBox(width: PlanActSpacing.sm),
-                    operations!,
-                  ] else if (onTap != null) ...[
-                    const SizedBox(width: PlanActSpacing.sm),
-                    Icon(
-                      Icons.chevron_right,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ],
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final direction = Directionality.of(context);
+                  double textWidth(String text, TextStyle? style) {
+                    final painter = TextPainter(
+                      text: TextSpan(text: text, style: style),
+                      textDirection: direction,
+                      textScaler: MediaQuery.textScalerOf(context),
+                      locale: Localizations.maybeLocaleOf(context),
+                    )..layout();
+                    final width = painter.width;
+                    painter.dispose();
+                    return width;
+                  }
+
+                  // Measure the actual localized/scaled strings, not a device
+                  // breakpoint. Unbounded text always has a full-width fallback.
+                  final trailing =
+                      operations ??
+                      (onTap == null
+                          ? null
+                          : Icon(
+                              Icons.chevron_right,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ));
+                  final available =
+                      constraints.maxWidth -
+                      40 -
+                      PlanActSpacing.md -
+                      (trailing == null
+                          ? 0
+                          : PlanActSpacing.touchTarget + PlanActSpacing.sm);
+                  final amountWidth = textWidth(
+                    amount,
+                    theme.textTheme.titleLarge,
+                  );
+                  final labelWidth = textWidth(
+                    label,
+                    theme.textTheme.titleMedium,
+                  );
+                  final grouped = amountWidth <= available;
+                  final inline =
+                      grouped &&
+                      amountWidth + labelWidth + PlanActSpacing.md <= available;
+                  final title = Text(label, style: theme.textTheme.titleMedium);
+                  final value = Text(amount, style: theme.textTheme.titleLarge);
+                  final header = Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      TransactionDirectionIcon(entry: entry),
+                      const SizedBox(width: PlanActSpacing.md),
+                      Expanded(
+                        child: !grouped
+                            ? title
+                            : inline
+                            ? Row(
+                                children: [
+                                  title,
+                                  const SizedBox(width: PlanActSpacing.md),
+                                  Expanded(child: value),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [title, value],
+                              ),
+                      ),
+                      if (trailing != null) ...[
+                        const SizedBox(width: PlanActSpacing.sm),
+                        trailing,
+                      ],
+                    ],
+                  );
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: PlanActSpacing.xs,
+                    children: [header, if (!grouped) value],
+                  );
+                },
               ),
-              Text(amount, style: theme.textTheme.titleLarge),
               if (children.isNotEmpty) ...[
                 const Divider(height: PlanActSpacing.xs),
                 DefaultTextStyle.merge(
                   style: secondary,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: PlanActSpacing.sm,
+                    spacing: PlanActSpacing.xs,
                     children: children,
                   ),
                 ),

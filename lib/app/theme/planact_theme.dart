@@ -42,7 +42,10 @@ abstract final class PlanActTheme {
         margin: EdgeInsets.zero,
         color: scheme.surfaceContainer,
         surfaceTintColor: Colors.transparent,
-        shape: const RoundedRectangleBorder(borderRadius: PlanActRadius.card),
+        shape: RoundedRectangleBorder(
+          borderRadius: PlanActRadius.card,
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
       ),
       listTileTheme: ListTileThemeData(
         minVerticalPadding: PlanActSpacing.sm,

@@ -8,6 +8,7 @@ import 'package:planact/features/calendar/domain/calendar_transaction.dart';
 import 'package:planact/features/classification/presentation/tag_badge.dart';
 import 'package:planact/features/finance/presentation/account_identity_icon.dart';
 import 'package:planact/features/finance/presentation/transaction_card.dart';
+import 'package:planact/features/finance/presentation/transaction_account_icon.dart';
 
 String calendarTransactionLabel(
   BuildContext context,
@@ -55,9 +56,9 @@ class CalendarTransactionTile extends StatelessWidget {
             Text(item.entry.note!, style: theme.textTheme.bodyMedium),
           for (final account in item.accounts)
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                AccountIdentityIcon(account: account),
+                TransactionAccountIcon(account: account),
                 const SizedBox(width: PlanActSpacing.sm),
                 Expanded(
                   child: Text(

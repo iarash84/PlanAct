@@ -115,6 +115,43 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('bank identity uses a compact asset-aware frame', (tester) async {
+    final account = FinancialAccount(
+      id: StableId.generate(),
+      name: 'حساب شخصی',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+      bank: IranianBank.mellat,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        home: Center(
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: AccountIdentityIcon(account: account),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final frameFinder = find.byKey(
+      const ValueKey('account-identity-icon-frame'),
+    );
+    final frame = tester.widget<DecoratedBox>(
+      find.descendant(of: frameFinder, matching: find.byType(DecoratedBox)),
+    );
+    final decoration = frame.decoration as BoxDecoration;
+    expect(decoration.borderRadius, isNotNull);
+    expect(decoration.border, isNull);
+    expect(decoration.color, Colors.white);
+    expect(tester.getSize(frameFinder), const Size(40, 40));
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(CircleBorder), findsNothing);
+  });
+
   testWidgets('bank is never inferred from account name', (tester) async {
     for (final type in [FinancialAccountType.bank, FinancialAccountType.cash]) {
       final account = FinancialAccount(
