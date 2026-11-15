@@ -86,7 +86,7 @@ Future<void> _dismissOccurrenceActions(WidgetTester tester) async {
 }
 
 Future<void> _open(WidgetTester tester, String title) async {
-  await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+  await tester.tap(find.byIcon(Icons.menu));
   await tester.pumpAndSettle();
   await tester.tap(find.text(title));
   await tester.pumpAndSettle();

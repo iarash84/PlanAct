@@ -1700,6 +1700,108 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  SettingsPage _buildSettingsPage() => SettingsPage(
+    calendarVisibility: _calendarVisibility,
+    holidayPackages: widget.holidayPackages,
+    onHolidaysChanged: () => setState(() {}),
+    enableReminders: _repository is DriftCommitmentRepository
+        ? _enableReminders
+        : null,
+    backupActions: widget.backupActions,
+    backupMessage: widget.backupMessage,
+    settings: widget.settings,
+    showArchivedAccounts: widget.showArchivedAccounts,
+    onShowArchivedAccountsChanged: widget.onShowArchivedAccountsChanged,
+    themeMode: widget.themeMode,
+    background: widget.background,
+    onBackgroundChanged: widget.onBackgroundChanged,
+    appLockEnabled: widget.appLockEnabled,
+    appLockController: widget.appLockController,
+    onAppLockChanged: widget.onAppLockChanged,
+    onThemeModeChanged: widget.onThemeModeChanged,
+    onManageTags: () => showTagManager(
+      context,
+      repository: _tagRepository,
+      onChanged: _tagsChanged,
+    ),
+    onAbout: () =>
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
+  );
+
+  Future<void> _openAccounts() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => FinancePage(
+          repository: _financeRepository,
+          expectationRepository: _expectationRepository,
+          tagRepository: _tagRepository,
+          onTagsChanged: _tagsChanged,
+          onDataChanged: _refresh,
+          onDetermineRelationship: _openRelationship,
+          showArchivedAccounts: widget.showArchivedAccounts,
+          manageAccounts: true,
+        ),
+      ),
+    );
+    if (mounted) await _refresh();
+  }
+
+  Future<void> _openHelp() => Navigator.of(context)
+      .push<void>(MaterialPageRoute<void>(builder: (_) => const HelpFaqPage()));
+
+  Future<void> _openSettings() => Navigator.of(context).push<void>(
+    MaterialPageRoute<void>(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: Text(planActL10n(context).planactAppBuildTitle6)),
+        body: _buildSettingsPage(),
+      ),
+    ),
+  );
+
+  Future<void> _openNavigationDrawer() {
+    final l10n = planActL10n(context);
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final duration = PlanActMotion.duration(context);
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: l10n.navigationMore,
+      barrierColor: Colors.black54,
+      transitionDuration: duration,
+      pageBuilder: (dialogContext, animation, secondaryAnimation) => Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: _buildNavigationDrawer(
+          dialogContext,
+          onAddCommitment: _showCapture,
+          onTimeline: _showTimeline,
+          onHistory: () => _showTimeline(includeHistory: true),
+          onFinance: _goToFinance,
+          onAccounts: _openAccounts,
+          onReports: _openReports,
+          onInbox: _openInbox,
+          onHelp: _openHelp,
+          onSettings: _openSettings,
+        ),
+      ),
+      transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
+        final begin = isRtl ? const Offset(1, 0) : const Offset(-1, 0);
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: PlanActMotion.curve,
+          reverseCurve: PlanActMotion.curve,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: begin,
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
@@ -1822,33 +1924,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onHolidaysChanged: () => setState(() {}),
         backupActions: widget.backupActions,
         backupMessage: widget.backupMessage,
-        settings: SettingsPage(
-          calendarVisibility: _calendarVisibility,
-          holidayPackages: widget.holidayPackages,
-          onHolidaysChanged: () => setState(() {}),
-          enableReminders: _repository is DriftCommitmentRepository
-              ? _enableReminders
-              : null,
-          backupActions: widget.backupActions,
-          backupMessage: widget.backupMessage,
-          settings: widget.settings,
-          showArchivedAccounts: widget.showArchivedAccounts,
-          onShowArchivedAccountsChanged: widget.onShowArchivedAccountsChanged,
-          themeMode: widget.themeMode,
-          background: widget.background,
-          onBackgroundChanged: widget.onBackgroundChanged,
-          appLockEnabled: widget.appLockEnabled,
-          appLockController: widget.appLockController,
-          onAppLockChanged: widget.onAppLockChanged,
-          onThemeModeChanged: widget.onThemeModeChanged,
-          onManageTags: () => showTagManager(
-            context,
-            repository: _tagRepository,
-            onChanged: _tagsChanged,
-          ),
-          onAbout: () => Navigator.of(context)
-              .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
-        ),
+        settings: _buildSettingsPage(),
       ),
     ];
     final titles = [
@@ -1859,6 +1935,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     ];
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          key: const ValueKey('shell-menu'),
+          tooltip: planActL10n(context).navigationMore,
+          onPressed: _openNavigationDrawer,
+          icon: const Icon(Icons.menu),
+        ),
         title: AnimatedSwitcher(
           duration: PlanActMotion.duration(context, PlanActMotion.short),
           switchInCurve: PlanActMotion.curve,
@@ -1871,68 +1953,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             tooltip: planActL10n(context).searchTitle,
             onPressed: _openSearch,
             icon: const Icon(Icons.search),
-          ),
-          PopupMenuButton<_AppMenuAction>(
-            tooltip: planActL10n(context).planactAppBuildTooltip,
-            icon: const Icon(Icons.more_horiz),
-            position: PopupMenuPosition.under,
-            requestFocus: true,
-            onSelected: (action) {
-              if (action == _AppMenuAction.addCommitment) {
-                _showCapture();
-              } else if (action == _AppMenuAction.timeline) {
-                _showTimeline();
-              } else if (action == _AppMenuAction.history) {
-                _showTimeline(includeHistory: true);
-              } else if (action == _AppMenuAction.reports) {
-                _openReports();
-              } else if (action == _AppMenuAction.inbox) {
-                _openInbox();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _AppMenuAction.addCommitment,
-                child: ListTile(
-                  leading: Icon(Icons.add_task),
-                  title: Text(planActL10n(context).planactAppBuildTitle),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _AppMenuAction.timeline,
-                child: ListTile(
-                  leading: Icon(Icons.timeline),
-                  title: Text(planActL10n(context).planactAppBuildTitle2),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuDivider(),
-              PopupMenuItem(
-                value: _AppMenuAction.history,
-                child: ListTile(
-                  leading: const Icon(Icons.history),
-                  title: Text(planActL10n(context).commitmentHistoryTitle),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _AppMenuAction.reports,
-                child: ListTile(
-                  leading: Icon(Icons.bar_chart_outlined),
-                  title: Text(planActL10n(context).planactAppBuildTitle3),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: _AppMenuAction.inbox,
-                child: ListTile(
-                  leading: Icon(Icons.inbox_outlined),
-                  title: Text(planActL10n(context).planactAppOpenInboxTitle),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -2051,7 +2071,113 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 }
 
-enum _AppMenuAction { addCommitment, timeline, history, reports, inbox }
+Widget _buildNavigationDrawer(
+  BuildContext context, {
+  required VoidCallback onAddCommitment,
+  required VoidCallback onTimeline,
+  required VoidCallback onHistory,
+  required VoidCallback onFinance,
+  required VoidCallback onAccounts,
+  required VoidCallback onReports,
+  required VoidCallback onInbox,
+  required VoidCallback onHelp,
+  required VoidCallback onSettings,
+}) => Drawer(
+  child: SafeArea(
+    child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        DrawerHeader(
+          child: Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Text(
+              'پلن‌اکت',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-add-commitment'),
+          icon: Icons.add_task,
+          label: planActL10n(context).planactAppBuildTitle,
+          onTap: () => _closeDrawerAndRun(context, onAddCommitment),
+        ),
+        const Divider(),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-timeline'),
+          icon: Icons.timeline,
+          label: planActL10n(context).planactAppBuildTitle2,
+          onTap: () => _closeDrawerAndRun(context, onTimeline),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-history'),
+          icon: Icons.history,
+          label: planActL10n(context).commitmentHistoryTitle,
+          onTap: () => _closeDrawerAndRun(context, onHistory),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-finance'),
+          icon: Icons.account_balance_wallet_outlined,
+          label: planActL10n(context).navigationFinance,
+          onTap: () => _closeDrawerAndRun(context, onFinance),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-accounts'),
+          icon: Icons.account_balance_outlined,
+          label: planActL10n(context).financeAccountsTitle,
+          onTap: () => _closeDrawerAndRun(context, onAccounts),
+        ),
+        const Divider(),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-reports'),
+          icon: Icons.bar_chart_outlined,
+          label: planActL10n(context).planactAppBuildTitle3,
+          onTap: () => _closeDrawerAndRun(context, onReports),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-inbox'),
+          icon: Icons.inbox_outlined,
+          label: planActL10n(context).planactAppOpenInboxTitle,
+          onTap: () => _closeDrawerAndRun(context, onInbox),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-help'),
+          icon: Icons.help_outline,
+          label: planActL10n(context).helpFaqPageTitle,
+          onTap: () => _closeDrawerAndRun(context, onHelp),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-settings'),
+          icon: Icons.settings_outlined,
+          label: planActL10n(context).planactAppBuildTitle6,
+          onTap: () => _closeDrawerAndRun(context, onSettings),
+        ),
+      ],
+    ),
+  ),
+);
+
+class _NavigationDrawerItem extends StatelessWidget {
+  const _NavigationDrawerItem({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) =>
+      ListTile(leading: Icon(icon), title: Text(label), onTap: onTap);
+}
+
+void _closeDrawerAndRun(BuildContext context, VoidCallback action) {
+  Navigator.of(context).pop();
+  action();
+}
 
 class CommitmentDetailsPage extends StatefulWidget {
   const CommitmentDetailsPage({

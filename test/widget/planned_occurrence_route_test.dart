@@ -112,7 +112,7 @@ void main() {
           60,
         );
       });
-      await _tap(tester, find.byTooltip('گزینه‌های بیشتر'));
+      await _tap(tester, find.byIcon(Icons.menu));
       await _tap(tester, find.text('خط زمانی تعهدات'));
       await _tap(tester, find.widgetWithText(ListTile, item.title).last);
       await tester.scrollUntilVisible(

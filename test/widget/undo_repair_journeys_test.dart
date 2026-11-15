@@ -144,7 +144,7 @@ void main() {
       await tester.tap(find.byTooltip('بستن'));
       await settle(tester);
     }
-    await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+    await tester.tap(find.byIcon(Icons.menu));
     await settle(tester);
     await tapText(tester, 'تاریخچه و بایگانی تعهدها');
     await tapText(tester, 'class');

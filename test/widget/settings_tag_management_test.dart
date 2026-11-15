@@ -32,9 +32,9 @@ void main() {
         PlanActApp(repository: DriftCommitmentRepository(database)),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_horiz).last);
+      await tester.tap(find.byIcon(Icons.menu));
       await tester.pumpAndSettle();
-      await tap(tester, find.text('تنظیمات'));
+      await tap(tester, find.byKey(const ValueKey('navigation-settings')));
       final l10n = planActL10n(tester.element(find.byType(SettingsPage)));
       await tap(
         tester,
