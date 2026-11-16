@@ -59,7 +59,7 @@ class _ReportMovementListState extends State<ReportMovementList> {
             children: [
               OutlinedButton(
                 onPressed: _page == 0 ? null : () => _go(_page - 1),
-                child: Text(l10n.reportsPreviousPage),
+                child: Text(l10n.commonPreviousPage),
               ),
               Semantics(
                 liveRegion: true,
@@ -73,7 +73,7 @@ class _ReportMovementListState extends State<ReportMovementList> {
               ),
               OutlinedButton(
                 onPressed: _page + 1 >= pages ? null : () => _go(_page + 1),
-                child: Text(l10n.reportsNextPage),
+                child: Text(l10n.commonNextPage),
               ),
             ],
           );

@@ -826,14 +826,14 @@ class FinancePageState extends State<FinancePage> {
               OutlinedButton.icon(
                 onPressed: page == 0 ? null : () => _changeEntryPage(page - 1),
                 icon: const Icon(Icons.arrow_back),
-                label: Text(l10n.financeTransactionPreviousPage),
+                label: Text(l10n.commonPreviousPage),
               ),
               OutlinedButton.icon(
                 onPressed: page + 1 >= pages
                     ? null
                     : () => _changeEntryPage(page + 1),
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(l10n.financeTransactionNextPage),
+                label: Text(l10n.commonNextPage),
               ),
             ],
           ),

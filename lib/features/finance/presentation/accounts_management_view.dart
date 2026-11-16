@@ -105,7 +105,7 @@ class _AccountsManagementViewState extends State<AccountsManagementView> {
               const SizedBox(height: PlanActSpacing.lg),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: Text(l10n.financeAccountsShowArchived),
+                title: Text(l10n.financeShowArchivedAccounts),
                 value: _showArchived,
                 onChanged: (value) => setState(() => _showArchived = value),
               ),

@@ -329,7 +329,7 @@ class _CalendarPageState extends State<CalendarPage> {
         _month = JalaliDate(current.year, current.month, 1);
         if (!_week) _loadMonth();
       }),
-      child: Text(planActL10n(context).calendarPageTodayButtonLabel),
+      child: Text(planActL10n(context).commonToday),
     );
     final dates = WeekTimeline.dates(_selectedDay);
     return Column(

@@ -639,7 +639,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page--;
                         _selected.clear();
                       }),
-                child: const Text(PersianCopy.inboxPageBulkControlsChildren7),
+                child: const Text(PersianCopy.commonPreviousPage),
               ),
               TextButton(
                 onPressed:
@@ -649,7 +649,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page++;
                         _selected.clear();
                       }),
-                child: const Text(PersianCopy.inboxPageBulkControlsChildren8),
+                child: const Text(PersianCopy.commonNextPage),
               ),
             ],
           ),

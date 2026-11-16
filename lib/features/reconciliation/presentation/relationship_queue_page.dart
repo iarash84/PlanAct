@@ -288,9 +288,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page--);
                         _load();
                       },
-                child: Text(
-                  planActL10n(context).inboxPageBulkControlsChildren7,
-                ),
+                child: Text(planActL10n(context).commonPreviousPage),
               ),
               TextButton(
                 onPressed: !_hasNext
@@ -299,9 +297,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page++);
                         _load();
                       },
-                child: Text(
-                  planActL10n(context).inboxPageBulkControlsChildren8,
-                ),
+                child: Text(planActL10n(context).commonNextPage),
               ),
               TextButton(
                 onPressed: _load,

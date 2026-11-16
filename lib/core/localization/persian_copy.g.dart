@@ -452,8 +452,8 @@ abstract final class PersianCopy {
   static const inboxPageBulkControlsChildren4 = "پاک کردن انتخاب";
   static const inboxPageBulkControlsChildren5 = "رد کردن گروهی";
   static String inboxPageBulkControlsChildren6(String value1) => "صفحهٔ ${value1}";
-  static const inboxPageBulkControlsChildren7 = "صفحهٔ قبل";
-  static const inboxPageBulkControlsChildren8 = "صفحهٔ بعد";
+  static const commonPreviousPage = "صفحهٔ قبل";
+  static const commonNextPage = "صفحهٔ بعد";
   static String inboxPageBulkControlsChildren9(String value1, String value2, String value3, String value4) => "بررسی‌شده: ${value1} از ${value2} · ردشده: ${value3} · ناموفق: ${value4}";
   static const inboxPageBulkControlsChildren10 = "در انتظار پایان مورد جاری";
   static const inboxPageBulkControlsChildren11 = "توقف پس از مورد جاری";

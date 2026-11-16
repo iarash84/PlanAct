@@ -16,6 +16,57 @@ void main() {
     File('lib/l10n/app_fa.arb').readAsStringSync(),
   ) as Map<String, dynamic>;
 
+  test('catalog keys are unique and translator descriptions are English', () {
+    final source = File('lib/l10n/app_fa.arb').readAsStringSync();
+    // Check before decoding: JSON maps otherwise silently discard repeated keys.
+    final keys = RegExp(
+      r'^  "([^"\n]+)":',
+      multiLine: true,
+    ).allMatches(source).map((match) => match.group(1)!).toList();
+    expect(keys.toSet().length, keys.length);
+    final persian = RegExp(r'[\u0600-\u06ff]');
+    final messagesByText = <String, List<String>>{};
+    for (final entry in catalog.entries) {
+      if (entry.key.startsWith('@')) continue;
+      messagesByText
+          .putIfAbsent(entry.value as String, () => [])
+          .add(entry.key);
+      final metadata = catalog['@${entry.key}'] as Map<String, dynamic>;
+      final description = metadata['description'] as String;
+      expect(description.trim(), isNotEmpty, reason: entry.key);
+      expect(persian.hasMatch(description), isFalse, reason: entry.key);
+      final placeholders = metadata['placeholders'] as Map<String, dynamic>?;
+      for (final placeholder in (placeholders ?? {}).entries) {
+        final description = (placeholder.value as Map)['description'];
+        if (description == null) continue;
+        expect(description, isA<String>(), reason: placeholder.key);
+        expect(persian.hasMatch(description as String), isFalse);
+      }
+    }
+    for (final group in messagesByText.values.where(
+      (keys) => keys.length > 1,
+    )) {
+      for (final key in group) {
+        final metadata = catalog['@$key'] as Map;
+        final reason = metadata['x-planact-distinct-context'];
+        expect(reason, isA<String>(), reason: 'Unreviewed duplicate: $group');
+        expect((reason as String).trim(), isNotEmpty, reason: key);
+        expect(persian.hasMatch(reason), isFalse, reason: key);
+      }
+    }
+  });
+
+  test('shared pagination messages preserve the existing Persian labels', () {
+    final copy = AppLocalizationsFa();
+    expect(copy.commonPreviousPage, 'صفحهٔ قبل');
+    expect(copy.commonNextPage, 'صفحهٔ بعد');
+    expect(PersianCopy.commonPreviousPage, copy.commonPreviousPage);
+    expect(PersianCopy.commonNextPage, copy.commonNextPage);
+    for (final key in ['commonPreviousPage', 'commonNextPage']) {
+      expect((catalog['@$key'] as Map)['x-planact-default'], isTrue);
+    }
+  });
+
   test('Persian remains the only exposed locale and template', () {
     expect(AppLocalizations.supportedLocales.map((l) => l.languageCode), [
       'fa',
@@ -31,7 +82,7 @@ void main() {
     );
     expect(copy.commitmentTitleRequired, 'عنوان تعهد را وارد کنید.');
     expect(copy.occurrenceCancelled, 'لغوشده');
-    expect(copy.calendarPageTodayButtonLabel, 'امروز');
+    expect(copy.commonToday, 'امروز');
     expect(copy.holidayDataCoverageTitle, 'سال‌ها و منابع تعطیلات');
     expect(
       copy.holidayPackageSettingsCardBuildSubtitle,
@@ -180,7 +231,6 @@ void main() {
       'finance-account-management-2026-11-14': {
         'financeAccountsTitle',
         'financeAccountsSearch',
-        'financeAccountsShowArchived',
         'financeAccountsArchived',
         'financeAccountsNoResults',
         'financeAccountsAll',
@@ -218,8 +268,6 @@ void main() {
 
   test('finance pagination copy is separate from migrated templates', () {
     final messages = {
-      'financeTransactionPreviousPage': 'صفحهٔ قبل',
-      'financeTransactionNextPage': 'صفحهٔ بعد',
       'financeTransactionPageRange':
           'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}',
     };
@@ -287,8 +335,6 @@ void main() {
   test('report card copy is explicitly separate from migrated templates', () {
     final messages = {
       'reportsTransactionMetadata': '{date} · {type}\n{account}',
-      'reportsPreviousPage': 'صفحهٔ قبل',
-      'reportsNextPage': 'صفحهٔ بعد',
       'reportsPagePosition': 'صفحهٔ {page} از {pages} · {count} تراکنش',
     };
     final markedKeys = catalog.keys.where(

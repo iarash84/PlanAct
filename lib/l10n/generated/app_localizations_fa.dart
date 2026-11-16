@@ -71,12 +71,6 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get reportsPreviousPage => 'صفحهٔ قبل';
-
-  @override
-  String get reportsNextPage => 'صفحهٔ بعد';
-
-  @override
   String reportsPagePosition(String page, String pages, String count) {
     return 'صفحهٔ $page از $pages · $count تراکنش';
   }
@@ -928,9 +922,6 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get calendarPageDateButtonLabel => 'رفتن به تاریخ';
-
-  @override
-  String get calendarPageTodayButtonLabel => 'امروز';
 
   @override
   String get calendarPageBuildTooltip => 'هفته قبل';
@@ -2518,10 +2509,10 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get inboxPageBulkControlsChildren7 => 'صفحهٔ قبل';
+  String get commonPreviousPage => 'صفحهٔ قبل';
 
   @override
-  String get inboxPageBulkControlsChildren8 => 'صفحهٔ بعد';
+  String get commonNextPage => 'صفحهٔ بعد';
 
   @override
   String inboxPageBulkControlsChildren9(
@@ -5141,12 +5132,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get smsOlderMessages => 'پیام‌های قدیمی‌تر';
 
   @override
-  String get financeTransactionPreviousPage => 'صفحهٔ قبل';
-
-  @override
-  String get financeTransactionNextPage => 'صفحهٔ بعد';
-
-  @override
   String financeTransactionPageRange(
     String start,
     String end,
@@ -5211,9 +5196,6 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get financeAccountsSearch => 'جست‌وجوی نام یا بانک حساب';
-
-  @override
-  String get financeAccountsShowArchived => 'نمایش حساب‌های بایگانی‌شده';
 
   @override
   String get financeAccountsArchived => 'بایگانی‌شده';

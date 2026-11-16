@@ -12,6 +12,8 @@ All new documentation and explanatory sections added to or rewritten in existing
 
 File names and paths, code and interface identifiers, executable commands, official technology names, quotations, and raw tool output may retain their original form; surrounding explanations must follow the document's required language. Translation must preserve technical meaning, evidence, limitations, and acceptance status. This policy aligns with the documentation-language section in the [PRD](docs/product/PRD.md) and does not authorize broad translation or rewriting of unrelated legacy documentation.
 
+User-approved translator metadata exception (2026-11-16): ARB message and placeholder descriptions must be English so future translators can understand their context. Reuse shared keys for semantically identical copy; identical Persian text with different translation contexts may remain separate with an English `x-planact-distinct-context` rationale. This exception covers technical catalog metadata, not surrounding project documentation.
+
 ## 1. Product mission
 
 The product answers three questions reliably:

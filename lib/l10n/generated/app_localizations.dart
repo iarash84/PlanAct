@@ -94,97 +94,97 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
-  /// جلوگیری از دوباره‌شماری ثبت دیرهنگام پس از تطبیق حساب.
+  /// Error blocking a backdated financial entry that would affect an already reconciled period; reverse the reconciliation first to avoid double counting.
   ///
   /// In fa, this message translates to:
   /// **'این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.'**
   String get bankBalanceBackdatedBlocked;
 
-  /// رد تأیید تطبیق کهنه یا مبهم.
+  /// Error rejecting reconciliation because the account changed or source evidence is insufficient; refresh and review again.
   ///
   /// In fa, this message translates to:
   /// **'اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.'**
   String get bankBalanceStale;
 
-  /// دلیل صریح هزینه در تطبیق حساب.
+  /// Explicit reconciliation reason for a known bank fee, recorded as an expense.
   ///
   /// In fa, this message translates to:
   /// **'کارمزد مشخص بانک'**
   String get bankBalanceKnownFee;
 
-  /// دلیل تعدیل علامت‌دار، نه درآمد یا هزینه.
+  /// Reconciliation reason for an unexplained signed balance adjustment, not income or expense.
   ///
   /// In fa, this message translates to:
   /// **'تعدیل اختلاف نامعلوم حساب'**
   String get bankBalanceUnknownAdjustment;
 
-  /// مانده تاریخی مستقل از دفتر، نه مانده زنده بانک.
+  /// Label for the latest historical bank balance reported in SMS, independent of the ledger and not a live bank balance.
   ///
   /// In fa, this message translates to:
   /// **'آخرین ماندهٔ گزارش‌شدهٔ بانک از پیامک'**
   String get bankBalanceReported;
 
-  /// ابهام شاهد مانده، بدون جایگزینی زمان دریافت.
+  /// Warning that unknown or equal source transaction times prevent safely identifying the latest reported balance; receipt time must not substitute.
   ///
   /// In fa, this message translates to:
   /// **'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.'**
   String get bankBalanceAmbiguous;
 
-  /// ورود به پیش‌نمایش بدون نوشتن.
+  /// Action opening a read-only account reconciliation preview; opening it does not write a financial entry.
   ///
   /// In fa, this message translates to:
   /// **'بررسی و تطبیق حساب'**
   String get bankBalanceReconcile;
 
-  /// دفتر محدود به زمان معتبر گزارش، نه موجودی اکنون.
+  /// Label for the ledger balance through the valid source report time, not the current balance.
   ///
   /// In fa, this message translates to:
   /// **'ماندهٔ دفتر تا زمان گزارش'**
   String get bankBalanceLedgerAtReport;
 
-  /// اختلاف علامت‌دار صحیح.
+  /// Label for the signed integer difference between the reported bank balance and the ledger balance.
   ///
   /// In fa, this message translates to:
   /// **'اختلاف گزارش و دفتر'**
   String get bankBalanceDifference;
 
-  /// افشای اثر و محدودیت تطبیق پیش از تأیید.
+  /// Pre-confirmation disclosure explaining historical balance evidence, the new reconciliation entry, and the restriction on backdated entries.
   ///
   /// In fa, this message translates to:
   /// **'این گزارش تاریخی است، نه موجودی زندهٔ بانک. فقط با انتخاب دلیل و تأیید، یک ثبت جدید ایجاد می‌شود. برای ورود ثبت قدیمی‌تر باید ابتدا ثبت تطبیق را برگشت دهید.'**
   String get bankBalanceDisclosure;
 
-  /// تأیید صریح ثبت مالی تطبیق.
+  /// Explicit confirmation action that records the reconciliation difference as a financial entry.
   ///
   /// In fa, this message translates to:
   /// **'تأیید ثبت اختلاف'**
   String get bankBalanceConfirm;
 
-  /// بازخورد ثبت و مسیر برگشت.
+  /// Success feedback after reconciliation is committed, with instructions to reverse it through the transaction actions.
   ///
   /// In fa, this message translates to:
   /// **'تطبیق حساب ثبت شد؛ برگشت از عملیات همان تراکنش در دسترس است.'**
   String get bankBalanceSaved;
 
-  /// خطای قابل اقدام بدون نمایش جزئیات حساس.
+  /// Actionable reconciliation save error asking the user to refresh and retry without exposing sensitive technical details.
   ///
   /// In fa, this message translates to:
   /// **'ثبت تطبیق انجام نشد. اطلاعات را تازه کنید و دوباره تلاش کنید.'**
   String get bankBalanceFailure;
 
-  /// بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.
+  /// Action opening the full transaction relationship review queue from the bounded Today preview.
   ///
   /// In fa, this message translates to:
   /// **'مشاهدهٔ همه در تعیین ارتباط'**
   String get todayRelationshipViewAll;
 
-  /// تاریخ واقعی تراکنش به جلالی در پیش‌نمایش تعیین ارتباط امروز؛ بدون حدس تاریخ مفقود.
+  /// Actual transaction date in the Today relationship review preview. The date is a preformatted Jalali string; never infer a missing date.
   ///
   /// In fa, this message translates to:
   /// **'تاریخ تراکنش: {date}'**
   String todayRelationshipDate(String date);
 
-  /// بازکردن صندوق بررسی کامل از پیش‌نمایش حداکثر سه تراکنش در صفحهٔ امروز.
+  /// Action opening the full Inbox from the Today preview of at most three transaction suggestions.
   ///
   /// In fa, this message translates to:
   /// **'مشاهدهٔ همه در صندوق بررسی'**
@@ -195,18 +195,6 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'{date} · {type}\n{account}'**
   String reportsTransactionMetadata(String date, String type, String account);
-
-  /// Previous page of read-only report transaction details.
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ قبل'**
-  String get reportsPreviousPage;
-
-  /// Next page of read-only report transaction details.
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ بعد'**
-  String get reportsNextPage;
 
   /// Report detail pagination; numbers are preformatted Persian strings. Totals cover all results, not this page.
   ///
@@ -1678,12 +1666,6 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'رفتن به تاریخ'**
   String get calendarPageDateButtonLabel;
-
-  /// Calendar action returning to the current local date while preserving Month/Week mode. Short label approved 2026-10-14.
-  ///
-  /// In fa, this message translates to:
-  /// **'امروز'**
-  String get calendarPageTodayButtonLabel;
 
   /// Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:260.
   ///
@@ -4328,17 +4310,17 @@ abstract class AppLocalizations {
   /// **'صفحهٔ {value1}'**
   String inboxPageBulkControlsChildren6(String value1);
 
-  /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:617.
+  /// Shared action opening the previous page of a paginated list in Inbox, Finance, or Reports; not chronological date navigation.
   ///
   /// In fa, this message translates to:
   /// **'صفحهٔ قبل'**
-  String get inboxPageBulkControlsChildren7;
+  String get commonPreviousPage;
 
-  /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:627.
+  /// Shared action opening the next page of a paginated list in Inbox, Finance, or Reports; not chronological date navigation.
   ///
   /// In fa, this message translates to:
   /// **'صفحهٔ بعد'**
-  String get inboxPageBulkControlsChildren8;
+  String get commonNextPage;
 
   /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:635.
   ///
@@ -7787,7 +7769,7 @@ abstract class AppLocalizations {
   /// **'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟'**
   String get financeCancelTransferMessage;
 
-  /// تأیید اصلاح تراکنش با نام حساب مبدأ و مقصد و اثر علامت‌دار هر ثبت بر مانده؛ اثرها با واحد نمایشی ثابت فرم قالب‌بندی شده‌اند.
+  /// Transaction correction confirmation naming the original and selected accounts and each signed balance effect. Effects use the display unit pinned by the form; this is a reversal and replacement, not a transfer.
   ///
   /// In fa, this message translates to:
   /// **'اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.'**
@@ -8632,19 +8614,7 @@ abstract class AppLocalizations {
   /// **'پیام‌های قدیمی‌تر'**
   String get smsOlderMessages;
 
-  /// رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ قبل'**
-  String get financeTransactionPreviousPage;
-
-  /// رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ بعد'**
-  String get financeTransactionNextPage;
-
-  /// بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی
+  /// Financial transaction range and page position. All five placeholders are preformatted Persian number strings; totals refer to the full filtered result.
   ///
   /// In fa, this message translates to:
   /// **'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}'**
@@ -8656,151 +8626,145 @@ abstract class AppLocalizations {
     String pages,
   );
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Title of the Calendar display settings section, not the root navigation destination.
   ///
   /// In fa, this message translates to:
   /// **'تقویم'**
   String get calendarVisibilityTitle;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Heading for the categories of items visible in Month and Week calendars.
   ///
   /// In fa, this message translates to:
   /// **'موارد نمایان'**
   String get calendarVisibilityItems;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Explains that visibility choices affect only Month and Week display, never delete data, and do not control holidays.
   ///
   /// In fa, this message translates to:
   /// **'این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.'**
   String get calendarVisibilityDescription;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Display-only switch label for showing commitments in Month and Week calendars.
   ///
   /// In fa, this message translates to:
   /// **'تعهدها'**
   String get calendarVisibilityCommitments;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Display-only switch label for showing independent notes in Month and Week calendars.
   ///
   /// In fa, this message translates to:
   /// **'یادداشت‌ها'**
   String get calendarVisibilityNotes;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Display-only switch label for showing confirmed income transactions in Month and Week calendars.
   ///
   /// In fa, this message translates to:
   /// **'درآمد'**
   String get calendarVisibilityIncome;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Display-only switch label for showing confirmed expense transactions in Month and Week calendars.
   ///
   /// In fa, this message translates to:
   /// **'هزینه'**
   String get calendarVisibilityExpense;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Display-only switch label for showing transfers between the user's own accounts; transfers are neither income nor expense.
   ///
   /// In fa, this message translates to:
   /// **'انتقال بین حساب‌های خود'**
   String get calendarVisibilityTransfers;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar visibility save error; the previous effective selection remains in use and the user can retry.
   ///
   /// In fa, this message translates to:
   /// **'تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.'**
   String get calendarVisibilityError;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar visibility load error asking the user to retry.
   ///
   /// In fa, this message translates to:
   /// **'تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.'**
   String get calendarVisibilityLoadError;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Disclosure that calendar visibility filters hide some categories without changing their durable data.
   ///
   /// In fa, this message translates to:
   /// **'نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.'**
   String get calendarVisibilityFiltered;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar row label identifying a recorded income transaction, distinct from a planned commitment payment.
   ///
   /// In fa, this message translates to:
   /// **'درآمد ثبت‌شده'**
   String get calendarTransactionIncome;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar row label identifying a recorded expense transaction, distinct from a planned commitment payment.
   ///
   /// In fa, this message translates to:
   /// **'هزینهٔ ثبت‌شده'**
   String get calendarTransactionExpense;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar row label identifying a recorded transfer between the user's own accounts.
   ///
   /// In fa, this message translates to:
   /// **'انتقال ثبت‌شده بین حساب‌های خود'**
   String get calendarTransactionTransfer;
 
-  /// متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده.
+  /// Calendar history label identifying a reversed transaction; it is not an active payment.
   ///
   /// In fa, this message translates to:
   /// **'برگشت‌خورده؛ فقط تاریخچه'**
   String get calendarTransactionReversed;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Title of the financial account management page.
   ///
   /// In fa, this message translates to:
   /// **'حساب‌ها'**
   String get financeAccountsTitle;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Search field hint for filtering financial accounts by account name or bank.
   ///
   /// In fa, this message translates to:
   /// **'جست‌وجوی نام یا بانک حساب'**
   String get financeAccountsSearch;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
-  ///
-  /// In fa, this message translates to:
-  /// **'نمایش حساب‌های بایگانی‌شده'**
-  String get financeAccountsShowArchived;
-
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Archived financial account status label; do not imply deletion.
   ///
   /// In fa, this message translates to:
   /// **'بایگانی‌شده'**
   String get financeAccountsArchived;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Empty state when no financial accounts match the current account list filters.
   ///
   /// In fa, this message translates to:
   /// **'حسابی برای نمایش وجود ندارد.'**
   String get financeAccountsNoResults;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Transaction account filter option including all accounts.
   ///
   /// In fa, this message translates to:
   /// **'همهٔ حساب‌ها'**
   String get financeAccountsAll;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Label for the account filter on the financial transaction list.
   ///
   /// In fa, this message translates to:
   /// **'حساب تراکنش‌ها'**
   String get financeAccountsFilter;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Action opening the transaction list filtered to this financial account.
   ///
   /// In fa, this message translates to:
   /// **'مشاهدهٔ تراکنش‌های این حساب'**
   String get financeAccountTransactions;
 
-  /// متن مدیریت و فیلتر حساب‌ها در مسیر مالی
+  /// Financial account count; count is an already localized number string.
   ///
   /// In fa, this message translates to:
   /// **'{count} حساب'**
   String financeAccountsCount(String count);
 
-  /// نمایش صریح نبود اطلاعات حساب متصل به ثبت مالی؛ بدون حدس هویت
+  /// Explicit fallback when the account linked to a financial entry is unavailable; do not infer an account identity.
   ///
   /// In fa, this message translates to:
   /// **'اطلاعات حساب در دسترس نیست'**
