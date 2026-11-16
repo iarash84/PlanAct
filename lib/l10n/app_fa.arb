@@ -8221,50 +8221,70 @@
     "description": "Explicit fallback when the account linked to a financial entry is unavailable; do not infer an account identity."
   },
   "quickFinancialCurrentDate": "تاریخ: روز ثبت نهایی",
-  "@quickFinancialCurrentDate": {"description": "Date button when no explicit date is selected; resolves on final save."},
+  "@quickFinancialCurrentDate": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Date button when no explicit date is selected; resolves on final save."
+  },
   "quickFinancialCurrentTime": "ساعت: زمان ثبت نهایی",
-  "@quickFinancialCurrentTime": {"description": "Time button when no explicit time is selected; resolves on final save."},
+  "@quickFinancialCurrentTime": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Time button when no explicit time is selected; resolves on final save."
+  },
   "quickFinancialLessOptions": "گزینه‌های کمتر",
-  "@quickFinancialLessOptions": {"description": "Collapse extra fields in the same quick income or expense form without clearing the draft."},
+  "@quickFinancialLessOptions": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Collapse extra fields in the same quick income or expense form without clearing the draft."
+  },
   "quickFinancialResetTime": "استفاده از تاریخ و ساعت ثبت نهایی",
-  "@quickFinancialResetTime": {"description": "Clear explicit transaction date and time selections; no data is saved."},
+  "@quickFinancialResetTime": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Clear explicit transaction date and time selections; no data is saved."
+  },
   "smsDetectionTitle": "تراکنش تازه برای بازبینی",
   "@smsDetectionTitle": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionTitle",
     "x-planact-default": true
   },
   "smsDetectionBody": "پیش از فراموشی، تراکنش تازه را بررسی کنید.",
   "@smsDetectionBody": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionBody",
     "x-planact-default": true
   },
   "smsDetectionMultiple": "چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.",
   "@smsDetectionMultiple": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionMultiple",
     "x-planact-default": true
   },
   "smsDetectionEnabled": "اعلان تشخیص تراکنش پیامکی",
   "@smsDetectionEnabled": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionEnabled",
     "x-planact-default": true
   },
   "smsDetectionPrivacy": "اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.",
   "@smsDetectionPrivacy": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionPrivacy",
     "x-planact-default": true
   },
   "smsDetectionAmounts": "نمایش مبلغ در اعلان بازشده",
   "@smsDetectionAmounts": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionAmounts",
     "x-planact-default": true
   },
   "smsDetectionFailure": "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.",
   "@smsDetectionFailure": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "SMS detection notification or settings copy: smsDetectionFailure",
     "x-planact-default": true
   },
   "smsDetectionAmountBody": "{amount} ریال — {invitation}",
   "@smsDetectionAmountBody": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
     "description": "Known canonical rial amount and review invitation in an opted-in notification.",
     "x-planact-default": true,
     "placeholders": {

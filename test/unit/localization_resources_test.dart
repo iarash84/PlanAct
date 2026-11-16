@@ -179,6 +179,8 @@ void main() {
                     'calendar-visibility-2026-11-14',
                     'transaction-account-correction-2026-11-14',
                     'finance-account-management-2026-11-14',
+                    'quick-financial-options-2026-11-16',
+                    'sms-detection-2026-11-16',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -206,8 +208,24 @@ void main() {
     }
   });
 
-  test('new calendar and Finance copy has explicit introduction metadata', () {
+  test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'quick-financial-options-2026-11-16': {
+        'quickFinancialCurrentDate',
+        'quickFinancialCurrentTime',
+        'quickFinancialLessOptions',
+        'quickFinancialResetTime',
+      },
+      'sms-detection-2026-11-16': {
+        'smsDetectionTitle',
+        'smsDetectionBody',
+        'smsDetectionMultiple',
+        'smsDetectionEnabled',
+        'smsDetectionPrivacy',
+        'smsDetectionAmounts',
+        'smsDetectionFailure',
+        'smsDetectionAmountBody',
+      },
       'calendar-visibility-2026-11-14': {
         'calendarVisibilityTitle',
         'calendarVisibilityItems',
