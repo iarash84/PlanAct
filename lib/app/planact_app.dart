@@ -1038,7 +1038,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       _goToFinance();
       return;
     }
-    final result = await showModalBottomSheet<QuickFinancialEntry>(
+    await showModalBottomSheet<QuickFinancialEntry>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -1052,30 +1052,17 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onSave: _saveQuickFinancialEntry,
       ),
     );
-    if (!mounted || result == null) return;
-    if (result.moreOptions) {
-      _goToFinance();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _financePageKey.currentState?.openTransactionForm(
-            income: income,
-            initialTags: result.tags,
-          );
-        }
-      });
-      return;
-    }
   }
 
   Future<void> _saveQuickFinancialEntry(QuickFinancialEntry result) async {
     await FinanceUseCases(_financeRepository).record(
-      account: result.account!,
+      account: result.account,
       type: result.income ? AccountEntryType.income : AccountEntryType.expense,
       amount: Money(
         minorUnits: result.amount,
-        currency: result.account!.currency,
+        currency: result.account.currency,
       ),
-      occurredAt: DateTime.now(),
+      occurredAt: result.resolveOccurredAt(DateTime.now()),
       note: result.note,
       tags: result.tags,
       category: result.income ? 'دریافت' : 'عمومی',

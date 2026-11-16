@@ -1075,3 +1075,7 @@ All tag-name presentation must reuse the shared tag badge/summary and centralize
 ## Calendar visibility safeguards (2026-11-14)
 
 Settings > Calendar persists versioned display-only choices before publishing them: commitments and notes default on, income/expense/own-account transfers default off. Apply to Month and Week; disclose hidden categories. Financial calendar rows read confirmed durable ledger entries at their persisted transaction time, never SMS receipt/confirmation time. Deduplicate grouped transfers, retain explicit reversed-history labels and keep actual payments distinct from commitment due dates. Hiding must not mutate money, matches, occurrences or reminders. Preserve metadata through restart and personal backup. Holidays remain independent. See docs/CALENDAR_VISIBILITY_VERIFICATION.md for bounded evidence and independent/device gates.
+
+## Approved inline quick financial options (2026-11-16)
+
+Quick Add income and expense reveal optional Jalali date/time inline in the same form, without tab navigation or draft loss. Expansion/collapse/cancellation must not write; one final command saves the transaction and draft tags atomically. Until explicitly selected, each date/time component resolves at final save, not form expansion. Collapsing retains selections with a visible summary; failed saving retains the complete draft. Account creation is outside this bounded repair because its existing independent write is incompatible with cancellation-without-writes. See docs/TAGGING_VERIFICATION.md.

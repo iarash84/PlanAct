@@ -8769,6 +8769,30 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'اطلاعات حساب در دسترس نیست'**
   String get financeTransactionAccountUnavailable;
+
+  /// Date button when no explicit date is selected; resolves on final save.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ: روز ثبت نهایی'**
+  String get quickFinancialCurrentDate;
+
+  /// Time button when no explicit time is selected; resolves on final save.
+  ///
+  /// In fa, this message translates to:
+  /// **'ساعت: زمان ثبت نهایی'**
+  String get quickFinancialCurrentTime;
+
+  /// Collapse extra fields in the same quick income or expense form without clearing the draft.
+  ///
+  /// In fa, this message translates to:
+  /// **'گزینه‌های کمتر'**
+  String get quickFinancialLessOptions;
+
+  /// Clear explicit transaction date and time selections; no data is saved.
+  ///
+  /// In fa, this message translates to:
+  /// **'استفاده از تاریخ و ساعت ثبت نهایی'**
+  String get quickFinancialResetTime;
 }
 
 class _AppLocalizationsDelegate

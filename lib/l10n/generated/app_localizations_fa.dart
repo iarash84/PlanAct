@@ -5220,4 +5220,16 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get financeTransactionAccountUnavailable =>
       'اطلاعات حساب در دسترس نیست';
+
+  @override
+  String get quickFinancialCurrentDate => 'تاریخ: روز ثبت نهایی';
+
+  @override
+  String get quickFinancialCurrentTime => 'ساعت: زمان ثبت نهایی';
+
+  @override
+  String get quickFinancialLessOptions => 'گزینه‌های کمتر';
+
+  @override
+  String get quickFinancialResetTime => 'استفاده از تاریخ و ساعت ثبت نهایی';
 }

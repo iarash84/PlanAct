@@ -8219,5 +8219,13 @@
   "@financeTransactionAccountUnavailable": {
     "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "Explicit fallback when the account linked to a financial entry is unavailable; do not infer an account identity."
-  }
+  },
+  "quickFinancialCurrentDate": "تاریخ: روز ثبت نهایی",
+  "@quickFinancialCurrentDate": {"description": "Date button when no explicit date is selected; resolves on final save."},
+  "quickFinancialCurrentTime": "ساعت: زمان ثبت نهایی",
+  "@quickFinancialCurrentTime": {"description": "Time button when no explicit time is selected; resolves on final save."},
+  "quickFinancialLessOptions": "گزینه‌های کمتر",
+  "@quickFinancialLessOptions": {"description": "Collapse extra fields in the same quick income or expense form without clearing the draft."},
+  "quickFinancialResetTime": "استفاده از تاریخ و ساعت ثبت نهایی",
+  "@quickFinancialResetTime": {"description": "Clear explicit transaction date and time selections; no data is saved."}
 }
