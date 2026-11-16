@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/database/app_database.dart';
 import 'package:planact/l10n/generated/app_localizations_fa.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
@@ -59,6 +60,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  void expectGap(WidgetTester tester, Finder first, Finder second, double gap) {
+    expect(
+      tester.getRect(second).top - tester.getRect(first).bottom,
+      greaterThanOrEqualTo(gap),
+    );
   }
 
   Future<void> tap(WidgetTester tester, String text) async {
@@ -151,6 +159,18 @@ void main() {
         source.add(2, DateTime.now().millisecondsSinceEpoch);
         await show(tester, dark: dark);
         expect(source.reads, reads);
+        expectGap(
+          tester,
+          find.widgetWithText(OutlinedButton, copy.smsCheckNewMessages),
+          find.byType(SwitchListTile),
+          PlanActSpacing.sm,
+        );
+        expectGap(
+          tester,
+          find.text(copy.smsAutomaticDescription),
+          find.byType(ExpansionTile).first,
+          PlanActSpacing.lg,
+        );
         await tap(tester, copy.smsCheckNewMessages);
         expect(await repo.listSuggestions(), hasLength(2));
         expect(find.text(copy.smsNewSuggestionsCount('۱')), findsOneWidget);
@@ -309,11 +329,29 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text(copy.smsCheckingMessages), findsOneWidget);
+      expectGap(
+        tester,
+        find.text(copy.smsAutomaticDescription),
+        find.byType(LinearProgressIndicator),
+        PlanActSpacing.sm,
+      );
+      expectGap(
+        tester,
+        find.byType(LinearProgressIndicator),
+        find.text(copy.smsCheckingMessages),
+        PlanActSpacing.sm,
+      );
       expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
       source.failRead = source.reads;
       source.blockRead!.complete();
       await tester.pumpAndSettle();
       expect(find.text(copy.smsAutomaticSyncFailed), findsOneWidget);
+      expectGap(
+        tester,
+        find.text(copy.smsAutomaticDescription),
+        find.text(copy.smsAutomaticSyncFailed),
+        PlanActSpacing.sm,
+      );
       source.failRead = null;
       await tap(tester, copy.smsCheckNewMessages);
       expect(await repo.listSuggestions(), hasLength(1));

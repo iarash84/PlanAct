@@ -191,9 +191,10 @@ class _SettingsPageState extends State<SettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const MoneyUnitSettingsCard(),
+        const SizedBox(height: PlanActSpacing.lg),
         if (widget.calendarVisibility != null) ...[
           CalendarVisibilitySettings(controller: widget.calendarVisibility!),
-          const SizedBox(height: PlanActSpacing.md),
+          const SizedBox(height: PlanActSpacing.lg),
         ],
         Text(
           planActL10n(context).commonGeneral,
@@ -239,7 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
         if (widget.onManageTags != null) ...[
-          const SizedBox(height: PlanActSpacing.sm),
+          const SizedBox(height: PlanActSpacing.lg),
           Card(
             child: ListTile(
               leading: const Icon(Icons.label_outline),
@@ -250,14 +251,14 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ],
         if (widget.onBackgroundChanged != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: PlanActSpacing.lg),
           BackgroundSettingsCard(
             value: widget.background,
             onChanged: widget.onBackgroundChanged!,
           ),
         ],
         if (widget.onShowArchivedAccountsChanged != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: PlanActSpacing.lg),
           Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.inventory_2_outlined),
@@ -351,9 +352,11 @@ class _SettingsPageState extends State<SettingsPage> {
           enabled: widget.appLockEnabled,
           change: widget.onAppLockChanged,
         ),
-        const SizedBox(height: 20),
-        if (widget.enableReminders != null)
+        const SizedBox(height: PlanActSpacing.lg),
+        if (widget.enableReminders != null) ...[
           ReminderPermissionsCard(enable: widget.enableReminders!),
+          const SizedBox(height: PlanActSpacing.lg),
+        ],
         Text(
           planActL10n(context).settingsAbout,
           style: Theme.of(context).textTheme.titleLarge,

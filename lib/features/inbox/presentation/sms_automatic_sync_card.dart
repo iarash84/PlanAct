@@ -92,6 +92,7 @@ class _SmsAutomaticSyncCardState extends State<SmsAutomaticSyncCard> {
         child: Padding(
           padding: const EdgeInsets.all(PlanActSpacing.md),
           child: Column(
+            spacing: PlanActSpacing.sm,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
@@ -109,6 +110,7 @@ class _SmsAutomaticSyncCardState extends State<SmsAutomaticSyncCard> {
                     final legacyRange =
                         snapshot.data != null && !snapshot.data!.newOnly;
                     return Column(
+                      spacing: PlanActSpacing.sm,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
@@ -184,19 +186,22 @@ class _SmsAutomaticSyncCardState extends State<SmsAutomaticSyncCard> {
                   if (!controller.manualReady && snapshot.data == null) {
                     return const SizedBox.shrink();
                   }
-                  return ExpansionTile(
-                    key: const PageStorageKey('inbox-sms-history'),
-                    tilePadding: EdgeInsets.zero,
-                    title: Text(l10n.smsOlderMessages),
-                    children: [
-                      SmsScanCard(
-                        key: ValueKey(controller.revision),
-                        inbox: widget.inbox,
-                        source: widget.source,
-                        access: available,
-                        onChanged: widget.onChanged,
-                      ),
-                    ],
+                  return Padding(
+                    padding: const EdgeInsets.only(top: PlanActSpacing.sm),
+                    child: ExpansionTile(
+                      key: const PageStorageKey('inbox-sms-history'),
+                      tilePadding: EdgeInsets.zero,
+                      title: Text(l10n.smsOlderMessages),
+                      children: [
+                        SmsScanCard(
+                          key: ValueKey(controller.revision),
+                          inbox: widget.inbox,
+                          source: widget.source,
+                          access: available,
+                          onChanged: widget.onChanged,
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -226,12 +231,14 @@ class _SmsSetupDialogState extends State<_SmsSetupDialog> {
       scrollable: true,
       title: Text(l10n.smsSetupOpen),
       content: Column(
+        spacing: PlanActSpacing.sm,
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(l10n.smsSetupDescription),
           Wrap(
             spacing: PlanActSpacing.sm,
+            runSpacing: PlanActSpacing.sm,
             children: [
               for (final option in [
                 (7, l10n.smsScanCardDaysActions2),
