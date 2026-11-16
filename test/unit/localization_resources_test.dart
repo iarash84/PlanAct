@@ -125,6 +125,9 @@ void main() {
                     'today-inbox-preview-2026-11-11',
                     'finance-pagination-2026-11-11',
                     'bank-balance-2026-11-11',
+                    'calendar-visibility-2026-11-14',
+                    'transaction-account-correction-2026-11-14',
+                    'finance-account-management-2026-11-14',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -150,6 +153,67 @@ void main() {
       final placeholders = metadata['placeholders'] as Map<String, dynamic>?;
       expect(referenced, (placeholders?.keys ?? []).toSet(), reason: entry.key);
     }
+  });
+
+  test('new calendar and Finance copy has explicit introduction metadata', () {
+    final groups = {
+      'calendar-visibility-2026-11-14': {
+        'calendarVisibilityTitle',
+        'calendarVisibilityItems',
+        'calendarVisibilityDescription',
+        'calendarVisibilityCommitments',
+        'calendarVisibilityNotes',
+        'calendarVisibilityIncome',
+        'calendarVisibilityExpense',
+        'calendarVisibilityTransfers',
+        'calendarVisibilityError',
+        'calendarVisibilityLoadError',
+        'calendarVisibilityFiltered',
+        'calendarTransactionIncome',
+        'calendarTransactionExpense',
+        'calendarTransactionTransfer',
+        'calendarTransactionReversed',
+      },
+      'transaction-account-correction-2026-11-14': {
+        'financeCorrectAccountEffects',
+      },
+      'finance-account-management-2026-11-14': {
+        'financeAccountsTitle',
+        'financeAccountsSearch',
+        'financeAccountsShowArchived',
+        'financeAccountsArchived',
+        'financeAccountsNoResults',
+        'financeAccountsAll',
+        'financeAccountsFilter',
+        'financeAccountTransactions',
+        'financeAccountsCount',
+        'financeTransactionAccountUnavailable',
+      },
+    };
+    for (final group in groups.entries) {
+      final markedKeys = catalog.entries
+          .where(
+            (entry) =>
+                entry.key.startsWith('@') &&
+                entry.value is Map &&
+                (entry.value as Map)['x-planact-introduced'] == group.key,
+          )
+          .map((entry) => entry.key);
+      expect(
+        markedKeys,
+        unorderedEquals(group.value.map((key) => '@$key')),
+        reason: group.key,
+      );
+      for (final key in group.value) {
+        expect(catalog[key], isA<String>(), reason: key);
+      }
+    }
+    expect((catalog['@financeCorrectAccountEffects'] as Map)['placeholders'], {
+      'originalAccount': {'type': 'String'},
+      'reversalEffect': {'type': 'String'},
+      'selectedAccount': {'type': 'String'},
+      'correctedEffect': {'type': 'String'},
+    });
   });
 
   test('finance pagination copy is separate from migrated templates', () {

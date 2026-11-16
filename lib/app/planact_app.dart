@@ -57,6 +57,7 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/app/theme/theme_preset_controller.dart';
+import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
@@ -1924,7 +1925,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         onHolidaysChanged: () => setState(() {}),
         backupActions: widget.backupActions,
         backupMessage: widget.backupMessage,
-        settings: _buildSettingsPage(),
+        settingsBuilder: (_) => _buildSettingsPage(),
       ),
     ];
     final titles = [
@@ -1937,7 +1938,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       appBar: AppBar(
         leading: IconButton(
           key: const ValueKey('shell-menu'),
-          tooltip: planActL10n(context).navigationMore,
+          tooltip: planActL10n(context).planactAppBuildTooltip,
           onPressed: _openNavigationDrawer,
           icon: const Icon(Icons.menu),
         ),
@@ -2088,12 +2089,44 @@ Widget _buildNavigationDrawer(
       padding: EdgeInsets.zero,
       children: [
         DrawerHeader(
-          child: Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Text(
-              'پلن‌اکت',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                key: const ValueKey('navigation-drawer-logo-frame'),
+                width: 56,
+                height: 56,
+                padding: const EdgeInsets.all(PlanActSpacing.xs),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: PlanActRadius.input,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+                child: Semantics(
+                  label: planActL10n(context).aboutPageBuildSemanticLabel,
+                  image: true,
+                  child: ClipRRect(
+                    borderRadius: PlanActRadius.chip,
+                    child: Image.asset(
+                      'assets/icons/app_icon.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: PlanActSpacing.md),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
+                  child: Text(
+                    'پلن‌اکت',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         _NavigationDrawerItem(
@@ -2652,7 +2685,7 @@ class _MorePage extends StatelessWidget {
   const _MorePage({
     required this.onInbox,
     required this.onReports,
-    required this.settings,
+    required this.settingsBuilder,
     this.holidayPackages,
     this.onHolidaysChanged,
     this.backupActions,
@@ -2662,7 +2695,7 @@ class _MorePage extends StatelessWidget {
 
   final VoidCallback onInbox;
   final VoidCallback onReports;
-  final Widget settings;
+  final WidgetBuilder settingsBuilder;
   final HolidayPackageService? holidayPackages;
   final VoidCallback? onHolidaysChanged;
   final BackupActions? backupActions;
@@ -2730,7 +2763,7 @@ class _MorePage extends StatelessWidget {
                   appBar: AppBar(
                     title: Text(planActL10n(context).planactAppBuildTitle6),
                   ),
-                  body: settings,
+                  body: settingsBuilder(context),
                 ),
               ),
             ),

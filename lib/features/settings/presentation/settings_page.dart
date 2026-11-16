@@ -185,183 +185,191 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => ListView(
+  Widget build(BuildContext context) => SingleChildScrollView(
     padding: const EdgeInsets.all(16),
-    children: [
-      const MoneyUnitSettingsCard(),
-      if (widget.calendarVisibility != null) ...[
-        CalendarVisibilitySettings(controller: widget.calendarVisibility!),
-        const SizedBox(height: PlanActSpacing.md),
-      ],
-      Text(
-        planActL10n(context).commonGeneral,
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      const SizedBox(height: 12),
-      Card(
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(Icons.brightness_6_outlined),
-              title: Text(planActL10n(context).settingsAppearance),
-              subtitle: Text(
-                planActL10n(context).settingsAppearanceDescription,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SegmentedButton<ThemeMode>(
-                segments: [
-                  ButtonSegment(
-                    value: ThemeMode.system,
-                    label: Text(planActL10n(context).settingsThemeSystem),
-                    icon: Icon(Icons.settings_brightness_outlined),
-                  ),
-                  ButtonSegment(
-                    value: ThemeMode.light,
-                    label: Text(planActL10n(context).settingsThemeLight),
-                    icon: Icon(Icons.light_mode_outlined),
-                  ),
-                  ButtonSegment(
-                    value: ThemeMode.dark,
-                    label: Text(planActL10n(context).settingsThemeDark),
-                    icon: Icon(Icons.dark_mode_outlined),
-                  ),
-                ],
-                selected: {_themeMode},
-                onSelectionChanged: (selection) => _change(selection.first),
-              ),
-            ),
-            const ThemePresetSettings(),
-          ],
-        ),
-      ),
-      if (widget.onManageTags != null) ...[
-        const SizedBox(height: PlanActSpacing.sm),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.label_outline),
-            title: Text(planActL10n(context).tagControlsContentChildren),
-            trailing: const Icon(Icons.chevron_left),
-            onTap: widget.onManageTags,
-          ),
-        ),
-      ],
-      if (widget.onBackgroundChanged != null) ...[
-        const SizedBox(height: 12),
-        BackgroundSettingsCard(
-          value: widget.background,
-          onChanged: widget.onBackgroundChanged!,
-        ),
-      ],
-      if (widget.onShowArchivedAccountsChanged != null) ...[
-        const SizedBox(height: 12),
-        Card(
-          child: SwitchListTile(
-            secondary: const Icon(Icons.inventory_2_outlined),
-            title: Text(planActL10n(context).financeShowArchivedAccounts),
-            subtitle: Text(
-              planActL10n(context).financeShowArchivedAccountsDescription,
-            ),
-            value: _showArchivedAccounts,
-            onChanged: _savingAccounts ? null : _changeArchivedAccounts,
-          ),
-        ),
-        if (_savingAccounts) const LinearProgressIndicator(),
-        if (_accountsSaveFailed)
-          Text(
-            planActL10n(context).financeArchivedAccountsSaveError,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-      ],
-      if (widget.settings != null) ...[
-        const SizedBox(height: 20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const MoneyUnitSettingsCard(),
+        if (widget.calendarVisibility != null) ...[
+          CalendarVisibilitySettings(controller: widget.calendarVisibility!),
+          const SizedBox(height: PlanActSpacing.md),
+        ],
         Text(
-          planActL10n(context).settingsMorningReminderTitle,
+          planActL10n(context).commonGeneral,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
         Card(
           child: Column(
             children: [
-              SwitchListTile(
-                secondary: const Icon(Icons.wb_sunny_outlined),
-                title: Text(planActL10n(context).settingsMorningReminderTitle),
+              ListTile(
+                leading: Icon(Icons.brightness_6_outlined),
+                title: Text(planActL10n(context).settingsAppearance),
                 subtitle: Text(
-                  _morningReminderEnabled
-                      ? planActL10n(context).settingsMorningReminderDescription
-                      : planActL10n(context).settingsMorningReminderDisabled,
+                  planActL10n(context).settingsAppearanceDescription,
                 ),
-                value: _morningReminderEnabled,
-                onChanged: !_morningReminderLoaded || _savingMorningReminder
-                    ? null
-                    : _setMorningReminderEnabled,
               ),
-              if (!_morningReminderLoaded) const LinearProgressIndicator(),
-              if (_morningReminderLoaded) ...[
-                const Divider(height: 1),
-                ListTile(
-                  title: Text(
-                    planActL10n(context).settingsMorningReminderStart,
-                  ),
-                  trailing: Text(
-                    _formatMorningTime(_morningReminderWindow.startMinutes),
-                  ),
-                  onTap: _savingMorningReminder
-                      ? null
-                      : () => _selectMorningTime(start: true),
-                ),
-                ListTile(
-                  title: Text(planActL10n(context).settingsMorningReminderEnd),
-                  trailing: Text(
-                    _formatMorningTime(
-                      _morningReminderWindow.endMinutes == 1440
-                          ? 0
-                          : _morningReminderWindow.endMinutes,
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SegmentedButton<ThemeMode>(
+                  segments: [
+                    ButtonSegment(
+                      value: ThemeMode.system,
+                      label: Text(planActL10n(context).settingsThemeSystem),
+                      icon: Icon(Icons.settings_brightness_outlined),
                     ),
-                  ),
-                  onTap: _savingMorningReminder
-                      ? null
-                      : () => _selectMorningTime(start: false),
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      label: Text(planActL10n(context).settingsThemeLight),
+                      icon: Icon(Icons.light_mode_outlined),
+                    ),
+                    ButtonSegment(
+                      value: ThemeMode.dark,
+                      label: Text(planActL10n(context).settingsThemeDark),
+                      icon: Icon(Icons.dark_mode_outlined),
+                    ),
+                  ],
+                  selected: {_themeMode},
+                  onSelectionChanged: (selection) => _change(selection.first),
                 ),
-              ],
+              ),
+              const ThemePresetSettings(),
             ],
           ),
         ),
-        if (_morningReminderSaveFailed)
-          Text(
-            planActL10n(context).settingsMorningReminderSaveError,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+        if (widget.onManageTags != null) ...[
+          const SizedBox(height: PlanActSpacing.sm),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.label_outline),
+              title: Text(planActL10n(context).tagControlsContentChildren),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: widget.onManageTags,
+            ),
           ),
-      ],
-      const SizedBox(height: 20),
-      Text(
-        planActL10n(context).settingsSecurity,
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      const SizedBox(height: 12),
-      AppLockSettingsCard(
-        enabled: widget.appLockEnabled,
-        change: widget.onAppLockChanged,
-      ),
-      const SizedBox(height: 20),
-      if (widget.enableReminders != null)
-        ReminderPermissionsCard(enable: widget.enableReminders!),
-      Text(
-        planActL10n(context).settingsAbout,
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      const SizedBox(height: 12),
-      Card(
-        child: ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: Text(planActL10n(context).settingsAboutApp),
-          subtitle: Text(planActL10n(context).settingsPageBuildSubtitle),
-          trailing: const Icon(Icons.chevron_left),
-          onTap: widget.onAbout,
+        ],
+        if (widget.onBackgroundChanged != null) ...[
+          const SizedBox(height: 12),
+          BackgroundSettingsCard(
+            value: widget.background,
+            onChanged: widget.onBackgroundChanged!,
+          ),
+        ],
+        if (widget.onShowArchivedAccountsChanged != null) ...[
+          const SizedBox(height: 12),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.inventory_2_outlined),
+              title: Text(planActL10n(context).financeShowArchivedAccounts),
+              subtitle: Text(
+                planActL10n(context).financeShowArchivedAccountsDescription,
+              ),
+              value: _showArchivedAccounts,
+              onChanged: _savingAccounts ? null : _changeArchivedAccounts,
+            ),
+          ),
+          if (_savingAccounts) const LinearProgressIndicator(),
+          if (_accountsSaveFailed)
+            Text(
+              planActL10n(context).financeArchivedAccountsSaveError,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+        ],
+        if (widget.settings != null) ...[
+          const SizedBox(height: 20),
+          Text(
+            planActL10n(context).settingsMorningReminderTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.wb_sunny_outlined),
+                  title: Text(
+                    planActL10n(context).settingsMorningReminderTitle,
+                  ),
+                  subtitle: Text(
+                    _morningReminderEnabled
+                        ? planActL10n(context)
+                              .settingsMorningReminderDescription
+                        : planActL10n(context).settingsMorningReminderDisabled,
+                  ),
+                  value: _morningReminderEnabled,
+                  onChanged: !_morningReminderLoaded || _savingMorningReminder
+                      ? null
+                      : _setMorningReminderEnabled,
+                ),
+                if (!_morningReminderLoaded) const LinearProgressIndicator(),
+                if (_morningReminderLoaded) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    title: Text(
+                      planActL10n(context).settingsMorningReminderStart,
+                    ),
+                    trailing: Text(
+                      _formatMorningTime(_morningReminderWindow.startMinutes),
+                    ),
+                    onTap: _savingMorningReminder
+                        ? null
+                        : () => _selectMorningTime(start: true),
+                  ),
+                  ListTile(
+                    title: Text(
+                      planActL10n(context).settingsMorningReminderEnd,
+                    ),
+                    trailing: Text(
+                      _formatMorningTime(
+                        _morningReminderWindow.endMinutes == 1440
+                            ? 0
+                            : _morningReminderWindow.endMinutes,
+                      ),
+                    ),
+                    onTap: _savingMorningReminder
+                        ? null
+                        : () => _selectMorningTime(start: false),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (_morningReminderSaveFailed)
+            Text(
+              planActL10n(context).settingsMorningReminderSaveError,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+        ],
+        const SizedBox(height: 20),
+        Text(
+          planActL10n(context).settingsSecurity,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
-      ),
-    ],
+        const SizedBox(height: 12),
+        AppLockSettingsCard(
+          enabled: widget.appLockEnabled,
+          change: widget.onAppLockChanged,
+        ),
+        const SizedBox(height: 20),
+        if (widget.enableReminders != null)
+          ReminderPermissionsCard(enable: widget.enableReminders!),
+        Text(
+          planActL10n(context).settingsAbout,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(planActL10n(context).settingsAboutApp),
+            subtitle: Text(planActL10n(context).settingsPageBuildSubtitle),
+            trailing: const Icon(Icons.chevron_left),
+            onTap: widget.onAbout,
+          ),
+        ),
+      ],
+    ),
   );
 
   void _change(ThemeMode? value) {

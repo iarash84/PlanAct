@@ -48,12 +48,12 @@ void main() {
         return BackupService(
           storage: SqliteBackupStorage(
             live: file,
-            schemaVersion: 19,
+            schemaVersion: 20,
             expectedSchema: schema,
             snapshot: file.readAsBytes,
             closeLive: () async {},
           ),
-          validator: const BackupValidator(currentSchemaVersion: 19),
+          validator: const BackupValidator(currentSchemaVersion: 20),
           rebuildHook: _Rebuild(),
           keyStorage: _NoInstallationKeys(),
           encryptor: AesGcmBackupEncryptor(),

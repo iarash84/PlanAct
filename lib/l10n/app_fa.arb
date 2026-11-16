@@ -7176,6 +7176,7 @@
   },
   "financeCorrectAccountEffects": "اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.",
   "@financeCorrectAccountEffects": {
+    "x-planact-introduced": "transaction-account-correction-2026-11-14",
     "description": "تأیید اصلاح تراکنش با نام حساب مبدأ و مقصد و اثر علامت‌دار هر ثبت بر مانده؛ اثرها با واحد نمایشی ثابت فرم قالب‌بندی شده‌اند.",
     "placeholders": {
       "originalAccount": { "type": "String" },
@@ -8023,98 +8024,122 @@
   },
   "calendarVisibilityTitle": "تقویم",
   "@calendarVisibilityTitle": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityItems": "موارد نمایان",
   "@calendarVisibilityItems": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityDescription": "این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.",
   "@calendarVisibilityDescription": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityCommitments": "تعهدها",
   "@calendarVisibilityCommitments": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityNotes": "یادداشت‌ها",
   "@calendarVisibilityNotes": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityIncome": "درآمد",
   "@calendarVisibilityIncome": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityExpense": "هزینه",
   "@calendarVisibilityExpense": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityTransfers": "انتقال بین حساب‌های خود",
   "@calendarVisibilityTransfers": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityError": "تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.",
   "@calendarVisibilityError": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityLoadError": "تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.",
   "@calendarVisibilityLoadError": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarVisibilityFiltered": "نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.",
   "@calendarVisibilityFiltered": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarTransactionIncome": "درآمد ثبت‌شده",
   "@calendarTransactionIncome": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarTransactionExpense": "هزینهٔ ثبت‌شده",
   "@calendarTransactionExpense": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarTransactionTransfer": "انتقال ثبت‌شده بین حساب‌های خود",
   "@calendarTransactionTransfer": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "calendarTransactionReversed": "برگشت‌خورده؛ فقط تاریخچه",
   "@calendarTransactionReversed": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
     "description": "متن تنظیمات نمایش و تراکنش‌های تقویم؛ فقط نمایش و بدون تغییر داده."
   },
   "financeAccountsTitle": "حساب‌ها",
   "@financeAccountsTitle": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsSearch": "جست‌وجوی نام یا بانک حساب",
   "@financeAccountsSearch": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsShowArchived": "نمایش حساب‌های بایگانی‌شده",
   "@financeAccountsShowArchived": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsArchived": "بایگانی‌شده",
   "@financeAccountsArchived": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsNoResults": "حسابی برای نمایش وجود ندارد.",
   "@financeAccountsNoResults": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsAll": "همهٔ حساب‌ها",
   "@financeAccountsAll": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsFilter": "حساب تراکنش‌ها",
   "@financeAccountsFilter": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountTransactions": "مشاهدهٔ تراکنش‌های این حساب",
   "@financeAccountTransactions": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی"
   },
   "financeAccountsCount": "{count} حساب",
   "@financeAccountsCount": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
     "description": "متن مدیریت و فیلتر حساب‌ها در مسیر مالی",
     "placeholders": {
       "count": {
@@ -8124,5 +8149,6 @@
     }
   },
   "financeTransactionAccountUnavailable": "اطلاعات حساب در دسترس نیست",
-  "@financeTransactionAccountUnavailable": {"description": "نمایش صریح نبود اطلاعات حساب متصل به ثبت مالی؛ بدون حدس هویت"}
+  "@financeTransactionAccountUnavailable": {
+    "x-planact-introduced": "finance-account-management-2026-11-14","description": "نمایش صریح نبود اطلاعات حساب متصل به ثبت مالی؛ بدون حدس هویت"}
 }

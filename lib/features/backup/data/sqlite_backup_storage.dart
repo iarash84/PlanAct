@@ -61,6 +61,15 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
     '742a4ff85d8fa0141bceaa2b72629d537d66cf47b9d984bc532a8472cfa065b8',
   };
 
+  static const _trustedMigratedV20 = {
+    'f71566247016ea4c4745d7ea09d2a12892443ffd3e8ab26c378488434c667632',
+    '31b858f0641c8b9f9a9bc66e3c555f8906506e97de02ce4d91099a34adc839b0',
+    '657f2961b4100423830df2e9ba15aee91451b6a554667b5d5a676a84004d5a14',
+    '75460d6a1d59098871a794f36f93e65658e99b39ac4967d7393bac50be9a10a3',
+    '4f9e29b7700537d8e3b3003ce71d1e730202a50381cd60c3061f5a1d9a85d781',
+    '8ef807322a8fce2c50db0662623c9ebecde45733dbd2b7914bd63c253b4df242',
+  };
+
   bool _matchesSchema(Database db) {
     final declarations = schema(db).join('\n');
     if (declarations == expectedSchema.join('\n')) return true;
@@ -68,6 +77,7 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
     return switch (schemaVersion) {
       18 => _trustedMigratedV18.contains(fingerprint),
       19 => _trustedMigratedV19.contains(fingerprint),
+      20 => _trustedMigratedV20.contains(fingerprint),
       _ => false,
     };
   }

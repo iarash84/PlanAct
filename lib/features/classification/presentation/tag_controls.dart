@@ -59,7 +59,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
     try {
       final repository = widget.repository;
       final tags = await repository?.list() ?? <Tag>[];
-      final suggestedTags = await repository?.mostUsed(limit: 5) ?? <Tag>[];
+      final suggestedTags = await repository?.mostUsed(limit: 3) ?? <Tag>[];
       if (mounted) {
         setState(() {
           _tags = tags;

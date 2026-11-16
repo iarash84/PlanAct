@@ -611,9 +611,9 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
     if (_positionAgenda) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_agendaScroll.hasClients || !_positionAgenda) return;
-        final today = days.indexOf(JalaliDate.now());
+        final selected = days.indexOf(widget.date);
         var offset = 0.0;
-        for (var index = 0; index < (today < 0 ? 0 : today); index++) {
+        for (var index = 0; index < (selected < 0 ? 0 : selected); index++) {
           final body =
               _dayBodyKeys[index].currentContext?.findRenderObject()
                   as RenderSliver?;
@@ -626,8 +626,8 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
         _positionAgenda = false;
       });
     }
-    final todayIndex = days.indexOf(JalaliDate.now());
-    final initialDay = todayIndex < 0 ? 0 : todayIndex;
+    final selectedIndex = days.indexOf(widget.date);
+    final initialDay = selectedIndex < 0 ? 0 : selectedIndex;
     return CustomScrollView(
       key: const ValueKey('week-agenda-scroll'),
       // Only seven durable days are loaded. Lay out that bounded content so the
@@ -770,7 +770,7 @@ class _WeekTimelineViewState extends State<WeekTimelineView> {
       .toList();
 
   List<CalendarTransaction> _transactionsFor(JalaliDate day) => _transactions
-      .where((item) => item.date == LocalDate.fromDateTime(day.toDateTime()))
+      .where((item) => JalaliDate.fromDateTime(item.localTime) == day)
       .toList();
 
   Widget _transactionTile(CalendarTransaction item) => CalendarTransactionTile(

@@ -25,20 +25,25 @@ void main() {
     await tester.pumpAndSettle();
     final settingsList = find.descendant(
       of: find.byType(SettingsPage),
-      matching: find.byType(ListView),
+      matching: find.byType(Scrollable),
     );
-    await tester.drag(settingsList, const Offset(0, -150));
+    expect(settingsList, findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('تاریک'),
+      150,
+      scrollable: settingsList,
+    );
     await tester.pumpAndSettle();
+    expect(find.text('تاریک').hitTestable(), findsOneWidget);
     await tester.tap(find.text('تاریک'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('موج ایرانی'),
       150,
-      scrollable: find
-          .descendant(of: settingsList, matching: find.byType(Scrollable))
-          .first,
+      scrollable: settingsList,
     );
     await tester.pumpAndSettle();
+    expect(find.text('موج ایرانی').hitTestable(), findsOneWidget);
     await tester.tap(find.text('موج ایرانی'));
     await tester.pumpAndSettle();
 
@@ -87,11 +92,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('روشن'),
       -150,
-      scrollable: find
-          .descendant(of: settingsList, matching: find.byType(Scrollable))
-          .first,
+      scrollable: settingsList,
     );
     await tester.pumpAndSettle();
+    expect(find.text('روشن').hitTestable(), findsOneWidget);
     await tester.tap(find.text('روشن'));
     await tester.pumpAndSettle();
     expect(
