@@ -93,9 +93,15 @@
     "description": "Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.",
     "x-planact-introduced": "reports-cards-2026-11-10",
     "placeholders": {
-      "date": {"type": "String"},
-      "type": {"type": "String"},
-      "account": {"type": "String"}
+      "date": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
     }
   },
   "reportsPagePosition": "صفحهٔ {page} از {pages} · {count} تراکنش",
@@ -103,9 +109,15 @@
     "description": "Report detail pagination; numbers are preformatted Persian strings. Totals cover all results, not this page.",
     "x-planact-introduced": "reports-cards-2026-11-10",
     "placeholders": {
-      "page": {"type": "String"},
-      "pages": {"type": "String"},
-      "count": {"type": "String"}
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
     }
   },
   "@@locale": "fa",
@@ -7997,9 +8009,7 @@
     "description": "Search all reusable tags before confirmation.",
     "x-planact-introduced": "inbox-tags-2026-11-08",
     "x-planact-distinct-context": "Saved-record tag filtering and pre-confirmation draft tag selection are distinct contexts."
-  }
-,
-
+  },
   "smsControlsTitle": "پیامک‌های بانکی",
   "@smsControlsTitle": {
     "x-planact-introduced": "sms-sync-2026-10-14",
@@ -8297,5 +8307,101 @@
         "description": "Localized invitation to review."
       }
     }
+  },
+  "bankEvidenceReview": "بررسی شاهد مانده",
+  "@bankEvidenceReview": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceReview"
+  },
+  "bankEvidenceMissing": "گزارش مانده‌ای برای این حساب ثبت نشده است.",
+  "@bankEvidenceMissing": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceMissing"
+  },
+  "bankEvidenceIncomplete": "شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.",
+  "@bankEvidenceIncomplete": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceIncomplete"
+  },
+  "bankEvidenceInactive": "شاهد بی‌اعتبار شده است",
+  "@bankEvidenceInactive": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceInactive"
+  },
+  "bankEvidenceActive": "شاهد معتبر است",
+  "@bankEvidenceActive": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceActive"
+  },
+  "bankEvidenceDisclosure": "این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.",
+  "@bankEvidenceDisclosure": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDisclosure"
+  },
+  "bankEvidenceDependency": "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.",
+  "@bankEvidenceDependency": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDependency",
+    "x-planact-default": true
+  },
+  "bankEvidenceAmount": "مبلغ مانده در واحد منبع",
+  "@bankEvidenceAmount": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceAmount"
+  },
+  "bankEvidenceUnknownUnit": "واحد نامعلوم",
+  "@bankEvidenceUnknownUnit": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceUnknownUnit"
+  },
+  "bankEvidenceDate": "انتخاب تاریخ و زمان گزارش",
+  "@bankEvidenceDate": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDate"
+  },
+  "bankEvidenceClearTime": "زمان گزارش نامعلوم است",
+  "@bankEvidenceClearTime": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceClearTime"
+  },
+  "bankEvidenceSaved": "بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.",
+  "@bankEvidenceSaved": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceSaved"
+  },
+  "bankEvidenceConfirm": "تأیید بررسی شاهد",
+  "@bankEvidenceConfirm": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceConfirm"
+  },
+  "bankRecoveryTitle": "بازیابی تطبیق‌های وابسته",
+  "@bankRecoveryTitle": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Title and explicit action for reversing dependent bank reconciliations."
+  },
+  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
+  "@bankRecoveryDisclosure": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Disclosure before explicit atomic dependency recovery."
+  },
+  "bankRecoveryDone": "تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
+  "@bankRecoveryDone": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Successful recovery; user must explicitly retry the retained draft."
+  },
+  "bankRecoveryEmpty": "تطبیق فعالی برای بازیابی وجود ندارد.",
+  "@bankRecoveryEmpty": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Empty recovery preview."
+  },
+  "bankRecoverySource": "شناسهٔ شاهد",
+  "@bankRecoverySource": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Label for immutable source observation identity."
+  },
+  "bankRecoveryEntry": "شناسهٔ ثبت تطبیق",
+  "@bankRecoveryEntry": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Label for reconciliation ledger entry identity."
   }
 }

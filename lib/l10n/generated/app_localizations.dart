@@ -61,8 +61,7 @@ import 'app_localizations_fa.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,8 +69,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -83,16 +81,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('fa')
+  ];
 
   /// Error blocking a backdated financial entry that would affect an already reconciled period; reverse the reconciliation first to avoid double counting.
   ///
@@ -584,11 +583,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} {value2}، {value3}'**
-  String planactAppFormatDateMessage(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String planactAppFormatDateMessage(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/app/planact_app.dart:1051.
   ///
@@ -1092,11 +1087,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}، {value2} {value3}'**
-  String persianDateFormatterDateMessage(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String persianDateFormatterDateMessage(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/core/localization/persian_date_formatter.dart:57.
   ///
@@ -1174,12 +1165,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}\nمنبع: {value2}\nنسخه: {value3}\nمحدوده: {value4}'**
-  String planactJalaliDatePickerBuildChildren(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String planactJalaliDatePickerBuildChildren(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/core/presentation/planact_jalali_date_picker.dart:317.
   ///
@@ -1779,14 +1765,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}{value2}{value3}{value4}، {value5}، {value6}، نمایش فهرست روز'**
-  String calendarPageBuildLabel2(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-    String value5,
-    String value6,
-  );
+  String calendarPageBuildLabel2(String value1, String value2, String value3, String value4, String value5, String value6);
 
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:37.
   ///
@@ -1798,10 +1777,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'سال {value1} · نسخه {value2}'**
-  String holidayPackageSettingsCardApprovedChildren(
-    String value1,
-    String value2,
-  );
+  String holidayPackageSettingsCardApprovedChildren(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/calendar/presentation/holiday_package_settings_card.dart:46.
   ///
@@ -1951,11 +1927,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}{value2} · {value3}'**
-  String plannedOccurrenceWidgetsBuildSubtitle2(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String plannedOccurrenceWidgetsBuildSubtitle2(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/calendar/presentation/planned_occurrence_widgets.dart:65.
   ///
@@ -2141,12 +2113,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}، {value2}، {value3}، {value4}'**
-  String weekTimelineViewCardLabel2(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String weekTimelineViewCardLabel2(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/features/calendar/presentation/week_timeline_view.dart:885.
   ///
@@ -2812,11 +2779,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'تکرار {value1} · {value2} · {value3}'**
-  String commitmentDraftScheduleMessage6(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String commitmentDraftScheduleMessage6(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/commitments/application/commitment_draft.dart:176.
   ///
@@ -2840,17 +2803,13 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} ریال'**
-  String commitmentDraftCommitmentFinancialMeaningPaymentRequired(
-    String value1,
-  );
+  String commitmentDraftCommitmentFinancialMeaningPaymentRequired(String value1);
 
   /// Application copy. Original usage: lib/features/commitments/application/commitment_draft.dart:184.
   ///
   /// In fa, this message translates to:
   /// **'نیازمند پرداخت ({value1})'**
-  String commitmentDraftCommitmentFinancialMeaningPaymentRequired2(
-    String value1,
-  );
+  String commitmentDraftCommitmentFinancialMeaningPaymentRequired2(String value1);
 
   /// Application copy. Original usage: lib/features/commitments/application/commitment_draft.dart:186.
   ///
@@ -2952,10 +2911,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'تعداد برنامه: {value1} ← {value2}'**
-  String commitmentCorrectionCardConfirmedChildren3(
-    String value1,
-    String value2,
-  );
+  String commitmentCorrectionCardConfirmedChildren3(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/commitments/presentation/commitment_correction_card.dart:86.
   ///
@@ -2973,10 +2929,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'اعتبار باقی‌مانده: {value1} ← {value2}'**
-  String commitmentCorrectionCardConfirmedChildren6(
-    String value1,
-    String value2,
-  );
+  String commitmentCorrectionCardConfirmedChildren6(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/commitments/presentation/commitment_correction_card.dart:94.
   ///
@@ -3090,13 +3043,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}\nتعداد: {value2} ← {value3}\nاعتبار: {value4} ← {value5}'**
-  String commitmentCorrectionCardBuildSubtitle2(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-    String value5,
-  );
+  String commitmentCorrectionCardBuildSubtitle2(String value1, String value2, String value3, String value4, String value5);
 
   /// Application copy. Original usage: lib/features/commitments/presentation/commitment_correction_card.dart:244.
   ///
@@ -4326,12 +4273,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'بررسی‌شده: {value1} از {value2} · ردشده: {value3} · ناموفق: {value4}'**
-  String inboxPageBulkControlsChildren9(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String inboxPageBulkControlsChildren9(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:644.
   ///
@@ -5423,11 +5365,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'بررسی‌شده: {value1} · موفق: {value2} · ناموفق: {value3}'**
-  String relationshipQueuePageBuildChildren6(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String relationshipQueuePageBuildChildren6(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/reconciliation/presentation/relationship_queue_page.dart:338.
   ///
@@ -5463,11 +5401,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} · باقی‌مانده: {value2}{value3}'**
-  String relationshipQueuePageBuildSubtitle2(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String relationshipQueuePageBuildSubtitle2(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/reconciliation/presentation/relationship_queue_page.dart:388.
   ///
@@ -5665,10 +5599,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}، {value2}'**
-  String occurrenceRemindersReminderRuleLabelMessage(
-    String value1,
-    String value2,
-  );
+  String occurrenceRemindersReminderRuleLabelMessage(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/reminders/presentation/occurrence_reminders.dart:16.
   ///
@@ -5716,19 +5647,13 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} {value2} از شروع'**
-  String occurrenceRemindersReminderRuleLabelMessage5(
-    String value1,
-    String value2,
-  );
+  String occurrenceRemindersReminderRuleLabelMessage5(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/reminders/presentation/occurrence_reminders.dart:66.
   ///
   /// In fa, this message translates to:
   /// **'{value1}، ساعت {value2}'**
-  String occurrenceRemindersOccurrenceLabelMessage(
-    String value1,
-    String value2,
-  );
+  String occurrenceRemindersOccurrenceLabelMessage(String value1, String value2);
 
   /// Application copy. Original usage: lib/features/reminders/presentation/occurrence_reminders.dart:67.
   ///
@@ -5926,12 +5851,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} · {value2}: {value3}{value4}'**
-  String financialReportChartBuildChildren8(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String financialReportChartBuildChildren8(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/features/reports/presentation/financial_report_chart.dart:104.
   ///
@@ -5949,11 +5869,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1} {value2}{value3}'**
-  String financialReportChartBuildChildren9(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String financialReportChartBuildChildren9(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/reports/presentation/financial_report_chart.dart:110.
   ///
@@ -6451,11 +6367,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'برنامه: {value1}؛ تطبیق: {value2}؛ باقی‌مانده: {value3}'**
-  String reportsPageContentMessage22(
-    String value1,
-    String value2,
-    String value3,
-  );
+  String reportsPageContentMessage22(String value1, String value2, String value3);
 
   /// Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:798.
   ///
@@ -6467,13 +6379,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}؛ {value2}\nبرنامه: {value3}؛ باقی‌مانده: {value4}{value5}'**
-  String reportsPageContentSubtitle2(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-    String value5,
-  );
+  String reportsPageContentSubtitle2(String value1, String value2, String value3, String value4, String value5);
 
   /// Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:811.
   ///
@@ -6521,12 +6427,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'اعتبار: {value1}؛ کسر دفتر: {value2}؛ باقی‌مانده: {value3} {value4}'**
-  String reportsPageContentMessage27(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String reportsPageContentMessage27(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:850.
   ///
@@ -6826,24 +6727,13 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'{value1}؛ {value2}{value3}{value4}{value5}'**
-  String reportsPageOccurrenceTileSubtitle4(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-    String value5,
-  );
+  String reportsPageOccurrenceTileSubtitle4(String value1, String value2, String value3, String value4, String value5);
 
   /// Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:1167.
   ///
   /// In fa, this message translates to:
   /// **'{value1}؛ {value2}؛ {value3}\n{value4}'**
-  String reportsPageMovementTileSubtitle(
-    String value1,
-    String value2,
-    String value3,
-    String value4,
-  );
+  String reportsPageMovementTileSubtitle(String value1, String value2, String value3, String value4);
 
   /// Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:1181.
   ///
@@ -7773,12 +7663,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.'**
-  String financeCorrectAccountEffects(
-    String originalAccount,
-    String reversalEffect,
-    String selectedAccount,
-    String correctedEffect,
-  );
+  String financeCorrectAccountEffects(String originalAccount, String reversalEffect, String selectedAccount, String correctedEffect);
 
   /// Undo repair: explicit operation feedback and confirmation.
   ///
@@ -8618,13 +8503,7 @@ abstract class AppLocalizations {
   ///
   /// In fa, this message translates to:
   /// **'تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}'**
-  String financeTransactionPageRange(
-    String start,
-    String end,
-    String total,
-    String page,
-    String pages,
-  );
+  String financeTransactionPageRange(String start, String end, String total, String page, String pages);
 
   /// Title of the Calendar display settings section, not the root navigation destination.
   ///
@@ -8841,10 +8720,123 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'{amount} ریال — {invitation}'**
   String smsDetectionAmountBody(String amount, String invitation);
+
+  /// Bank observation evidence review: bankEvidenceReview
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی شاهد مانده'**
+  String get bankEvidenceReview;
+
+  /// Bank observation evidence review: bankEvidenceMissing
+  ///
+  /// In fa, this message translates to:
+  /// **'گزارش مانده‌ای برای این حساب ثبت نشده است.'**
+  String get bankEvidenceMissing;
+
+  /// Bank observation evidence review: bankEvidenceIncomplete
+  ///
+  /// In fa, this message translates to:
+  /// **'شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.'**
+  String get bankEvidenceIncomplete;
+
+  /// Bank observation evidence review: bankEvidenceInactive
+  ///
+  /// In fa, this message translates to:
+  /// **'شاهد بی‌اعتبار شده است'**
+  String get bankEvidenceInactive;
+
+  /// Bank observation evidence review: bankEvidenceActive
+  ///
+  /// In fa, this message translates to:
+  /// **'شاهد معتبر است'**
+  String get bankEvidenceActive;
+
+  /// Bank observation evidence review: bankEvidenceDisclosure
+  ///
+  /// In fa, this message translates to:
+  /// **'این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.'**
+  String get bankEvidenceDisclosure;
+
+  /// Bank observation evidence review: bankEvidenceDependency
+  ///
+  /// In fa, this message translates to:
+  /// **'این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.'**
+  String get bankEvidenceDependency;
+
+  /// Bank observation evidence review: bankEvidenceAmount
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ مانده در واحد منبع'**
+  String get bankEvidenceAmount;
+
+  /// Bank observation evidence review: bankEvidenceUnknownUnit
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد نامعلوم'**
+  String get bankEvidenceUnknownUnit;
+
+  /// Bank observation evidence review: bankEvidenceDate
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب تاریخ و زمان گزارش'**
+  String get bankEvidenceDate;
+
+  /// Bank observation evidence review: bankEvidenceClearTime
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان گزارش نامعلوم است'**
+  String get bankEvidenceClearTime;
+
+  /// Bank observation evidence review: bankEvidenceSaved
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.'**
+  String get bankEvidenceSaved;
+
+  /// Bank observation evidence review: bankEvidenceConfirm
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید بررسی شاهد'**
+  String get bankEvidenceConfirm;
+
+  /// Title and explicit action for reversing dependent bank reconciliations.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازیابی تطبیق‌های وابسته'**
+  String get bankRecoveryTitle;
+
+  /// Disclosure before explicit atomic dependency recovery.
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.'**
+  String get bankRecoveryDisclosure;
+
+  /// Successful recovery; user must explicitly retry the retained draft.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.'**
+  String get bankRecoveryDone;
+
+  /// Empty recovery preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق فعالی برای بازیابی وجود ندارد.'**
+  String get bankRecoveryEmpty;
+
+  /// Label for immutable source observation identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'شناسهٔ شاهد'**
+  String get bankRecoverySource;
+
+  /// Label for reconciliation ledger entry identity.
+  ///
+  /// In fa, this message translates to:
+  /// **'شناسهٔ ثبت تطبیق'**
+  String get bankRecoveryEntry;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -8853,24 +8845,24 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['fa'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['fa'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'fa':
-      return AppLocalizationsFa();
+    case 'fa': return AppLocalizationsFa();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

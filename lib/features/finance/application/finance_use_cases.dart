@@ -3,6 +3,7 @@ import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/core/money/signed_int64.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/domain/transfer_fee_policy.dart';
 
@@ -536,7 +537,15 @@ List<AccountEntry> prepareFinanceReversal({
         id: StableId.generate(),
         accountId: entry.accountId,
         type: AccountEntryType.reversal,
-        amount: -entry.signedAmount,
+        amount: Money(
+          minorUnits: checkedSignedInt64(
+            (entry.type == AccountEntryType.expense ||
+                    entry.type == AccountEntryType.transferOut)
+                ? BigInt.from(entry.amount.minorUnits)
+                : -BigInt.from(entry.amount.minorUnits),
+          ),
+          currency: entry.amount.currency,
+        ),
         occurredAt: occurredAt.toUtc(),
         referenceId: entry.id.value,
         transferGroupId: entry.transferGroupId,

@@ -11,6 +11,8 @@ import 'dart:async';
 import 'package:planact/core/ids/stable_id.dart';
 
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/domain/bank_balance.dart';
+import 'package:planact/features/finance/presentation/bank_recovery_dialog.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -999,6 +1001,23 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
   bool _dateAcknowledged = false;
   bool _classificationAcknowledged = false;
   SmsMoneyUnit? _proposedUnit;
+  Set<String>? _recoveryAccounts;
+
+  Future<void> _recover() async {
+    final repository = widget.finance;
+    if (repository is! BankRecoveryRepository) return;
+    final recovered = await showBankRecovery(
+      context,
+      repository as BankRecoveryRepository,
+      _recoveryAccounts!,
+    );
+    if (mounted && recovered) {
+      setState(() {
+        _recoveryAccounts = null;
+        _error = planActL10n(context).bankRecoveryDone;
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -1055,11 +1074,16 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         setState(() => _saving = false);
         Navigator.of(context).pop(entry);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = PersianCopy.inboxPageSaveMessage6;
+          _error = error is BankRecoveryRequired
+              ? error.message
+              : PersianCopy.inboxPageSaveMessage6;
+          _recoveryAccounts = error is BankRecoveryRequired
+              ? error.accountIds
+              : null;
         });
       }
     }
@@ -1077,6 +1101,12 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_recoveryAccounts != null &&
+              widget.finance is BankRecoveryRepository)
+            TextButton(
+              onPressed: _saving ? null : _recover,
+              child: Text(planActL10n(context).bankRecoveryTitle),
+            ),
           if (widget
                   .item
                   .suggestion

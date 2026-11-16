@@ -183,6 +183,23 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+Bank evidence review checkpoint (2026-11-16, step 1): preserve incomplete independent
+balance evidence without borrowing transaction units, Settings or receipt time.
+Keep original observations immutable; explicit account/amount/unit/time review,
+invalidation and reactivation append versioned before/after snapshots with monotonic
+per-observation revisions after fresh SQLite writer admission and state comparison.
+Evidence review must not change ledger entries, transactions, tags or allocations;
+ledger reversal does not invalidate evidence. Dependency recovery is a separate explicit
+preview/confirmation command: conservatively reverse every active reconciliation in
+both affected accounts, newest report boundary first, under one fresh SQLite writer
+admission and compare all preview tokens before any reversal. Reuse exact stable
+financial reversals and append UndoJournal evidence atomically. Ordinary cancellation
+of an older reconciliation is blocked while a newer one remains active. Account,
+evidence-review and backdated Inbox routes share recovery; retain drafts and require
+explicit retry, never auto-save, auto-confirm or auto-reverse.
+Preserve legacy observations and review history through cold reopen and
+strict backup snapshot validation; unchanged schema does not approve older writers.
+
 SMS bank-balance checkpoint (2026-11-11, Partial): reported balances are immutable
 source observations, separate from the ledger and ordered only by complete source
 transaction time. Receipt/import/confirmation order never establishes recency;

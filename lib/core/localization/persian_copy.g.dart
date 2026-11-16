@@ -809,4 +809,5 @@ abstract final class PersianCopy {
   static const smsDetectionAmounts = "نمایش مبلغ در اعلان بازشده";
   static const smsDetectionFailure = "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.";
   static String smsDetectionAmountBody(String amount, String invitation) => "${amount} ریال — ${invitation}";
+  static const bankEvidenceDependency = "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.";
 }

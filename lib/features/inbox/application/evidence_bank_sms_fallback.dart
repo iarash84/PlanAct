@@ -50,6 +50,8 @@ final class EvidenceBankSmsFallback {
     return ParsedSms(
       amount: parsed.amount,
       balance: parsed.balance,
+      reportedBalanceAmount: parsed.reportedBalanceAmount,
+      reportedBalanceUnit: parsed.reportedBalanceUnit,
       currencyEvidence: parsed.currencyEvidence,
       occurredAt: parsed.occurredAt,
       sourceDate: parsed.sourceDate,

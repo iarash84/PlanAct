@@ -274,6 +274,7 @@ class RealBankSmsParser implements SmsFormatParser {
     if (balanceAmount == null) return null;
     return ParsedSms(
       amount: Money(minorUnits: sourceAmount, currency: 'IRR'),
+      reportedBalanceAmount: balanceAmount,
       balance: Money(minorUnits: balanceAmount, currency: 'IRR'),
       currencyEvidence: evidence,
       occurredAt: null,
@@ -377,6 +378,7 @@ class RealBankSmsParser implements SmsFormatParser {
           );
     return ParsedSms(
       amount: Money(minorUnits: amount, currency: 'IRR'),
+      reportedBalanceAmount: balance,
       balance: Money(minorUnits: balance, currency: 'IRR'),
       currencyEvidence: SmsCurrencyEvidence(
         sourceAmount: amount,
@@ -623,12 +625,17 @@ class RealBankSmsParser implements SmsFormatParser {
                 minorUnits: unit.canonicalIrr(parsedAmount),
                 currency: 'IRR',
               ),
+              reportedBalanceAmount: parsedBalance,
+              reportedBalanceUnit: balance.group(2) == 'تومان'
+                  ? SmsMoneyUnit.toman
+                  : SmsMoneyUnit.rial,
               balance: Money(
-                minorUnits:
-                    (balance.group(2) == 'تومان'
-                            ? SmsMoneyUnit.toman
-                            : SmsMoneyUnit.rial)
-                        .canonicalIrr(parsedBalance),
+                minorUnits: parsedBalance == 0
+                    ? 0
+                    : (balance.group(2) == 'تومان'
+                              ? SmsMoneyUnit.toman
+                              : SmsMoneyUnit.rial)
+                          .canonicalIrr(parsedBalance),
                 currency: 'IRR',
               ),
               currencyEvidence: SmsCurrencyEvidence(
@@ -850,6 +857,7 @@ class RealBankSmsParser implements SmsFormatParser {
     if (amount == null || amount <= 0 || balance == null) return null;
     return ParsedSms(
       amount: Money(minorUnits: amount, currency: 'IRR'),
+      reportedBalanceAmount: balance,
       balance: Money(minorUnits: balance, currency: 'IRR'),
       currencyEvidence: SmsCurrencyEvidence(
         sourceAmount: amount,

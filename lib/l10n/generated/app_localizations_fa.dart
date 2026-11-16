@@ -5261,4 +5261,67 @@ class AppLocalizationsFa extends AppLocalizations {
   String smsDetectionAmountBody(String amount, String invitation) {
     return '$amount ریال — $invitation';
   }
+
+  @override
+  String get bankEvidenceReview => 'بررسی شاهد مانده';
+
+  @override
+  String get bankEvidenceMissing =>
+      'گزارش مانده‌ای برای این حساب ثبت نشده است.';
+
+  @override
+  String get bankEvidenceIncomplete =>
+      'شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.';
+
+  @override
+  String get bankEvidenceInactive => 'شاهد بی‌اعتبار شده است';
+
+  @override
+  String get bankEvidenceActive => 'شاهد معتبر است';
+
+  @override
+  String get bankEvidenceDisclosure =>
+      'این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.';
+
+  @override
+  String get bankEvidenceDependency =>
+      'این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.';
+
+  @override
+  String get bankEvidenceAmount => 'مبلغ مانده در واحد منبع';
+
+  @override
+  String get bankEvidenceUnknownUnit => 'واحد نامعلوم';
+
+  @override
+  String get bankEvidenceDate => 'انتخاب تاریخ و زمان گزارش';
+
+  @override
+  String get bankEvidenceClearTime => 'زمان گزارش نامعلوم است';
+
+  @override
+  String get bankEvidenceSaved => 'بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.';
+
+  @override
+  String get bankEvidenceConfirm => 'تأیید بررسی شاهد';
+
+  @override
+  String get bankRecoveryTitle => 'بازیابی تطبیق‌های وابسته';
+
+  @override
+  String get bankRecoveryDisclosure =>
+      'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.';
+
+  @override
+  String get bankRecoveryDone =>
+      'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
+
+  @override
+  String get bankRecoveryEmpty => 'تطبیق فعالی برای بازیابی وجود ندارد.';
+
+  @override
+  String get bankRecoverySource => 'شناسهٔ شاهد';
+
+  @override
+  String get bankRecoveryEntry => 'شناسهٔ ثبت تطبیق';
 }

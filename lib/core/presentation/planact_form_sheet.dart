@@ -48,96 +48,124 @@ class PlanActFormSheet extends StatelessWidget {
             constraints: const BoxConstraints(maxHeight: 720),
             child: Form(
               key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (showDragHandle)
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        margin: const EdgeInsets.only(
-                          bottom: PlanActSpacing.md,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(99),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Flexible(
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (showDragHandle)
+                              Center(
+                                child: Container(
+                                  width: 36,
+                                  height: 4,
+                                  margin: const EdgeInsets.only(
+                                    bottom: PlanActSpacing.md,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outlineVariant,
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              title,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            if (error != null) ...[
+                              const SizedBox(height: PlanActSpacing.sm),
+                              Semantics(
+                                liveRegion: true,
+                                child: Text(
+                                  error!,
+                                  key: const ValueKey('planact-form-error'),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error,
+                                      ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: PlanActSpacing.md),
+                            child,
+                          ],
                         ),
                       ),
                     ),
-                  Text(title, style: Theme.of(context).textTheme.titleLarge),
-                  if (error != null) ...[
-                    const SizedBox(height: PlanActSpacing.sm),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        error!,
-                        key: const ValueKey('planact-form-error'),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
+                    const SizedBox(height: PlanActSpacing.md),
+                    // Keep actions pinned normally, but scroll them when the
+                    // keyboard or large labels leave too little vertical room.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight:
+                            constraints.maxHeight -
+                            (constraints.maxHeight / 2).clamp(
+                              0.0,
+                              kMinInteractiveDimension,
+                            ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: OverflowBar(
+                          spacing: PlanActSpacing.sm,
+                          overflowSpacing: PlanActSpacing.sm,
+                          alignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox(
+                              child: OutlinedButton(
+                                onPressed: isLoading
+                                    ? null
+                                    : (onSecondary ??
+                                          () => Navigator.of(context).pop()),
+                                child: Text(secondaryLabel),
+                              ),
+                            ),
+                            SizedBox(
+                              child: FilledButton(
+                                key: primaryKey,
+                                onPressed: isLoading ? null : onPrimary,
+                                child: AnimatedSize(
+                                  duration: PlanActMotion.duration(
+                                    context,
+                                    PlanActMotion.short,
+                                  ),
+                                  curve: PlanActMotion.curve,
+                                  child: isLoading
+                                      ? SizedBox(
+                                          height: 24,
+                                          width: 48,
+                                          child: Center(
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Text(primaryLabel),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: PlanActSpacing.md),
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
-                      children: [child],
-                    ),
-                  ),
-                  const SizedBox(height: PlanActSpacing.md),
-                  OverflowBar(
-                    spacing: PlanActSpacing.sm,
-                    overflowSpacing: PlanActSpacing.sm,
-                    alignment: MainAxisAlignment.end,
-                    children: [
-                      SizedBox(
-                        child: OutlinedButton(
-                          onPressed: isLoading
-                              ? null
-                              : (onSecondary ??
-                                    () => Navigator.of(context).pop()),
-                          child: Text(secondaryLabel),
-                        ),
-                      ),
-                      SizedBox(
-                        child: FilledButton(
-                          key: primaryKey,
-                          onPressed: isLoading ? null : onPrimary,
-                          child: AnimatedSize(
-                            duration: PlanActMotion.duration(
-                              context,
-                              PlanActMotion.short,
-                            ),
-                            curve: PlanActMotion.curve,
-                            child: isLoading
-                                ? SizedBox(
-                                    height: 24,
-                                    width: 48,
-                                    child: Center(
-                                      child: SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Text(primaryLabel),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),

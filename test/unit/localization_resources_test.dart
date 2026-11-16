@@ -176,6 +176,8 @@ void main() {
                     'today-inbox-preview-2026-11-11',
                     'finance-pagination-2026-11-11',
                     'bank-balance-2026-11-11',
+                    'bank-evidence-review-2026-11-16',
+                    'bank-recovery-2026-11-16',
                     'calendar-visibility-2026-11-14',
                     'transaction-account-correction-2026-11-14',
                     'finance-account-management-2026-11-14',
@@ -210,6 +212,14 @@ void main() {
 
   test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'bank-recovery-2026-11-16': {
+        'bankRecoveryTitle',
+        'bankRecoveryDisclosure',
+        'bankRecoveryDone',
+        'bankRecoveryEmpty',
+        'bankRecoverySource',
+        'bankRecoveryEntry',
+      },
       'quick-financial-options-2026-11-16': {
         'quickFinancialCurrentDate',
         'quickFinancialCurrentTime',

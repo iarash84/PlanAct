@@ -17,6 +17,51 @@ import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
 import '../fixtures/real_bank_sms.dart';
 
 void main() {
+  test('confirmation preserves incomplete independent balance evidence and reversal does not invalidate it', () async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final finance = DriftFinanceRepository(db);
+    final account = FinancialAccount(
+      id: StableId.generate(),
+      name: 'بانک',
+      currency: 'IRR',
+      type: FinancialAccountType.bank,
+    );
+    await finance.saveAccount(account);
+    final inbox = InboxUseCases(DriftInboxRepository(db));
+    final suggestion = await inbox.stageSms(
+      rawText: 'بانک رفاه\nواریز مبلغ 100 ریال\nمانده: 25',
+      sourceKey: 'incomplete-balance',
+      currency: 'IRR',
+      importedAt: DateTime.utc(2026, 11, 1),
+    );
+    expect(suggestion.extractedEvidence!.reportedBalanceAmount, 25);
+    expect(suggestion.extractedEvidence!.reportedBalanceUnit, isNull);
+    expect(suggestion.extractedEvidence!.occurredAt, isNull);
+    final entry = await inbox.confirm(
+      suggestion: suggestion,
+      account: account,
+      finance: finance,
+    );
+    final before = await finance.bankBalance(account.id.value);
+    final observation = before.observations.single;
+    expect(observation.sourceAmount, 25);
+    expect(observation.sourceUnit, isNull);
+    expect(observation.irr, isNull);
+    expect(observation.transactionTime, isNull);
+    expect(before.canReconcile, isFalse);
+    await FinanceUseCases(finance).voidEntry(
+      original: entry,
+      account: account,
+      occurredAt: DateTime.utc(2026, 11, 2),
+    );
+    final after = (await finance.bankBalance(account.id.value))
+        .observations
+        .single;
+    expect(after.toJson(), observation.toJson());
+    expect(after.active, isTrue);
+  });
+
   test('reverse confirmation order, cold reopen and snapshot retain source balance independently', () async {
     final dir = await Directory.systemTemp.createTemp('bank-balance-');
     addTearDown(() => dir.delete(recursive: true));

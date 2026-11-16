@@ -339,17 +339,19 @@ class DriftInboxRepository
         final evidence = fresh.extractedEvidence;
         final balanceAmount = evidence?.reportedBalanceAmount;
         final balanceUnit = evidence?.reportedBalanceUnit;
-        if (balanceAmount != null && balanceUnit != null) {
+        if (balanceAmount != null) {
           await BankBalanceStore(database).observe(
             BankBalanceObservation(
               id: suggestionId.value,
               entryId: entry.id.value,
               accountId: entry.accountId.value,
-              irr: balanceAmount == 0
+              irr: balanceUnit == null
+                  ? null
+                  : balanceAmount == 0
                   ? 0
                   : balanceUnit.canonicalIrr(balanceAmount),
               sourceAmount: balanceAmount,
-              sourceUnit: balanceUnit.name,
+              sourceUnit: balanceUnit?.name,
               transactionTime: evidence!.occurredAt,
             ),
           );

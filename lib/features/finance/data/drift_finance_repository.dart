@@ -22,6 +22,8 @@ class DriftFinanceRepository
         CommandGateProvider,
         FinanceRepository,
         BankBalanceRepository,
+        BankRecoveryRepository,
+        BankObservationReviewRepository,
         AtomicAccountEditing,
         AtomicFinanceCorrection,
         AtomicFinanceReversal,
@@ -34,6 +36,92 @@ class DriftFinanceRepository
   final db.AppDatabase database;
 
   @override
+  Future<BankRecoveryPreview> previewBankRecovery(Set<String> accountIds) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final entries = await listEntries();
+          final accounts = (await listAccounts())
+              .where((a) => accountIds.contains(a.id.value))
+              .toList();
+          if (accounts.length != accountIds.length || accounts.isEmpty) {
+            throw const ValidationError('Recovery accounts changed');
+          }
+          final store = BankBalanceStore(database);
+          final tokens = <String, String>{};
+          final decisions = <BankRecoveryDecision>[];
+          for (final account in accounts) {
+            tokens[account.id.value] = (await store.snapshot(
+              account.id.value,
+              entries,
+            )).token;
+            for (final decision in await store.activeDecisions(
+              account.id.value,
+              entries,
+            )) {
+              decisions.add(
+                BankRecoveryDecision(
+                  entry: entries.singleWhere(
+                    (e) => e.id.value == decision['entryId'],
+                  ),
+                  observationId: decision['observationId'] as String,
+                  through: DateTime.parse(decision['through'] as String),
+                  reason: BankReconciliationReason.values.byName(
+                    decision['reason'] as String,
+                  ),
+                ),
+              );
+            }
+          }
+          decisions.sort((a, b) {
+            final time = b.through.compareTo(a.through);
+            return time != 0
+                ? time
+                : b.entry.id.value.compareTo(a.entry.id.value);
+          });
+          return BankRecoveryPreview(
+            accounts: accounts,
+            tokens: Map.unmodifiable(tokens),
+            decisions: List.unmodifiable(decisions),
+          );
+        }),
+      );
+
+  @override
+  Future<void> recoverBankReconciliations(BankRecoveryPreview expected) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final fresh = await previewBankRecovery(expected.tokens.keys.toSet());
+          if (jsonEncode(fresh.tokens) != jsonEncode(expected.tokens) ||
+              fresh.decisions.isEmpty ||
+              fresh.decisions.map((d) => d.entry.id.value).join(',') !=
+                  expected.decisions.map((d) => d.entry.id.value).join(',')) {
+            throw const ValidationError('Recovery preview changed');
+          }
+          for (final decision in fresh.decisions) {
+            final reversals = prepareFinanceReversal(
+              expected: decision.entry,
+              accountId: decision.entry.accountId,
+              entries: await listEntries(),
+              accounts: await listAccounts(),
+              occurredAt: DateTime.now().toUtc(),
+            );
+            for (final reversal in reversals) {
+              await saveEntry(reversal);
+            }
+            await journal.append(
+              owner: 'finance:${decision.entry.id.value}',
+              before: [for (final e in reversals) e.referenceId],
+              after: [for (final e in reversals) e.id.value],
+            );
+          }
+        }),
+      );
+
+  @override
   Future<BankBalanceSnapshot> bankBalance(String accountId) =>
       CommandGate.runFor(
         this,
@@ -43,6 +131,30 @@ class DriftFinanceRepository
                   .snapshot(accountId, await listEntries()),
         ),
       );
+
+  @override
+  Future<void> reviewBankObservation({
+    required BankBalanceObservation expected,
+    required String accountId,
+    required int sourceAmount,
+    required String? sourceUnit,
+    required DateTime? transactionTime,
+    required bool active,
+  }) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await UndoJournal(database).admitWriter();
+      await BankBalanceStore(database).review(
+        expected: expected,
+        accountId: accountId,
+        sourceAmount: sourceAmount,
+        sourceUnit: sourceUnit,
+        transactionTime: transactionTime,
+        active: active,
+        entries: await listEntries(),
+      );
+    }),
+  );
 
   @override
   Future<AccountEntry> reconcileBankBalance(

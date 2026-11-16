@@ -351,10 +351,14 @@ class GenericBankSmsParser implements SmsFormatParser {
         currency: 'IRR',
       ),
       currencyEvidence: evidence,
+      reportedBalanceAmount: balance?.$1,
+      reportedBalanceUnit: balance?.$2,
       balance: balance == null
           ? null
           : Money(
-              minorUnits: balance.$2!.canonicalIrr(balance.$1),
+              minorUnits: balance.$1 == 0
+                  ? 0
+                  : balance.$2!.canonicalIrr(balance.$1),
               currency: 'IRR',
             ),
       occurredAt: date == null || time == null

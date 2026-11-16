@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/presentation/bank_recovery_dialog.dart';
+import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/features/finance/application/finance_use_cases.dart';
+import 'package:planact/features/finance/presentation/bank_observation_review.dart';
 import 'package:planact/app/money_unit_scope.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -37,6 +41,57 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
     return '${PersianDateFormatter.date(date)} ${PersianNumbers.format(date.year)} · ${PersianNumbers.format(local.hour.toString().padLeft(2, '0'))}:${PersianNumbers.format(local.minute.toString().padLeft(2, '0'))}';
   }
 
+  Future<void> _evidence(BankBalanceObservation observation) async {
+    final repository = widget.repository;
+    if (repository is! BankObservationReviewRepository ||
+        repository is! FinanceRepository) {
+      return;
+    }
+    final l10n = planActL10n(context);
+    setState(() => _busy = true);
+    try {
+      final accounts = await (repository as FinanceRepository).listAccounts();
+      if (!mounted) return;
+      setState(() => _busy = false);
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (_) => BankObservationReview(
+          observation: observation,
+          repository: repository as BankObservationReviewRepository,
+          accounts: accounts,
+        ),
+      );
+      if (saved == true && mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.bankEvidenceSaved)));
+        await widget.onChanged();
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error is AppError ? error.message : l10n.bankBalanceFailure,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _recover() async {
+    final repository = widget.repository;
+    if (repository is! BankRecoveryRepository) return;
+    final saved = await showBankRecovery(
+      context,
+      repository as BankRecoveryRepository,
+      {widget.snapshot.accountId},
+    );
+    if (saved && mounted) await widget.onChanged();
+  }
+
   Future<void> _review() async {
     final l10n = planActL10n(context);
     BankReconciliationReason? reason;
@@ -51,9 +106,16 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(l10n.bankBalanceDisclosure),
+                Text(widget.snapshot.accountName ?? widget.snapshot.accountId),
+                Text(
+                  '${l10n.bankRecoverySource}: ${widget.snapshot.latest!.id}',
+                ),
+                Text(
+                  '${l10n.bankRecoveryEntry}: ${widget.snapshot.latest!.entryId}',
+                ),
                 Text(_time(widget.snapshot.latest!.transactionTime!)),
                 Text(
-                  '${l10n.bankBalanceReported}: ${_money(widget.snapshot.latest!.irr)}',
+                  '${l10n.bankBalanceReported}: ${_money(widget.snapshot.latest!.irr!)}',
                 ),
                 Text(
                   '${l10n.bankBalanceLedgerAtReport}: ${_money(widget.snapshot.ledgerAtReport)}',
@@ -120,9 +182,6 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
   Widget build(BuildContext context) {
     final l10n = planActL10n(context);
     final snapshot = widget.snapshot;
-    if (snapshot.latest == null && !snapshot.ambiguous) {
-      return const SizedBox.shrink();
-    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,15 +190,44 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         if (snapshot.latest case final observation?) ...[
-          Text(_money(observation.irr)),
+          Text(_money(observation.irr!)),
           Text(_time(observation.transactionTime!)),
         ],
+        if (snapshot.observations.isEmpty && snapshot.latest == null)
+          Text(l10n.bankEvidenceMissing),
         if (snapshot.ambiguous) Text(l10n.bankBalanceAmbiguous),
+        for (final evidence in snapshot.observations)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              evidence.active
+                  ? l10n.bankEvidenceReview
+                  : l10n.bankEvidenceInactive,
+            ),
+            subtitle: Text(
+              !evidence.complete
+                  ? l10n.bankEvidenceIncomplete
+                  : '${_money(evidence.irr!)} · ${_time(evidence.transactionTime!)}',
+            ),
+            trailing: const Icon(Icons.edit_outlined),
+            onTap:
+                _busy ||
+                    !widget.enabled ||
+                    widget.repository is! BankObservationReviewRepository
+                ? null
+                : () => _evidence(evidence),
+          ),
         if (snapshot.canReconcile)
           TextButton.icon(
             onPressed: _busy || !widget.enabled ? null : _review,
             icon: const Icon(Icons.balance_outlined),
             label: Text(l10n.bankBalanceReconcile),
+          ),
+        if (widget.repository is BankRecoveryRepository)
+          TextButton.icon(
+            onPressed: _busy || !widget.enabled ? null : _recover,
+            icon: const Icon(Icons.history_outlined),
+            label: Text(l10n.bankRecoveryTitle),
           ),
         if (_busy) const LinearProgressIndicator(),
       ],
