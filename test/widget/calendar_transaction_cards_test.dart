@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/app/theme/planact_theme.dart';
+import 'package:planact/app/theme/theme_preset.dart';
 import 'package:planact/app/theme/planact_status_colors.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/time/jalali_date.dart';
@@ -47,17 +48,18 @@ void main() {
       ),
   ];
   for (final dark in [false, true]) {
-    for (final first in items) {
-      testWidgets(
-        'Month grid frames are semantic, bounded and distinct from cards: '
-        '${first.kind}, dark=$dark',
-        (tester) async {
+    for (final preset in ThemePreset.values) {
+      for (final first in items) {
+        testWidgets('Month expense frames follow preset, income stays green: '
+            '${first.kind}, dark=$dark, preset=$preset', (tester) async {
           await tester.binding.setSurfaceSize(const Size(320, 1600));
           addTearDown(() => tester.binding.setSurfaceSize(null));
           final ordered = [first, ...items.where((item) => item != first)];
           await tester.pumpWidget(
             MaterialApp(
-              theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+              theme: dark
+                  ? PlanActTheme.dark(preset: preset)
+                  : PlanActTheme.light(preset: preset),
               home: MediaQuery(
                 data: MediaQueryData(textScaler: TextScaler.linear(2)),
                 child: Directionality(
@@ -90,20 +92,34 @@ void main() {
             final decoration = container.decoration! as BoxDecoration;
             final roles = PlanActStatusColors.of(tester.element(marker));
             final incoming = item.kind == CalendarTransactionKind.income;
+            final expense = item.kind == CalendarTransactionKind.expense;
+            final scheme = Theme.of(tester.element(marker)).colorScheme;
             expect(
               decoration.color,
-              incoming ? roles.successContainer : roles.attentionContainer,
+              expense
+                  ? scheme.secondaryContainer
+                  : incoming
+                  ? roles.successContainer
+                  : roles.attentionContainer,
             );
             expect(
               (decoration.border! as Border).top.color,
-              incoming ? roles.success : roles.attention,
+              expense
+                  ? scheme.secondary
+                  : incoming
+                  ? roles.success
+                  : roles.attention,
             );
             final text = tester.widget<Text>(
               find.descendant(of: marker, matching: find.byType(Text)),
             );
             expect(
               text.style!.color,
-              incoming ? roles.success : roles.attention,
+              expense
+                  ? scheme.onSecondaryContainer
+                  : incoming
+                  ? roles.success
+                  : roles.attention,
             );
             expect(text.maxLines, 2);
             final cellRect = tester.getRect(dayFinder);
@@ -126,8 +142,8 @@ void main() {
           );
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(const SizedBox.shrink());
-        },
-      );
+        });
+      }
     }
     for (final mode in ['month', 'month-wide', 'week-agenda', 'week-wide']) {
       testWidgets(

@@ -1014,15 +1014,23 @@ class _CalendarDay extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   borderRadius: PlanActRadius.chip,
-                                  color: transactionDirectionColors(
-                                    context,
-                                    item.entry,
-                                  ).container,
+                                  color:
+                                      item.kind ==
+                                          CalendarTransactionKind.expense
+                                      ? scheme.secondaryContainer
+                                      : transactionDirectionColors(
+                                          context,
+                                          item.entry,
+                                        ).container,
                                   border: Border.all(
-                                    color: transactionDirectionColors(
-                                      context,
-                                      item.entry,
-                                    ).foreground,
+                                    color:
+                                        item.kind ==
+                                            CalendarTransactionKind.expense
+                                        ? scheme.secondary
+                                        : transactionDirectionColors(
+                                            context,
+                                            item.entry,
+                                          ).foreground,
                                   ),
                                 ),
                                 child: Text(
@@ -1031,10 +1039,14 @@ class _CalendarDay extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: transactionDirectionColors(
-                                      context,
-                                      item.entry,
-                                    ).foreground,
+                                    color:
+                                        item.kind ==
+                                            CalendarTransactionKind.expense
+                                        ? scheme.onSecondaryContainer
+                                        : transactionDirectionColors(
+                                            context,
+                                            item.entry,
+                                          ).foreground,
                                   ),
                                 ),
                               ),
