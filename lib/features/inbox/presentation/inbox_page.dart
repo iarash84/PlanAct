@@ -45,9 +45,13 @@ class InboxPage extends StatefulWidget {
     this.tagRepository,
     this.onDetermineRelationship,
     this.onDataChanged,
+    this.initialReviewId,
+    this.pendingOnly = false,
   });
 
   final Future<void> Function()? onDataChanged;
+  final StableId? initialReviewId;
+  final bool pendingOnly;
   final TagRepository? tagRepository;
   final InboxUseCases inbox;
   final FinanceRepository finance;
@@ -64,6 +68,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   bool _ownsSmsSync = false;
   int _smsRevision = 0;
   bool _reloading = false;
+  bool _initialReviewOpened = false;
   bool _reloadRequested = false;
   static const _logger = AppLogger();
   static const _projection = InboxReviewProjection();
@@ -171,7 +176,15 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       final accounts = await widget.finance.listAccounts();
       final entries = await widget.finance.listEntries();
       final items = _projection.build(
-        suggestions: suggestions,
+        suggestions: widget.pendingOnly
+            ? suggestions
+                  .where(
+                    (item) =>
+                        item.status == SuggestionStatus.pending ||
+                        item.status == SuggestionStatus.edited,
+                  )
+                  .toList()
+            : suggestions,
         imports: imports,
         accounts: accounts,
         entries: entries,
@@ -200,6 +213,20 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         _error = null;
         _loading = false;
       });
+      if (!_initialReviewOpened && widget.initialReviewId != null) {
+        _initialReviewOpened = true;
+        for (final item in items) {
+          if (item.suggestion.id == widget.initialReviewId &&
+              (item.suggestion.status == SuggestionStatus.pending ||
+                  item.suggestion.status == SuggestionStatus.edited)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _edit(item);
+            });
+            break;
+          }
+        }
+      }
+      await _smsSync?.reconcileNotifications();
     } catch (error) {
       _logger.error(
         'Inbox reload failed',

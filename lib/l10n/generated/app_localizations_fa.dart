@@ -5232,4 +5232,33 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get quickFinancialResetTime => 'استفاده از تاریخ و ساعت ثبت نهایی';
+
+  @override
+  String get smsDetectionTitle => 'تراکنش تازه برای بازبینی';
+
+  @override
+  String get smsDetectionBody => 'پیش از فراموشی، تراکنش تازه را بررسی کنید.';
+
+  @override
+  String get smsDetectionMultiple =>
+      'چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.';
+
+  @override
+  String get smsDetectionEnabled => 'اعلان تشخیص تراکنش پیامکی';
+
+  @override
+  String get smsDetectionPrivacy =>
+      'اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.';
+
+  @override
+  String get smsDetectionAmounts => 'نمایش مبلغ در اعلان بازشده';
+
+  @override
+  String get smsDetectionFailure =>
+      'اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.';
+
+  @override
+  String smsDetectionAmountBody(String amount, String invitation) {
+    return '$amount ریال — $invitation';
+  }
 }

@@ -1,3 +1,5 @@
+import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
+import 'package:planact/features/inbox/presentation/sms_notification_settings.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/calendar/presentation/calendar_visibility_controller.dart';
 import 'package:planact/features/settings/presentation/calendar_visibility_settings.dart';
@@ -35,6 +37,7 @@ class SettingsPage extends StatefulWidget {
     this.onAbout,
     this.onManageTags,
     this.enableReminders,
+    this.smsNotifications,
   });
   final HolidayPackageService? holidayPackages;
   final VoidCallback? onHolidaysChanged;
@@ -54,6 +57,7 @@ class SettingsPage extends StatefulWidget {
   final VoidCallback? onAbout;
   final VoidCallback? onManageTags;
   final Future<bool> Function()? enableReminders;
+  final SmsDetectionNotifications? smsNotifications;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -191,6 +195,10 @@ class _SettingsPageState extends State<SettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const MoneyUnitSettingsCard(),
+        if (widget.smsNotifications != null) ...[
+          const SizedBox(height: PlanActSpacing.lg),
+          SmsNotificationSettings(notifications: widget.smsNotifications!),
+        ],
         const SizedBox(height: PlanActSpacing.lg),
         if (widget.calendarVisibility != null) ...[
           CalendarVisibilitySettings(controller: widget.calendarVisibility!),

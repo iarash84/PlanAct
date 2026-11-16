@@ -801,4 +801,12 @@ abstract final class PersianCopy {
   static const reminderAlarmRetry = "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.";
   static const financeArchivedAccountsSaveError = "تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.";
   static const financeDeleteAccountFailed = "حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.";
+  static const smsDetectionTitle = "تراکنش تازه برای بازبینی";
+  static const smsDetectionBody = "پیش از فراموشی، تراکنش تازه را بررسی کنید.";
+  static const smsDetectionMultiple = "چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.";
+  static const smsDetectionEnabled = "اعلان تشخیص تراکنش پیامکی";
+  static const smsDetectionPrivacy = "اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.";
+  static const smsDetectionAmounts = "نمایش مبلغ در اعلان بازشده";
+  static const smsDetectionFailure = "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.";
+  static String smsDetectionAmountBody(String amount, String invitation) => "${amount} ریال — ${invitation}";
 }

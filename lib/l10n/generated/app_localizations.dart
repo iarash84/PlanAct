@@ -8793,6 +8793,54 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'استفاده از تاریخ و ساعت ثبت نهایی'**
   String get quickFinancialResetTime;
+
+  /// SMS detection notification or settings copy: smsDetectionTitle
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش تازه برای بازبینی'**
+  String get smsDetectionTitle;
+
+  /// SMS detection notification or settings copy: smsDetectionBody
+  ///
+  /// In fa, this message translates to:
+  /// **'پیش از فراموشی، تراکنش تازه را بررسی کنید.'**
+  String get smsDetectionBody;
+
+  /// SMS detection notification or settings copy: smsDetectionMultiple
+  ///
+  /// In fa, this message translates to:
+  /// **'چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.'**
+  String get smsDetectionMultiple;
+
+  /// SMS detection notification or settings copy: smsDetectionEnabled
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان تشخیص تراکنش پیامکی'**
+  String get smsDetectionEnabled;
+
+  /// SMS detection notification or settings copy: smsDetectionPrivacy
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.'**
+  String get smsDetectionPrivacy;
+
+  /// SMS detection notification or settings copy: smsDetectionAmounts
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش مبلغ در اعلان بازشده'**
+  String get smsDetectionAmounts;
+
+  /// SMS detection notification or settings copy: smsDetectionFailure
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.'**
+  String get smsDetectionFailure;
+
+  /// Known canonical rial amount and review invitation in an opted-in notification.
+  ///
+  /// In fa, this message translates to:
+  /// **'{amount} ریال — {invitation}'**
+  String smsDetectionAmountBody(String amount, String invitation);
 }
 
 class _AppLocalizationsDelegate

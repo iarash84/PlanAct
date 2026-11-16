@@ -1,3 +1,6 @@
+import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
+import 'package:planact/features/inbox/data/drift_sms_detection_notification_store.dart';
+import 'package:planact/features/inbox/data/android_sms_detection_notifications.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/calendar/presentation/calendar_visibility_controller.dart';
 import 'package:planact/features/calendar/data/drift_calendar_transaction_reader.dart';
@@ -616,6 +619,37 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   late final AndroidSmsSource _smsSource =
       widget.smsSource ?? AndroidSmsSource();
   SmsSyncController? _smsSync;
+  SmsDetectionNotifications? _smsNotifications;
+  final _smsNotificationPlatform = AndroidSmsDetectionNotifications();
+  String? _notificationTarget;
+  bool _openingNotification = false;
+
+  Future<void> _checkNotificationTap() async {
+    if (_smsNotifications == null || _openingNotification || !mounted) return;
+    try {
+      _notificationTarget ??= await _smsNotificationPlatform.takeTap();
+      if (_notificationTarget == null || !mounted) return;
+      if (widget.appLockController?.isLocked == true) return;
+      _openingNotification = true;
+      final target = _notificationTarget!;
+      final item = await _smsNotifications!.resolveTap(target);
+      if (!mounted || widget.appLockController?.isLocked == true) return;
+      _notificationTarget = null;
+      await _openInboxFromNotification(item?.id, pendingOnly: true);
+    } catch (_) {
+      if (mounted) _showMessage(PersianCopy.smsDetectionFailure);
+    } finally {
+      _openingNotification = false;
+    }
+  }
+
+  void _notificationLockChanged() {
+    if (widget.appLockController?.isLocked != true) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _checkNotificationTap(),
+      );
+    }
+  }
 
   void _smsSyncChanged() {
     if (mounted) setState(() {});
@@ -632,19 +666,33 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _calendarVisibility;
     if (_repository is DriftCommitmentRepository) {
+      _smsNotifications = SmsDetectionNotifications(
+        store: DriftSmsDetectionNotificationStore(_repository.database),
+        platform: _smsNotificationPlatform,
+        suggestions: _inboxUseCases.repository.listSuggestions,
+      );
       _smsSync = SmsSyncController(
+        notifications: _smsNotifications,
         inbox: _inboxUseCases,
         source: _smsSource,
         onChanged: _refresh,
       )..addListener(_smsSyncChanged);
       _smsSync!.start();
     }
+    _smsNotificationPlatform.listenForTaps(_checkNotificationTap);
+    widget.appLockController?.addListener(_notificationLockChanged);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _checkNotificationTap(),
+    );
     _maintainSchedules();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _maintainSchedules();
+    if (state == AppLifecycleState.resumed) {
+      _maintainSchedules();
+      _checkNotificationTap();
+    }
   }
 
   Future<void> _maintainSchedules() async {
@@ -918,7 +966,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _openInbox() async {
+  Future<void> _openInbox() => _openInboxFromNotification(null);
+
+  Future<void> _openInboxFromNotification(
+    StableId? target, {
+    bool pendingOnly = false,
+  }) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
@@ -926,9 +979,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             title: const Text(PersianCopy.planactAppOpenInboxTitle),
           ),
           body: InboxPage(
+            initialReviewId: target,
+            pendingOnly: pendingOnly,
             tagRepository: _tagRepository,
             inbox: _inboxUseCases,
             onDataChanged: () async {
+              await _smsSync?.reconcileNotifications();
               await _refresh();
               await _financePageKey.currentState?.refreshData();
             },
@@ -1682,6 +1738,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     _smsSync?.removeListener(_smsSyncChanged);
     _calendarVisibility.removeListener(_calendarVisibilityChanged);
     _calendarVisibility.dispose();
+    _smsNotificationPlatform.listenForTaps(null);
+    widget.appLockController?.removeListener(_notificationLockChanged);
     _smsSync?.dispose();
     _pageController.dispose();
     _commitmentViewsRevision.dispose();
@@ -1689,6 +1747,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   SettingsPage _buildSettingsPage() => SettingsPage(
+    smsNotifications: _smsNotifications,
     calendarVisibility: _calendarVisibility,
     holidayPackages: widget.holidayPackages,
     onHolidaysChanged: () => setState(() {}),

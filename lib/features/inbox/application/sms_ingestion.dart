@@ -1,3 +1,4 @@
+import 'package:planact/features/inbox/domain/inbox.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 
 import 'dart:async';
@@ -238,6 +239,7 @@ class SmsIngestion {
   Future<void> run({
     required void Function(SmsScan) onProgress,
     void Function()? onNewSuggestion,
+    Future<void> Function(InboxSuggestion)? onDetected,
     DateTime Function()? now,
     bool Function()? canRun,
   }) {
@@ -295,6 +297,9 @@ class SmsIngestion {
                 currency: 'IRR',
                 importedAt: row.message!.receivedAt,
               );
+              if (scan.newOnly && onDetected != null) {
+                await onDetected(suggestion);
+              }
               if (knownIds != null && knownIds.add(suggestion.id)) {
                 onNewSuggestion!();
               }

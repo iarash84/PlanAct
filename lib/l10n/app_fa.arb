@@ -8227,5 +8227,55 @@
   "quickFinancialLessOptions": "گزینه‌های کمتر",
   "@quickFinancialLessOptions": {"description": "Collapse extra fields in the same quick income or expense form without clearing the draft."},
   "quickFinancialResetTime": "استفاده از تاریخ و ساعت ثبت نهایی",
-  "@quickFinancialResetTime": {"description": "Clear explicit transaction date and time selections; no data is saved."}
+  "@quickFinancialResetTime": {"description": "Clear explicit transaction date and time selections; no data is saved."},
+  "smsDetectionTitle": "تراکنش تازه برای بازبینی",
+  "@smsDetectionTitle": {
+    "description": "SMS detection notification or settings copy: smsDetectionTitle",
+    "x-planact-default": true
+  },
+  "smsDetectionBody": "پیش از فراموشی، تراکنش تازه را بررسی کنید.",
+  "@smsDetectionBody": {
+    "description": "SMS detection notification or settings copy: smsDetectionBody",
+    "x-planact-default": true
+  },
+  "smsDetectionMultiple": "چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.",
+  "@smsDetectionMultiple": {
+    "description": "SMS detection notification or settings copy: smsDetectionMultiple",
+    "x-planact-default": true
+  },
+  "smsDetectionEnabled": "اعلان تشخیص تراکنش پیامکی",
+  "@smsDetectionEnabled": {
+    "description": "SMS detection notification or settings copy: smsDetectionEnabled",
+    "x-planact-default": true
+  },
+  "smsDetectionPrivacy": "اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.",
+  "@smsDetectionPrivacy": {
+    "description": "SMS detection notification or settings copy: smsDetectionPrivacy",
+    "x-planact-default": true
+  },
+  "smsDetectionAmounts": "نمایش مبلغ در اعلان بازشده",
+  "@smsDetectionAmounts": {
+    "description": "SMS detection notification or settings copy: smsDetectionAmounts",
+    "x-planact-default": true
+  },
+  "smsDetectionFailure": "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.",
+  "@smsDetectionFailure": {
+    "description": "SMS detection notification or settings copy: smsDetectionFailure",
+    "x-planact-default": true
+  },
+  "smsDetectionAmountBody": "{amount} ریال — {invitation}",
+  "@smsDetectionAmountBody": {
+    "description": "Known canonical rial amount and review invitation in an opted-in notification.",
+    "x-planact-default": true,
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Grouped Persian integer rial amount."
+      },
+      "invitation": {
+        "type": "String",
+        "description": "Localized invitation to review."
+      }
+    }
+  }
 }

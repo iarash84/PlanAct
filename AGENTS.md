@@ -1079,3 +1079,8 @@ Settings > Calendar persists versioned display-only choices before publishing th
 ## Approved inline quick financial options (2026-11-16)
 
 Quick Add income and expense reveal optional Jalali date/time inline in the same form, without tab navigation or draft loss. Expansion/collapse/cancellation must not write; one final command saves the transaction and draft tags atomically. Until explicitly selected, each date/time component resolves at final save, not form expansion. Collapsing retains selections with a visible summary; failed saving retains the complete draft. Account creation is outside this bounded repair because its existing independent write is incompatible with cancellation-without-writes. See docs/TAGGING_VERIFICATION.md.
+
+
+## SMS detection notification checkpoint (2026-11-16)
+
+Detection notifications are optional and independent from SMS consent. Amount disclosure is a separate preference; lockscreen copy must remain generic. Payloads are navigation hints only: re-read durable pending/edited status behind app lock and reuse Inbox review; never confirm or reject from a notification. Historical scans do not enqueue per-message alerts. Notification delivery failures must not fail SMS staging or hide other Today content. Versioned notification metadata uses the existing metadata store and must survive backup; platform identifiers are not portable truth. The current implementation is Partial: closed-app durable ingestion, temporal batching, unconditional lockscreen privacy, restore rebind and native/independent acceptance remain blockers in docs/SMS_VERIFICATION.md. Do not describe live receiver signals or successful Kotlin compilation as background capability acceptance.
