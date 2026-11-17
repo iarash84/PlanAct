@@ -10,6 +10,63 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get sequentialReviewFinished => 'بررسی این نوبت تمام شد.';
+
+  @override
+  String get sequentialReviewFailed =>
+      'تصمیم ثبت‌شده حفظ شد، اما بازکردن مورد بعدی ممکن نشد. فهرست را تازه کنید و دوباره ادامه دهید.';
+
+  @override
+  String sequentialReviewRemaining(String count) {
+    return 'بررسی پیوسته؛ $count مورد بعد از این باقی مانده است. برای خروج، بازگشت یا لغو را بزنید.';
+  }
+
+  @override
+  String get bankBalanceBackdatedBlocked =>
+      'این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.';
+
+  @override
+  String get bankBalanceStale =>
+      'اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.';
+
+  @override
+  String get bankBalanceKnownFee => 'کارمزد مشخص بانک';
+
+  @override
+  String get bankBalanceUnknownAdjustment => 'تعدیل اختلاف نامعلوم حساب';
+
+  @override
+  String get bankBalanceReported => 'آخرین ماندهٔ گزارش‌شدهٔ بانک از پیامک';
+
+  @override
+  String get bankBalanceAmbiguous =>
+      'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.';
+
+  @override
+  String get bankBalanceReconcile => 'بررسی و تطبیق حساب';
+
+  @override
+  String get bankBalanceLedgerAtReport => 'ماندهٔ دفتر تا زمان گزارش';
+
+  @override
+  String get bankBalanceDifference => 'اختلاف گزارش و دفتر';
+
+  @override
+  String get bankBalanceDisclosure =>
+      'این گزارش تاریخی است، نه موجودی زندهٔ بانک. فقط با انتخاب دلیل و تأیید، یک ثبت جدید ایجاد می‌شود. برای ورود ثبت قدیمی‌تر باید ابتدا ثبت تطبیق را برگشت دهید.';
+
+  @override
+  String get bankBalanceConfirm => 'تأیید ثبت اختلاف';
+
+  @override
+  String get bankBalanceSaved =>
+      'تطبیق حساب ثبت شد؛ برگشت از عملیات همان تراکنش در دسترس است.';
+
+  @override
+  String get bankBalanceFailure =>
+      'ثبت تطبیق انجام نشد. اطلاعات را تازه کنید و دوباره تلاش کنید.';
+
+  @override
   String get todayRelationshipViewAll => 'مشاهدهٔ همه در تعیین ارتباط';
 
   @override
@@ -24,12 +81,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String reportsTransactionMetadata(String date, String type, String account) {
     return '$date · $type\n$account';
   }
-
-  @override
-  String get reportsPreviousPage => 'صفحهٔ قبل';
-
-  @override
-  String get reportsNextPage => 'صفحهٔ بعد';
 
   @override
   String reportsPagePosition(String page, String pages, String count) {
@@ -883,9 +934,6 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get calendarPageDateButtonLabel => 'رفتن به تاریخ';
-
-  @override
-  String get calendarPageTodayButtonLabel => 'امروز';
 
   @override
   String get calendarPageBuildTooltip => 'هفته قبل';
@@ -2473,10 +2521,10 @@ class AppLocalizationsFa extends AppLocalizations {
   }
 
   @override
-  String get inboxPageBulkControlsChildren7 => 'صفحهٔ قبل';
+  String get commonPreviousPage => 'صفحهٔ قبل';
 
   @override
-  String get inboxPageBulkControlsChildren8 => 'صفحهٔ بعد';
+  String get commonNextPage => 'صفحهٔ بعد';
 
   @override
   String inboxPageBulkControlsChildren9(
@@ -4601,6 +4649,16 @@ class AppLocalizationsFa extends AppLocalizations {
       'دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟';
 
   @override
+  String financeCorrectAccountEffects(
+    String originalAccount,
+    String reversalEffect,
+    String selectedAccount,
+    String correctedEffect,
+  ) {
+    return 'اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «$originalAccount»: $reversalEffect\nاثر تراکنش اصلاح‌شده بر ماندهٔ «$selectedAccount»: $correctedEffect\nاین عملیات اصلاح ثبت است، نه انتقال وجه.';
+  }
+
+  @override
   String get financeCorrectMessage =>
       'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.';
 
@@ -5086,12 +5144,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get smsOlderMessages => 'پیام‌های قدیمی‌تر';
 
   @override
-  String get financeTransactionPreviousPage => 'صفحهٔ قبل';
-
-  @override
-  String get financeTransactionNextPage => 'صفحهٔ بعد';
-
-  @override
   String financeTransactionPageRange(
     String start,
     String end,
@@ -5101,4 +5153,187 @@ class AppLocalizationsFa extends AppLocalizations {
   ) {
     return 'تراکنش $start تا $end از $total؛ صفحهٔ $page از $pages';
   }
+
+  @override
+  String get calendarVisibilityTitle => 'تقویم';
+
+  @override
+  String get calendarVisibilityItems => 'موارد نمایان';
+
+  @override
+  String get calendarVisibilityDescription =>
+      'این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.';
+
+  @override
+  String get calendarVisibilityCommitments => 'تعهدها';
+
+  @override
+  String get calendarVisibilityNotes => 'یادداشت‌ها';
+
+  @override
+  String get calendarVisibilityIncome => 'درآمد';
+
+  @override
+  String get calendarVisibilityExpense => 'هزینه';
+
+  @override
+  String get calendarVisibilityTransfers => 'انتقال بین حساب‌های خود';
+
+  @override
+  String get calendarVisibilityError =>
+      'تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.';
+
+  @override
+  String get calendarVisibilityLoadError =>
+      'تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.';
+
+  @override
+  String get calendarVisibilityFiltered =>
+      'نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.';
+
+  @override
+  String get calendarTransactionIncome => 'درآمد ثبت‌شده';
+
+  @override
+  String get calendarTransactionExpense => 'هزینهٔ ثبت‌شده';
+
+  @override
+  String get calendarTransactionTransfer => 'انتقال ثبت‌شده بین حساب‌های خود';
+
+  @override
+  String get calendarTransactionReversed => 'برگشت‌خورده؛ فقط تاریخچه';
+
+  @override
+  String get financeAccountsTitle => 'حساب‌ها';
+
+  @override
+  String get financeAccountsSearch => 'جست‌وجوی نام یا بانک حساب';
+
+  @override
+  String get financeAccountsArchived => 'بایگانی‌شده';
+
+  @override
+  String get financeAccountsNoResults => 'حسابی برای نمایش وجود ندارد.';
+
+  @override
+  String get financeAccountsAll => 'همهٔ حساب‌ها';
+
+  @override
+  String get financeAccountsFilter => 'حساب تراکنش‌ها';
+
+  @override
+  String get financeAccountTransactions => 'مشاهدهٔ تراکنش‌های این حساب';
+
+  @override
+  String financeAccountsCount(String count) {
+    return '$count حساب';
+  }
+
+  @override
+  String get financeTransactionAccountUnavailable =>
+      'اطلاعات حساب در دسترس نیست';
+
+  @override
+  String get quickFinancialCurrentDate => 'تاریخ: روز ثبت نهایی';
+
+  @override
+  String get quickFinancialCurrentTime => 'ساعت: زمان ثبت نهایی';
+
+  @override
+  String get quickFinancialLessOptions => 'گزینه‌های کمتر';
+
+  @override
+  String get quickFinancialResetTime => 'استفاده از تاریخ و ساعت ثبت نهایی';
+
+  @override
+  String get smsDetectionTitle => 'تراکنش تازه برای بازبینی';
+
+  @override
+  String get smsDetectionBody => 'پیش از فراموشی، تراکنش تازه را بررسی کنید.';
+
+  @override
+  String get smsDetectionMultiple =>
+      'چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.';
+
+  @override
+  String get smsDetectionEnabled => 'اعلان تشخیص تراکنش پیامکی';
+
+  @override
+  String get smsDetectionPrivacy =>
+      'اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.';
+
+  @override
+  String get smsDetectionAmounts => 'نمایش مبلغ در اعلان بازشده';
+
+  @override
+  String get smsDetectionFailure =>
+      'اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.';
+
+  @override
+  String smsDetectionAmountBody(String amount, String invitation) {
+    return '$amount ریال — $invitation';
+  }
+
+  @override
+  String get bankEvidenceReview => 'بررسی شاهد مانده';
+
+  @override
+  String get bankEvidenceMissing =>
+      'گزارش مانده‌ای برای این حساب ثبت نشده است.';
+
+  @override
+  String get bankEvidenceIncomplete =>
+      'شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.';
+
+  @override
+  String get bankEvidenceInactive => 'شاهد بی‌اعتبار شده است';
+
+  @override
+  String get bankEvidenceActive => 'شاهد معتبر است';
+
+  @override
+  String get bankEvidenceDisclosure =>
+      'این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.';
+
+  @override
+  String get bankEvidenceDependency =>
+      'این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.';
+
+  @override
+  String get bankEvidenceAmount => 'مبلغ مانده در واحد منبع';
+
+  @override
+  String get bankEvidenceUnknownUnit => 'واحد نامعلوم';
+
+  @override
+  String get bankEvidenceDate => 'انتخاب تاریخ و زمان گزارش';
+
+  @override
+  String get bankEvidenceClearTime => 'زمان گزارش نامعلوم است';
+
+  @override
+  String get bankEvidenceSaved => 'بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.';
+
+  @override
+  String get bankEvidenceConfirm => 'تأیید بررسی شاهد';
+
+  @override
+  String get bankRecoveryTitle => 'بازیابی تطبیق‌های وابسته';
+
+  @override
+  String get bankRecoveryDisclosure =>
+      'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.';
+
+  @override
+  String get bankRecoveryDone =>
+      'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
+
+  @override
+  String get bankRecoveryEmpty => 'تطبیق فعالی برای بازیابی وجود ندارد.';
+
+  @override
+  String get bankRecoverySource => 'شناسهٔ شاهد';
+
+  @override
+  String get bankRecoveryEntry => 'شناسهٔ ثبت تطبیق';
 }

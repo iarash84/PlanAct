@@ -326,6 +326,14 @@
 
 </div>
 
+## قرارداد پذیرش اعلان تشخیص پیامک — ۲۰۲۶-۱۱-۱۶
+
+نتیجهٔ مورد انتظار: پیشنهاد تازه در بازهٔ مجاز دستی یا خودکار، با انتخاب کاربر اعلان محلی بازبینی دارد؛ واردکردن تاریخی اعلان موردی ندارد. مسیر: رضایت موجود ← اسکن محدود ← پیشنهاد ماندگار ← قصد اعلان و جلوگیری از تکرار ← تحویل مستقل سیستم‌عامل ← لمس ← قفل برنامه ← بازخوانی وضعیت تازه ← بازبینی موجود یا صندوق در انتظار. اعلان هیچ تأیید، رد یا ثبت مالی ندارد.
+
+موفقیت: تشخیص‌های نزدیک تجمیع می‌شوند؛ مبلغ فقط با انتخاب جداگانه و شاهد واحد روشن نمایش داده می‌شود؛ صفحهٔ قفل عمومی است. حل پیشنهاد اعلان را به‌روز یا حذف می‌کند. خاموشی یا رد مجوز اعلان دریافت پیامک را متوقف نمی‌کند؛ درخواست مجوز فقط صریح است. خطای تحویل شکست ثبت پیشنهاد نیست. تنظیمات و جلوگیری از تکرار باید بازگشایی سرد و پشتیبان را حفظ کنند؛ بازیابی نباید اعلان تاریخی انبوه بسازد.
+
+شواهد لازم: آزمون دامنه، SQLite و بازگشایی، مسیریابی ویجت و بررسی بومی مجوز، صفحهٔ قفل و راه‌اندازی سرد. گیرندهٔ فعلی فقط به شنوندهٔ زنده سیگنال می‌دهد؛ پردازش ماندگار در حالت بسته ندارد و اتصال پیش‌زمینه به‌تنهایی پذیرش کامل نیست. تحویل فوری تضمین نمی‌شود. نگه‌دارنده مسئول شواهد بومی و بازبینی مستقل است؛ تا تکمیل، ادعای آمادگی انتشار کامل مجاز نیست.
+
 ## Device corpus recognition acceptance — 2026-11-10
 
 Outcome: existing consented Inbox manual/history/automatic ingestion recognizes completed transaction layouts in the checked-in device corpus as review suggestions, not ledger entries. Path: SMS ingestion → LocalSmsParser → deterministic bank profiles → existing staged suggestion persistence → Inbox refresh → explicit review/Finance confirmation. Permissions, consent boundaries, provider IDs and replay decisions remain unchanged.
@@ -335,3 +343,12 @@ Success: corpus row expectations reviewed separately from parser output reject a
 Implementation/evidence: added bounded full-message profiles for Khavarmianeh, Maskan, Saderat, Refah, Saman, Sepah, Shahr, Tejarat and sender-scoped Mellat/Melli/Parsian prose; extended Blu redacted-name/one-digit-hour and Iran Zamin cheque footer layouts. Strict corpus regression visits 19 files / 1,204 rows: 753 completed transactions recognized, 451 nontransactions rejected, zero unexplained rows. The original audit used broad heuristics and never failed on misses; explicit reviewed exceptions now distinguish authorization/purchase-code requests and advertising from completed payments. The password substring guard also incorrectly rejected SMS service fees containing «کارمزد»; a negative/positive regression protects that boundary.
 
 Verification: formatting and full Flutter analyzer passed. Final focused run passed 213 tests covering parser semantics/counterexamples, all corpus rows, exact rial/toman evidence, existing review widget flows and repository evidence. A production SQLite round-trip stages/replays all 41 rows from the nine newly supported bank files, cold reopens with identical original evidence and no ledger entries. Existing 18-row redacted snapshot/reopen tests pass; this is not full native export/restore evidence for the new corpus. No schema/dependency or PRD semantic/default change. Independent acceptance and native permission/provider/device checks were not performed; maintainer owns those existing release gates. Already staged/reviewed records are not reparsed or rewritten by this change.
+
+
+## ایست بازرسی اعلان تشخیص پیامک — ۲۰۲۶/۱۱/۱۶
+
+وضعیت پیاده‌سازی: جزئی؛ آمادهٔ انتشار نیست. تنظیم مستقل اعلان و نمایش مبلغ، شناسهٔ ثابت اعلان تجمیعی، ثبت پایدار واجدان شرایط و ارسال‌شده‌ها، حذف/به‌روزرسانی پس از بازبینی و خواندن تازهٔ مقصد پیاده شده است. ورود تاریخی اعلان نمی‌سازد. خطای تحویل اعلان از نتیجهٔ ورود پیامک جدا است؛ حالت خاموش نباید همگام‌سازی را متوقف کند.
+
+شواهد محلی: آزمون بازگشایی سرد SQLite، رقابت دو تشخیص، بازپخش، مقصد منقضی، رد و به‌روزرسانی خلاصه، خطای سیستم و تلاش مجدد، و حفظ فراداده و پیشنهادها در تصویر پشتیبان تولیدی اجرا شده‌اند. این تصویر پشتیبان، شاهد بستهٔ رمزگذاری‌شده/بازیابی روی نصب تازه نیست. تحلیل نهایی بدون مسئله و ۳۸ آزمون منتخب موفق بوده‌اند؛ ساخت نهایی Kotlin نیز موفق شده است (test-reports/sms-detection-native-final.txt). خروجی اجرای نهایی در test-reports/sms-detection-final.txt و تحلیل در test-reports/sms-detection-analyze.txt ثبت شده است.
+
+شکاف‌های مسدودکننده: گیرندهٔ بومی هنوز فقط سیگنال زنده می‌فرستد؛ اجرای پایدار بدون رابط باز پیاده نشده است. تجمیع فعلی کل پیشنهادهای واجد شرایطِ باز را پوشش می‌دهد و پنجرهٔ زمانی نزدیکی ندارد. تضمین عمومی‌بودن محتوای قفل در برابر تنظیمات کانال Android و رفتار سازندگان اثبات نشده است. آزمون مستقیم مسیر اعلان پشت قفل، تنظیمات جدید با متن بزرگ، توقف/بازپیوند در بازیابی و پذیرش مستقل اجرا نشده‌اند. مالک اقدام بعدی: نگه‌دارندهٔ مسیر SMS/Android؛ اقدام: کار محدود سیستم‌عامل با همان parser و توقف قطعی پیش از جایگزینی SQLite، سپس آزمون دستگاه/پذیرش مستقل. تصمیم مواجهه: قابلیت کامل اعلام یا برای انتشار تأیید نشود.

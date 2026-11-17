@@ -289,7 +289,7 @@ void main() {
         );
         await tap(tester, find.text('ثبت'));
         expect(result!.amount, 25000);
-        expect(result!.account!.currency, 'IRR');
+        expect(result!.account.currency, 'IRR');
       },
     );
   }

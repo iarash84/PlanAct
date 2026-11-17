@@ -7,6 +7,7 @@ abstract interface class TagRepository {
   Future<Tag> getOrCreate(String label);
   Future<List<Tag>> autocomplete(String query);
   Future<List<Tag>> list();
+  Future<List<Tag>> mostUsed({int limit = 5});
 
   /// Renames the label without changing identity or memberships.
   Future<Tag> rename(StableId id, String label);
@@ -111,6 +112,24 @@ class InMemoryTagRepository
   @override
   Future<List<Tag>> list() =>
       CommandGate.runFor(this, () async => List.unmodifiable(_tags.values));
+
+  @override
+  Future<List<Tag>> mostUsed({int limit = 5}) =>
+      CommandGate.runFor(this, () async {
+        final usage = <StableId, int>{};
+        for (final links in _links.values) {
+          for (final id in links) {
+            usage[id] = (usage[id] ?? 0) + 1;
+          }
+        }
+        final result = _tags.values.toList()
+          ..sort((a, b) {
+            final count = (usage[b.id] ?? 0).compareTo(usage[a.id] ?? 0);
+            if (count != 0) return count;
+            return b.createdAt.compareTo(a.createdAt);
+          });
+        return List.unmodifiable(result.take(limit));
+      });
 
   @override
   Future<Set<StableId>> tagsFor(String recordId, TaggableType type) =>

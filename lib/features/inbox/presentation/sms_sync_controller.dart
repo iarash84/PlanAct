@@ -1,3 +1,6 @@
+import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
+
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
@@ -10,10 +13,31 @@ import 'package:planact/features/inbox/application/sms_ingestion.dart';
 /// One foreground owner shared by the root shell and Inbox. Broadcast bodies
 /// never enter staging: delayed provider scans retain the durable source ID.
 class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
+  final SmsDetectionNotifications? notifications;
+  String? notificationError;
+
+  Future<void> _detected(InboxSuggestion item) async {
+    try {
+      await notifications?.detected(item);
+    } catch (_) {
+      notificationError = PersianCopy.smsDetectionFailure;
+    }
+  }
+
+  Future<void> reconcileNotifications() async {
+    try {
+      await notifications?.reconcile();
+      notificationError = null;
+    } catch (_) {
+      notificationError = PersianCopy.smsDetectionFailure;
+    }
+  }
+
   SmsSyncController({
     required InboxUseCases inbox,
     required this.source,
     this.onChanged,
+    this.notifications,
     DateTime Function()? now,
   }) : _inbox = inbox,
        _now = now ?? DateTime.now,
@@ -184,6 +208,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
       _listen();
       await _ingestion.run(
         onProgress: (_) {},
+        onDetected: notifications == null ? null : _detected,
         canRun: () => _canRun(cancellation),
       );
       // A restarted/interrupted scan retains its original upper bound. Finish
@@ -194,12 +219,14 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
             completed!.until < _now().millisecondsSinceEpoch) {
           await _ingestion.run(
             onProgress: (_) {},
+            onDetected: notifications == null ? null : _detected,
             canRun: () => _canRun(cancellation),
           );
         }
       }
       if (_disposed) return;
       revision++;
+      await reconcileNotifications();
       await onChanged?.call();
     } catch (_) {
       if (!_disposed) error = PersianCopy.smsAutomaticSyncFailed;
@@ -312,6 +339,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
     if (!_canRun(cancellation)) return;
     await _manualIngestion.run(
       onProgress: (_) {},
+      onDetected: notifications == null ? null : _detected,
       onNewSuggestion: () => added++,
       now: _now,
       canRun: () => _canRun(cancellation),
@@ -323,6 +351,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
         _canRun(cancellation)) {
       await _manualIngestion.run(
         onProgress: (_) {},
+        onDetected: notifications == null ? null : _detected,
         onNewSuggestion: () => added++,
         now: _now,
         canRun: () => _canRun(cancellation),
@@ -333,6 +362,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
     if ((await _manualIngestion.load())?.complete != true) return;
     lastNewSuggestions = added;
     revision++;
+    await reconcileNotifications();
     await onChanged?.call();
   }
 
@@ -378,6 +408,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
         if (days != null && _canRun(cancellation)) {
           await _historyIngestion.run(
             onProgress: (_) {},
+            onDetected: notifications == null ? null : _detected,
             onNewSuggestion: () => added++,
             canRun: () => _canRun(cancellation),
           );

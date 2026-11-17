@@ -232,9 +232,13 @@ final class DeviceBankSmsProfiles {
         balance: balance == null || balanceUnit == null
             ? null
             : Money(
-                minorUnits: balanceUnit.canonicalIrr(balance),
+                minorUnits: balance == 0
+                    ? 0
+                    : balanceUnit.canonicalIrr(balance),
                 currency: 'IRR',
               ),
+        reportedBalanceAmount: balance,
+        reportedBalanceUnit: unit(field('balanceUnit')),
         currencyEvidence: SmsCurrencyEvidence(
           sourceAmount: amount,
           detectedUnit: amountUnit,

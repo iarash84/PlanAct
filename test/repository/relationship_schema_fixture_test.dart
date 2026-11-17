@@ -21,12 +21,21 @@ void main() {
         final file = File('${directory.path}/$fixture.sqlite');
         await createHistorical(file, fixture);
         final database = AppDatabase.forTesting(NativeDatabase(file));
-        expect(await database.readMetadata('schema_version'), '19');
-        await database.close();
+        late String? version;
+        try {
+          version = await database.readMetadata('schema_version');
+        } finally {
+          await database.close();
+        }
+        expect(version, '20');
         final raw = sqlite.sqlite3.open(file.path);
-        final schema = SqliteBackupStorage.schema(raw);
-        raw.close();
-        final target = File('test/fixtures/backup_schema/$fixture-v18.json');
+        late List<String> schema;
+        try {
+          schema = SqliteBackupStorage.schema(raw);
+        } finally {
+          raw.close();
+        }
+        final target = File('test/fixtures/backup_schema/$fixture-v20.json');
         if (Platform.environment['REGENERATE_REVIEW_FIXTURES'] == '1') {
           await target.writeAsString(
             '${const JsonEncoder.withIndent('  ').convert(schema)}\n',

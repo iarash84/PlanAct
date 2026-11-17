@@ -54,6 +54,9 @@ void main() {
             );
           }
         });
+        final accountId = await tester.runAsync(
+          () async => (await repository.listAccounts()).single.id.value,
+        );
         await tester.pumpWidget(
           MaterialApp(
             theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
@@ -68,7 +71,11 @@ void main() {
                 ),
               ),
             ),
-            home: FinancePage(repository: repository),
+            home: FinancePage(
+              repository: repository,
+              focusedRecordId: accountId,
+              focusedKind: FinanceRecordKind.account,
+            ),
           ),
         );
         for (var i = 0; i < 12; i++) {
@@ -103,6 +110,14 @@ void main() {
             )
             .single;
         expect(minus.right, lessThanOrEqualTo(firstDigit.left));
+        await tester.tap(find.byTooltip('مشاهدهٔ تراکنش‌های این حساب'));
+        for (var i = 0; i < 12; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.pumpAndSettle();
         for (final (label, amount) in [
           (
             'برداشت',

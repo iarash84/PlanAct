@@ -98,7 +98,7 @@ class TodayPage extends StatelessWidget {
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: PlanActSpacing.lg),
-        if (smsSyncError != null)
+        if (smsSyncError != null) ...[
           PlanActStateMessage(
             message: smsSyncError!,
             isError: true,
@@ -107,12 +107,16 @@ class TodayPage extends StatelessWidget {
               child: Text(planActL10n(context).commonRetry),
             ),
           ),
-        if (onOpenRelationshipQueue != null)
+          const SizedBox(height: PlanActSpacing.lg),
+        ],
+        if (onOpenRelationshipQueue != null) ...[
           OutlinedButton.icon(
             onPressed: onOpenRelationshipQueue,
             icon: const Icon(Icons.playlist_add_check),
             label: Text(planActL10n(context).relationshipQueuePageBuildTitle),
           ),
+          const SizedBox(height: PlanActSpacing.lg),
+        ],
         if (error != null)
           PlanActStateMessage(
             message: error!,

@@ -44,6 +44,7 @@ class DraftTagPicker extends StatefulWidget {
 
 class _DraftTagPickerState extends State<DraftTagPicker> {
   List<Tag> _tags = [];
+  List<Tag> _suggestedTags = [];
   bool _loading = false;
   String? _error;
 
@@ -56,10 +57,13 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final tags = await widget.repository?.list() ?? <Tag>[];
+      final repository = widget.repository;
+      final tags = await repository?.list() ?? <Tag>[];
+      final suggestedTags = await repository?.mostUsed(limit: 3) ?? <Tag>[];
       if (mounted) {
         setState(() {
           _tags = tags;
+          _suggestedTags = suggestedTags;
           _loading = false;
           _error = null;
         });
@@ -136,10 +140,7 @@ class _DraftTagPickerState extends State<DraftTagPicker> {
             runSpacing: PlanActSpacing.xs,
             children: [
               for (final label in <String, String>{
-                for (final tag
-                    in (_tags.toList()
-                          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
-                        .take(3))
+                for (final tag in _suggestedTags)
                   tag.normalizedLabel: tag.label,
                 for (final label in widget.selected)
                   normalizeTagKey(label): label,

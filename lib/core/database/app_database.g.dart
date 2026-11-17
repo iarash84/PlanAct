@@ -10537,8 +10537,19 @@ class $CommitmentTagsTable extends CommitmentTags
       'REFERENCES tags (id)',
     ),
   );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [commitmentId, tagId];
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [commitmentId, tagId, lastUsedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -10570,6 +10581,15 @@ class $CommitmentTagsTable extends CommitmentTags
     } else if (isInserting) {
       context.missing(_tagIdMeta);
     }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -10587,6 +10607,10 @@ class $CommitmentTagsTable extends CommitmentTags
         DriftSqlType.string,
         data['${effectivePrefix}tag_id'],
       )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      ),
     );
   }
 
@@ -10599,12 +10623,20 @@ class $CommitmentTagsTable extends CommitmentTags
 class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
   final String commitmentId;
   final String tagId;
-  const CommitmentTag({required this.commitmentId, required this.tagId});
+  final DateTime? lastUsedAt;
+  const CommitmentTag({
+    required this.commitmentId,
+    required this.tagId,
+    this.lastUsedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['commitment_id'] = Variable<String>(commitmentId);
     map['tag_id'] = Variable<String>(tagId);
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    }
     return map;
   }
 
@@ -10612,6 +10644,9 @@ class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
     return CommitmentTagsCompanion(
       commitmentId: Value(commitmentId),
       tagId: Value(tagId),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
     );
   }
 
@@ -10623,6 +10658,7 @@ class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
     return CommitmentTag(
       commitmentId: serializer.fromJson<String>(json['commitmentId']),
       tagId: serializer.fromJson<String>(json['tagId']),
+      lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
     );
   }
   @override
@@ -10631,20 +10667,28 @@ class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
     return <String, dynamic>{
       'commitmentId': serializer.toJson<String>(commitmentId),
       'tagId': serializer.toJson<String>(tagId),
+      'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
     };
   }
 
-  CommitmentTag copyWith({String? commitmentId, String? tagId}) =>
-      CommitmentTag(
-        commitmentId: commitmentId ?? this.commitmentId,
-        tagId: tagId ?? this.tagId,
-      );
+  CommitmentTag copyWith({
+    String? commitmentId,
+    String? tagId,
+    Value<DateTime?> lastUsedAt = const Value.absent(),
+  }) => CommitmentTag(
+    commitmentId: commitmentId ?? this.commitmentId,
+    tagId: tagId ?? this.tagId,
+    lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
+  );
   CommitmentTag copyWithCompanion(CommitmentTagsCompanion data) {
     return CommitmentTag(
       commitmentId: data.commitmentId.present
           ? data.commitmentId.value
           : this.commitmentId,
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
     );
   }
 
@@ -10652,44 +10696,51 @@ class CommitmentTag extends DataClass implements Insertable<CommitmentTag> {
   String toString() {
     return (StringBuffer('CommitmentTag(')
           ..write('commitmentId: $commitmentId, ')
-          ..write('tagId: $tagId')
+          ..write('tagId: $tagId, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(commitmentId, tagId);
+  int get hashCode => Object.hash(commitmentId, tagId, lastUsedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CommitmentTag &&
           other.commitmentId == this.commitmentId &&
-          other.tagId == this.tagId);
+          other.tagId == this.tagId &&
+          other.lastUsedAt == this.lastUsedAt);
 }
 
 class CommitmentTagsCompanion extends UpdateCompanion<CommitmentTag> {
   final Value<String> commitmentId;
   final Value<String> tagId;
+  final Value<DateTime?> lastUsedAt;
   final Value<int> rowid;
   const CommitmentTagsCompanion({
     this.commitmentId = const Value.absent(),
     this.tagId = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CommitmentTagsCompanion.insert({
     required String commitmentId,
     required String tagId,
+    this.lastUsedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : commitmentId = Value(commitmentId),
        tagId = Value(tagId);
   static Insertable<CommitmentTag> custom({
     Expression<String>? commitmentId,
     Expression<String>? tagId,
+    Expression<DateTime>? lastUsedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (commitmentId != null) 'commitment_id': commitmentId,
       if (tagId != null) 'tag_id': tagId,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -10697,11 +10748,13 @@ class CommitmentTagsCompanion extends UpdateCompanion<CommitmentTag> {
   CommitmentTagsCompanion copyWith({
     Value<String>? commitmentId,
     Value<String>? tagId,
+    Value<DateTime?>? lastUsedAt,
     Value<int>? rowid,
   }) {
     return CommitmentTagsCompanion(
       commitmentId: commitmentId ?? this.commitmentId,
       tagId: tagId ?? this.tagId,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10715,6 +10768,9 @@ class CommitmentTagsCompanion extends UpdateCompanion<CommitmentTag> {
     if (tagId.present) {
       map['tag_id'] = Variable<String>(tagId.value);
     }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10726,6 +10782,7 @@ class CommitmentTagsCompanion extends UpdateCompanion<CommitmentTag> {
     return (StringBuffer('CommitmentTagsCompanion(')
           ..write('commitmentId: $commitmentId, ')
           ..write('tagId: $tagId, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10764,8 +10821,19 @@ class $AccountEntryTagsTable extends AccountEntryTags
       'REFERENCES tags (id)',
     ),
   );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [accountEntryId, tagId];
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [accountEntryId, tagId, lastUsedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -10797,6 +10865,15 @@ class $AccountEntryTagsTable extends AccountEntryTags
     } else if (isInserting) {
       context.missing(_tagIdMeta);
     }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -10814,6 +10891,10 @@ class $AccountEntryTagsTable extends AccountEntryTags
         DriftSqlType.string,
         data['${effectivePrefix}tag_id'],
       )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      ),
     );
   }
 
@@ -10826,12 +10907,20 @@ class $AccountEntryTagsTable extends AccountEntryTags
 class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
   final String accountEntryId;
   final String tagId;
-  const AccountEntryTag({required this.accountEntryId, required this.tagId});
+  final DateTime? lastUsedAt;
+  const AccountEntryTag({
+    required this.accountEntryId,
+    required this.tagId,
+    this.lastUsedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['account_entry_id'] = Variable<String>(accountEntryId);
     map['tag_id'] = Variable<String>(tagId);
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    }
     return map;
   }
 
@@ -10839,6 +10928,9 @@ class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
     return AccountEntryTagsCompanion(
       accountEntryId: Value(accountEntryId),
       tagId: Value(tagId),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
     );
   }
 
@@ -10850,6 +10942,7 @@ class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
     return AccountEntryTag(
       accountEntryId: serializer.fromJson<String>(json['accountEntryId']),
       tagId: serializer.fromJson<String>(json['tagId']),
+      lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
     );
   }
   @override
@@ -10858,20 +10951,28 @@ class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
     return <String, dynamic>{
       'accountEntryId': serializer.toJson<String>(accountEntryId),
       'tagId': serializer.toJson<String>(tagId),
+      'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
     };
   }
 
-  AccountEntryTag copyWith({String? accountEntryId, String? tagId}) =>
-      AccountEntryTag(
-        accountEntryId: accountEntryId ?? this.accountEntryId,
-        tagId: tagId ?? this.tagId,
-      );
+  AccountEntryTag copyWith({
+    String? accountEntryId,
+    String? tagId,
+    Value<DateTime?> lastUsedAt = const Value.absent(),
+  }) => AccountEntryTag(
+    accountEntryId: accountEntryId ?? this.accountEntryId,
+    tagId: tagId ?? this.tagId,
+    lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
+  );
   AccountEntryTag copyWithCompanion(AccountEntryTagsCompanion data) {
     return AccountEntryTag(
       accountEntryId: data.accountEntryId.present
           ? data.accountEntryId.value
           : this.accountEntryId,
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
     );
   }
 
@@ -10879,44 +10980,51 @@ class AccountEntryTag extends DataClass implements Insertable<AccountEntryTag> {
   String toString() {
     return (StringBuffer('AccountEntryTag(')
           ..write('accountEntryId: $accountEntryId, ')
-          ..write('tagId: $tagId')
+          ..write('tagId: $tagId, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(accountEntryId, tagId);
+  int get hashCode => Object.hash(accountEntryId, tagId, lastUsedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AccountEntryTag &&
           other.accountEntryId == this.accountEntryId &&
-          other.tagId == this.tagId);
+          other.tagId == this.tagId &&
+          other.lastUsedAt == this.lastUsedAt);
 }
 
 class AccountEntryTagsCompanion extends UpdateCompanion<AccountEntryTag> {
   final Value<String> accountEntryId;
   final Value<String> tagId;
+  final Value<DateTime?> lastUsedAt;
   final Value<int> rowid;
   const AccountEntryTagsCompanion({
     this.accountEntryId = const Value.absent(),
     this.tagId = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AccountEntryTagsCompanion.insert({
     required String accountEntryId,
     required String tagId,
+    this.lastUsedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : accountEntryId = Value(accountEntryId),
        tagId = Value(tagId);
   static Insertable<AccountEntryTag> custom({
     Expression<String>? accountEntryId,
     Expression<String>? tagId,
+    Expression<DateTime>? lastUsedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (accountEntryId != null) 'account_entry_id': accountEntryId,
       if (tagId != null) 'tag_id': tagId,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -10924,11 +11032,13 @@ class AccountEntryTagsCompanion extends UpdateCompanion<AccountEntryTag> {
   AccountEntryTagsCompanion copyWith({
     Value<String>? accountEntryId,
     Value<String>? tagId,
+    Value<DateTime?>? lastUsedAt,
     Value<int>? rowid,
   }) {
     return AccountEntryTagsCompanion(
       accountEntryId: accountEntryId ?? this.accountEntryId,
       tagId: tagId ?? this.tagId,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10942,6 +11052,9 @@ class AccountEntryTagsCompanion extends UpdateCompanion<AccountEntryTag> {
     if (tagId.present) {
       map['tag_id'] = Variable<String>(tagId.value);
     }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10953,6 +11066,7 @@ class AccountEntryTagsCompanion extends UpdateCompanion<AccountEntryTag> {
     return (StringBuffer('AccountEntryTagsCompanion(')
           ..write('accountEntryId: $accountEntryId, ')
           ..write('tagId: $tagId, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -22094,12 +22208,14 @@ typedef $$CommitmentTagsTableCreateCompanionBuilder =
     CommitmentTagsCompanion Function({
       required String commitmentId,
       required String tagId,
+      Value<DateTime?> lastUsedAt,
       Value<int> rowid,
     });
 typedef $$CommitmentTagsTableUpdateCompanionBuilder =
     CommitmentTagsCompanion Function({
       Value<String> commitmentId,
       Value<String> tagId,
+      Value<DateTime?> lastUsedAt,
       Value<int> rowid,
     });
 
@@ -22156,6 +22272,11 @@ class $$CommitmentTagsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CommitmentsTableFilterComposer get commitmentId {
     final $$CommitmentsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -22212,6 +22333,11 @@ class $$CommitmentTagsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CommitmentsTableOrderingComposer get commitmentId {
     final $$CommitmentsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -22268,6 +22394,11 @@ class $$CommitmentTagsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+
   $$CommitmentsTableAnnotationComposer get commitmentId {
     final $$CommitmentsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -22347,20 +22478,24 @@ class $$CommitmentTagsTableTableManager
               ({
                 Value<String> commitmentId = const Value.absent(),
                 Value<String> tagId = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CommitmentTagsCompanion(
                 commitmentId: commitmentId,
                 tagId: tagId,
+                lastUsedAt: lastUsedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String commitmentId,
                 required String tagId,
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CommitmentTagsCompanion.insert(
                 commitmentId: commitmentId,
                 tagId: tagId,
+                lastUsedAt: lastUsedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -22443,12 +22578,14 @@ typedef $$AccountEntryTagsTableCreateCompanionBuilder =
     AccountEntryTagsCompanion Function({
       required String accountEntryId,
       required String tagId,
+      Value<DateTime?> lastUsedAt,
       Value<int> rowid,
     });
 typedef $$AccountEntryTagsTableUpdateCompanionBuilder =
     AccountEntryTagsCompanion Function({
       Value<String> accountEntryId,
       Value<String> tagId,
+      Value<DateTime?> lastUsedAt,
       Value<int> rowid,
     });
 
@@ -22506,6 +22643,11 @@ class $$AccountEntryTagsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$AccountEntriesTableFilterComposer get accountEntryId {
     final $$AccountEntriesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -22562,6 +22704,11 @@ class $$AccountEntryTagsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$AccountEntriesTableOrderingComposer get accountEntryId {
     final $$AccountEntriesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -22618,6 +22765,11 @@ class $$AccountEntryTagsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+
   $$AccountEntriesTableAnnotationComposer get accountEntryId {
     final $$AccountEntriesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -22697,20 +22849,24 @@ class $$AccountEntryTagsTableTableManager
               ({
                 Value<String> accountEntryId = const Value.absent(),
                 Value<String> tagId = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountEntryTagsCompanion(
                 accountEntryId: accountEntryId,
                 tagId: tagId,
+                lastUsedAt: lastUsedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String accountEntryId,
                 required String tagId,
+                Value<DateTime?> lastUsedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AccountEntryTagsCompanion.insert(
                 accountEntryId: accountEntryId,
                 tagId: tagId,
+                lastUsedAt: lastUsedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:planact/features/calendar/domain/calendar_visibility.dart';
 
 import 'theme/theme_preset.dart';
 
@@ -41,6 +42,14 @@ class AppSettings {
   static const _morningReminderEnabledKey = 'morning_reminder_enabled_v1';
   static const _morningReminderWindowKey = 'morning_reminder_window_v1';
   static const _morningReminderSentDayKey = 'morning_reminder_sent_day_v1';
+
+  Future<CalendarVisibility> readCalendarVisibility() async =>
+      CalendarVisibility.parse(
+        await database.readMetadata('calendar_visibility_v1'),
+      );
+
+  Future<void> writeCalendarVisibility(CalendarVisibility value) =>
+      database.writeMetadata('calendar_visibility_v1', value.storageValue);
 
   Future<IranianMoneyUnit> readMoneyUnit() async =>
       await database.readMetadata('iranian_money_unit_v1') == 'toman'

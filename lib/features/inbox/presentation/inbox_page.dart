@@ -11,6 +11,8 @@ import 'dart:async';
 import 'package:planact/core/ids/stable_id.dart';
 
 import 'package:flutter/material.dart';
+import 'package:planact/features/finance/domain/bank_balance.dart';
+import 'package:planact/features/finance/presentation/bank_recovery_dialog.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/persian_date_formatter.dart';
@@ -45,9 +47,13 @@ class InboxPage extends StatefulWidget {
     this.tagRepository,
     this.onDetermineRelationship,
     this.onDataChanged,
+    this.initialReviewId,
+    this.pendingOnly = false,
   });
 
   final Future<void> Function()? onDataChanged;
+  final StableId? initialReviewId;
+  final bool pendingOnly;
   final TagRepository? tagRepository;
   final InboxUseCases inbox;
   final FinanceRepository finance;
@@ -64,6 +70,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   bool _ownsSmsSync = false;
   int _smsRevision = 0;
   bool _reloading = false;
+  bool _initialReviewOpened = false;
   bool _reloadRequested = false;
   static const _logger = AppLogger();
   static const _projection = InboxReviewProjection();
@@ -171,7 +178,15 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       final accounts = await widget.finance.listAccounts();
       final entries = await widget.finance.listEntries();
       final items = _projection.build(
-        suggestions: suggestions,
+        suggestions: widget.pendingOnly
+            ? suggestions
+                  .where(
+                    (item) =>
+                        item.status == SuggestionStatus.pending ||
+                        item.status == SuggestionStatus.edited,
+                  )
+                  .toList()
+            : suggestions,
         imports: imports,
         accounts: accounts,
         entries: entries,
@@ -200,6 +215,20 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         _error = null;
         _loading = false;
       });
+      if (!_initialReviewOpened && widget.initialReviewId != null) {
+        _initialReviewOpened = true;
+        for (final item in items) {
+          if (item.suggestion.id == widget.initialReviewId &&
+              (item.suggestion.status == SuggestionStatus.pending ||
+                  item.suggestion.status == SuggestionStatus.edited)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _edit(item);
+            });
+            break;
+          }
+        }
+      }
+      await _smsSync?.reconcileNotifications();
     } catch (error) {
       _logger.error(
         'Inbox reload failed',
@@ -340,13 +369,76 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _confirm(InboxReviewItem item) async {
-    if (!_pending.add(item.suggestion.id)) return;
+  bool _reviewing = false;
+
+  Future<void> _reviewSequence(
+    InboxReviewItem first, {
+    bool rejectFirst = false,
+  }) async {
+    if (_reviewing) {
+      // Independent row decisions remain available while a session is pending;
+      // they must not create a second competing navigation loop.
+      if (rejectFirst) await _reject(first);
+      return;
+    }
+    _reviewing = true;
+    final ids = _items
+        .skipWhile((item) => item.suggestion.id != first.suggestion.id)
+        .where((item) => BulkInboxReject.eligible(item.suggestion))
+        .map((item) => item.suggestion.id)
+        .toList();
+    try {
+      var completed = rejectFirst
+          ? await _reject(first)
+          : await _confirmOne(first, remaining: ids.length - 1);
+      if (!completed || !mounted || widget.initialReviewId != null) return;
+      for (var index = 1; index < ids.length; index++) {
+        final suggestions = await widget.inbox.repository.listSuggestions();
+        final fresh = _projection.build(
+          suggestions: suggestions,
+          imports: await widget.inbox.repository.listImports(),
+          accounts: await widget.finance.listAccounts(),
+          entries: await widget.finance.listEntries(),
+        );
+        if (!mounted) return;
+        final candidates = fresh.where(
+          (item) =>
+              item.suggestion.id == ids[index] &&
+              BulkInboxReject.eligible(item.suggestion),
+        );
+        if (candidates.isEmpty) continue;
+        completed = await _confirmOne(
+          candidates.single,
+          remaining: ids.length - index - 1,
+        );
+        if (!completed || !mounted) return;
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(planActL10n(context).sequentialReviewFinished),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(planActL10n(context).sequentialReviewFailed)),
+        );
+      }
+    } finally {
+      _reviewing = false;
+    }
+  }
+
+  Future<bool> _confirmOne(InboxReviewItem item, {int? remaining}) async {
+    if (!_pending.add(item.suggestion.id)) return false;
     setState(() => _epoch++);
     AccountEntry? imported;
+    var decided = false;
     var refreshFailed = false;
     try {
-      imported = await showModalBottomSheet<AccountEntry>(
+      final result = await showModalBottomSheet<Object>(
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
@@ -357,9 +449,15 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           inbox: widget.inbox,
           finance: widget.finance,
           tagRepository: widget.tagRepository,
+          remaining: widget.initialReviewId == null ? remaining : null,
         ),
       );
-      if (imported != null) {
+      imported = result is AccountEntry ? result : null;
+      decided = imported != null || result == _ReviewDecision.rejected;
+      if (result == _ReviewDecision.rejected && mounted) {
+        _showRejectedFeedback(item);
+      }
+      if (decided) {
         if (mounted) {
           setState(() {
             _epoch++;
@@ -397,11 +495,50 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         ),
       );
     }
+    return decided && !refreshFailed && _error == null;
   }
 
-  Future<void> _reject(InboxReviewItem item, {bool recover = false}) async {
+  void _showRejectedFeedback(InboxReviewItem item) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(PersianCopy.inboxPageRejectContent2),
+        action: SnackBarAction(
+          label: PersianCopy.inboxPageRejectLabel,
+          onPressed: () async {
+            try {
+              final current = (await widget.inbox.repository.listSuggestions())
+                  .firstWhere((s) => s.id == item.suggestion.id);
+              if (!mounted) return;
+              await _reject(
+                InboxReviewItem(
+                  suggestion: current,
+                  import: item.import,
+                  proposedAction: item.proposedAction,
+                  reasons: item.reasons,
+                  warnings: item.warnings,
+                  supportedActions: item.supportedActions,
+                  account: item.account,
+                ),
+                recover: true,
+              );
+            } catch (_) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(PersianCopy.inboxPageRejectContent3),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _reject(InboxReviewItem item, {bool recover = false}) async {
     final id = item.suggestion.id;
-    if (!_pending.add(id)) return;
+    if (!_pending.add(id)) return false;
     setState(() {
       _epoch++;
     });
@@ -411,7 +548,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       } else {
         await widget.inbox.reject(item.suggestion);
       }
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _epoch++;
         // Keep a rejected card visible while it is being recovered. The
@@ -451,6 +588,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
         ),
       );
       await _reload();
+      return _error == null;
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -466,6 +604,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
     } finally {
       if (mounted) setState(() => _pending.remove(id));
     }
+    return false;
   }
 
   Future<void> _edit(InboxReviewItem item) async {
@@ -639,7 +778,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page--;
                         _selected.clear();
                       }),
-                child: const Text(PersianCopy.inboxPageBulkControlsChildren7),
+                child: const Text(PersianCopy.commonPreviousPage),
               ),
               TextButton(
                 onPressed:
@@ -649,7 +788,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                         _page++;
                         _selected.clear();
                       }),
-                child: const Text(PersianCopy.inboxPageBulkControlsChildren8),
+                child: const Text(PersianCopy.commonNextPage),
               ),
             ],
           ),
@@ -935,12 +1074,12 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
                       }
                     }),
               busy: _pending.contains(item.suggestion.id),
-              onConfirm: () => _confirm(item),
+              onConfirm: () => _reviewSequence(item),
               onEdit: () => _edit(item),
-              onReject: () => _reject(
-                item,
-                recover: item.suggestion.status == SuggestionStatus.rejected,
-              ),
+              onReject: () =>
+                  item.suggestion.status == SuggestionStatus.rejected
+                  ? _reject(item, recover: true)
+                  : _reviewSequence(item, rejectFirst: true),
             ),
           );
         },
@@ -949,13 +1088,17 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
   }
 }
 
+enum _ReviewDecision { rejected }
+
 class _ConfirmationSheet extends StatefulWidget {
   const _ConfirmationSheet({
     required this.item,
     required this.inbox,
     required this.finance,
     this.tagRepository,
+    this.remaining,
   });
+  final int? remaining;
   final InboxReviewItem item;
   final InboxUseCases inbox;
   final FinanceRepository finance;
@@ -965,19 +1108,97 @@ class _ConfirmationSheet extends StatefulWidget {
 }
 
 class _ConfirmationSheetState extends State<_ConfirmationSheet> {
+  late InboxReviewItem _item = widget.item;
   FinancialAccount? _account;
+
+  Future<void> _editCurrent() async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) =>
+          SmsReviewEditor(suggestion: _item.suggestion, inbox: widget.inbox),
+    );
+    if (saved != true || !mounted) return;
+    try {
+      final fresh = (await widget.inbox.repository.listSuggestions())
+          .firstWhere((item) => item.id == _item.suggestion.id);
+      if (!mounted) return;
+      setState(() {
+        _item = InboxReviewItem(
+          suggestion: fresh,
+          import: _item.import,
+          proposedAction: _item.proposedAction,
+          reasons: _item.reasons,
+          warnings: _item.warnings,
+          supportedActions: _item.supportedActions,
+          account: _item.account,
+        );
+        _classificationAcknowledged = false;
+        _dateAcknowledged = false;
+        _proposedUnit = null;
+      });
+      _initializeProposedUnit();
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = planActL10n(context).inboxPageReloadMessage);
+      }
+    }
+  }
+
+  Future<void> _rejectCurrent() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      await widget.inbox.reject(_item.suggestion);
+      if (mounted) {
+        setState(() => _saving = false);
+        Navigator.of(context).pop(_ReviewDecision.rejected);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = planActL10n(context).inboxPageRejectContent3;
+        });
+      }
+    }
+  }
+
   Set<String> _tags = {};
   bool _saving = false;
   String? _error;
   bool _dateAcknowledged = false;
   bool _classificationAcknowledged = false;
   SmsMoneyUnit? _proposedUnit;
+  Set<String>? _recoveryAccounts;
+
+  Future<void> _recover() async {
+    final repository = widget.finance;
+    if (repository is! BankRecoveryRepository) return;
+    final recovered = await showBankRecovery(
+      context,
+      repository as BankRecoveryRepository,
+      _recoveryAccounts!,
+    );
+    if (mounted && recovered) {
+      setState(() {
+        _recoveryAccounts = null;
+        _error = planActL10n(context).bankRecoveryDone;
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (widget.item.suggestion.draft.currencyEvidence?.requiresSelection ==
-        true) {
+    _initializeProposedUnit();
+  }
+
+  void _initializeProposedUnit() {
+    if (_item.suggestion.draft.currencyEvidence?.requiresSelection == true) {
       _proposedUnit ??= MoneyUnitScope.of(context) == IranianMoneyUnit.toman
           ? SmsMoneyUnit.toman
           : SmsMoneyUnit.rial;
@@ -986,7 +1207,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
 
   Future<void> _save() async {
     if (_saving) return;
-    final suggestion = widget.item.suggestion;
+    final suggestion = _item.suggestion;
     final draft = suggestion.draft;
     if (suggestion.extractedEvidence?.isTransfer == true ||
         draft.type == 'transfer') {
@@ -1018,7 +1239,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
     });
     try {
       final entry = await widget.inbox.confirm(
-        suggestion: widget.item.suggestion,
+        suggestion: _item.suggestion,
         account: account,
         finance: widget.finance,
         selectedUnit: _proposedUnit,
@@ -1028,11 +1249,16 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
         setState(() => _saving = false);
         Navigator.of(context).pop(entry);
       }
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = PersianCopy.inboxPageSaveMessage6;
+          _error = error is BankRecoveryRequired
+              ? error.message
+              : PersianCopy.inboxPageSaveMessage6;
+          _recoveryAccounts = error is BankRecoveryRequired
+              ? error.accountIds
+              : null;
         });
       }
     }
@@ -1050,12 +1276,33 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (widget
-                  .item
-                  .suggestion
-                  .draft
-                  .currencyEvidence
-                  ?.requiresSelection ==
+          if (widget.remaining != null)
+            Wrap(
+              spacing: PlanActSpacing.sm,
+              children: [
+                OutlinedButton(
+                  onPressed: _saving ? null : _editCurrent,
+                  child: Text(planActL10n(context).inboxPageBuildLabel5),
+                ),
+                TextButton(
+                  onPressed: _saving ? null : _rejectCurrent,
+                  child: Text(planActL10n(context).inboxPageBuildLabel6),
+                ),
+              ],
+            ),
+          if (widget.remaining != null)
+            Text(
+              planActL10n(context).sequentialReviewRemaining(
+                PersianNumbers.format(widget.remaining!),
+              ),
+            ),
+          if (_recoveryAccounts != null &&
+              widget.finance is BankRecoveryRepository)
+            TextButton(
+              onPressed: _saving ? null : _recover,
+              child: Text(planActL10n(context).bankRecoveryTitle),
+            ),
+          if (_item.suggestion.draft.currencyEvidence?.requiresSelection ==
               true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1064,12 +1311,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                   planActL10n(context).inboxDefaultUnitAmount(
                     PersianNumbers.format(
                       MoneyInputFormatter.groupText(
-                        widget
-                            .item
-                            .suggestion
-                            .draft
-                            .currencyEvidence!
-                            .sourceAmount
+                        _item.suggestion.draft.currencyEvidence!.sourceAmount
                             .toString(),
                       ),
                     ),
@@ -1097,23 +1339,23 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
           else
             Text(
               PersianMoneyText.money(
-                widget.item.suggestion.draft.amount,
+                _item.suggestion.draft.amount,
                 unit: MoneyUnitScope.of(context),
               ),
             ),
-          SmsOriginalEvidence(suggestion: widget.item.suggestion),
+          SmsOriginalEvidence(suggestion: _item.suggestion),
           const SizedBox(height: PlanActSpacing.md),
           Text(
             planActL10n(context).inboxPageBuildChildren2(
-              (smsReviewTimestamp(widget.item.suggestion.draft.occurredAt))
+              (smsReviewTimestamp(_item.suggestion.draft.occurredAt))
                   .toString(),
             ),
           ),
-          if (widget.item.suggestion.extractedEvidence?.isTransfer == true ||
-              widget.item.suggestion.draft.type == 'transfer')
+          if (_item.suggestion.extractedEvidence?.isTransfer == true ||
+              _item.suggestion.draft.type == 'transfer')
             Text(planActL10n(context).inboxPageSaveMessage)
-          else if (widget.item.suggestion.draft.type != 'income' &&
-              widget.item.suggestion.draft.type != 'expense')
+          else if (_item.suggestion.draft.type != 'income' &&
+              _item.suggestion.draft.type != 'expense')
             Text(planActL10n(context).inboxPageBuildChildren3)
           else
             CheckboxListTile(
@@ -1126,7 +1368,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                     ),
               title: Text(
                 planActL10n(context).inboxPageBuildTitle5(
-                  (widget.item.suggestion.draft.type == 'income'
+                  (_item.suggestion.draft.type == 'income'
                           ? planActL10n(context).inboxPageBuildTitle4
                           : planActL10n(context).inboxPageBuildTitle3)
                       .toString(),
@@ -1134,9 +1376,9 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
               ),
               subtitle: Text(planActL10n(context).inboxPageBuildSubtitle),
             ),
-          if (widget.item.suggestion.draft.dateSource !=
+          if (_item.suggestion.draft.dateSource !=
                   TransactionDateSource.extracted &&
-              widget.item.suggestion.draft.dateSource !=
+              _item.suggestion.draft.dateSource !=
                   TransactionDateSource.reviewer)
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
@@ -1147,7 +1389,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
                         setState(() => _dateAcknowledged = value == true),
               title: Text(planActL10n(context).inboxPageBuildTitle6),
               subtitle: Text(
-                widget.item.suggestion.draft.dateSource ==
+                _item.suggestion.draft.dateSource ==
                         TransactionDateSource.receipt
                     ? planActL10n(context).inboxPageBuildSubtitle2
                     : planActL10n(context).inboxPageBuildSubtitle3,
@@ -1155,14 +1397,14 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
             ),
           Text(
             planActL10n(context).inboxPageBuildChildren5(
-              (widget.item.account?.name ??
+              (_item.account?.name ??
                       planActL10n(context).inboxPageBuildChildren4)
                   .toString(),
             ),
           ),
           FinancialAccountPicker(
             repository: widget.finance,
-            currency: widget.item.suggestion.draft.amount.currency,
+            currency: _item.suggestion.draft.amount.currency,
             enabled: !_saving,
             onChanged: (account) => _account = account,
             onCreateAccount: () =>

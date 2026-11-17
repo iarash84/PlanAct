@@ -24,6 +24,17 @@ String transactionLabel(AccountEntry entry) => switch (entry.type) {
     PersianCopy.transactionDirectionAccountEntryTypeReversal,
 };
 
+/// Shared ledger direction roles for financial icons and card surfaces.
+({Color foreground, Color container}) transactionDirectionColors(
+  BuildContext context,
+  AccountEntry entry,
+) {
+  final colors = PlanActStatusColors.of(context);
+  return entry.signedAmount.minorUnits > 0
+      ? (foreground: colors.success, container: colors.successContainer)
+      : (foreground: colors.attention, container: colors.attentionContainer);
+}
+
 class TransactionDirectionIcon extends StatelessWidget {
   const TransactionDirectionIcon({super.key, required this.entry});
 
@@ -32,14 +43,12 @@ class TransactionDirectionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final incoming = entry.signedAmount.minorUnits > 0;
-    final colors = PlanActStatusColors.of(context);
+    final colors = transactionDirectionColors(context, entry);
     return CircleAvatar(
-      backgroundColor: incoming
-          ? colors.successContainer
-          : colors.attentionContainer,
+      backgroundColor: colors.container,
       child: Icon(
         incoming ? Icons.south_west : Icons.north_east,
-        color: incoming ? colors.success : colors.attention,
+        color: colors.foreground,
         semanticLabel: planActL10n(context)
             .transactionDirectionBuildSemanticLabel3(
               (transactionLabel(entry)).toString(),

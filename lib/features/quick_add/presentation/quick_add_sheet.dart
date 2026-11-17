@@ -1,3 +1,7 @@
+import 'package:planact/core/presentation/planact_jalali_date_picker.dart';
+import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/localization/persian_numbers.dart';
+import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:planact/core/money/money_input_formatter.dart';
@@ -136,6 +140,40 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
   String? _error;
   bool _saving = false;
   Set<String> _tags = {};
+  bool _moreOptions = false;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+
+  String _dateLabel(BuildContext context) => _selectedDate == null
+      ? planActL10n(context).quickFinancialCurrentDate
+      : PersianDateFormatter.date(JalaliDate.fromDateTime(_selectedDate!));
+
+  String _timeLabel(BuildContext context) => _selectedTime == null
+      ? planActL10n(context).quickFinancialCurrentTime
+      : PersianNumbers.format(
+          '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+        );
+
+  Future<void> _pickDate() async {
+    final selected = await showDialog<DateTime>(
+      context: context,
+      builder: (_) =>
+          PlanActJalaliDatePicker(initialDate: _selectedDate ?? DateTime.now()),
+    );
+    if (mounted && selected != null) {
+      setState(() => _selectedDate = selected);
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (mounted && selected != null) {
+      setState(() => _selectedTime = selected);
+    }
+  }
 
   @override
   void dispose() {
@@ -151,13 +189,18 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
       return;
     }
     if (_saving) return;
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     final entry = QuickFinancialEntry(
       account: _account,
       amount: amount,
       note: _note.text.trim().isEmpty ? null : _note.text.trim(),
       income: widget.income,
       tags: Set.unmodifiable(_tags),
+      selectedDate: _selectedDate,
+      selectedTime: _selectedTime,
     );
     try {
       await widget.onSave?.call(entry);
@@ -193,6 +236,7 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
           TextField(
             key: const ValueKey('quick-financial-amount'),
             controller: _amount,
+            enabled: !_saving,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: const [MoneyInputFormatter(decimal: true)],
@@ -218,12 +262,15 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
                   ),
                 )
                 .toList(),
-            onChanged: (value) => setState(() => _account = value ?? _account),
+            onChanged: _saving
+                ? null
+                : (value) => setState(() => _account = value ?? _account),
           ),
           const SizedBox(height: PlanActSpacing.sm),
           TextField(
             key: const ValueKey('quick-financial-note'),
             controller: _note,
+            enabled: !_saving,
             decoration: InputDecoration(
               labelText: widget.income
                   ? planActL10n(context).quickAddSheetBuildLabelText2
@@ -241,14 +288,62 @@ class _QuickFinancialEntrySheetState extends State<QuickFinancialEntrySheet> {
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(
+              key: const ValueKey('quick-financial-more-options'),
               onPressed: _saving
                   ? null
-                  : () => Navigator.pop(
-                      context,
-                      QuickFinancialEntry.moreOptions(tags: _tags),
-                    ),
-              child: Text(planActL10n(context).planactAppBuildTooltip),
+                  : () => setState(() => _moreOptions = !_moreOptions),
+              child: Semantics(
+                expanded: _moreOptions,
+                child: Text(
+                  _moreOptions
+                      ? planActL10n(context).quickFinancialLessOptions
+                      : planActL10n(context).planactAppBuildTooltip,
+                ),
+              ),
             ),
+          ),
+          if (_selectedDate != null || _selectedTime != null)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text('${_dateLabel(context)}، ${_timeLabel(context)}'),
+            ),
+          AnimatedSize(
+            duration: PlanActMotion.duration(context),
+            curve: PlanActMotion.curve,
+            alignment: AlignmentDirectional.topStart,
+            child: !_moreOptions
+                ? const SizedBox.shrink()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      OutlinedButton.icon(
+                        key: const ValueKey('quick-financial-date'),
+                        onPressed: _saving ? null : _pickDate,
+                        icon: const Icon(Icons.calendar_today_outlined),
+                        label: Text(_dateLabel(context)),
+                      ),
+                      const SizedBox(height: PlanActSpacing.sm),
+                      OutlinedButton.icon(
+                        key: const ValueKey('quick-financial-time'),
+                        onPressed: _saving ? null : _pickTime,
+                        icon: const Icon(Icons.schedule_outlined),
+                        label: Text(_timeLabel(context)),
+                      ),
+                      if (_selectedDate != null || _selectedTime != null)
+                        TextButton(
+                          key: const ValueKey('quick-financial-reset-time'),
+                          onPressed: _saving
+                              ? null
+                              : () => setState(() {
+                                  _selectedDate = null;
+                                  _selectedTime = null;
+                                }),
+                          child: Text(
+                            planActL10n(context).quickFinancialResetTime,
+                          ),
+                        ),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -263,19 +358,31 @@ class QuickFinancialEntry {
     required this.note,
     required this.income,
     this.tags = const {},
-  }) : moreOptions = false;
-  const QuickFinancialEntry.moreOptions({this.tags = const {}})
-    : account = null,
-      amount = 0,
-      note = null,
-      income = false,
-      moreOptions = true;
-  final FinancialAccount? account;
+    this.selectedDate,
+    this.selectedTime,
+  });
+  final FinancialAccount account;
   final int amount;
   final String? note;
   final bool income;
-  final bool moreOptions;
   final Set<String> tags;
+  final DateTime? selectedDate;
+  final TimeOfDay? selectedTime;
+
+  DateTime resolveOccurredAt(DateTime now) {
+    if (selectedDate == null && selectedTime == null) return now;
+    final date = selectedDate ?? now;
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      selectedTime?.hour ?? now.hour,
+      selectedTime?.minute ?? now.minute,
+      selectedTime == null ? now.second : 0,
+      selectedTime == null ? now.millisecond : 0,
+      selectedTime == null ? now.microsecond : 0,
+    );
+  }
 }
 
 class QuickTransferSheet extends StatefulWidget {

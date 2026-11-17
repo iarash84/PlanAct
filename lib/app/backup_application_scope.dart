@@ -1,4 +1,5 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 
 import 'dart:io';
@@ -6,8 +7,6 @@ import 'dart:io';
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/data/sqlite_holiday_package_store.dart';
 import 'package:planact/features/calendar/data/file_holiday_package_source.dart';
-
-import 'dart:typed_data';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -169,7 +168,11 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         exclusive: _exclusive,
       );
       if (mounted) setState(() => _busy = false);
-    } catch (_) {
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('PlanAct startup preparation failed: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      }
       await _close();
       if (mounted) {
         setState(() {

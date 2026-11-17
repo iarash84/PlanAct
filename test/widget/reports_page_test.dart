@@ -429,9 +429,9 @@ void main() {
       )(title: 'عنوان قبلی', startAt: DateTime.now());
       await tester.pumpWidget(PlanActApp(repository: commitments));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_horiz).last);
+      await tester.tap(find.byIcon(Icons.menu));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('گزارش‌ها'));
+      await tester.tap(find.byKey(const ValueKey('navigation-reports')));
       await tester.pumpAndSettle();
       final scroll = find
           .descendant(
@@ -569,9 +569,9 @@ void main() {
           PlanActApp(repository: DriftCommitmentRepository(database)),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.more_horiz).last);
+        await tester.tap(find.byIcon(Icons.menu));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('گزارش‌ها'));
+        await tester.tap(find.byKey(const ValueKey('navigation-reports')));
         await tester.pumpAndSettle();
         expect(find.byType(ReportsPage), findsOneWidget);
         expect(

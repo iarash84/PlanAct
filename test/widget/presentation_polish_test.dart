@@ -28,7 +28,7 @@ void main() {
     );
     await tester.pumpWidget(const PlanActApp());
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+    await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
     expect(find.text('افزودن تعهد'), findsOneWidget);
     expect(find.text('خط زمانی تعهدات'), findsOneWidget);
@@ -37,7 +37,7 @@ void main() {
     expect(find.byType(ReportsPage), findsOneWidget);
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+    await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
     await tester.tap(find.text('صندوق ورودی'));
     await tester.pumpAndSettle();
@@ -78,15 +78,24 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+      await tester.tap(find.byIcon(Icons.menu));
       await tester.pumpAndSettle();
-      for (final label in [
-        'افزودن تعهد',
-        'خط زمانی تعهدات',
-        'گزارش‌ها',
-        'صندوق ورودی',
+      for (final key in [
+        'navigation-add-commitment',
+        'navigation-timeline',
+        'navigation-reports',
+        'navigation-inbox',
       ]) {
-        expect(find.text(label), findsOneWidget);
+        final item = find.byKey(ValueKey(key));
+        await tester.scrollUntilVisible(
+          item,
+          120,
+          scrollable: find.descendant(
+            of: find.byType(Drawer),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(item, findsOneWidget);
       }
       expect(tester.takeException(), isNull);
     });

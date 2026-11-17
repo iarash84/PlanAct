@@ -319,6 +319,7 @@ class Tags extends Table {
 class CommitmentTags extends Table {
   TextColumn get commitmentId => text().references(Commitments, #id)();
   TextColumn get tagId => text().references(Tags, #id)();
+  DateTimeColumn get lastUsedAt => dateTime().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {commitmentId, tagId};
@@ -327,6 +328,7 @@ class CommitmentTags extends Table {
 class AccountEntryTags extends Table {
   TextColumn get accountEntryId => text().references(AccountEntries, #id)();
   TextColumn get tagId => text().references(Tags, #id)();
+  DateTimeColumn get lastUsedAt => dateTime().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {accountEntryId, tagId};
@@ -401,7 +403,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -572,6 +574,28 @@ class AppDatabase extends _$AppDatabase {
           'UPDATE financial_accounts SET display_order = rowid - 1',
         );
       }
+      if (from < 20) {
+        if (!await _hasColumn('commitment_tags', 'last_used_at')) {
+          await customStatement(
+            'ALTER TABLE commitment_tags ADD COLUMN last_used_at INTEGER',
+          );
+        }
+        if (!await _hasColumn('account_entry_tags', 'last_used_at')) {
+          await customStatement(
+            'ALTER TABLE account_entry_tags ADD COLUMN last_used_at INTEGER',
+          );
+        }
+        await customStatement(
+          'UPDATE commitment_tags SET last_used_at = '
+          '(SELECT created_at FROM tags WHERE tags.id = commitment_tags.tag_id) '
+          'WHERE last_used_at IS NULL',
+        );
+        await customStatement(
+          'UPDATE account_entry_tags SET last_used_at = '
+          '(SELECT created_at FROM tags WHERE tags.id = account_entry_tags.tag_id) '
+          'WHERE last_used_at IS NULL',
+        );
+      }
       if (from < 17) {
         await m.createTable(relationshipReviews);
         await customStatement(
@@ -588,6 +612,11 @@ class AppDatabase extends _$AppDatabase {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  Future<bool> _hasColumn(String table, String column) async {
+    final rows = await customSelect('PRAGMA table_info($table)').get();
+    return rows.any((row) => row.read<String>('name') == column);
+  }
 
   Future<void> _createReviewHistoryGuards() async {
     await customStatement(

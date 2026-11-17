@@ -5,6 +5,10 @@
 // dart format off
 
 abstract final class PersianCopy {
+  static const bankBalanceBackdatedBlocked = "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.";
+  static const bankBalanceStale = "اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.";
+  static const bankBalanceKnownFee = "کارمزد مشخص بانک";
+  static const bankBalanceUnknownAdjustment = "تعدیل اختلاف نامعلوم حساب";
   static const appLockAuthenticationReason = "برای ورود به پلن‌اکت هویت خود را تأیید کنید.";
   static const appLockLockAndAuthenticateMessage = "احراز هویت انجام نشد. برای تلاش دوباره دکمه را بزنید.";
   static const appLockLockAndAuthenticateMessage2 = "احراز هویت در دسترس نیست. قفل دستگاه را بررسی و دوباره تلاش کنید.";
@@ -448,8 +452,8 @@ abstract final class PersianCopy {
   static const inboxPageBulkControlsChildren4 = "پاک کردن انتخاب";
   static const inboxPageBulkControlsChildren5 = "رد کردن گروهی";
   static String inboxPageBulkControlsChildren6(String value1) => "صفحهٔ ${value1}";
-  static const inboxPageBulkControlsChildren7 = "صفحهٔ قبل";
-  static const inboxPageBulkControlsChildren8 = "صفحهٔ بعد";
+  static const commonPreviousPage = "صفحهٔ قبل";
+  static const commonNextPage = "صفحهٔ بعد";
   static String inboxPageBulkControlsChildren9(String value1, String value2, String value3, String value4) => "بررسی‌شده: ${value1} از ${value2} · ردشده: ${value3} · ناموفق: ${value4}";
   static const inboxPageBulkControlsChildren10 = "در انتظار پایان مورد جاری";
   static const inboxPageBulkControlsChildren11 = "توقف پس از مورد جاری";
@@ -797,4 +801,13 @@ abstract final class PersianCopy {
   static const reminderAlarmRetry = "اجرای آلارم ممکن نشد؛ مجوزها و تنظیمات یادآور را بررسی کنید.";
   static const financeArchivedAccountsSaveError = "تنظیم نمایش حساب‌ها ذخیره نشد. دوباره تلاش کنید.";
   static const financeDeleteAccountFailed = "حساب حذف نشد. ممکن است سابقه یا ارجاع مالی داشته باشد؛ دوباره تلاش کنید یا آن را بایگانی کنید.";
+  static const smsDetectionTitle = "تراکنش تازه برای بازبینی";
+  static const smsDetectionBody = "پیش از فراموشی، تراکنش تازه را بررسی کنید.";
+  static const smsDetectionMultiple = "چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.";
+  static const smsDetectionEnabled = "اعلان تشخیص تراکنش پیامکی";
+  static const smsDetectionPrivacy = "اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.";
+  static const smsDetectionAmounts = "نمایش مبلغ در اعلان بازشده";
+  static const smsDetectionFailure = "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.";
+  static String smsDetectionAmountBody(String amount, String invitation) => "${amount} ریال — ${invitation}";
+  static const bankEvidenceDependency = "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.";
 }

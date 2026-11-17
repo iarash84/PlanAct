@@ -19,10 +19,12 @@ class AccountInformationCard extends StatefulWidget {
     required this.account,
     required this.balance,
     required this.operations,
+    this.bankBalance,
   });
   final FinancialAccount account;
   final Money balance;
   final Widget operations;
+  final Widget? bankBalance;
   @override
   State<AccountInformationCard> createState() => _AccountInformationCardState();
 }
@@ -107,7 +109,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AccountIdentityIcon(account: account),
                 const SizedBox(width: PlanActSpacing.sm),
@@ -117,8 +119,11 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                widget.operations,
               ],
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: widget.operations,
             ),
             Text(
               [
@@ -143,6 +148,7 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                 isolateNumber: true,
               ),
             ),
+            ?widget.bankBalance,
             if (account.identifiers.cardNumber case final String value)
               _identifier(
                 planActL10n(context).accountInformationCardBuildChildren3,

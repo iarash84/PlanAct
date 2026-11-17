@@ -12,6 +12,8 @@ All new documentation and explanatory sections added to or rewritten in existing
 
 File names and paths, code and interface identifiers, executable commands, official technology names, quotations, and raw tool output may retain their original form; surrounding explanations must follow the document's required language. Translation must preserve technical meaning, evidence, limitations, and acceptance status. This policy aligns with the documentation-language section in the [PRD](docs/product/PRD.md) and does not authorize broad translation or rewriting of unrelated legacy documentation.
 
+User-approved translator metadata exception (2026-11-16): ARB message and placeholder descriptions must be English so future translators can understand their context. Reuse shared keys for semantically identical copy; identical Persian text with different translation contexts may remain separate with an English `x-planact-distinct-context` rationale. This exception covers technical catalog metadata, not surrounding project documentation.
+
 ## 1. Product mission
 
 The product answers three questions reliably:
@@ -181,12 +183,43 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+Bank evidence review checkpoint (2026-11-16, step 1): preserve incomplete independent
+balance evidence without borrowing transaction units, Settings or receipt time.
+Keep original observations immutable; explicit account/amount/unit/time review,
+invalidation and reactivation append versioned before/after snapshots with monotonic
+per-observation revisions after fresh SQLite writer admission and state comparison.
+Evidence review must not change ledger entries, transactions, tags or allocations;
+ledger reversal does not invalidate evidence. Dependency recovery is a separate explicit
+preview/confirmation command: conservatively reverse every active reconciliation in
+both affected accounts, newest report boundary first, under one fresh SQLite writer
+admission and compare all preview tokens before any reversal. Reuse exact stable
+financial reversals and append UndoJournal evidence atomically. Ordinary cancellation
+of an older reconciliation is blocked while a newer one remains active. Account,
+evidence-review and backdated Inbox routes share recovery; retain drafts and require
+explicit retry, never auto-save, auto-confirm or auto-reverse.
+Preserve legacy observations and review history through cold reopen and
+strict backup snapshot validation; unchanged schema does not approve older writers.
+
+SMS bank-balance checkpoint (2026-11-11, Partial): reported balances are immutable
+source observations, separate from the ledger and ordered only by complete source
+transaction time. Receipt/import/confirmation order never establishes recency;
+equal or unknown times block reconciliation. Preserve independent balance-unit
+evidence and canonical integer IRR. Explicit reconciliation compares corrected
+ledger history through the report boundary; known fees are expenses and unknown
+differences are signed adjustments, never inferred income/expense. Fresh SQLite
+writer admission and preview comparison must commit decision metadata with the
+entry. The bounded implementation rejects backdated effects until the relevant
+reconciliation is reversed; do not bypass this guard or silently double count late
+imports. Source correction, full recovery journeys, older-writer safety and native/
+independent acceptance remain open in docs/BANK_BALANCE_VERIFICATION.md.
+
 Financial accounts include bank accounts, cash wallets, digital wallets, and potentially credit accounts later.
 
 - Store money as integer minor units, never floating-point.
 - Account balance must be rebuildable from account entries.
 - A transfer between the user’s own accounts is **not** income and **not** expense.
 - A correction/reversal must leave an audit trail; do not erase history.
+- User-approved 2026-11-14 transaction account correction: Finance correction may assign an income/expense replacement to a different active same-currency account. Reverse the original in its original account and append the linked replacement atomically under fresh writer admission; validate both accounts, disclose both balance effects, and never model this as an own-account transfer. Preserve original SMS evidence, tags and allocations without automatic reassignment, with explicit pre-save disclosure. See docs/TRANSACTION_ACCOUNT_CORRECTION_VERIFICATION.md.
 - User-approved Undo repair (2026-10-14): new financial reversals use the stable reversal enum and exactly negate the original signed integer effect. Transactional fresh writer admission rejects repeated cancellation; transfer cancellation covers both legs and recorded fees with explicit disclosure. Versioned append-only Undo evidence in the existing metadata extension store must survive restart and backup, with durable per-owner heads rejecting superseded operations. Known legacy compensation cannot be silently rewritten or cancelled twice. Lifecycle Undo restores recorded prior status; legacy archive restoration to active must be disclosed. Schedule Undo retains every definition and uses forward versioning for series restoration. See ADR 0007 and SCHEDULE_ACTUAL_VERIFICATION.md; unchanged schema does not establish older-writer safety or release acceptance.
 - Accounts with history should be archived, not hard-deleted.
 
@@ -1055,3 +1088,16 @@ Optional Inbox tags are draft selections before final confirmation, never an aut
 ## Automatic tag identity colors (2026-11-11)
 
 All tag-name presentation must reuse the shared tag badge/summary and centralized identity color roles. Derive colors deterministically from the existing normalized label, independent of runtime hash, list order and theme preset; renaming derives the new name identity. Keep brightness-specific readable foreground/container pairs, textual identity and explicit selection semantics. This is a rebuildable presentation projection, not a new mutable source of truth or status color. Finite colors cannot guarantee unlimited perceptual uniqueness. See docs/TAGGING_VERIFICATION.md.
+
+## Calendar visibility safeguards (2026-11-14)
+
+Settings > Calendar persists versioned display-only choices before publishing them: commitments and notes default on, income/expense/own-account transfers default off. Apply to Month and Week; disclose hidden categories. Financial calendar rows read confirmed durable ledger entries at their persisted transaction time, never SMS receipt/confirmation time. Deduplicate grouped transfers, retain explicit reversed-history labels and keep actual payments distinct from commitment due dates. Hiding must not mutate money, matches, occurrences or reminders. Preserve metadata through restart and personal backup. Holidays remain independent. See docs/CALENDAR_VISIBILITY_VERIFICATION.md for bounded evidence and independent/device gates.
+
+## Approved inline quick financial options (2026-11-16)
+
+Quick Add income and expense reveal optional Jalali date/time inline in the same form, without tab navigation or draft loss. Expansion/collapse/cancellation must not write; one final command saves the transaction and draft tags atomically. Until explicitly selected, each date/time component resolves at final save, not form expansion. Collapsing retains selections with a visible summary; failed saving retains the complete draft. Account creation is outside this bounded repair because its existing independent write is incompatible with cancellation-without-writes. See docs/TAGGING_VERIFICATION.md.
+
+
+## SMS detection notification checkpoint (2026-11-16)
+
+Detection notifications are optional and independent from SMS consent. Amount disclosure is a separate preference; lockscreen copy must remain generic. Payloads are navigation hints only: re-read durable pending/edited status behind app lock and reuse Inbox review; never confirm or reject from a notification. Historical scans do not enqueue per-message alerts. Notification delivery failures must not fail SMS staging or hide other Today content. Versioned notification metadata uses the existing metadata store and must survive backup; platform identifiers are not portable truth. The current implementation is Partial: closed-app durable ingestion, temporal batching, unconditional lockscreen privacy, restore rebind and native/independent acceptance remain blockers in docs/SMS_VERIFICATION.md. Do not describe live receiver signals or successful Kotlin compilation as background capability acceptance.

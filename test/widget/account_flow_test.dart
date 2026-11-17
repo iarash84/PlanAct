@@ -133,6 +133,11 @@ void main() {
         (await repository.listAccounts()).single.bank,
         IranianBank.parsian,
       );
+      await tester.tap(find.byKey(const ValueKey('finance-accounts-entry')));
+      await tester.pumpAndSettle();
+      final accountId = (await repository.listAccounts()).single.id.value;
+      await tester.tap(find.byKey(ValueKey('account-row:$accountId')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('ویرایش حساب'));
       await tester.pumpAndSettle();
       expect(
@@ -371,6 +376,8 @@ void main() {
         openingBalance: const Money(minorUnits: 87, currency: 'IRR'),
       );
       await tester.pumpWidget(host(FinancePage(repository: repository)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('finance-accounts-entry')));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('ویرایش حساب'));
       await tester.pumpAndSettle();

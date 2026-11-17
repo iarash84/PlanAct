@@ -13,6 +13,8 @@ class MainActivity : FlutterFragmentActivity() {
     private val notificationSettingsRequestCode = 4102
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planact/sms-notifications")
+            .setMethodCallHandler { call, result -> SmsDetectionNotifications.handle(this, call, result) }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planact/alarms")
             .setMethodCallHandler { call, result -> AlarmBridge.handle(applicationContext, call, result) }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "planact/reminder-settings")
@@ -59,7 +61,17 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        flutterEngine?.let { engine ->
+            MethodChannel(engine.dartExecutor.binaryMessenger, "planact/sms-notifications")
+                .invokeMethod("tapAvailable", null)
+        }
+    }
+
     override fun onDestroy() {
+        SmsDetectionNotifications.detach()
         SmsBridge.onActivityDestroyed(this)
         notificationSettingsResult?.error("activity_destroyed", "Activity was closed", null)
         notificationSettingsResult = null
@@ -73,5 +85,8 @@ class MainActivity : FlutterFragmentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         SmsBridge.onRequestPermissionsResult(this, requestCode)
+        if (requestCode == SmsDetectionNotifications.PERMISSION_REQUEST) {
+            SmsDetectionNotifications.permissionFinished(this)
+        }
     }
 }

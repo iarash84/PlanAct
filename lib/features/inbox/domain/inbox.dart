@@ -291,8 +291,12 @@ class SmsExtractionEvidence {
     this.sourceTime,
     this.occurredAt,
     this.isTransfer = false,
+    this.reportedBalanceAmount,
+    this.reportedBalanceUnit,
   });
 
+  final int? reportedBalanceAmount;
+  final SmsMoneyUnit? reportedBalanceUnit;
   final TransactionDraft draft;
   final String? sourceDate;
   final String? sourceTime;
@@ -308,6 +312,8 @@ class SmsExtractionEvidence {
     'sourceTime': sourceTime,
     'occurredAt': occurredAt?.toIso8601String(),
     'isTransfer': isTransfer,
+    'reportedBalanceAmount': reportedBalanceAmount,
+    'reportedBalanceUnit': reportedBalanceUnit?.name,
   };
 
   factory SmsExtractionEvidence.fromJson(Map<String, dynamic> json) {
@@ -324,6 +330,10 @@ class SmsExtractionEvidence {
           ? null
           : DateTime.parse(json['occurredAt'] as String),
       isTransfer: json['isTransfer'] as bool? ?? false,
+      reportedBalanceAmount: json['reportedBalanceAmount'] as int?,
+      reportedBalanceUnit: json['reportedBalanceUnit'] == null
+          ? null
+          : SmsMoneyUnit.values.byName(json['reportedBalanceUnit'] as String),
     );
   }
 }

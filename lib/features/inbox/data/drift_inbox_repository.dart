@@ -1,4 +1,6 @@
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/finance/data/bank_balance_store.dart';
+import 'package:planact/features/finance/domain/bank_balance.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 
@@ -334,6 +336,26 @@ class DriftInboxRepository
           throw StateError('Account is unavailable for this import');
         }
         await DriftFinanceRepository(database).saveEntry(entry);
+        final evidence = fresh.extractedEvidence;
+        final balanceAmount = evidence?.reportedBalanceAmount;
+        final balanceUnit = evidence?.reportedBalanceUnit;
+        if (balanceAmount != null) {
+          await BankBalanceStore(database).observe(
+            BankBalanceObservation(
+              id: suggestionId.value,
+              entryId: entry.id.value,
+              accountId: entry.accountId.value,
+              irr: balanceUnit == null
+                  ? null
+                  : balanceAmount == 0
+                  ? 0
+                  : balanceUnit.canonicalIrr(balanceAmount),
+              sourceAmount: balanceAmount,
+              sourceUnit: balanceUnit?.name,
+              transactionTime: evidence!.occurredAt,
+            ),
+          );
+        }
         final tagRepository = DriftTagRepository(database);
         for (final label in tags) {
           final tag = await tagRepository.getOrCreate(label);

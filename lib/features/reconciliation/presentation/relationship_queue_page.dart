@@ -16,7 +16,9 @@ class RelationshipQueuePage extends StatefulWidget {
     required this.queue,
     required this.onOpen,
     required this.onDataChanged,
+    this.onReview,
   });
+  final Future<bool?> Function(StableId, int remaining)? onReview;
   final RelationshipQueue queue;
   final Future<void> Function(StableId) onOpen;
   final Future<void> Function() onDataChanged;
@@ -167,9 +169,70 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
     }
   }
 
+  bool _reviewing = false;
+
   Future<void> _open(RelationshipQueueItem item) async {
-    await widget.onOpen(item.transaction.id);
-    if (mounted) await _load();
+    if (_reviewing) return;
+    if (_independent || widget.onReview == null) {
+      await widget.onOpen(item.transaction.id);
+      if (mounted) await _load();
+      return;
+    }
+    _reviewing = true;
+    try {
+      // Capture the current filtered order, including later pages. New arrivals
+      // never join this review session; every candidate is revalidated below.
+      final ids = <StableId>[];
+      var page = _page;
+      var started = false;
+      while (true) {
+        final snapshot = await widget.queue.load(
+          page: page++,
+          query: _query,
+          type: _type,
+        );
+        for (final candidate in snapshot.items) {
+          if (candidate.transaction.id == item.transaction.id) started = true;
+          if (started) ids.add(candidate.transaction.id);
+        }
+        if (!snapshot.hasNext) break;
+      }
+      for (var index = 0; index < ids.length; index++) {
+        final entries = await widget.queue.finance.listEntries();
+        final matches = entries.where((entry) => entry.id == ids[index]);
+        if (matches.isEmpty ||
+            entries.any(
+              (entry) =>
+                  entry.type == AccountEntryType.reversal &&
+                  entry.referenceId == ids[index].value,
+            )) {
+          continue;
+        }
+        final review = await widget.queue.reviews.loadReview(matches.single);
+        if (review.isIndependent || review.remainderMinorUnits <= 0) continue;
+        if (!mounted) return;
+        final completed = await widget.onReview!(
+          ids[index],
+          ids.length - index - 1,
+        );
+        if (!mounted) return;
+        await _load();
+        if (completed != true) return;
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(planActL10n(context).sequentialReviewFinished),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = planActL10n(context).sequentialReviewFailed);
+      }
+    } finally {
+      _reviewing = false;
+    }
   }
 
   Future<void> _reopen(RelationshipQueueItem item) async {
@@ -288,9 +351,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page--);
                         _load();
                       },
-                child: Text(
-                  planActL10n(context).inboxPageBulkControlsChildren7,
-                ),
+                child: Text(planActL10n(context).commonPreviousPage),
               ),
               TextButton(
                 onPressed: !_hasNext
@@ -299,9 +360,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
                         setState(() => _page++);
                         _load();
                       },
-                child: Text(
-                  planActL10n(context).inboxPageBulkControlsChildren8,
-                ),
+                child: Text(planActL10n(context).commonNextPage),
               ),
               TextButton(
                 onPressed: _load,

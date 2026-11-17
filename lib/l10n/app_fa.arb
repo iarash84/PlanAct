@@ -1,18 +1,109 @@
 {
+  "sequentialReviewFinished": "بررسی این نوبت تمام شد.",
+  "@sequentialReviewFinished": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "Feedback when the captured sequential review queue has no remaining eligible items. New arrivals are not included."
+  },
+  "sequentialReviewFailed": "تصمیم ثبت‌شده حفظ شد، اما بازکردن مورد بعدی ممکن نشد. فهرست را تازه کنید و دوباره ادامه دهید.",
+  "@sequentialReviewFailed": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "A committed review remains saved but loading the next eligible item failed; refresh the list to resume."
+  },
+  "sequentialReviewRemaining": "بررسی پیوسته؛ {count} مورد بعد از این باقی مانده است. برای خروج، بازگشت یا لغو را بزنید.",
+  "@sequentialReviewRemaining": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "Explains sequential review, remaining snapshot candidates and how to exit without deciding another item.",
+    "placeholders": {
+      "count": { "type": "String", "description": "Localized remaining candidate count; eligibility is rechecked before opening." }
+    }
+  },
+  "bankBalanceBackdatedBlocked": "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.",
+  "@bankBalanceBackdatedBlocked": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Error blocking a backdated financial entry that would affect an already reconciled period; reverse the reconciliation first to avoid double counting.",
+    "x-planact-default": true
+  },
+  "bankBalanceStale": "اطلاعات حساب تغییر کرده یا شاهد کافی نیست. صفحه را تازه کنید و دوباره بررسی کنید.",
+  "@bankBalanceStale": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Error rejecting reconciliation because the account changed or source evidence is insufficient; refresh and review again.",
+    "x-planact-default": true
+  },
+  "bankBalanceKnownFee": "کارمزد مشخص بانک",
+  "@bankBalanceKnownFee": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Explicit reconciliation reason for a known bank fee, recorded as an expense.",
+    "x-planact-default": true
+  },
+  "bankBalanceUnknownAdjustment": "تعدیل اختلاف نامعلوم حساب",
+  "@bankBalanceUnknownAdjustment": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Reconciliation reason for an unexplained signed balance adjustment, not income or expense.",
+    "x-planact-default": true
+  },
+  "bankBalanceReported": "آخرین ماندهٔ گزارش‌شدهٔ بانک از پیامک",
+  "@bankBalanceReported": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Label for the latest historical bank balance reported in SMS, independent of the ledger and not a live bank balance."
+  },
+  "bankBalanceAmbiguous": "زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.",
+  "@bankBalanceAmbiguous": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Warning that unknown or equal source transaction times prevent safely identifying the latest reported balance; receipt time must not substitute."
+  },
+  "bankBalanceReconcile": "بررسی و تطبیق حساب",
+  "@bankBalanceReconcile": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Action opening a read-only account reconciliation preview; opening it does not write a financial entry."
+  },
+  "bankBalanceLedgerAtReport": "ماندهٔ دفتر تا زمان گزارش",
+  "@bankBalanceLedgerAtReport": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Label for the ledger balance through the valid source report time, not the current balance."
+  },
+  "bankBalanceDifference": "اختلاف گزارش و دفتر",
+  "@bankBalanceDifference": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Label for the signed integer difference between the reported bank balance and the ledger balance."
+  },
+  "bankBalanceDisclosure": "این گزارش تاریخی است، نه موجودی زندهٔ بانک. فقط با انتخاب دلیل و تأیید، یک ثبت جدید ایجاد می‌شود. برای ورود ثبت قدیمی‌تر باید ابتدا ثبت تطبیق را برگشت دهید.",
+  "@bankBalanceDisclosure": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Pre-confirmation disclosure explaining historical balance evidence, the new reconciliation entry, and the restriction on backdated entries."
+  },
+  "bankBalanceConfirm": "تأیید ثبت اختلاف",
+  "@bankBalanceConfirm": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Explicit confirmation action that records the reconciliation difference as a financial entry."
+  },
+  "bankBalanceSaved": "تطبیق حساب ثبت شد؛ برگشت از عملیات همان تراکنش در دسترس است.",
+  "@bankBalanceSaved": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Success feedback after reconciliation is committed, with instructions to reverse it through the transaction actions."
+  },
+  "bankBalanceFailure": "ثبت تطبیق انجام نشد. اطلاعات را تازه کنید و دوباره تلاش کنید.",
+  "@bankBalanceFailure": {
+    "x-planact-introduced": "bank-balance-2026-11-11",
+    "description": "Actionable reconciliation save error asking the user to refresh and retry without exposing sensitive technical details."
+  },
   "todayRelationshipViewAll": "مشاهدهٔ همه در تعیین ارتباط",
   "@todayRelationshipViewAll": {
-    "description": "بازکردن صف کامل تعیین ارتباط از پیش‌نمایش محدود صفحهٔ امروز.",
+    "description": "Action opening the full transaction relationship review queue from the bounded Today preview.",
     "x-planact-introduced": "today-relationship-preview-2026-11-11"
   },
   "todayRelationshipDate": "تاریخ تراکنش: {date}",
   "@todayRelationshipDate": {
-    "description": "تاریخ واقعی تراکنش به جلالی در پیش‌نمایش تعیین ارتباط امروز؛ بدون حدس تاریخ مفقود.",
+    "description": "Actual transaction date in the Today relationship review preview. The date is a preformatted Jalali string; never infer a missing date.",
     "x-planact-introduced": "today-relationship-preview-2026-11-11",
-    "placeholders": {"date": {"type": "String"}}
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "todayInboxViewAll": "مشاهدهٔ همه در صندوق بررسی",
   "@todayInboxViewAll": {
-    "description": "بازکردن صندوق بررسی کامل از پیش‌نمایش حداکثر سه تراکنش در صفحهٔ امروز.",
+    "description": "Action opening the full Inbox from the Today preview of at most three transaction suggestions.",
     "x-planact-introduced": "today-inbox-preview-2026-11-11"
   },
   "reportsTransactionMetadata": "{date} · {type}\n{account}",
@@ -20,29 +111,31 @@
     "description": "Report transaction card date, ledger entry type and account; amount is shown separately with emphasis.",
     "x-planact-introduced": "reports-cards-2026-11-10",
     "placeholders": {
-      "date": {"type": "String"},
-      "type": {"type": "String"},
-      "account": {"type": "String"}
+      "date": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "account": {
+        "type": "String"
+      }
     }
-  },
-  "reportsPreviousPage": "صفحهٔ قبل",
-  "@reportsPreviousPage": {
-    "description": "Previous page of read-only report transaction details.",
-    "x-planact-introduced": "reports-cards-2026-11-10"
-  },
-  "reportsNextPage": "صفحهٔ بعد",
-  "@reportsNextPage": {
-    "description": "Next page of read-only report transaction details.",
-    "x-planact-introduced": "reports-cards-2026-11-10"
   },
   "reportsPagePosition": "صفحهٔ {page} از {pages} · {count} تراکنش",
   "@reportsPagePosition": {
     "description": "Report detail pagination; numbers are preformatted Persian strings. Totals cover all results, not this page.",
     "x-planact-introduced": "reports-cards-2026-11-10",
     "placeholders": {
-      "page": {"type": "String"},
-      "pages": {"type": "String"},
-      "count": {"type": "String"}
+      "page": {
+        "type": "String"
+      },
+      "pages": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
     }
   },
   "@@locale": "fa",
@@ -361,7 +454,8 @@
   },
   "navigationCalendar": "تقویم",
   "@navigationCalendar": {
-    "description": "Application copy. Original usage: lib/app/planact_app.dart:1163."
+    "description": "Application copy. Original usage: lib/app/planact_app.dart:1163.",
+    "x-planact-distinct-context": "Navigation destination and display-settings section title may require different grammatical forms."
   },
   "planactAppTitlesMessage": "مدیریت مالی",
   "@planactAppTitlesMessage": {
@@ -448,7 +542,8 @@
   "planactAppBuildLabelText": "عنوان",
   "@planactAppBuildLabelText": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:1443.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Commitment title and independent calendar-note title are separate authoring contexts."
   },
   "planactAppBuildLabelText2": "توضیحات",
   "@planactAppBuildLabelText2": {
@@ -514,12 +609,14 @@
   "occurrenceCancelled": "لغوشده",
   "@occurrenceCancelled": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:1700.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Occurrence status, historical commitment search status, and counted schedule progress are distinct domain contexts."
   },
   "planactAppCommitmentStatusArchived": "بایگانی‌شده",
   "@planactAppCommitmentStatusArchived": {
     "description": "Application copy. Original usage: lib/app/planact_app.dart:1701.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Commitment lifecycle and financial account lifecycle are separate status contexts."
   },
   "planactAppCommitmentKindOneOff": "یک‌باره",
   "@planactAppCommitmentKindOneOff": {
@@ -1265,10 +1362,6 @@
   "@calendarPageDateButtonLabel": {
     "description": "Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:214."
   },
-  "calendarPageTodayButtonLabel": "امروز",
-  "@calendarPageTodayButtonLabel": {
-    "description": "Calendar action returning to the current local date while preserving Month/Week mode. Short label approved 2026-10-14."
-  },
   "calendarPageBuildTooltip": "هفته قبل",
   "@calendarPageBuildTooltip": {
     "description": "Application copy. Original usage: lib/features/calendar/presentation/calendar_page.dart:260."
@@ -1867,7 +1960,8 @@
   "quickCaptureSheetDetailFieldsLabelText": "توضیحات (اختیاری)",
   "@quickCaptureSheetDetailFieldsLabelText": {
     "description": "Application copy. Original usage: lib/features/capture/presentation/quick_capture_sheet.dart:286.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Commitment details and independent calendar-note descriptions are separate authoring contexts."
   },
   "quickCaptureSheetScheduleFieldsLabelText": "نوع برنامه",
   "@quickCaptureSheetScheduleFieldsLabelText": {
@@ -1877,7 +1971,8 @@
   "quickCaptureSheetScheduleFieldsLabel": "انتخاب تاریخ",
   "@quickCaptureSheetScheduleFieldsLabel": {
     "description": "Application copy. Original usage: lib/features/capture/presentation/quick_capture_sheet.dart:374.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Commitment scheduling and independent calendar-note dating have distinct date-selection contexts."
   },
   "quickCaptureSheetScheduleFieldsLabel2": "انتخاب زمان",
   "@quickCaptureSheetScheduleFieldsLabel2": {
@@ -2202,7 +2297,8 @@
   },
   "tagControlsBuildLabel2": "همهٔ برچسب‌ها",
   "@tagControlsBuildLabel2": {
-    "description": "Application copy. Original usage: lib/features/classification/presentation/tag_controls.dart:184."
+    "description": "Application copy. Original usage: lib/features/classification/presentation/tag_controls.dart:184.",
+    "x-planact-distinct-context": "Saved-record tag filtering and pre-confirmation draft tag selection are distinct contexts."
   },
   "tagControlsMutateContent": "برچسب‌ها به‌روز شدند.",
   "@tagControlsMutateContent": {
@@ -3191,7 +3287,8 @@
   },
   "financePageBuildChildren2": "حساب‌ها",
   "@financePageBuildChildren2": {
-    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:671."
+    "description": "Application copy. Original usage: lib/features/finance/presentation/finance_page.dart:671.",
+    "x-planact-distinct-context": "Finance overview entry, search result type/filter, and account management title have distinct grammatical roles."
   },
   "financePageReorderAccounts": "مرتب‌سازی حساب‌ها",
   "@financePageReorderAccounts": {
@@ -3662,7 +3759,8 @@
   "inboxPageRejectLabel": "بازگردانی",
   "@inboxPageRejectLabel": {
     "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:416.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Reopening a rejected Inbox suggestion is not the same operation as undoing a recorded command."
   },
   "inboxPageRejectContent3": "ذخیره انجام نشد؛ پیشنهاد حفظ شد. دوباره تلاش کنید.",
   "@inboxPageRejectContent3": {
@@ -3743,14 +3841,14 @@
     },
     "x-planact-default": true
   },
-  "inboxPageBulkControlsChildren7": "صفحهٔ قبل",
-  "@inboxPageBulkControlsChildren7": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:617.",
+  "commonPreviousPage": "صفحهٔ قبل",
+  "@commonPreviousPage": {
+    "description": "Shared action opening the previous page of a paginated list in Inbox, Finance, or Reports; not chronological date navigation.",
     "x-planact-default": true
   },
-  "inboxPageBulkControlsChildren8": "صفحهٔ بعد",
-  "@inboxPageBulkControlsChildren8": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:627.",
+  "commonNextPage": "صفحهٔ بعد",
+  "@commonNextPage": {
+    "description": "Shared action opening the next page of a paginated list in Inbox, Finance, or Reports; not chronological date navigation.",
     "x-planact-default": true
   },
   "inboxPageBulkControlsChildren9": "بررسی‌شده: {value1} از {value2} · ردشده: {value3} · ناموفق: {value4}",
@@ -3907,11 +4005,13 @@
   },
   "inboxPageBuildTitle3": "هزینه",
   "@inboxPageBuildTitle3": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:984."
+    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:984.",
+    "x-planact-distinct-context": "Inbox transaction direction selection and a Calendar visibility switch have distinct grammatical roles."
   },
   "inboxPageBuildTitle4": "درآمد",
   "@inboxPageBuildTitle4": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:984."
+    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:984.",
+    "x-planact-distinct-context": "Inbox transaction direction selection and a Calendar visibility switch have distinct grammatical roles."
   },
   "inboxPageBuildTitle5": "ثبت مالی به‌عنوان {value1} را تأیید می‌کنم.",
   "@inboxPageBuildTitle5": {
@@ -4112,7 +4212,8 @@
   },
   "inboxPageBuildLabel": "بستن جزئیات",
   "@inboxPageBuildLabel": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:1162."
+    "description": "Application copy. Original usage: lib/features/inbox/presentation/inbox_page.dart:1162.",
+    "x-planact-distinct-context": "Collapsing Inbox evidence and collapsing Today commitment details are distinct contexts."
   },
   "inboxPageBuildLabel2": "جزئیات پیشنهاد",
   "@inboxPageBuildLabel2": {
@@ -4543,7 +4644,8 @@
   },
   "smsScanCardBuildChildren8": "بررسی پیامک‌های جدید",
   "@smsScanCardBuildChildren8": {
-    "description": "Application copy. Original usage: lib/features/inbox/presentation/sms_scan_card.dart:172."
+    "description": "Application copy. Original usage: lib/features/inbox/presentation/sms_scan_card.dart:172.",
+    "x-planact-distinct-context": "Legacy SMS scan control and consent-aware manual ingestion are separate action contexts."
   },
   "smsScanCardBuildChildren9": "ادامه / تلاش دوباره",
   "@smsScanCardBuildChildren9": {
@@ -4762,7 +4864,8 @@
   "relationshipQueuePageBuildLabel": "همه",
   "@relationshipQueuePageBuildLabel": {
     "description": "Application copy. Original usage: lib/features/reconciliation/presentation/relationship_queue_page.dart:241.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Relationship queue filtering and global search scope have distinct grammatical roles."
   },
   "relationshipQueuePageBuildLabel2": "مستقل‌های بررسی‌شده",
   "@relationshipQueuePageBuildLabel2": {
@@ -5786,7 +5889,8 @@
   "reportsPageContentLabels": "تعهدات",
   "@reportsPageContentLabels": {
     "description": "Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:748.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Report tab heading and global search result type/filter have distinct grammatical roles."
   },
   "reportsPageFinancialDueStateSettled": "تسویه‌شده",
   "@reportsPageFinancialDueStateSettled": {
@@ -5846,7 +5950,8 @@
   "reportsPageContentMessage21": "باقی‌مانده",
   "@reportsPageContentMessage21": {
     "description": "Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:789.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Report remainder and unresolved schedule-slot progress are not interchangeable financial or entitlement concepts."
   },
   "reportsPageContentMessage22": "برنامه: {value1}؛ تطبیق: {value2}؛ باقی‌مانده: {value3}",
   "@reportsPageContentMessage22": {
@@ -6448,7 +6553,8 @@
   "occurrenceCompleted": "انجام‌شده",
   "@occurrenceCompleted": {
     "description": "Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:1201.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Individual occurrence status and aggregate completed schedule progress are distinct contexts."
   },
   "reportsPageActualOutcomeAttended": "حضور",
   "@reportsPageActualOutcomeAttended": {
@@ -7086,7 +7192,8 @@
   "@undoAction": {
     "description": "Undo repair: explicit operation feedback and confirmation.",
     "x-planact-introduced": "undo-2026-10-14",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Reopening a rejected Inbox suggestion is not the same operation as undoing a recorded command."
   },
   "undoStatusAction": "بازگردانی آخرین تغییر وضعیت",
   "@undoStatusAction": {
@@ -7147,6 +7254,25 @@
     "description": "Undo repair: explicit operation feedback and confirmation.",
     "x-planact-introduced": "undo-2026-10-14",
     "x-planact-default": true
+  },
+  "financeCorrectAccountEffects": "اثر خنثی‌کردن تراکنش قبلی بر ماندهٔ «{originalAccount}»: {reversalEffect}\nاثر تراکنش اصلاح‌شده بر ماندهٔ «{selectedAccount}»: {correctedEffect}\nاین عملیات اصلاح ثبت است، نه انتقال وجه.",
+  "@financeCorrectAccountEffects": {
+    "x-planact-introduced": "transaction-account-correction-2026-11-14",
+    "description": "Transaction correction confirmation naming the original and selected accounts and each signed balance effect. Effects use the display unit pinned by the form; this is a reversal and replacement, not a transfer.",
+    "placeholders": {
+      "originalAccount": {
+        "type": "String"
+      },
+      "reversalEffect": {
+        "type": "String"
+      },
+      "selectedAccount": {
+        "type": "String"
+      },
+      "correctedEffect": {
+        "type": "String"
+      }
+    }
   },
   "financeCorrectMessage": "تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.",
   "@financeCorrectMessage": {
@@ -7488,17 +7614,20 @@
   "calendarNoteTitleField": "عنوان",
   "@calendarNoteTitleField": {
     "description": "Required note title field label.",
-    "x-planact-introduced": "calendar-note-2026-10-14"
+    "x-planact-introduced": "calendar-note-2026-10-14",
+    "x-planact-distinct-context": "Commitment title and independent calendar-note title are separate authoring contexts."
   },
   "calendarNoteDescriptionField": "توضیحات (اختیاری)",
   "@calendarNoteDescriptionField": {
     "description": "Optional note description label.",
-    "x-planact-introduced": "calendar-note-2026-10-14"
+    "x-planact-introduced": "calendar-note-2026-10-14",
+    "x-planact-distinct-context": "Commitment details and independent calendar-note descriptions are separate authoring contexts."
   },
   "calendarNoteChooseDate": "انتخاب تاریخ",
   "@calendarNoteChooseDate": {
     "description": "Explicit Jalali note date picker action.",
-    "x-planact-introduced": "calendar-note-2026-10-14"
+    "x-planact-introduced": "calendar-note-2026-10-14",
+    "x-planact-distinct-context": "Commitment scheduling and independent calendar-note dating have distinct date-selection contexts."
   },
   "calendarNoteTitleRequired": "عنوان یادداشت را وارد کنید.",
   "@calendarNoteTitleRequired": {
@@ -7543,12 +7672,14 @@
   "searchAll": "همه",
   "@searchAll": {
     "x-planact-introduced": "search-2026-10-14",
-    "description": "Search all supported record types."
+    "description": "Search all supported record types.",
+    "x-planact-distinct-context": "Relationship queue filtering and global search scope have distinct grammatical roles."
   },
   "searchCommitments": "تعهدات",
   "@searchCommitments": {
     "x-planact-introduced": "search-2026-10-14",
-    "description": "Commitment search filter and result type."
+    "description": "Commitment search filter and result type.",
+    "x-planact-distinct-context": "Report tab heading and global search result type/filter have distinct grammatical roles."
   },
   "searchTransactions": "تراکنش‌ها",
   "@searchTransactions": {
@@ -7558,12 +7689,14 @@
   "searchNotes": "یادداشت‌ها",
   "@searchNotes": {
     "x-planact-introduced": "search-2026-10-14",
-    "description": "Independent calendar note search filter and result type."
+    "description": "Independent calendar note search filter and result type.",
+    "x-planact-distinct-context": "Global search result type/filter and a Calendar visibility switch have distinct grammatical roles."
   },
   "searchAccounts": "حساب‌ها",
   "@searchAccounts": {
     "x-planact-introduced": "search-2026-10-14",
-    "description": "Financial account search filter and result type."
+    "description": "Financial account search filter and result type.",
+    "x-planact-distinct-context": "Finance overview entry, search result type/filter, and account management title have distinct grammatical roles."
   },
   "searchClear": "پاک‌کردن عبارت جست‌وجو",
   "@searchClear": {
@@ -7598,7 +7731,8 @@
   "searchCancelled": "لغوشده",
   "@searchCancelled": {
     "x-planact-introduced": "search-2026-10-14",
-    "description": "Historical cancelled commitment search status."
+    "description": "Historical cancelled commitment search status.",
+    "x-planact-distinct-context": "Occurrence status, historical commitment search status, and counted schedule progress are distinct domain contexts."
   },
   "searchResultCount": "{count} نتیجه",
   "@searchResultCount": {
@@ -7651,7 +7785,8 @@
   "progressCompleted": "انجام‌شده",
   "@progressCompleted": {
     "x-planact-introduced": "counted-progress-2026-10-14",
-    "description": "Recorded completed occurrence progress segment."
+    "description": "Recorded completed occurrence progress segment.",
+    "x-planact-distinct-context": "Individual occurrence status and aggregate completed schedule progress are distinct contexts."
   },
   "progressPaid": "پرداخت‌شده",
   "@progressPaid": {
@@ -7666,7 +7801,8 @@
   "progressCancelled": "لغوشده",
   "@progressCancelled": {
     "x-planact-introduced": "counted-progress-2026-10-14",
-    "description": "Cancelled progress segment, separate from completion."
+    "description": "Cancelled progress segment, separate from completion.",
+    "x-planact-distinct-context": "Occurrence status, historical commitment search status, and counted schedule progress are distinct domain contexts."
   },
   "progressSkipped": "انجام‌نشده",
   "@progressSkipped": {
@@ -7676,7 +7812,8 @@
   "progressRemaining": "باقی‌مانده",
   "@progressRemaining": {
     "x-planact-introduced": "counted-progress-2026-10-14",
-    "description": "Unresolved or unprepared schedule slots, not remaining entitlement."
+    "description": "Unresolved or unprepared schedule slots, not remaining entitlement.",
+    "x-planact-distinct-context": "Report remainder and unresolved schedule-slot progress are not interchangeable financial or entitlement concepts."
   },
   "progressUnpaid": "پرداخت‌نشده",
   "@progressUnpaid": {
@@ -7782,7 +7919,8 @@
   "detailsHide": "بستن جزئیات",
   "@detailsHide": {
     "description": "Collapse inline commitment details in a Today card.",
-    "x-planact-introduced": "today-commitment-card-2026-10-25"
+    "x-planact-introduced": "today-commitment-card-2026-10-25",
+    "x-planact-distinct-context": "Collapsing Inbox evidence and collapsing Today commitment details are distinct contexts."
   },
   "checklistEdit": "ویرایش کار",
   "@checklistEdit": {
@@ -7885,9 +8023,11 @@
   "inboxAddTag": "افزودن برچسب",
   "@inboxAddTag": {"description": "Open draft tag creation when no reusable tags exist.", "x-planact-introduced": "inbox-tags-2026-11-08"},
   "inboxAllTags": "همهٔ برچسب‌ها",
-  "@inboxAllTags": {"description": "Search all reusable tags before confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"}
-,
-
+  "@inboxAllTags": {
+    "description": "Search all reusable tags before confirmation.",
+    "x-planact-introduced": "inbox-tags-2026-11-08",
+    "x-planact-distinct-context": "Saved-record tag filtering and pre-confirmation draft tag selection are distinct contexts."
+  },
   "smsControlsTitle": "پیامک‌های بانکی",
   "@smsControlsTitle": {
     "x-planact-introduced": "sms-sync-2026-10-14",
@@ -7926,7 +8066,8 @@
   "smsCheckNewMessages": "بررسی پیامک‌های جدید",
   "@smsCheckNewMessages": {
     "x-planact-introduced": "sms-sync-2026-10-14",
-    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckNewMessages"
+    "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsCheckNewMessages",
+    "x-planact-distinct-context": "Legacy SMS scan control and consent-aware manual ingestion are separate action contexts."
   },
   "smsCheckingMessages": "در حال بررسی پیامک‌ها…",
   "@smsCheckingMessages": {
@@ -7953,19 +8094,9 @@
     "x-planact-introduced": "sms-sync-2026-10-14",
     "description": "Approved 2026-11-08 addition to post-migration SMS sync group. Unified Inbox SMS control: smsOlderMessages"
   },
-  "financeTransactionPreviousPage": "صفحهٔ قبل",
-  "@financeTransactionPreviousPage": {
-    "description": "رفتن به صفحهٔ قبلی آخرین تراکنش‌های مالی",
-    "x-planact-introduced": "finance-pagination-2026-11-11"
-  },
-  "financeTransactionNextPage": "صفحهٔ بعد",
-  "@financeTransactionNextPage": {
-    "description": "رفتن به صفحهٔ بعدی آخرین تراکنش‌های مالی",
-    "x-planact-introduced": "finance-pagination-2026-11-11"
-  },
   "financeTransactionPageRange": "تراکنش {start} تا {end} از {total}؛ صفحهٔ {page} از {pages}",
   "@financeTransactionPageRange": {
-    "description": "بازهٔ تراکنش‌ها و شمارهٔ صفحه با ارقام فارسی",
+    "description": "Financial transaction range and page position. All five placeholders are preformatted Persian number strings; totals refer to the full filtered result.",
     "x-planact-introduced": "finance-pagination-2026-11-11",
     "placeholders": {
       "start": {
@@ -7984,5 +8115,311 @@
         "type": "String"
       }
     }
+  },
+  "calendarVisibilityTitle": "تقویم",
+  "@calendarVisibilityTitle": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Title of the Calendar display settings section, not the root navigation destination.",
+    "x-planact-distinct-context": "Navigation destination and display-settings section title may require different grammatical forms."
+  },
+  "calendarVisibilityItems": "موارد نمایان",
+  "@calendarVisibilityItems": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Heading for the categories of items visible in Month and Week calendars."
+  },
+  "calendarVisibilityDescription": "این انتخاب فقط نمایش ماه و هفته را تغییر می‌دهد؛ داده‌ها حذف نمی‌شوند. تعطیلات مستقل‌اند.",
+  "@calendarVisibilityDescription": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Explains that visibility choices affect only Month and Week display, never delete data, and do not control holidays."
+  },
+  "calendarVisibilityCommitments": "تعهدها",
+  "@calendarVisibilityCommitments": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Display-only switch label for showing commitments in Month and Week calendars."
+  },
+  "calendarVisibilityNotes": "یادداشت‌ها",
+  "@calendarVisibilityNotes": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Display-only switch label for showing independent notes in Month and Week calendars.",
+    "x-planact-distinct-context": "Global search result type/filter and a Calendar visibility switch have distinct grammatical roles."
+  },
+  "calendarVisibilityIncome": "درآمد",
+  "@calendarVisibilityIncome": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Display-only switch label for showing confirmed income transactions in Month and Week calendars.",
+    "x-planact-distinct-context": "Inbox transaction direction selection and a Calendar visibility switch have distinct grammatical roles."
+  },
+  "calendarVisibilityExpense": "هزینه",
+  "@calendarVisibilityExpense": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Display-only switch label for showing confirmed expense transactions in Month and Week calendars.",
+    "x-planact-distinct-context": "Inbox transaction direction selection and a Calendar visibility switch have distinct grammatical roles."
+  },
+  "calendarVisibilityTransfers": "انتقال بین حساب‌های خود",
+  "@calendarVisibilityTransfers": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Display-only switch label for showing transfers between the user's own accounts; transfers are neither income nor expense."
+  },
+  "calendarVisibilityError": "تنظیم نمایش تقویم ذخیره نشد؛ دوباره تلاش کنید.",
+  "@calendarVisibilityError": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar visibility save error; the previous effective selection remains in use and the user can retry."
+  },
+  "calendarVisibilityLoadError": "تنظیم نمایش تقویم خوانده نشد. دوباره تلاش کنید.",
+  "@calendarVisibilityLoadError": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar visibility load error asking the user to retry."
+  },
+  "calendarVisibilityFiltered": "نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.",
+  "@calendarVisibilityFiltered": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Disclosure that calendar visibility filters hide some categories without changing their durable data."
+  },
+  "calendarTransactionIncome": "درآمد ثبت‌شده",
+  "@calendarTransactionIncome": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar row label identifying a recorded income transaction, distinct from a planned commitment payment."
+  },
+  "calendarTransactionExpense": "هزینهٔ ثبت‌شده",
+  "@calendarTransactionExpense": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar row label identifying a recorded expense transaction, distinct from a planned commitment payment."
+  },
+  "calendarTransactionTransfer": "انتقال ثبت‌شده بین حساب‌های خود",
+  "@calendarTransactionTransfer": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar row label identifying a recorded transfer between the user's own accounts."
+  },
+  "calendarTransactionReversed": "برگشت‌خورده؛ فقط تاریخچه",
+  "@calendarTransactionReversed": {
+    "x-planact-introduced": "calendar-visibility-2026-11-14",
+    "description": "Calendar history label identifying a reversed transaction; it is not an active payment."
+  },
+  "financeAccountsTitle": "حساب‌ها",
+  "@financeAccountsTitle": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Title of the financial account management page.",
+    "x-planact-distinct-context": "Finance overview entry, search result type/filter, and account management title have distinct grammatical roles."
+  },
+  "financeAccountsSearch": "جست‌وجوی نام یا بانک حساب",
+  "@financeAccountsSearch": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Search field hint for filtering financial accounts by account name or bank."
+  },
+  "financeAccountsArchived": "بایگانی‌شده",
+  "@financeAccountsArchived": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Archived financial account status label; do not imply deletion.",
+    "x-planact-distinct-context": "Commitment lifecycle and financial account lifecycle are separate status contexts."
+  },
+  "financeAccountsNoResults": "حسابی برای نمایش وجود ندارد.",
+  "@financeAccountsNoResults": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Empty state when no financial accounts match the current account list filters."
+  },
+  "financeAccountsAll": "همهٔ حساب‌ها",
+  "@financeAccountsAll": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Transaction account filter option including all accounts."
+  },
+  "financeAccountsFilter": "حساب تراکنش‌ها",
+  "@financeAccountsFilter": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Label for the account filter on the financial transaction list."
+  },
+  "financeAccountTransactions": "مشاهدهٔ تراکنش‌های این حساب",
+  "@financeAccountTransactions": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Action opening the transaction list filtered to this financial account."
+  },
+  "financeAccountsCount": "{count} حساب",
+  "@financeAccountsCount": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Financial account count; count is an already localized number string.",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "example": "۱۲"
+      }
+    }
+  },
+  "financeTransactionAccountUnavailable": "اطلاعات حساب در دسترس نیست",
+  "@financeTransactionAccountUnavailable": {
+    "x-planact-introduced": "finance-account-management-2026-11-14",
+    "description": "Explicit fallback when the account linked to a financial entry is unavailable; do not infer an account identity."
+  },
+  "quickFinancialCurrentDate": "تاریخ: روز ثبت نهایی",
+  "@quickFinancialCurrentDate": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Date button when no explicit date is selected; resolves on final save."
+  },
+  "quickFinancialCurrentTime": "ساعت: زمان ثبت نهایی",
+  "@quickFinancialCurrentTime": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Time button when no explicit time is selected; resolves on final save."
+  },
+  "quickFinancialLessOptions": "گزینه‌های کمتر",
+  "@quickFinancialLessOptions": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Collapse extra fields in the same quick income or expense form without clearing the draft."
+  },
+  "quickFinancialResetTime": "استفاده از تاریخ و ساعت ثبت نهایی",
+  "@quickFinancialResetTime": {
+    "x-planact-introduced": "quick-financial-options-2026-11-16",
+    "description": "Clear explicit transaction date and time selections; no data is saved."
+  },
+  "smsDetectionTitle": "تراکنش تازه برای بازبینی",
+  "@smsDetectionTitle": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionTitle",
+    "x-planact-default": true
+  },
+  "smsDetectionBody": "پیش از فراموشی، تراکنش تازه را بررسی کنید.",
+  "@smsDetectionBody": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionBody",
+    "x-planact-default": true
+  },
+  "smsDetectionMultiple": "چند تراکنش تازه دارید؛ پیش از فراموشی آن‌ها را در صندوق بررسی کنید.",
+  "@smsDetectionMultiple": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionMultiple",
+    "x-planact-default": true
+  },
+  "smsDetectionEnabled": "اعلان تشخیص تراکنش پیامکی",
+  "@smsDetectionEnabled": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionEnabled",
+    "x-planact-default": true
+  },
+  "smsDetectionPrivacy": "اعلان فقط دعوت به بازبینی است؛ دریافت فوری تضمین نمی‌شود. صفحهٔ قفل اطلاعات مالی نشان نمی‌دهد.",
+  "@smsDetectionPrivacy": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionPrivacy",
+    "x-planact-default": true
+  },
+  "smsDetectionAmounts": "نمایش مبلغ در اعلان بازشده",
+  "@smsDetectionAmounts": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionAmounts",
+    "x-planact-default": true
+  },
+  "smsDetectionFailure": "اعلان به‌روز نشد. دوباره تلاش کنید؛ دریافت پیامک ادامه دارد.",
+  "@smsDetectionFailure": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "SMS detection notification or settings copy: smsDetectionFailure",
+    "x-planact-default": true
+  },
+  "smsDetectionAmountBody": "{amount} ریال — {invitation}",
+  "@smsDetectionAmountBody": {
+    "x-planact-introduced": "sms-detection-2026-11-16",
+    "description": "Known canonical rial amount and review invitation in an opted-in notification.",
+    "x-planact-default": true,
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Grouped Persian integer rial amount."
+      },
+      "invitation": {
+        "type": "String",
+        "description": "Localized invitation to review."
+      }
+    }
+  },
+  "bankEvidenceReview": "بررسی شاهد مانده",
+  "@bankEvidenceReview": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceReview"
+  },
+  "bankEvidenceMissing": "گزارش مانده‌ای برای این حساب ثبت نشده است.",
+  "@bankEvidenceMissing": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceMissing"
+  },
+  "bankEvidenceIncomplete": "شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.",
+  "@bankEvidenceIncomplete": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceIncomplete"
+  },
+  "bankEvidenceInactive": "شاهد بی‌اعتبار شده است",
+  "@bankEvidenceInactive": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceInactive"
+  },
+  "bankEvidenceActive": "شاهد معتبر است",
+  "@bankEvidenceActive": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceActive"
+  },
+  "bankEvidenceDisclosure": "این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.",
+  "@bankEvidenceDisclosure": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDisclosure"
+  },
+  "bankEvidenceDependency": "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.",
+  "@bankEvidenceDependency": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDependency",
+    "x-planact-default": true
+  },
+  "bankEvidenceAmount": "مبلغ مانده در واحد منبع",
+  "@bankEvidenceAmount": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceAmount"
+  },
+  "bankEvidenceUnknownUnit": "واحد نامعلوم",
+  "@bankEvidenceUnknownUnit": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceUnknownUnit"
+  },
+  "bankEvidenceDate": "انتخاب تاریخ و زمان گزارش",
+  "@bankEvidenceDate": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceDate"
+  },
+  "bankEvidenceClearTime": "زمان گزارش نامعلوم است",
+  "@bankEvidenceClearTime": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceClearTime"
+  },
+  "bankEvidenceSaved": "بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.",
+  "@bankEvidenceSaved": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceSaved"
+  },
+  "bankEvidenceConfirm": "تأیید بررسی شاهد",
+  "@bankEvidenceConfirm": {
+    "x-planact-introduced": "bank-evidence-review-2026-11-16",
+    "description": "Bank observation evidence review: bankEvidenceConfirm"
+  },
+  "bankRecoveryTitle": "بازیابی تطبیق‌های وابسته",
+  "@bankRecoveryTitle": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Title and explicit action for reversing dependent bank reconciliations."
+  },
+  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
+  "@bankRecoveryDisclosure": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Disclosure before explicit atomic dependency recovery."
+  },
+  "bankRecoveryDone": "تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
+  "@bankRecoveryDone": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Successful recovery; user must explicitly retry the retained draft."
+  },
+  "bankRecoveryEmpty": "تطبیق فعالی برای بازیابی وجود ندارد.",
+  "@bankRecoveryEmpty": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Empty recovery preview."
+  },
+  "bankRecoverySource": "شناسهٔ شاهد",
+  "@bankRecoverySource": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Label for immutable source observation identity."
+  },
+  "bankRecoveryEntry": "شناسهٔ ثبت تطبیق",
+  "@bankRecoveryEntry": {
+    "x-planact-introduced": "bank-recovery-2026-11-16",
+    "description": "Label for reconciliation ledger entry identity."
   }
 }

@@ -21,8 +21,9 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 // 02bc301, 09f9c44, 444b2d3, c42a3e1, b64416d, a14dade, 58bc343, b9dd2f0,
 // 184f8e7, 2edbc33, fb69495. The -v16 files retain actual historical migration
 // output. fresh-v16 uses the committed fb69495-v16 declarations as an explicit
-// v16 input (not a newly inferred schema). The -v18 files are actual current
-// migration output, not schemas with constraints selectively removed.
+// v16 input (not a newly inferred schema). The -v18 files preserve historical
+// output; separate -v20 files record actual current migration output, never
+// schemas with constraints selectively removed.
 const fixtures = [
   'a14dade',
   '58bc343',
@@ -63,7 +64,7 @@ Future<void> createHistorical(File file, String fixture) async {
     );
     if ((data['version'] as int) >= 16) {
       raw.execute(
-        "INSERT INTO tags(id,label,normalized_label,created_at) VALUES ('legacy-tag','آموزش','آموزش',0)",
+        "INSERT INTO tags(id,label,normalized_label,created_at) VALUES ('legacy-tag','آموزش','آموزش',1700000000)",
       );
       raw.execute(
         "INSERT INTO commitment_tags(commitment_id,tag_id) VALUES ('legacy','legacy-tag')",
@@ -75,6 +76,11 @@ Future<void> createHistorical(File file, String fixture) async {
     raw.execute(
       "INSERT INTO account_entries(id,account_id,type,minor_units,currency,occurred_at) VALUES ('entry','account',0,1200,'IRR',0)",
     );
+    if ((data['version'] as int) >= 16) {
+      raw.execute(
+        "INSERT INTO account_entry_tags(account_entry_id,tag_id) VALUES ('entry','legacy-tag')",
+      );
+    }
   } finally {
     raw.close();
   }
@@ -108,7 +114,7 @@ void main() {
     raw.close();
     storage = SqliteBackupStorage(
       live: fresh,
-      schemaVersion: 19,
+      schemaVersion: 20,
       expectedSchema: expected,
       snapshot: fresh.readAsBytes,
       closeLive: () async {},
@@ -117,7 +123,7 @@ void main() {
 
   tearDown(() async => directory.delete(recursive: true));
 
-  test('fresh v18 still validates', () async {
+  test('fresh v20 still validates', () async {
     await storage.validatePayload(await storage.live.readAsBytes());
   });
 
@@ -128,15 +134,30 @@ void main() {
         final file = File('${directory.path}/legacy.sqlite');
         await createHistorical(file, fixture);
         var database = AppDatabase.forTesting(NativeDatabase(file));
-        expect(await database.readMetadata('schema_version'), '19');
-        await database.close();
+        late String? version;
+        try {
+          version = await database.readMetadata('schema_version');
+        } finally {
+          await database.close();
+        }
+        expect(version, '20');
         final raw = sqlite.sqlite3.open(file.path);
         try {
           final reference = (jsonDecode(
-            await File('test/fixtures/backup_schema/$fixture-v18.json')
+            await File('test/fixtures/backup_schema/$fixture-v20.json')
                 .readAsString(),
           ) as List).cast<String>();
           expect(SqliteBackupStorage.schema(raw), reference);
+          if (fixture == 'fresh-v16' || fixture == 'fresh-v17') {
+            for (final table in ['commitment_tags', 'account_entry_tags']) {
+              expect(
+                raw
+                    .select('SELECT last_used_at FROM $table')
+                    .single['last_used_at'],
+                1700000000,
+              );
+            }
+          }
           expect(SqliteBackupStorage.schema(raw), isNot(expected));
           expect(
             raw
@@ -167,7 +188,7 @@ void main() {
           await storage.validatePayload(bytes);
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 19),
+            validator: const BackupValidator(currentSchemaVersion: 20),
             rebuildHook: _Rebuild(),
             keyStorage: _NoKeys(),
             encryptor: AesGcmBackupEncryptor(),
@@ -218,6 +239,10 @@ void main() {
 
   final mutations = <String, void Function(sqlite.Database)>{
     'missing table': (db) => db.execute('DROP TABLE actuals'),
+    'missing commitment tag usage column': (db) =>
+        db.execute('ALTER TABLE commitment_tags DROP COLUMN last_used_at'),
+    'missing entry tag usage column': (db) =>
+        db.execute('ALTER TABLE account_entry_tags DROP COLUMN last_used_at'),
     'missing review history guard': (db) =>
         db.execute('DROP TRIGGER relationship_reviews_no_update'),
     'missing review revision index': (db) =>

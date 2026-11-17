@@ -133,6 +133,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(PlanActSpacing.md),
     child: Column(
+      spacing: PlanActSpacing.sm,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(planActL10n(context).smsScanCardBuildChildren),

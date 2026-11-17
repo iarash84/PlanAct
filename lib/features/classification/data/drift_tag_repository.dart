@@ -173,6 +173,47 @@ class DriftTagRepository
   );
 
   @override
+  Future<List<Tag>> mostUsed({int limit = 5}) =>
+      CommandGate.runFor(this, () async {
+        final usageRows = await database
+            .customSelect(
+              '''SELECT t.id,
+                  (SELECT COUNT(*) FROM commitment_tags c WHERE c.tag_id = t.id) +
+                  (SELECT COUNT(*) FROM account_entry_tags a WHERE a.tag_id = t.id)
+                    AS usage_count,
+                  MAX(
+                    COALESCE(
+                      (SELECT MAX(c.last_used_at) FROM commitment_tags c
+                       WHERE c.tag_id = t.id), 0),
+                    COALESCE(
+                      (SELECT MAX(a.last_used_at) FROM account_entry_tags a
+                       WHERE a.tag_id = t.id), 0)
+                  ) AS last_used_at
+           FROM tags t
+           ORDER BY usage_count DESC, last_used_at DESC, t.created_at DESC
+           LIMIT ?''',
+              variables: [Variable.withInt(limit)],
+              readsFrom: {
+                database.tags,
+                database.commitmentTags,
+                database.accountEntryTags,
+              },
+            )
+            .get();
+        final rankById = {
+          for (var index = 0; index < usageRows.length; index++)
+            usageRows[index].read<String>('id'): index,
+        };
+        final tags = await database.select(database.tags).get();
+        tags.sort(
+          (a, b) => (rankById[a.id] ?? usageRows.length).compareTo(
+            rankById[b.id] ?? usageRows.length,
+          ),
+        );
+        return tags.take(limit).map(_toDomain).toList(growable: false);
+      });
+
+  @override
   Future<Set<StableId>> tagsFor(String recordId, TaggableType type) =>
       CommandGate.runFor(this, () async {
         if (type == TaggableType.commitment) {
@@ -236,6 +277,7 @@ class DriftTagRepository
               db.CommitmentTagsCompanion.insert(
                 commitmentId: recordId,
                 tagId: tag.id.value,
+                lastUsedAt: Value(DateTime.now().toUtc()),
               ),
             );
       } else {
@@ -245,6 +287,7 @@ class DriftTagRepository
               db.AccountEntryTagsCompanion.insert(
                 accountEntryId: recordId,
                 tagId: tag.id.value,
+                lastUsedAt: Value(DateTime.now().toUtc()),
               ),
             );
       }

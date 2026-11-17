@@ -1,3 +1,7 @@
+import 'package:planact/features/calendar/domain/calendar_visibility.dart';
+import 'package:planact/features/calendar/domain/calendar_transaction.dart';
+import 'package:planact/features/calendar/presentation/calendar_transaction_tile.dart';
+import 'package:planact/features/finance/presentation/transaction_direction.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/notes/domain/calendar_note.dart';
 import 'package:planact/features/notes/presentation/calendar_note_tile.dart';
@@ -43,6 +47,12 @@ class CalendarPage extends StatefulWidget {
     this.monthLoader,
     this.plannedLoader,
     this.noteLoader,
+    this.visibility = const CalendarVisibility(),
+    this.visibilityReady = true,
+    this.visibilityLoadFailed = false,
+    this.onRetryVisibility,
+    this.transactionLoader,
+    this.onTransactionTap,
     this.notesRevision = 0,
     this.onNoteTap,
     this.checklistRepository,
@@ -51,6 +61,13 @@ class CalendarPage extends StatefulWidget {
     this.bottomContentPadding = 0,
   });
 
+  final CalendarVisibility visibility;
+  final bool visibilityReady;
+  final bool visibilityLoadFailed;
+  final VoidCallback? onRetryVisibility;
+  final Future<List<CalendarTransaction>> Function(LocalDate, LocalDate)?
+  transactionLoader;
+  final ValueChanged<CalendarTransaction>? onTransactionTap;
   final List<Commitment> commitments;
   final double bottomContentPadding;
   final Future<List<CalendarNote>> Function(LocalDate, LocalDate)? noteLoader;
@@ -89,6 +106,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Map<JalaliDate, Map<String, List<Occurrence>>> _monthOccurrences = {};
   Map<String, List<PlannedOccurrenceSlot>> _monthPreviews = {};
   Map<LocalDate, List<CalendarNote>> _monthNotes = {};
+  List<CalendarTransaction> _monthTransactions = [];
   final _monthScroll = ScrollController();
 
   @override
@@ -107,7 +125,10 @@ class _CalendarPageState extends State<CalendarPage> {
   void _groupMonth(Map<String, List<Occurrence>> occurrences) {
     final items = <JalaliDate, Map<String, Commitment>>{};
     final grouped = <JalaliDate, Map<String, List<Occurrence>>>{};
-    for (final item in widget.commitments) {
+    for (final item
+        in widget.visibility.commitments
+            ? widget.commitments
+            : <Commitment>[]) {
       final id = item.id.value;
       void include(JalaliDate date) {
         if (date.year == _month.year && date.month == _month.month) {
@@ -141,16 +162,25 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Future<void> _loadMonth() async {
     final revision = ++_monthRevision;
-    final loader = widget.monthLoader;
-    final plannedLoader = widget.plannedLoader;
-    final noteLoader = widget.noteLoader;
+    final loader = widget.visibility.commitments ? widget.monthLoader : null;
+    final plannedLoader = widget.visibility.commitments
+        ? widget.plannedLoader
+        : null;
+    final noteLoader = widget.visibility.notes ? widget.noteLoader : null;
+    final transactionLoader = widget.visibility.hasFinancialItems
+        ? widget.transactionLoader
+        : null;
+    _monthTransactions = [];
     _monthNotes = {};
     _monthPreviews = {};
     _monthItems = {};
     _monthOccurrences = {};
     _monthError = false;
     _monthLoading =
-        loader != null || plannedLoader != null || noteLoader != null;
+        loader != null ||
+        plannedLoader != null ||
+        noteLoader != null ||
+        transactionLoader != null;
     if (!_monthLoading) {
       _groupMonth(widget.occurrences);
       return;
@@ -160,6 +190,9 @@ class _CalendarPageState extends State<CalendarPage> {
       JalaliDate(_month.year, _month.month, _month.monthLength).toDateTime(),
     );
     try {
+      final transactions =
+          await transactionLoader?.call(start, end.addDays(1)) ??
+          <CalendarTransaction>[];
       final notes =
           await noteLoader?.call(start, end.addDays(1)) ?? <CalendarNote>[];
       final planned = await plannedLoader?.call(start, end.addDays(1));
@@ -170,6 +203,7 @@ class _CalendarPageState extends State<CalendarPage> {
               : await loader(start, end.addDays(1)));
       if (!mounted || revision != _monthRevision) return;
       setState(() {
+        _monthTransactions = transactions;
         _monthPreviews = planned?.preview ?? {};
         _monthNotes = {};
         for (final note in notes) {
@@ -211,6 +245,22 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (!widget.visibilityReady) {
+      return Center(
+        child: widget.visibilityLoadFailed
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(planActL10n(context).calendarVisibilityLoadError),
+                  TextButton(
+                    onPressed: widget.onRetryVisibility,
+                    child: Text(planActL10n(context).commonRetry),
+                  ),
+                ],
+              )
+            : const CircularProgressIndicator(),
+      );
+    }
     final today = JalaliDate.now();
     final holidays = _holidayProvider.holidaysForMonth(
       _month.year,
@@ -220,6 +270,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final cellCount = ((leading + _month.monthLength + 6) ~/ 7) * 7;
     final selectedItems = _commitmentsFor(_selectedDay);
     final selectedNotes = _notesFor(_selectedDay);
+    final selectedTransactions = _transactionsFor(_selectedDay);
 
     final toggle = SizedBox(
       width: double.infinity,
@@ -278,11 +329,23 @@ class _CalendarPageState extends State<CalendarPage> {
         _month = JalaliDate(current.year, current.month, 1);
         if (!_week) _loadMonth();
       }),
-      child: Text(planActL10n(context).calendarPageTodayButtonLabel),
+      child: Text(planActL10n(context).commonToday),
     );
     final dates = WeekTimeline.dates(_selectedDay);
     return Column(
       children: [
+        if (!(widget.visibility.commitments &&
+            widget.visibility.notes &&
+            widget.visibility.income &&
+            widget.visibility.expense &&
+            widget.visibility.transfers))
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
+            child: Text(
+              planActL10n(context).calendarVisibilityFiltered,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: PlanActSpacing.md,
@@ -327,15 +390,27 @@ class _CalendarPageState extends State<CalendarPage> {
                   key: ValueKey(_weekPositionRevision),
                   bottomContentPadding: widget.bottomContentPadding,
                   date: _selectedDay,
-                  commitments: widget.commitments,
+                  commitments: widget.visibility.commitments
+                      ? widget.commitments
+                      : const [],
                   occurrences: widget.occurrences,
                   holidays: _holidayProvider,
-                  loader: widget.weekLoader,
-                  plannedLoader: widget.plannedLoader,
+                  loader: widget.visibility.commitments
+                      ? widget.weekLoader
+                      : null,
+                  plannedLoader: widget.visibility.commitments
+                      ? widget.plannedLoader
+                      : null,
                   onTap: widget.onCommitmentTap,
                   onOccurrenceTap: widget.onOccurrenceTap,
                   onAdd: widget.onAdd,
-                  noteLoader: widget.noteLoader,
+                  noteLoader: widget.visibility.notes
+                      ? widget.noteLoader
+                      : null,
+                  transactionLoader: widget.visibility.hasFinancialItems
+                      ? widget.transactionLoader
+                      : null,
+                  onTransactionTap: widget.onTransactionTap,
                   notesRevision: widget.notesRevision,
                   onNoteTap: widget.onNoteTap,
                 )
@@ -381,7 +456,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     if (!_monthLoading &&
                         !_monthError &&
                         _monthItems.isEmpty &&
-                        _monthNotes.isEmpty)
+                        _monthNotes.isEmpty &&
+                        _monthTransactions.isEmpty)
                       Text(planActL10n(context).calendarPageBuildChildren4),
                     const SizedBox(height: PlanActSpacing.md),
                     LayoutBuilder(
@@ -457,7 +533,9 @@ class _CalendarPageState extends State<CalendarPage> {
                             );
                             final items = _commitmentsFor(date);
                             final itemCount =
-                                items.length + _notesFor(date).length;
+                                items.length +
+                                _notesFor(date).length +
+                                _transactionsFor(date).length;
                             final hasHoliday = holidays.any(
                               (holiday) => holiday.date == date,
                             );
@@ -553,6 +631,9 @@ class _CalendarPageState extends State<CalendarPage> {
                                                 .toList(),
                                             commitments: items,
                                             notes: _notesFor(date),
+                                            transactions: _transactionsFor(
+                                              date,
+                                            ),
                                             markerHeight: markerHeight,
                                             onTap: () => setState(
                                               () => _selectedDay = date,
@@ -596,7 +677,9 @@ class _CalendarPageState extends State<CalendarPage> {
                       ),
                     if (_monthLoading || _monthError)
                       Text(planActL10n(context).calendarPageBuildChildren5)
-                    else if (selectedItems.isEmpty && selectedNotes.isEmpty)
+                    else if (selectedItems.isEmpty &&
+                        selectedNotes.isEmpty &&
+                        selectedTransactions.isEmpty)
                       Text(planActL10n(context).calendarPageBuildChildren6)
                     else
                       ...selectedItems.map(
@@ -629,6 +712,14 @@ class _CalendarPageState extends State<CalendarPage> {
                         ),
                       ),
                     if (!_monthLoading && !_monthError)
+                      for (final item in selectedTransactions)
+                        CalendarTransactionTile(
+                          item: item,
+                          onTap: widget.onTransactionTap == null
+                              ? null
+                              : () => widget.onTransactionTap!(item),
+                        ),
+                    if (!_monthLoading && !_monthError)
                       for (final note in selectedNotes)
                         CalendarNoteTile(
                           note: note,
@@ -654,6 +745,13 @@ class _CalendarPageState extends State<CalendarPage> {
 
   List<Commitment> _commitmentsFor(JalaliDate date) =>
       _monthItems[date] ?? const [];
+
+  List<CalendarTransaction> _transactionsFor(JalaliDate date) =>
+      _monthTransactions
+          .where(
+            (item) => item.date == LocalDate.fromDateTime(date.toDateTime()),
+          )
+          .toList();
 
   List<CalendarNote> _notesFor(JalaliDate date) =>
       _monthNotes[LocalDate.fromDateTime(date.toDateTime())] ?? const [];
@@ -742,6 +840,7 @@ class _CalendarDay extends StatelessWidget {
     required this.holidays,
     required this.commitments,
     required this.notes,
+    required this.transactions,
     required this.markerHeight,
     required this.onTap,
   });
@@ -752,6 +851,7 @@ class _CalendarDay extends StatelessWidget {
   final List<CalendarHoliday> holidays;
   final List<Commitment> commitments;
   final List<CalendarNote> notes;
+  final List<CalendarTransaction> transactions;
   final double markerHeight;
   final VoidCallback onTap;
 
@@ -798,6 +898,10 @@ class _CalendarDay extends StatelessWidget {
       for (final note in notes)
         (id: note.id.value, title: note.title, color: note.color),
     ];
+    final financialLabels = transactions
+        .map((item) => calendarTransactionLabel(context, item))
+        .toList();
+    final markerCount = markers.length + financialLabels.length;
     return Semantics(
       key: ValueKey('calendar-day-${date.day}'),
       button: true,
@@ -805,109 +909,163 @@ class _CalendarDay extends StatelessWidget {
       label:
           '${planActL10n(context).calendarPageBuildLabel2((dateLabel).toString(), (selectionLabel).toString(), (todayLabel).toString(), (holidayLabel).toString(), (countLabel).toString(), (commitments.map((item) => item.title).join(planActL10n(context).commonListSeparator)).toString())} $noteLabel',
       onTap: onTap,
-      child: ExcludeSemantics(
-        child: Material(
-          animationDuration: PlanActMotion.duration(
-            context,
-            PlanActMotion.short,
-          ),
-          color: selected ? scheme.primaryContainer : scheme.surface,
-          borderRadius: PlanActRadius.chip,
-          child: InkWell(
-            onTap: onTap,
+      child: Semantics(
+        label: financialLabels.join(planActL10n(context).commonListSeparator),
+        child: ExcludeSemantics(
+          child: Material(
+            animationDuration: PlanActMotion.duration(
+              context,
+              PlanActMotion.short,
+            ),
+            color: selected ? scheme.primaryContainer : scheme.surface,
             borderRadius: PlanActRadius.chip,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-              decoration: BoxDecoration(
-                borderRadius: PlanActRadius.chip,
-                border: isToday
-                    ? Border.all(color: scheme.primary, width: 2)
-                    : null,
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // A month cell has a finite, text-scale-dependent height. The
-                  // marker stack can legitimately be taller than that height on
-                  // narrow screens, especially with large Persian text. Scale
-                  // the complete cell content as one unit so it remains visible
-                  // without producing a RenderFlex overflow or clipping an
-                  // individual marker.
-                  return FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.topCenter,
-                    child: SizedBox(
-                      width: constraints.maxWidth,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            PersianNumbers.format(date.day),
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: selected || isToday
-                                  ? FontWeight.bold
-                                  : FontWeight.w600,
-                              color: holiday
-                                  ? PlanActStatusColors.of(context).holiday
-                                  : selected
-                                  ? scheme.onPrimaryContainer
-                                  : scheme.onSurface,
-                            ),
-                          ),
-                          if (holiday)
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: PlanActRadius.chip,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: PlanActRadius.chip,
+                  border: isToday
+                      ? Border.all(color: scheme.primary, width: 2)
+                      : null,
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // A month cell has a finite, text-scale-dependent height. The
+                    // marker stack can legitimately be taller than that height on
+                    // narrow screens, especially with large Persian text. Scale
+                    // the complete cell content as one unit so it remains visible
+                    // without producing a RenderFlex overflow or clipping an
+                    // individual marker.
+                    return FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.topCenter,
+                      child: SizedBox(
+                        width: constraints.maxWidth,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                             Text(
-                              planActL10n(context)
-                                  .calendarPageHolidayHeightMessage,
+                              PersianNumbers.format(date.day),
                               textAlign: TextAlign.center,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: PlanActStatusColors.of(context).holiday,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: selected || isToday
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: holiday
+                                    ? PlanActStatusColors.of(context).holiday
+                                    : selected
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurface,
                               ),
                             ),
-                          for (final item in markers.take(2))
-                            Container(
-                              key: ValueKey(
-                                'month-title-${date.day}-${item.id}',
-                              ),
-                              height: markerHeight,
-                              margin: const EdgeInsets.only(top: 2),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: PlanActRadius.chip,
-                                color: CommitmentIdentityPalette.background(
-                                  item.color,
-                                  theme.brightness,
-                                ),
-                              ),
-                              child: Text(
-                                item.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                            if (holiday)
+                              Text(
+                                planActL10n(context)
+                                    .calendarPageHolidayHeightMessage,
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.labelSmall?.copyWith(
-                                  color: CommitmentIdentityPalette.foreground(
+                                  color: PlanActStatusColors.of(context)
+                                      .holiday,
+                                ),
+                              ),
+                            for (final item in markers.take(2))
+                              Container(
+                                key: ValueKey(
+                                  'month-title-${date.day}-${item.id}',
+                                ),
+                                height: markerHeight,
+                                margin: const EdgeInsets.only(top: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: PlanActRadius.chip,
+                                  color: CommitmentIdentityPalette.background(
                                     item.color,
                                     theme.brightness,
                                   ),
                                 ),
+                                child: Text(
+                                  item.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: CommitmentIdentityPalette.foreground(
+                                      item.color,
+                                      theme.brightness,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          if (markers.length > 2)
-                            Text(
-                              '+${PersianNumbers.format(markers.length - 2)}',
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: selected
-                                    ? scheme.onPrimaryContainer
-                                    : scheme.onSurfaceVariant,
+                            for (final item in transactions.take(
+                              math.max(0, 2 - markers.length),
+                            ))
+                              Container(
+                                key: ValueKey(
+                                  'month-transaction-${date.day}-${item.entry.id.value}',
+                                ),
+                                height: markerHeight,
+                                margin: const EdgeInsets.only(top: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: PlanActRadius.chip,
+                                  color:
+                                      item.kind ==
+                                          CalendarTransactionKind.expense
+                                      ? scheme.secondaryContainer
+                                      : transactionDirectionColors(
+                                          context,
+                                          item.entry,
+                                        ).container,
+                                  border: Border.all(
+                                    color:
+                                        item.kind ==
+                                            CalendarTransactionKind.expense
+                                        ? scheme.secondary
+                                        : transactionDirectionColors(
+                                            context,
+                                            item.entry,
+                                          ).foreground,
+                                  ),
+                                ),
+                                child: Text(
+                                  calendarTransactionLabel(context, item),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color:
+                                        item.kind ==
+                                            CalendarTransactionKind.expense
+                                        ? scheme.onSecondaryContainer
+                                        : transactionDirectionColors(
+                                            context,
+                                            item.entry,
+                                          ).foreground,
+                                  ),
+                                ),
                               ),
-                            ),
-                        ],
+                            if (markerCount > 2)
+                              Text(
+                                '+${PersianNumbers.format(markerCount - 2)}',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: selected
+                                      ? scheme.onPrimaryContainer
+                                      : scheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),

@@ -144,7 +144,7 @@ void main() {
       await tester.tap(find.byTooltip('بستن'));
       await settle(tester);
     }
-    await tester.tap(find.byTooltip('گزینه‌های بیشتر'));
+    await tester.tap(find.byIcon(Icons.menu));
     await settle(tester);
     await tapText(tester, 'تاریخچه و بایگانی تعهدها');
     await tapText(tester, 'class');
@@ -320,6 +320,12 @@ void main() {
       expect((await FinanceUseCases(finance).balance(bank)).minorUnits, 0);
       expect(refreshes, 1);
       expect(tester.widget<PopupMenuButton<String>>(menu).enabled, false);
+      final accountsEntry = find.byKey(
+        const ValueKey('finance-accounts-entry'),
+      );
+      await tester.ensureVisible(accountsEntry);
+      await tester.tap(accountsEntry);
+      await settle(tester);
       final accountMenu = find.byKey(ValueKey('account-menu:${bank.id.value}'));
       await tester.ensureVisible(accountMenu);
       await tester.tap(accountMenu);
@@ -343,10 +349,17 @@ void main() {
   );
 
   testWidgets(
-    'Finance correction retains its draft on cancel and reports committed state when consumer refresh fails',
+    'Finance cross-account correction retains selection on cancel and reports committed state when consumer refresh fails',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
+      final destination = FinancialAccount(
+        id: StableId.generate(),
+        name: 'حساب مقصد',
+        currency: 'IRR',
+        type: FinancialAccountType.bank,
+      );
+      await FinanceUseCases(finance).createAccount(destination);
       final entry = await FinanceUseCases(finance).record(
         account: bank,
         type: AccountEntryType.expense,
@@ -372,6 +385,18 @@ void main() {
       await tester.tap(menu);
       await settle(tester);
       await tapText(tester, PersianCopy.financeCorrectAction);
+      final picker = find.byType(DropdownButtonFormField<FinancialAccount>);
+      expect(
+        tester
+            .widget<DropdownButtonFormField<FinancialAccount>>(picker)
+            .initialValue
+            ?.id,
+        bank.id,
+      );
+      await tester.tap(picker);
+      await settle(tester);
+      await tester.tap(find.text('حساب مقصد').last);
+      await settle(tester);
       await tester.enterText(
         find.widgetWithText(TextField, 'مبلغ به ریال'),
         '50',
@@ -381,9 +406,18 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      expect(find.textContaining('اثر خنثی‌کردن'), findsOneWidget);
+      expect(find.textContaining('حساب مقصد'), findsWidgets);
       await tapText(tester, PersianCopy.commonCancel);
       expect((await finance.listEntries()).length, 1);
       expect(find.text('50'), findsOneWidget);
+      expect(
+        tester
+            .widget<DropdownButtonFormField<FinancialAccount>>(picker)
+            .initialValue
+            ?.id,
+        destination.id,
+      );
       await tester.tap(
         find.text(PersianCopy.financePageResultPrimaryLabel).last,
       );
@@ -391,8 +425,32 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       await tapText(tester, PersianCopy.financePageConfirmedActions);
       expect((await finance.listEntries()).length, 3);
-      expect((await FinanceUseCases(finance).balance(bank)).minorUnits, -50);
+      expect((await FinanceUseCases(finance).balance(bank)).minorUnits, 0);
+      expect(
+        (await FinanceUseCases(finance).balance(destination)).minorUnits,
+        -50,
+      );
       expect(find.text(PersianCopy.undoRefreshPending), findsOneWidget);
+      final replacement = (await finance.listEntries()).singleWhere(
+        (e) => e.accountId == destination.id,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(
+            ValueKey('transaction-account:${replacement.id.value}'),
+          ),
+          matching: find.text(destination.name),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('transaction-account:${entry.id.value}')),
+          matching: find.text(bank.name),
+        ),
+        findsOneWidget,
+      );
+
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     },

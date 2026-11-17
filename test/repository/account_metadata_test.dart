@@ -87,7 +87,7 @@ void main() {
     sql.close();
     final storage = SqliteBackupStorage(
       live: live,
-      schemaVersion: 19,
+      schemaVersion: database.schemaVersion,
       expectedSchema: schema,
       snapshot: live.readAsBytes,
       closeLive: () async {},
@@ -103,7 +103,7 @@ void main() {
     );
     expect(restored.identifiers, identifiers);
     expect((await repository.listEntries()).single.amount.minorUnits, -101);
-    expect(database.schemaVersion, 19);
+    expect(database.schemaVersion, 20);
   });
 
   test('fresh admission preserves concurrent status/currency and ledger; stale edit rejects', () async {

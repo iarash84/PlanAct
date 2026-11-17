@@ -88,8 +88,8 @@ const _rows = <String, List<String>>{
     "('expectation','done',0,1500000,'IRR','bank',0,1700000000,1700000001)",
   ],
   'tags': ["('tag','آموزش','آموزش',1700000000)"],
-  'commitment_tags': ["('c','tag')"],
-  'account_entry_tags': ["('payment','tag')"],
+  'commitment_tags': ["('c','tag',1700000100)"],
+  'account_entry_tags': ["('payment','tag',1700000200)"],
   'staged_imports': [
     "('sms','PRIVATE_RAW_SMS','fingerprint',0,NULL,NULL,0,'source-key',1700000000,'test',0)",
   ],
@@ -165,7 +165,7 @@ void main() {
           sql.close();
           final storage = SqliteBackupStorage(
             live: live,
-            schemaVersion: 19,
+            schemaVersion: 20,
             expectedSchema: schema,
             snapshot: live.readAsBytes,
             closeLive: () async {},
@@ -173,7 +173,7 @@ void main() {
           final rebuild = _Rebuild()..failOnce = rollback;
           final service = BackupService(
             storage: storage,
-            validator: const BackupValidator(currentSchemaVersion: 19),
+            validator: const BackupValidator(currentSchemaVersion: 20),
             rebuildHook: rebuild,
             keyStorage: _Keys(),
             encryptor: AesGcmBackupEncryptor(),

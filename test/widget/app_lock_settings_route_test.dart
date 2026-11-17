@@ -87,7 +87,11 @@ class _HostState extends State<_Host> {
       ),
     ),
     home: loaded
-        ? HomeShell(appLockEnabled: enabled, onAppLockChanged: change)
+        ? HomeShell(
+            settings: widget.settings,
+            appLockEnabled: enabled,
+            onAppLockChanged: change,
+          )
         : const Scaffold(body: CircularProgressIndicator()),
   );
 }

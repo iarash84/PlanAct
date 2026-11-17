@@ -46,13 +46,25 @@ void main() {
     repository.fail = true;
     await tester.drag(find.byType(Scrollable).first, const Offset(0, 400));
     await tester.pumpAndSettle();
-    expect(find.text('هنوز حسابی ثبت نشده است.'), findsOneWidget);
     expect(
       find.text('اطلاعات نمایش‌داده‌شده ممکن است قدیمی باشد.'),
       findsOneWidget,
     );
 
+    await tester.scrollUntilVisible(
+      find.text('هنوز حسابی ثبت نشده است.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('هنوز حسابی ثبت نشده است.'), findsOneWidget);
     repository.fail = false;
+    await tester.scrollUntilVisible(
+      find.text('تلاش دوباره'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('تلاش دوباره'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تلاش دوباره'));
     await tester.pumpAndSettle();
     expect(
