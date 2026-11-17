@@ -94,6 +94,224 @@ void main() {
     await directory.delete(recursive: true);
   });
 
+  testWidgets(
+    'queue partial allocation stays, independent advances, Back stops',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final other = AccountEntry(
+        id: StableId.generate(),
+        accountId: transaction.accountId,
+        type: AccountEntryType.expense,
+        amount: const Money(minorUnits: 2000, currency: 'IRR'),
+        occurredAt: transaction.occurredAt.subtract(const Duration(days: 1)),
+        note: 'مورد دوم صف',
+      );
+      await finance.saveEntry(other);
+      await tester.pumpWidget(
+        PlanActApp(repository: commitments, planRepository: plans),
+      );
+      await tester.pumpAndSettle();
+      final group = find.byKey(
+        const PageStorageKey('today-attention:تعیین ارتباط'),
+      );
+      await tester.ensureVisible(group);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: group, matching: find.text('تعیین ارتباط')),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('صف بررسی ارتباط تراکنش‌ها'));
+      await tester.tap(find.text('صف بررسی ارتباط تراکنش‌ها'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(TextButton, 'بررسی تکی ارتباط').first,
+      );
+      await tester.tap(
+        find.widgetWithText(TextButton, 'بررسی تکی ارتباط').first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('۱ مورد بعد'), findsOneWidget);
+      await tester.ensureVisible(find.text('کلاس موسیقی'));
+      await tester.tap(find.text('کلاس موسیقی'));
+      final amount = find.byWidgetPredicate(
+        (w) =>
+            w is TextField &&
+            (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+      );
+      await tester.enterText(amount, '400');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.ensureVisible(find.text('تأیید ارتباط'));
+      await tester.tap(find.text('تأیید ارتباط'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TransactionRelationshipPage>(
+              find.byType(TransactionRelationshipPage),
+            )
+            .transactionId,
+        transaction.id,
+      );
+      expect((await flow.load(transaction.id)).available.minorUnits, 600);
+      await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+      await tester.tap(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TransactionRelationshipPage>(
+              find.byType(TransactionRelationshipPage),
+            )
+            .transactionId,
+        other.id,
+      );
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(TransactionRelationshipPage), findsNothing);
+      expect((await flow.load(other.id)).review!.isIndependent, false);
+      expect(await finance.listEntries(), hasLength(2));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'Inbox rejection opens next; validation and cancellation do not advance',
+    (tester) async {
+      final inbox = InboxUseCases(DriftInboxRepository(database));
+      for (var index = 0; index < 3; index++) {
+        await inbox.stageSms(
+          rawText:
+              'مبلغ: ۲۵۰۰ ریال; نوع: برداشت; تاریخ: 2026-09-20; ساعت: 00:00',
+          sourceKey: 'sequence:$index',
+          currency: 'IRR',
+          importedAt: DateTime.utc(2026, 9, 20, index),
+        );
+      }
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: PlanActTheme.light(),
+          home: Scaffold(
+            body: InboxPage(inbox: inbox, finance: finance),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('تأیید و ثبت').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید و ثبت').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('۲ مورد بعد'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'رد کردن').last);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('۱ مورد بعد'), findsOneWidget);
+      expect(
+        (await inbox.repository.listSuggestions()).where(
+          (s) => s.status.name == 'rejected',
+        ),
+        hasLength(1),
+      );
+      await tester.ensureVisible(find.text('تأیید نهایی'));
+      await tester.tap(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('۱ مورد بعد'), findsOneWidget);
+      await tester.ensureVisible(
+        find.byType(DropdownButtonFormField<FinancialAccount>),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(DropdownButtonFormField<FinancialAccount>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('حساب آزمون').last);
+      await tester.pumpAndSettle();
+      final acknowledgement = find.text(
+        'ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.',
+      );
+      await tester.ensureVisible(acknowledgement);
+      await tester.pumpAndSettle();
+      await tester.tap(acknowledgement);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('تأیید نهایی'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('۰ مورد بعد'), findsOneWidget);
+      expect(
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(
+                CheckboxListTile,
+                'ثبت مالی به‌عنوان هزینه را تأیید می‌کنم.',
+              ),
+            )
+            .value,
+        isFalse,
+      );
+      expect(
+        tester
+            .widget<DropdownButtonFormField<FinancialAccount>>(
+              find.byType(DropdownButtonFormField<FinancialAccount>),
+            )
+            .initialValue,
+        isNull,
+      );
+      await tester.tap(find.widgetWithText(OutlinedButton, 'انصراف').last);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('بررسی پیوسته؛'), findsNothing);
+      expect(await finance.listEntries(), hasLength(2));
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('full queue allocation returns a completion result', (
+    tester,
+  ) async {
+    bool? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PlanActTheme.light(),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              child: const Text('شروع بررسی'),
+              onPressed: () async {
+                result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => TransactionRelationshipPage(
+                      transactionId: transaction.id,
+                      flow: flow,
+                      reviewRemaining: 0,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('شروع بررسی'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('کلاس موسیقی'));
+    await tester.enterText(
+      find.byWidgetPredicate(
+        (w) =>
+            w is TextField &&
+            (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+      ),
+      '1000',
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.ensureVisible(find.text('تأیید ارتباط'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تأیید ارتباط'));
+    await tester.pumpAndSettle();
+    expect(result, isTrue);
+    expect(find.byType(TransactionRelationshipPage), findsNothing);
+    expect((await flow.load(transaction.id)).available.minorUnits, 0);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   test(
     'relationship and transaction context survive file database restart',
     () async {

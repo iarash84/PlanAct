@@ -934,6 +934,25 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             repository as RelationshipReviewRepository,
           ),
           onOpen: _openRelationship,
+          onReview: (id, remaining) async {
+            final completed = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(
+                builder: (_) => TransactionRelationshipPage(
+                  transactionId: id,
+                  reviewRemaining: remaining,
+                  flow: ContextualReconciliation(
+                    finance: _financeRepository,
+                    commitments: _repository,
+                    plans: _planRepository,
+                    reconciliation: _reconciliation,
+                  ),
+                ),
+              ),
+            );
+            await _refresh();
+            await _financePageKey.currentState?.refreshData();
+            return completed;
+          },
           onDataChanged: () async {
             await _refresh();
             await _financePageKey.currentState?.refreshData();

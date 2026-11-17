@@ -183,6 +183,7 @@ void main() {
                     'finance-account-management-2026-11-14',
                     'quick-financial-options-2026-11-16',
                     'sms-detection-2026-11-16',
+                    'sequential-review-2026-11-17',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

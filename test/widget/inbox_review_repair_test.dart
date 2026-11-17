@@ -90,6 +90,11 @@ void main() {
         ),
         hasLength(2),
       );
+      // Successful rejection now opens the remaining eligible suggestion.
+      // Exit that review before asserting the underlying refreshed list.
+      expect(find.textContaining('بررسی پیوسته؛'), findsOneWidget);
+      await tester.tap(find.widgetWithText(OutlinedButton, 'انصراف').last);
+      await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('رد کردن'));

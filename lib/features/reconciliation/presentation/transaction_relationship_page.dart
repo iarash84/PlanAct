@@ -23,7 +23,9 @@ class TransactionRelationshipPage extends StatefulWidget {
     required this.transactionId,
     required this.flow,
     this.onOpenQueue,
+    this.reviewRemaining,
   });
+  final int? reviewRemaining;
   final StableId transactionId;
   final ContextualReconciliation flow;
   final Future<void> Function()? onOpenQueue;
@@ -115,8 +117,20 @@ class _TransactionRelationshipPageState
       );
       if (mounted) {
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
-        setState(() => _saving = false);
-        Navigator.of(context).pop(true);
+        setState(() {
+          _saving = false;
+          _dirty = true;
+        });
+        if (widget.reviewRemaining != null &&
+            amount < _context!.available.minorUnits) {
+          _amount.clear();
+          setState(() => _selected = null);
+          await _load();
+        } else {
+          setState(() => _leaving = true);
+          await WidgetsBinding.instance.endOfFrame;
+          if (mounted) Navigator.of(context).pop(true);
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -144,6 +158,45 @@ class _TransactionRelationshipPageState
           ? await widget.flow.markIndependent(expected: snapshot)
           : await widget.flow.reopen(expected: snapshot);
       if (!mounted) return;
+      if (independent && widget.reviewRemaining != null) {
+        final messenger = ScaffoldMessenger.of(context);
+        final flow = widget.flow;
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: const Text(
+                PersianCopy.transactionRelationshipPageDecideContent,
+              ),
+              action: SnackBarAction(
+                label: PersianCopy.inboxPageRejectLabel,
+                onPressed: () async {
+                  try {
+                    await flow.reopen(expected: review);
+                  } catch (_) {
+                    if (messenger.mounted) {
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            PersianCopy
+                                .transactionRelationshipPageDecideMessage,
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+            ),
+          );
+        setState(() {
+          _saving = false;
+          _leaving = true;
+        });
+        await WidgetsBinding.instance.endOfFrame;
+        if (mounted) Navigator.of(context).pop(true);
+        return;
+      }
       final previous = _context!;
       setState(() {
         _saving = false;
@@ -187,7 +240,10 @@ class _TransactionRelationshipPageState
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     setState(() => _leaving = true);
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.of(context).pop(_dirty ? true : null);
+    if (mounted) {
+      Navigator.of(context)
+          .pop(widget.reviewRemaining != null ? null : (_dirty ? true : null));
+    }
   }
 
   Future<void> _removeMatch(TransactionMatch match) async {
@@ -294,6 +350,12 @@ class _TransactionRelationshipPageState
             : ListView(
                 padding: const EdgeInsets.all(PlanActSpacing.lg),
                 children: [
+                  if (widget.reviewRemaining != null)
+                    Text(
+                      planActL10n(context).sequentialReviewRemaining(
+                        PersianNumbers.format(widget.reviewRemaining!),
+                      ),
+                    ),
                   if (widget.onOpenQueue != null)
                     OutlinedButton.icon(
                       onPressed: _saving

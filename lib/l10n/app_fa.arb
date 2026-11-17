@@ -1,4 +1,22 @@
 {
+  "sequentialReviewFinished": "بررسی این نوبت تمام شد.",
+  "@sequentialReviewFinished": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "Feedback when the captured sequential review queue has no remaining eligible items. New arrivals are not included."
+  },
+  "sequentialReviewFailed": "تصمیم ثبت‌شده حفظ شد، اما بازکردن مورد بعدی ممکن نشد. فهرست را تازه کنید و دوباره ادامه دهید.",
+  "@sequentialReviewFailed": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "A committed review remains saved but loading the next eligible item failed; refresh the list to resume."
+  },
+  "sequentialReviewRemaining": "بررسی پیوسته؛ {count} مورد بعد از این باقی مانده است. برای خروج، بازگشت یا لغو را بزنید.",
+  "@sequentialReviewRemaining": {
+    "x-planact-introduced": "sequential-review-2026-11-17",
+    "description": "Explains sequential review, remaining snapshot candidates and how to exit without deciding another item.",
+    "placeholders": {
+      "count": { "type": "String", "description": "Localized remaining candidate count; eligibility is rechecked before opening." }
+    }
+  },
   "bankBalanceBackdatedBlocked": "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.",
   "@bankBalanceBackdatedBlocked": {
     "x-planact-introduced": "bank-balance-2026-11-11",

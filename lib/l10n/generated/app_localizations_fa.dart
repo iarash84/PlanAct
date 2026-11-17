@@ -10,6 +10,18 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get sequentialReviewFinished => 'بررسی این نوبت تمام شد.';
+
+  @override
+  String get sequentialReviewFailed =>
+      'تصمیم ثبت‌شده حفظ شد، اما بازکردن مورد بعدی ممکن نشد. فهرست را تازه کنید و دوباره ادامه دهید.';
+
+  @override
+  String sequentialReviewRemaining(String count) {
+    return 'بررسی پیوسته؛ $count مورد بعد از این باقی مانده است. برای خروج، بازگشت یا لغو را بزنید.';
+  }
+
+  @override
   String get bankBalanceBackdatedBlocked =>
       'این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.';
 
