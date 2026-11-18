@@ -9,6 +9,7 @@ import java.security.MessageDigest
 class BankSmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
+        SmsBackgroundRuntime.wake(context.applicationContext)
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
         if (messages.isEmpty()) return
         // The Android API can deliver one multipart SMS as several PDUs. Join it

@@ -4,6 +4,10 @@ import 'package:planact/core/localization/persian_copy.g.dart';
 
 import 'dart:io';
 
+import 'package:planact/features/inbox/data/sms_background_runtime.dart';
+import 'package:planact/features/inbox/data/drift_sms_detection_notification_store.dart';
+import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
+
 import 'package:planact/features/calendar/application/holiday_package_service.dart';
 import 'package:planact/features/calendar/data/sqlite_holiday_package_store.dart';
 import 'package:planact/features/calendar/data/file_holiday_package_source.dart';
@@ -36,6 +40,7 @@ class BackupApplicationScope extends StatefulWidget {
     this.directory,
     this.synchronizeReminders,
     this.clearNotifications,
+    this.smsRuntime = const SmsBackgroundRuntime(),
   });
 
   // Native defaults remain production-owned; isolated tests inject only the
@@ -43,6 +48,7 @@ class BackupApplicationScope extends StatefulWidget {
   final Future<Directory> Function()? directory;
   final Future<void> Function(AppDatabase database)? synchronizeReminders;
   final Future<void> Function()? clearNotifications;
+  final SmsBackgroundRuntime smsRuntime;
   @override
   State<BackupApplicationScope> createState() => _BackupApplicationScopeState();
 }
@@ -105,6 +111,8 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
           await (widget.directory?.call() ??
               getApplicationDocumentsDirectory());
       _live = File('${directory.path}/planact.sqlite');
+      await widget.smsRuntime.configure(_live.path);
+      await widget.smsRuntime.suspend();
       _holidayPackages = HolidayPackageService(
         SqliteHolidayPackageStore(
           File('${directory.path}/holiday-packages.sqlite'),
@@ -142,7 +150,10 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
       // for this application lifecycle.
       if (recovering) await storage.restoreSafetySnapshot();
       await _open();
-      if (recovering) await _clearNotifications();
+      if (recovering) {
+        await _suppressRestoredSmsNotifications();
+        await _clearNotifications();
+      }
       try {
         await _synchronizeReminders();
       } on ReminderPermissionUnavailable {
@@ -152,6 +163,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
         _message = PersianCopy.backupApplicationScopeStartMessage2;
       }
       if (recovering) await storage.clearRecoveryMarker();
+      await _resumeSms();
       const keys = SecureBackupKeys();
       final service = BackupService(
         storage: storage,
@@ -208,10 +220,43 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
     ).reconcile(now: DateTime.now().toUtc());
   }
 
+  Future<void> _resumeSms() async {
+    if (_disposed || await File('${_live.path}.restore-marker').exists()) {
+      throw StateError('SMS rebind requires committed database');
+    }
+    await widget.smsRuntime.configure(_live.path);
+    await widget.smsRuntime.resume();
+  }
+
+  Future<void> _suppressRestoredSmsNotifications() async {
+    final store = DriftSmsDetectionNotificationStore(_owner!.database);
+    final raw = await store.read();
+    if (raw == null) return;
+    final state = SmsDetectionNotificationState.decode(raw);
+    await store.compareAndWrite(
+      raw,
+      state
+          .copy(
+            backlog: [],
+            delivered: {
+              ...state.delivered,
+              ...state.eligible,
+              ...state.members,
+              for (final batch in state.backlog) ...batch.members,
+            },
+            visible: {},
+            attempted: true,
+            isDismissed: true,
+          )
+          .encode(),
+    );
+  }
+
   @override
   Future<void> rebuild() async {
     await _close();
     await _open();
+    await _suppressRestoredSmsNotifications();
     // Restored platform IDs are not authoritative; cancel the old installation
     // queue before deterministic reconciliation on the replacement state.
     await _clearNotifications();
@@ -228,9 +273,12 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
     // Admission closes before yielding. Disposal is not command completion:
     // admitted commands must finish all writes and platform effects first.
     final drained = _owner!.commands.retire();
+    var smsSuspended = false;
     try {
       await WidgetsBinding.instance.endOfFrame;
       await drained;
+      await widget.smsRuntime.suspend();
+      smsSuspended = true;
       if (widget.synchronizeReminders == null) {
         await AndroidReminderPlatformAdapter().suspendAlarms();
       }
@@ -259,6 +307,7 @@ class _BackupApplicationScopeState extends State<BackupApplicationScope>
           } on ReminderPermissionUnavailable {
             _message = PersianCopy.backupApplicationScopeStartMessage2;
           }
+          if (smsSuspended) await _resumeSms();
         } catch (_) {
           await _close();
         }

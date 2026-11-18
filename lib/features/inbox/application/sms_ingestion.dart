@@ -242,7 +242,12 @@ class SmsIngestion {
     Future<void> Function(InboxSuggestion)? onDetected,
     DateTime Function()? now,
     bool Function()? canRun,
+    int? maxPages,
+    DateTime Function()? notificationNow,
   }) {
+    if (maxPages != null && maxPages < 1) {
+      throw ArgumentError.value(maxPages, 'maxPages');
+    }
     bool stopped() => _cancelled || (canRun != null && !canRun());
     if (canRun != null && !canRun()) return Future.value();
     _cancelled = false;
@@ -273,7 +278,11 @@ class SmsIngestion {
         saved = scan.encode();
       }
       onProgress(scan);
-      while (!stopped() && !scan.complete) {
+      var pages = 0;
+      while (!stopped() &&
+          !scan.complete &&
+          (maxPages == null || pages < maxPages)) {
+        pages++;
         final page = await source.readPage(
           from: scan.from,
           until: scan.until,
@@ -296,6 +305,9 @@ class SmsIngestion {
                 sourceAddress: row.message!.address,
                 currency: 'IRR',
                 importedAt: row.message!.receivedAt,
+                notificationDetectedAt: scan.newOnly
+                    ? (notificationNow ?? now ?? DateTime.now)()
+                    : null,
               );
               if (scan.newOnly && onDetected != null) {
                 await onDetected(suggestion);

@@ -10,6 +10,16 @@ import java.util.concurrent.Executors
 internal object AlarmBridge {
     private val worker = Executors.newSingleThreadExecutor()
     fun handle(context: Context, call: MethodCall, result: MethodChannel.Result) {
+        if (call.method == "suspend") {
+            SmsBackgroundRuntime.suspendForRestore(context, result) {
+                execute(context, call, result)
+            }
+            return
+        }
+        execute(context, call, result)
+    }
+
+    private fun execute(context: Context, call: MethodCall, result: MethodChannel.Result) {
         worker.execute {
             try {
                 val store = AlarmStore(context)

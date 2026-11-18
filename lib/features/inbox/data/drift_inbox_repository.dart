@@ -14,6 +14,8 @@ import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/sms_ingestion.dart';
+import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
+import 'package:planact/features/inbox/data/drift_sms_detection_notification_store.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -208,9 +210,11 @@ class DriftInboxRepository
   Future<InboxSuggestion> stageAtomically({
     required StagedImport staged,
     required InboxSuggestion suggestion,
+    DateTime? notificationDetectedAt,
   }) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await _admitScanWriter();
       final imports = await listImports();
       final sourceDuplicate = imports.where(
         (item) =>
@@ -239,6 +243,16 @@ class DriftInboxRepository
       }
       await saveImport(staged);
       await saveSuggestion(suggestion);
+      if (notificationDetectedAt != null) {
+        final key = DriftSmsDetectionNotificationStore.metadataKey;
+        final state = SmsDetectionNotificationState.decode(
+          await database.readMetadata(key),
+        );
+        await database.writeMetadata(
+          key,
+          state.stage(suggestion.id.value, notificationDetectedAt).encode(),
+        );
+      }
       return suggestion;
     }),
   );

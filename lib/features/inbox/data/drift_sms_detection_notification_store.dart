@@ -3,9 +3,14 @@ import 'package:planact/core/database/app_database.dart';
 import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
 
 class DriftSmsDetectionNotificationStore
-    implements SmsDetectionNotificationStore {
+    implements
+        SmsDetectionNotificationStore,
+        AtomicSmsDetectionNotificationStore,
+        CommandGateProvider {
   DriftSmsDetectionNotificationStore(this.database);
   final AppDatabase database;
+  @override
+  CommandGate? get commandGate => CommandGate.forOwner(database);
   static const metadataKey = 'sms_detection_notifications_v1';
 
   @override

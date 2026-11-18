@@ -8,9 +8,8 @@ import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
   test(
-    'notification channel uses review hints and never includes source SMS',
+    'generic-only channel ignores legacy disclosure and carries batch protocol',
     () async {
       final calls = <MethodCall>[];
       final messenger =
@@ -19,7 +18,7 @@ void main() {
         AndroidSmsDetectionNotifications.channel,
         (call) async {
           calls.add(call);
-          return null;
+          return call.method == 'show' ? false : true;
         },
       );
       addTearDown(
@@ -28,27 +27,38 @@ void main() {
           null,
         ),
       );
-      final database = AppDatabase.forTesting(NativeDatabase.memory());
-      addTearDown(database.close);
-      final inbox = InboxUseCases(DriftInboxRepository(database));
-      final item = await inbox.stageSms(
-        rawText: 'برداشت مبلغ ۲۵۰۰',
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final item = await InboxUseCases(DriftInboxRepository(db)).stageSms(
+        rawText: 'برداشت مبلغ 1000',
         sourceKey: 'android-sms:1',
         currency: 'IRR',
         importedAt: DateTime.utc(2026),
       );
       final platform = AndroidSmsDetectionNotifications();
       await platform.show([item], showAmounts: true);
-      var payload = calls.last.arguments as Map;
-      expect(payload['target'], item.id.value);
-      expect(payload['body'], isNot(contains('۲٬۵۰۰')));
-      expect(payload['body'], isNot(contains('برداشت')));
-      expect(payload['generic'], isNot(contains('۲۵۰۰')));
-      await platform.show([item, item], showAmounts: true);
-      payload = calls.last.arguments as Map;
-      expect(payload['target'], 'pending');
-      expect(payload['body'], isNot(contains('۲۵۰۰')));
-      expect(calls.every((call) => call.method == 'show'), isTrue);
+      expect(calls.last.arguments, {'batchId': item.id.value, 'silent': true});
+      expect(
+        await platform.showBatch(batchId: 'opaque', silent: false),
+        isFalse,
+      );
+      expect(calls.last.arguments, {'batchId': 'opaque', 'silent': false});
+      expect(await platform.dismissed(batchId: 'opaque'), isTrue);
+      expect(calls.last.method, 'dismissed');
+      await platform.dismiss(batchId: 'opaque');
+      expect(calls.last.arguments, {'batchId': 'opaque'});
+      await platform.cancel();
+      expect(calls.last.method, 'cancel');
+      expect(await platform.permitted(), isTrue);
+      for (final call in calls) {
+        final args = call.arguments;
+        if (args is Map) {
+          expect(
+            args.keys.every((key) => ['batchId', 'silent'].contains(key)),
+            isTrue,
+          );
+        }
+      }
     },
   );
 }
