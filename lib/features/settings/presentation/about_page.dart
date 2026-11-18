@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
-import 'package:planact/core/localization/persian_numbers.dart';
+
+import 'app_version_info.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key, this.loadPackageInfo = PackageInfo.fromPlatform});
@@ -18,12 +19,10 @@ class AboutPage extends StatefulWidget {
 
 class _AboutPageState extends State<AboutPage> {
   static bool _licenseRegistered = false;
-  late Future<PackageInfo> _packageInfo;
 
   @override
   void initState() {
     super.initState();
-    _packageInfo = widget.loadPackageInfo();
     if (!_licenseRegistered) {
       LicenseRegistry.addLicense(() async* {
         final text = await rootBundle.loadString('assets/licenses/planact.txt');
@@ -88,52 +87,11 @@ class _AboutPageState extends State<AboutPage> {
               title: planActL10n(context).aboutPageBuildTitle4,
               text: planActL10n(context).aboutPageBuildText5,
             ),
-            FutureBuilder<PackageInfo>(
-              future: _packageInfo,
-              builder: (context, snapshot) {
-                final info = snapshot.data;
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(PlanActSpacing.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          planActL10n(context).aboutPageBuildChildren2,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: PlanActSpacing.sm),
-                        if (snapshot.hasError) ...[
-                          Semantics(
-                            liveRegion: true,
-                            child: Text(
-                              planActL10n(context).aboutPageBuildChildren3,
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => setState(() {
-                              _packageInfo = widget.loadPackageInfo();
-                            }),
-                            icon: const Icon(Icons.refresh),
-                            label: Text(planActL10n(context).commonRetry),
-                          ),
-                        ] else if (info == null)
-                          Text(planActL10n(context).aboutPageBuildChildren4)
-                        else
-                          Text(
-                            planActL10n(context).aboutPageBuildChildren5(
-                              (PersianNumbers.format(info.version)).toString(),
-                              (info.buildNumber.isEmpty
-                                      ? planActL10n(context).commonUnknown
-                                      : PersianNumbers.format(info.buildNumber))
-                                  .toString(),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(PlanActSpacing.lg),
+                child: AppVersionInfo(loadPackageInfo: widget.loadPackageInfo),
+              ),
             ),
             const SizedBox(height: PlanActSpacing.xl),
             _AboutSection(

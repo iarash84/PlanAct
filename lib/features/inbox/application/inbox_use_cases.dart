@@ -29,6 +29,7 @@ abstract interface class AtomicInboxStaging {
   Future<InboxSuggestion> stageAtomically({
     required StagedImport staged,
     required InboxSuggestion suggestion,
+    DateTime? notificationDetectedAt,
   });
 
   Future<void> rejectAtomically(StableId suggestionId);
@@ -492,6 +493,7 @@ class InboxUseCases {
     required String currency,
     String? sourceAddress,
     DateTime? importedAt,
+    DateTime? notificationDetectedAt,
   }) => CommandGate.runFor(repository, () async {
     final normalized = rawText.trim();
     final fingerprint = sha256.convert(utf8.encode(normalized)).toString();
@@ -600,7 +602,11 @@ class InboxUseCases {
       ),
     );
     if (repository case final AtomicInboxStaging atomic) {
-      return atomic.stageAtomically(staged: staged, suggestion: suggestion);
+      return atomic.stageAtomically(
+        staged: staged,
+        suggestion: suggestion,
+        notificationDetectedAt: notificationDetectedAt,
+      );
     }
     await repository.saveImport(staged);
     await repository.saveSuggestion(suggestion);

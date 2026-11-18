@@ -177,7 +177,26 @@ void main() {
               child: AccountInformationCard(
                 account: account,
                 balance: const Money(minorUnits: -123456789, currency: 'IRR'),
-                operations: const SizedBox(),
+                operations: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'تراکنش‌ها',
+                      onPressed: () {},
+                      icon: const Icon(Icons.receipt_long_outlined),
+                    ),
+                    IconButton(
+                      tooltip: 'ویرایش',
+                      onPressed: () {},
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
+                    PopupMenuButton<String>(
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'archive', child: Text('بایگانی')),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             dark: dark,
@@ -191,6 +210,13 @@ void main() {
         );
         expect(find.text(PersianNumbers.format('•••• 0018')), findsOneWidget);
         expect(find.text('بانکی · بانک ملی'), findsOneWidget);
+        final nameRect = tester.getRect(find.text(account.name));
+        final editRect = tester.getRect(find.byTooltip('ویرایش'));
+        expect(editRect.center.dy, closeTo(nameRect.center.dy, 1));
+        expect(editRect.right, lessThanOrEqualTo(nameRect.left));
+        expect(editRect.width, greaterThanOrEqualTo(48));
+        expect(editRect.height, greaterThanOrEqualTo(48));
+        expect(tester.takeException(), isNull);
         expect(
           find.text('−۱۲۳,۴۵۶,۷۸۹ ریال'),
           findsNothing,

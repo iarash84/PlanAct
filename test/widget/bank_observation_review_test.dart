@@ -59,8 +59,8 @@ void main() {
             ),
           ),
         );
-        expect(find.textContaining('شاهد ناقص است'), findsOneWidget);
-        await tester.tap(find.text('بررسی شاهد مانده'));
+        expect(find.textContaining('گزارش موجودی ناقص است'), findsOneWidget);
+        await tester.tap(find.text('بررسی گزارش موجودی'));
         await tester.pumpAndSettle();
         expect(find.byType(BankObservationReview), findsOneWidget);
         await tester.enterText(find.byType(TextField), '250');
@@ -73,19 +73,21 @@ void main() {
               .revision,
           0,
         );
-        await tester.tap(find.text('بررسی شاهد مانده'));
+        await tester.tap(find.text('بررسی گزارش موجودی'));
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField), '250');
-        await tester.tap(find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'));
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
+        );
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         await tester.pumpAndSettle();
         expect(snapshot.observations.single.sourceAmount, 250);
         expect(snapshot.observations.single.revision, 1);
         expect(await repo.listEntries(), isEmpty);
-        await tester.tap(find.text('بررسی شاهد مانده'));
+        await tester.tap(find.text('بررسی گزارش موجودی'));
         await tester.pumpAndSettle();
         // Another admitted writer advances the revision while the form is open.
         await repo.reviewBankObservation(
@@ -97,10 +99,12 @@ void main() {
           active: true,
         );
         await tester.enterText(find.byType(TextField), '300');
-        await tester.tap(find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'));
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
+        );
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         await tester.pumpAndSettle();
         expect(find.byType(BankObservationReview), findsOneWidget);

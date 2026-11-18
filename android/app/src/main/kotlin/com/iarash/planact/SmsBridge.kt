@@ -58,10 +58,15 @@ object SmsBridge {
         context.checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED &&
             context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED
 
-    fun configureMethods(activity: Activity, call: MethodCall, result: MethodChannel.Result) {
+    fun configureMethods(context: Context, call: MethodCall, result: MethodChannel.Result) {
+        val activity = context as? Activity
         when (call.method) {
-            "hasAccess" -> result.success(hasAccess(activity))
+            "hasAccess" -> result.success(hasAccess(context))
             "openSettings" -> {
+                if (activity == null) {
+                    result.error("activity_required", "Permission UI requires an activity", null)
+                    return
+                }
                 try {
                     openApplicationSettings(activity)
                     result.success(null)
@@ -70,6 +75,10 @@ object SmsBridge {
                 }
             }
             "requestAccess" -> {
+                if (activity == null) {
+                    result.error("activity_required", "Permission UI requires an activity", null)
+                    return
+                }
                 if (hasAccess(activity)) {
                     result.success(true)
                 } else if (activity.isFinishing || activity.isDestroyed) {
@@ -131,7 +140,7 @@ object SmsBridge {
                     result.error("invalid_sms_bounds", "Explicit SMS bounds are required", null)
                     return
                 }
-                val context = activity.applicationContext
+                val context = context.applicationContext
                 reader.execute {
                     try {
                         if (!hasAccess(context)) throw SecurityException()

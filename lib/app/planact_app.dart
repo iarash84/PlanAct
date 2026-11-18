@@ -85,6 +85,7 @@ import 'package:planact/features/finance/presentation/finance_page.dart';
 import 'package:planact/features/finance/presentation/financial_expectation_editor.dart';
 import 'package:planact/features/help/presentation/help_faq_page.dart';
 import 'package:planact/features/settings/presentation/about_page.dart';
+import 'package:planact/features/settings/presentation/app_version_info.dart';
 import 'package:planact/features/settings/presentation/settings_page.dart';
 import 'package:planact/features/scheduling/application/occurrence_actions.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_action_row.dart';
@@ -1790,9 +1791,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       repository: _tagRepository,
       onChanged: _tagsChanged,
     ),
-    onAbout: () =>
-        Navigator.of(context)
-            .push(MaterialPageRoute<void>(builder: (_) => const AboutPage())),
+    onAbout: _openAbout,
   );
 
   Future<void> _openAccounts() async {
@@ -1812,6 +1811,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
     if (mounted) await _refresh();
   }
+
+  Future<void> _openAbout() => Navigator.of(context)
+      .push<void>(MaterialPageRoute<void>(builder: (_) => const AboutPage()));
 
   Future<void> _openHelp() => Navigator.of(context)
       .push<void>(MaterialPageRoute<void>(builder: (_) => const HelpFaqPage()));
@@ -1848,6 +1850,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           onInbox: _openInbox,
           onHelp: _openHelp,
           onSettings: _openSettings,
+          onAbout: _openAbout,
         ),
       ),
       transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
@@ -2148,14 +2151,17 @@ Widget _buildNavigationDrawer(
   required VoidCallback onInbox,
   required VoidCallback onHelp,
   required VoidCallback onSettings,
+  required VoidCallback onAbout,
 }) => Drawer(
   child: SafeArea(
     child: ListView(
-      padding: EdgeInsets.zero,
+      key: const ValueKey('navigation-drawer-scroll'),
+      padding: const EdgeInsets.all(PlanActSpacing.md),
       children: [
-        DrawerHeader(
+        Padding(
+          padding: const EdgeInsets.all(PlanActSpacing.sm),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 key: const ValueKey('navigation-drawer-logo-frame'),
@@ -2183,24 +2189,28 @@ Widget _buildNavigationDrawer(
               ),
               const SizedBox(width: PlanActSpacing.md),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: PlanActSpacing.xs),
-                  child: Text(
-                    'پلن‌اکت',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
+                child: Text(
+                  planActL10n(context).appName,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
+              ),
+              IconButton(
+                key: const ValueKey('navigation-close'),
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
               ),
             ],
           ),
         ),
-        _NavigationDrawerItem(
+        const SizedBox(height: PlanActSpacing.lg),
+        FilledButton.icon(
           key: const ValueKey('navigation-add-commitment'),
-          icon: Icons.add_task,
-          label: planActL10n(context).planactAppBuildTitle,
-          onTap: () => _closeDrawerAndRun(context, onAddCommitment),
+          icon: const Icon(Icons.add_task),
+          label: Text(planActL10n(context).planactAppBuildTitle),
+          onPressed: () => _closeDrawerAndRun(context, onAddCommitment),
         ),
-        const Divider(),
+        const SizedBox(height: PlanActSpacing.lg),
         _NavigationDrawerItem(
           key: const ValueKey('navigation-timeline'),
           icon: Icons.timeline,
@@ -2213,6 +2223,7 @@ Widget _buildNavigationDrawer(
           label: planActL10n(context).commitmentHistoryTitle,
           onTap: () => _closeDrawerAndRun(context, onHistory),
         ),
+        const Divider(height: PlanActSpacing.xl),
         _NavigationDrawerItem(
           key: const ValueKey('navigation-finance'),
           icon: Icons.account_balance_wallet_outlined,
@@ -2225,7 +2236,6 @@ Widget _buildNavigationDrawer(
           label: planActL10n(context).financeAccountsTitle,
           onTap: () => _closeDrawerAndRun(context, onAccounts),
         ),
-        const Divider(),
         _NavigationDrawerItem(
           key: const ValueKey('navigation-reports'),
           icon: Icons.bar_chart_outlined,
@@ -2238,6 +2248,7 @@ Widget _buildNavigationDrawer(
           label: planActL10n(context).planactAppOpenInboxTitle,
           onTap: () => _closeDrawerAndRun(context, onInbox),
         ),
+        const Divider(height: PlanActSpacing.xl),
         _NavigationDrawerItem(
           key: const ValueKey('navigation-help'),
           icon: Icons.help_outline,
@@ -2249,6 +2260,17 @@ Widget _buildNavigationDrawer(
           icon: Icons.settings_outlined,
           label: planActL10n(context).planactAppBuildTitle6,
           onTap: () => _closeDrawerAndRun(context, onSettings),
+        ),
+        _NavigationDrawerItem(
+          key: const ValueKey('navigation-about'),
+          icon: Icons.info_outline,
+          label: planActL10n(context).settingsAboutApp,
+          onTap: () => _closeDrawerAndRun(context, onAbout),
+        ),
+        const Divider(height: PlanActSpacing.xl),
+        const Padding(
+          padding: EdgeInsets.all(PlanActSpacing.lg),
+          child: AppVersionInfo(),
         ),
       ],
     ),
@@ -2268,8 +2290,12 @@ class _NavigationDrawerItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) =>
-      ListTile(leading: Icon(icon), title: Text(label), onTap: onTap);
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+    title: Text(label),
+    minTileHeight: PlanActSpacing.touchTarget,
+    onTap: onTap,
+  );
 }
 
 void _closeDrawerAndRun(BuildContext context, VoidCallback action) {

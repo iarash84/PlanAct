@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GENERATED from lib/l10n/app_fa.arb: smsDetectionTitle and smsDetectionBody. -->
+<resources>
+    <string name="planact_sms_detection_title">تراکنش تازه برای بازبینی</string>
+    <string name="planact_sms_detection_body">پیش از فراموشی، تراکنش تازه را بررسی کنید.</string>
+</resources>

@@ -63,11 +63,11 @@ void main() {
         await tester.enterText(find.byType(TextField), '350');
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'),
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         await tap(tester, find.widgetWithText(TextButton, recovery));
         expect(find.textContaining(observation.id), findsWidgets);
@@ -91,11 +91,11 @@ void main() {
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'),
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         expect(
           (await repo.bankBalance(a.id.value)).observations.first.sourceAmount,

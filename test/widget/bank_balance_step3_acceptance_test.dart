@@ -58,7 +58,7 @@ void main() {
             .first;
         await tester.pumpWidget(host(FinancePage(repository: repo), dark));
         await tap(tester, find.byKey(const ValueKey('finance-accounts-entry')));
-        await tap(tester, find.text('بررسی شاهد مانده').first);
+        await tap(tester, find.text('بررسی گزارش موجودی').first);
         await tester.enterText(
           find.descendant(
             of: find.byType(BankObservationReview),
@@ -68,11 +68,11 @@ void main() {
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'),
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         await tap(tester, find.widgetWithText(TextButton, recovery).last);
         expect(find.textContaining(observation.id), findsWidgets);
@@ -112,11 +112,11 @@ void main() {
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد'),
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی'),
         );
         await tap(
           tester,
-          find.widgetWithText(FilledButton, 'تأیید بررسی شاهد').last,
+          find.widgetWithText(FilledButton, 'تأیید بررسی گزارش موجودی').last,
         );
         expect(
           (await repo.bankBalance(a.id.value)).observations.first.sourceAmount,

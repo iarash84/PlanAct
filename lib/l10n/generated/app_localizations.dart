@@ -8863,7 +8863,7 @@ abstract class AppLocalizations {
   /// Bank observation evidence review: bankEvidenceReview
   ///
   /// In fa, this message translates to:
-  /// **'بررسی شاهد مانده'**
+  /// **'بررسی گزارش موجودی'**
   String get bankEvidenceReview;
 
   /// Bank observation evidence review: bankEvidenceMissing
@@ -8875,31 +8875,31 @@ abstract class AppLocalizations {
   /// Bank observation evidence review: bankEvidenceIncomplete
   ///
   /// In fa, this message translates to:
-  /// **'شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.'**
+  /// **'گزارش موجودی ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.'**
   String get bankEvidenceIncomplete;
 
   /// Bank observation evidence review: bankEvidenceInactive
   ///
   /// In fa, this message translates to:
-  /// **'شاهد بی‌اعتبار شده است'**
+  /// **'گزارش موجودی بی‌اعتبار شده است'**
   String get bankEvidenceInactive;
 
   /// Bank observation evidence review: bankEvidenceActive
   ///
   /// In fa, this message translates to:
-  /// **'شاهد معتبر است'**
+  /// **'گزارش موجودی معتبر است'**
   String get bankEvidenceActive;
 
   /// Bank observation evidence review: bankEvidenceDisclosure
   ///
   /// In fa, this message translates to:
-  /// **'این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.'**
+  /// **'این تغییر فقط گزارش موجودی را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. گزارش اصلی و تاریخچه حفظ می‌شوند.'**
   String get bankEvidenceDisclosure;
 
   /// Bank observation evidence review: bankEvidenceDependency
   ///
   /// In fa, this message translates to:
-  /// **'این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.'**
+  /// **'این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس گزارش موجودی را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.'**
   String get bankEvidenceDependency;
 
   /// Bank observation evidence review: bankEvidenceAmount
@@ -8929,13 +8929,13 @@ abstract class AppLocalizations {
   /// Bank observation evidence review: bankEvidenceSaved
   ///
   /// In fa, this message translates to:
-  /// **'بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.'**
+  /// **'بررسی گزارش موجودی ذخیره شد؛ دفتر مالی تغییر نکرد.'**
   String get bankEvidenceSaved;
 
   /// Bank observation evidence review: bankEvidenceConfirm
   ///
   /// In fa, this message translates to:
-  /// **'تأیید بررسی شاهد'**
+  /// **'تأیید بررسی گزارش موجودی'**
   String get bankEvidenceConfirm;
 
   /// Title and explicit action for reversing dependent bank reconciliations.
@@ -8947,7 +8947,7 @@ abstract class AppLocalizations {
   /// Disclosure before explicit atomic dependency recovery.
   ///
   /// In fa, this message translates to:
-  /// **'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.'**
+  /// **'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.'**
   String get bankRecoveryDisclosure;
 
   /// Successful recovery; user must explicitly retry the retained draft.
@@ -8965,7 +8965,7 @@ abstract class AppLocalizations {
   /// Label for immutable source observation identity.
   ///
   /// In fa, this message translates to:
-  /// **'شناسهٔ شاهد'**
+  /// **'شناسهٔ گزارش موجودی'**
   String get bankRecoverySource;
 
   /// Label for reconciliation ledger entry identity.
@@ -8973,6 +8973,84 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'شناسهٔ ثبت تطبیق'**
   String get bankRecoveryEntry;
+
+  /// Account help: Title. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'حساب‌ها و موجودی'**
+  String get helpAccountsTitle;
+
+  /// Account help: ManageQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه حساب‌ها و تراکنش‌های هر حساب را مدیریت کنم؟'**
+  String get helpAccountsManageQuestion;
+
+  /// Account help: ManageAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'در مالی ← حساب‌ها، حساب بسازید، نام یا بانک را جست‌وجو کنید و ترتیب حساب‌ها را تغییر دهید. دکمهٔ تراکنش‌ها روی کارت، ثبت‌های همان حساب را نشان می‌دهد؛ مداد اطلاعات حساب را ویرایش می‌کند و منو گزینه‌های بایگانی، بازگردانی یا حذف را دارد. حذف برای حساب بدون سابقه است؛ حساب دارای سابقه را بایگانی کنید. بایگانی تاریخچه را پاک نمی‌کند. با روشن‌کردن نمایش حساب‌های بایگانی‌شده می‌توانید آن‌ها را دوباره ببینید.'**
+  String get helpAccountsManageAnswer;
+
+  /// Account help: PrivacyQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'شماره کارت، شبا و شماره حساب چگونه محافظت می‌شوند؟'**
+  String get helpAccountsPrivacyQuestion;
+
+  /// Account help: PrivacyAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'این شناسه‌ها اختیاری‌اند و روی کارت پوشانده می‌شوند. نمایش و کپی هر شناسه اقدام جداگانه می‌خواهد؛ کپی پس از هشدار حریم خصوصی انجام می‌شود. با رفتن برنامه به پس‌زمینه، شناسهٔ آشکارشده دوباره پوشانده می‌شود. پوشاندن به معنی رمزگذاری یا کنترل کلیپ‌بورد نیست. رمز، پین و CVV را وارد نکنید.'**
+  String get helpAccountsPrivacyAnswer;
+
+  /// Account help: BalanceQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت موجودی دفتر با گزارش موجودی بانک چیست؟'**
+  String get helpAccountsBalanceQuestion;
+
+  /// Account help: BalanceAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی دفتر از ثبت‌های مالی حساب محاسبه می‌شود. گزارش موجودی، مبلغ اعلام‌شده در پیامک بانک است و به‌تنهایی موجودی دفتر را عوض نمی‌کند. تازه‌ترین گزارش با زمان کامل وقوع تراکنش در منبع مشخص می‌شود، نه زمان دریافت پیامک یا تأیید آن. زمان نامعلوم یا برابر می‌تواند مانع تطبیق شود؛ گزارش ناقص را ابتدا بررسی کنید.'**
+  String get helpAccountsBalanceAnswer;
+
+  /// Account help: ReviewQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟'**
+  String get helpAccountsReviewQuestion;
+
+  /// Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.'**
+  String get helpAccountsReviewAnswer;
+
+  /// Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق موجودی بانک چگونه انجام می‌شود؟'**
+  String get helpAccountsReconcileQuestion;
+
+  /// Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.'**
+  String get helpAccountsReconcileAnswer;
+
+  /// Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟'**
+  String get helpAccountsRecoveryQuestion;
+
+  /// Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.'**
+  String get helpAccountsRecoveryAnswer;
 }
 
 class _AppLocalizationsDelegate

@@ -38,7 +38,7 @@ class _SmsNotificationSettingsState extends State<SmsNotificationSettings> {
     }
   }
 
-  Future<void> _save({bool? enabled, bool? amounts}) async {
+  Future<void> _save({bool? enabled}) async {
     if (_busy || _state == null) return;
     setState(() {
       _busy = true;
@@ -53,10 +53,7 @@ class _SmsNotificationSettingsState extends State<SmsNotificationSettings> {
           throw StateError('Notification permission not granted');
         }
       }
-      await widget.notifications.configure(
-        enabled: enabled ?? _state!.enabled,
-        showAmounts: amounts ?? _state!.showAmounts,
-      );
+      await widget.notifications.configure(enabled: enabled ?? _state!.enabled);
       await _load();
     } catch (_) {
       if (mounted) setState(() => _failed = true);
@@ -87,13 +84,6 @@ class _SmsNotificationSettingsState extends State<SmsNotificationSettings> {
             onChanged: _busy || _state == null
                 ? null
                 : (value) => _save(enabled: value),
-          ),
-          SwitchListTile(
-            title: Text(l10n.smsDetectionAmounts),
-            value: _state?.showAmounts ?? false,
-            onChanged: _busy || _state == null
-                ? null
-                : (value) => _save(amounts: value),
           ),
           if (_busy) const LinearProgressIndicator(),
           if (_failed)

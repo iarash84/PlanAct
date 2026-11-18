@@ -36,6 +36,7 @@ internal class AlarmStore(private val context: Context) {
         // this admission check strict: the native adapter issues SQL against
         // that exact layout and must never operate on an unknown schema.
         require(version == 20)
+        SmsBackgroundRuntime.configurePath(context, file.path)
         recoveryAccess = File(file.path + ".restore-marker").exists()
         check(prefs.edit().putString("path", file.path).putBoolean("paused", false).commit())
     }

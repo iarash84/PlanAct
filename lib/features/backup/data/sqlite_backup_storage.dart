@@ -68,6 +68,10 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
     '75460d6a1d59098871a794f36f93e65658e99b39ac4967d7393bac50be9a10a3',
     '4f9e29b7700537d8e3b3003ce71d1e730202a50381cd60c3061f5a1d9a85d781',
     '8ef807322a8fce2c50db0662623c9ebecde45733dbd2b7914bd63c253b4df242',
+    // Fresh v18/v19 installs upgraded to v20 retain their original column
+    // order, quoted bank_code and generated relationship-review index SQL.
+    '252f15681890899c45bb7641d893af52d63a1ee777b09f6195246fd284c3f0c8',
+    'e9bcf1a9e2a665eab11dc93f675ba6b9eb05ae1d402b0bf00812e80465a414d1',
   };
 
   bool _matchesSchema(Database db) {

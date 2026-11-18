@@ -110,7 +110,11 @@ void main() {
             )
             .single;
         expect(minus.right, lessThanOrEqualTo(firstDigit.left));
-        await tester.tap(find.byTooltip('مشاهدهٔ تراکنش‌های این حساب'));
+        final transactions = find.byTooltip('مشاهدهٔ تراکنش‌های این حساب');
+        await tester.ensureVisible(transactions);
+        await tester.pumpAndSettle();
+        expect(transactions.hitTestable(), findsOneWidget);
+        await tester.tap(transactions);
         for (var i = 0; i < 12; i++) {
           await tester.runAsync(
             () => Future<void>.delayed(const Duration(milliseconds: 20)),

@@ -1,4 +1,5 @@
 import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/inbox/data/sms_background_runtime.dart';
 import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
 
 import 'dart:async';
@@ -19,6 +20,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _detected(InboxSuggestion item) async {
     try {
       await notifications?.detected(item);
+      await notifications?.reconcile();
     } catch (_) {
       notificationError = PersianCopy.smsDetectionFailure;
     }
@@ -38,21 +40,29 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
     required this.source,
     this.onChanged,
     this.notifications,
+    this.runtime = const SmsBackgroundRuntime(),
     DateTime Function()? now,
   }) : _inbox = inbox,
        _now = now ?? DateTime.now,
        _store = AutomaticSmsScanAdapter(
          inbox.repository as AutomaticSmsScanStore,
        ) {
-    _ingestion = SmsIngestion(inbox, source, store: _store);
-    _manualIngestion = SmsIngestion(
+    _ingestion = ForegroundSmsIngestion(
       inbox,
       source,
+      store: _store,
+      runtime: runtime,
+    );
+    _manualIngestion = ForegroundSmsIngestion(
+      inbox,
+      source,
+      runtime: runtime,
       store: ManualSmsScanAdapter(inbox.repository as ManualSmsScanStore),
     );
-    _historyIngestion = SmsIngestion(inbox, source);
+    _historyIngestion = ForegroundSmsIngestion(inbox, source, runtime: runtime);
   }
 
+  final SmsBackgroundRuntime runtime;
   final InboxUseCases _inbox;
   final AndroidSmsSource source;
   final Future<void> Function()? onChanged;
@@ -124,6 +134,17 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  Future<void> _scheduleBackground() async {
+    try {
+      await runtime.schedule();
+    } catch (_) {
+      if (!_disposed) {
+        error = PersianCopy.smsAutomaticSyncFailed;
+        _notify();
+      }
+    }
+  }
+
   void _stopListening() {
     _subscription?.cancel();
     _subscription = null;
@@ -143,6 +164,7 @@ class SmsSyncController extends ChangeNotifier with WidgetsBindingObserver {
       _ingestion.cancel();
       _manualIngestion.cancel();
       _historyIngestion.cancel();
+      if (enabled) unawaited(_scheduleBackground());
       for (final timer in _timers) {
         timer.cancel();
       }

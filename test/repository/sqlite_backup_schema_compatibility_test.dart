@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:planact/features/backup/data/file_backup_actions.dart';
+import 'package:planact/features/backup/domain/backup_recovery_key.dart';
 import 'package:planact/features/backup/application/backup_service.dart';
 import 'package:planact/features/backup/data/secure_backup_keys.dart';
 import 'package:planact/features/backup/domain/backup_encryption.dart';
@@ -39,6 +43,10 @@ const fixtures = [
   'chain-v15',
   'fresh-v16',
   'fresh-v17',
+  // Fresh installs from committed 857b2ec (v18) and 00a70d0 (v19),
+  // generated using their original AppDatabase and Drift bindings.
+  'fresh-v18',
+  'fresh-v19',
 ];
 
 Future<void> createHistorical(File file, String fixture) async {
@@ -97,7 +105,29 @@ class _Rebuild implements BackupRebuildHook {
   Future<void> rebuild() async {}
 }
 
+class _ExportPicker extends FilePicker {
+  int saves = 0;
+  Uint8List? savedBytes;
+
+  @override
+  Future<String?> saveFile({
+    String? dialogTitle,
+    String? fileName,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Uint8List? bytes,
+    bool lockParentWindow = false,
+  }) async {
+    saves++;
+    savedBytes = bytes;
+    return null; // Exercise cancellation after successful validation.
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  FilePicker.platform = _ExportPicker();
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   late Directory directory;
   late List<String> expected;
@@ -126,6 +156,36 @@ void main() {
   test('fresh v20 still validates', () async {
     await storage.validatePayload(await storage.live.readAsBytes());
   });
+
+  for (final fixture in ['fresh-v18', 'fresh-v19']) {
+    test(
+      '$fixture still rejects missing audit guard after migration',
+      () async {
+        final file = File('${directory.path}/tampered.sqlite');
+        await createHistorical(file, fixture);
+        final database = AppDatabase.forTesting(NativeDatabase(file));
+        try {
+          await database.readMetadata('schema_version');
+        } finally {
+          await database.close();
+        }
+        final raw = sqlite.sqlite3.open(file.path);
+        try {
+          raw.execute('DROP TRIGGER relationship_reviews_no_update');
+        } finally {
+          raw.close();
+        }
+        final before = await file.readAsBytes();
+        final liveBefore = await storage.live.readAsBytes();
+        await expectLater(
+          storage.validatePayload(before),
+          throwsA(isA<ValidationError>()),
+        );
+        expect(await file.readAsBytes(), before);
+        expect(await storage.live.readAsBytes(), liveBefore);
+      },
+    );
+  }
 
   for (final fixture in fixtures) {
     test(
@@ -194,6 +254,55 @@ void main() {
             encryptor: AesGcmBackupEncryptor(),
             nonceGenerator: SecureBackupNonce(),
           );
+          if (fixture == 'fresh-v18' || fixture == 'fresh-v19') {
+            final previousPicker = FilePicker.platform;
+            final picker = _ExportPicker();
+            FilePicker.platform = picker;
+            PackageInfo.setMockInitialValues(
+              appName: 'PlanAct',
+              packageName: 'test',
+              version: '1',
+              buildNumber: '1',
+              buildSignature: '',
+            );
+            final original = await file.readAsBytes();
+            final actions = FileBackupActions(
+              service: service,
+              keys: const SecureBackupKeys(),
+              exportPayload: () => sqliteBackupSnapshot(
+                database: database,
+                target: File('${directory.path}/action-export.sqlite'),
+                redact: true,
+              ),
+              exclusive: (operation) => operation(),
+            );
+            try {
+              final seenKeys = <String>[];
+              for (var attempt = 0; attempt < 2; attempt++) {
+                expect(
+                  await actions.exportRecoveryBackup((key) async {
+                    seenKeys.add(key);
+                    return true;
+                  }),
+                  false,
+                );
+                expect(picker.saves, attempt + 1);
+                expect(await file.readAsBytes(), original);
+              }
+              expect(seenKeys[0], isNot(seenKeys[1]));
+              final exported = BackupPackage.decode(
+                utf8.decode(picker.savedBytes!),
+              );
+              final recoveryKey = BackupRecoveryKey.parse(seenKeys.last);
+              try {
+                await service.restore(exported, recoveryKey: recoveryKey.bytes);
+              } finally {
+                recoveryKey.dispose();
+              }
+            } finally {
+              FilePicker.platform = previousPicker;
+            }
+          }
           final key = Uint8List.fromList(List.filled(32, 42));
           final package = await service.create(
             payload: bytes,

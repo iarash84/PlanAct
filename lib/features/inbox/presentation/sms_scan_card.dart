@@ -8,6 +8,7 @@ import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/inbox/application/android_sms_source.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/application/sms_ingestion.dart';
+import 'package:planact/features/inbox/data/sms_background_runtime.dart';
 
 class SmsScanCard extends StatefulWidget {
   const SmsScanCard({
@@ -34,7 +35,7 @@ class _SmsScanCardState extends State<SmsScanCard> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _command = SmsIngestion(widget.inbox, widget.source);
+    _command = ForegroundSmsIngestion(widget.inbox, widget.source);
     _load();
   }
 
