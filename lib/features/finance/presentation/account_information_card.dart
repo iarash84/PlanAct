@@ -119,12 +119,11 @@ class _AccountInformationCardState extends State<AccountInformationCard>
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
+                const SizedBox(width: PlanActSpacing.sm),
+                widget.operations,
               ],
             ),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: widget.operations,
-            ),
+            const SizedBox(height: PlanActSpacing.sm),
             Text(
               [
                 accountTypeLabel(account.type),

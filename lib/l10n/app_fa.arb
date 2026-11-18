@@ -8326,7 +8326,7 @@
       }
     }
   },
-  "bankEvidenceReview": "بررسی شاهد مانده",
+  "bankEvidenceReview": "بررسی گزارش موجودی",
   "@bankEvidenceReview": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceReview"
@@ -8336,27 +8336,27 @@
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceMissing"
   },
-  "bankEvidenceIncomplete": "شاهد ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.",
+  "bankEvidenceIncomplete": "گزارش موجودی ناقص است؛ مبلغ، واحد مستقل و زمان کامل را بررسی کنید.",
   "@bankEvidenceIncomplete": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceIncomplete"
   },
-  "bankEvidenceInactive": "شاهد بی‌اعتبار شده است",
+  "bankEvidenceInactive": "گزارش موجودی بی‌اعتبار شده است",
   "@bankEvidenceInactive": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceInactive"
   },
-  "bankEvidenceActive": "شاهد معتبر است",
+  "bankEvidenceActive": "گزارش موجودی معتبر است",
   "@bankEvidenceActive": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceActive"
   },
-  "bankEvidenceDisclosure": "این تغییر فقط شاهد مانده را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. شاهد اصلی و تاریخچه حفظ می‌شوند.",
+  "bankEvidenceDisclosure": "این تغییر فقط گزارش موجودی را بررسی می‌کند؛ تراکنش و ماندهٔ دفتر تغییر نمی‌کنند. حساب، مبلغ، واحد و زمان گزارش را صریحاً بررسی کنید. گزارش اصلی و تاریخچه حفظ می‌شوند.",
   "@bankEvidenceDisclosure": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceDisclosure"
   },
-  "bankEvidenceDependency": "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس شاهد را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.",
+  "bankEvidenceDependency": "این حساب تطبیق فعال دارد. ابتدا تطبیق وابسته را از مسیر مالی باطل کنید؛ سپس گزارش موجودی را دوباره بررسی کنید. بازیابی خودکار در این مرحله پشتیبانی نمی‌شود.",
   "@bankEvidenceDependency": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceDependency",
@@ -8382,12 +8382,12 @@
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceClearTime"
   },
-  "bankEvidenceSaved": "بررسی شاهد ذخیره شد؛ دفتر مالی تغییر نکرد.",
+  "bankEvidenceSaved": "بررسی گزارش موجودی ذخیره شد؛ دفتر مالی تغییر نکرد.",
   "@bankEvidenceSaved": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceSaved"
   },
-  "bankEvidenceConfirm": "تأیید بررسی شاهد",
+  "bankEvidenceConfirm": "تأیید بررسی گزارش موجودی",
   "@bankEvidenceConfirm": {
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceConfirm"
@@ -8397,7 +8397,7 @@
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Title and explicit action for reversing dependent bank reconciliations."
   },
-  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، شاهدها، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار شاهد را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
+  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
   "@bankRecoveryDisclosure": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Disclosure before explicit atomic dependency recovery."
@@ -8412,7 +8412,7 @@
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Empty recovery preview."
   },
-  "bankRecoverySource": "شناسهٔ شاهد",
+  "bankRecoverySource": "شناسهٔ گزارش موجودی",
   "@bankRecoverySource": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Label for immutable source observation identity."
@@ -8421,5 +8421,70 @@
   "@bankRecoveryEntry": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Label for reconciliation ledger entry identity."
+  },
+  "helpAccountsTitle": "حساب‌ها و موجودی",
+  "@helpAccountsTitle": {
+    "description": "Account help: Title. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsManageQuestion": "چگونه حساب‌ها و تراکنش‌های هر حساب را مدیریت کنم؟",
+  "@helpAccountsManageQuestion": {
+    "description": "Account help: ManageQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsManageAnswer": "در مالی ← حساب‌ها، حساب بسازید، نام یا بانک را جست‌وجو کنید و ترتیب حساب‌ها را تغییر دهید. دکمهٔ تراکنش‌ها روی کارت، ثبت‌های همان حساب را نشان می‌دهد؛ مداد اطلاعات حساب را ویرایش می‌کند و منو گزینه‌های بایگانی، بازگردانی یا حذف را دارد. حذف برای حساب بدون سابقه است؛ حساب دارای سابقه را بایگانی کنید. بایگانی تاریخچه را پاک نمی‌کند. با روشن‌کردن نمایش حساب‌های بایگانی‌شده می‌توانید آن‌ها را دوباره ببینید.",
+  "@helpAccountsManageAnswer": {
+    "description": "Account help: ManageAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsPrivacyQuestion": "شماره کارت، شبا و شماره حساب چگونه محافظت می‌شوند؟",
+  "@helpAccountsPrivacyQuestion": {
+    "description": "Account help: PrivacyQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsPrivacyAnswer": "این شناسه‌ها اختیاری‌اند و روی کارت پوشانده می‌شوند. نمایش و کپی هر شناسه اقدام جداگانه می‌خواهد؛ کپی پس از هشدار حریم خصوصی انجام می‌شود. با رفتن برنامه به پس‌زمینه، شناسهٔ آشکارشده دوباره پوشانده می‌شود. پوشاندن به معنی رمزگذاری یا کنترل کلیپ‌بورد نیست. رمز، پین و CVV را وارد نکنید.",
+  "@helpAccountsPrivacyAnswer": {
+    "description": "Account help: PrivacyAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsBalanceQuestion": "تفاوت موجودی دفتر با گزارش موجودی بانک چیست؟",
+  "@helpAccountsBalanceQuestion": {
+    "description": "Account help: BalanceQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsBalanceAnswer": "موجودی دفتر از ثبت‌های مالی حساب محاسبه می‌شود. گزارش موجودی، مبلغ اعلام‌شده در پیامک بانک است و به‌تنهایی موجودی دفتر را عوض نمی‌کند. تازه‌ترین گزارش با زمان کامل وقوع تراکنش در منبع مشخص می‌شود، نه زمان دریافت پیامک یا تأیید آن. زمان نامعلوم یا برابر می‌تواند مانع تطبیق شود؛ گزارش ناقص را ابتدا بررسی کنید.",
+  "@helpAccountsBalanceAnswer": {
+    "description": "Account help: BalanceAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsReviewQuestion": "بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟",
+  "@helpAccountsReviewQuestion": {
+    "description": "Account help: ReviewQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsReviewAnswer": "از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.",
+  "@helpAccountsReviewAnswer": {
+    "description": "Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsReconcileQuestion": "تطبیق موجودی بانک چگونه انجام می‌شود؟",
+  "@helpAccountsReconcileQuestion": {
+    "description": "Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsReconcileAnswer": "وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.",
+  "@helpAccountsReconcileAnswer": {
+    "description": "Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsRecoveryQuestion": "بازیابی تطبیق‌های وابسته چه زمانی لازم است؟",
+  "@helpAccountsRecoveryQuestion": {
+    "description": "Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "helpAccountsRecoveryAnswer": "اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.",
+  "@helpAccountsRecoveryAnswer": {
+    "description": "Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.",
+    "x-planact-introduced": "account-help-2026-11-18"
   }
 }

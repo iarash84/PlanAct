@@ -132,6 +132,39 @@ class HelpFaqPage extends StatelessWidget {
     ),
   ];
 
+  _FaqCategory _accountsCategory(BuildContext context) {
+    final l10n = planActL10n(context);
+    return _FaqCategory(
+      title: l10n.helpAccountsTitle,
+      items: [
+        _FaqItem(
+          question: l10n.helpAccountsManageQuestion,
+          answer: l10n.helpAccountsManageAnswer,
+        ),
+        _FaqItem(
+          question: l10n.helpAccountsPrivacyQuestion,
+          answer: l10n.helpAccountsPrivacyAnswer,
+        ),
+        _FaqItem(
+          question: l10n.helpAccountsBalanceQuestion,
+          answer: l10n.helpAccountsBalanceAnswer,
+        ),
+        _FaqItem(
+          question: l10n.helpAccountsReviewQuestion,
+          answer: l10n.helpAccountsReviewAnswer,
+        ),
+        _FaqItem(
+          question: l10n.helpAccountsReconcileQuestion,
+          answer: l10n.helpAccountsReconcileAnswer,
+        ),
+        _FaqItem(
+          question: l10n.helpAccountsRecoveryQuestion,
+          answer: l10n.helpAccountsRecoveryAnswer,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(planActL10n(context).helpFaqPageTitle)),
@@ -139,7 +172,11 @@ class HelpFaqPage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(PlanActSpacing.page),
         children: [
-          for (final category in _categories)
+          for (final category in [
+            ..._categories.take(2),
+            _accountsCategory(context),
+            ..._categories.skip(2),
+          ])
             Padding(
               padding: const EdgeInsets.only(bottom: PlanActSpacing.xl),
               child: Column(

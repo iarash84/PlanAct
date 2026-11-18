@@ -38,4 +38,62 @@ void main() {
     expect(Directionality.of(tester.element(firstQuestion)), TextDirection.rtl);
     expect(tester.takeException(), isNull);
   });
+
+  for (final dark in [false, true]) {
+    testWidgets('account help explains consent and recovery dark=$dark', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dark ? PlanActTheme.dark() : PlanActTheme.light(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+              child: const HelpFaqPage(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      for (final question in [
+        'چگونه حساب‌ها و تراکنش‌های هر حساب را مدیریت کنم؟',
+        'شماره کارت، شبا و شماره حساب چگونه محافظت می‌شوند؟',
+        'تفاوت موجودی دفتر با گزارش موجودی بانک چیست؟',
+        'بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟',
+        'تطبیق موجودی بانک چگونه انجام می‌شود؟',
+        'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟',
+      ]) {
+        final tile = find.byKey(ValueKey(question));
+        await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(question));
+        await tester.pumpAndSettle();
+        final answer = tester.widget<Text>(
+          find.descendant(of: tile, matching: find.byType(Text)).last,
+        );
+        expect(answer.data, isNotEmpty);
+        expect(answer.data, isNot(contains('شاهد')));
+        if (question.startsWith('بررسی گزارش')) {
+          expect(answer.data, contains('تراکنش یا موجودی دفتر تغییر نمی‌کند'));
+        }
+        if (question.startsWith('بازیابی')) {
+          expect(answer.data, contains('همهٔ تطبیق‌های فعال'));
+          expect(
+            answer.data,
+            contains('این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند'),
+          );
+        }
+        expect(tester.takeException(), isNull);
+        await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(question));
+        await tester.pumpAndSettle();
+      }
+    });
+  }
 }
