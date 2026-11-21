@@ -94,6 +94,36 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Today SMS preview status: this suggestion has not been confirmed into the ledger.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز ثبت نشده'**
+  String get todayTransactionUnconfirmed;
+
+  /// Labels the unallocated amount in the Today relationship preview, not the original transaction total.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ بدون ارتباط'**
+  String get todayTransactionRemainder;
+
+  /// Original transaction total shown only when the unallocated remainder differs.
+  ///
+  /// In fa, this message translates to:
+  /// **'کل تراکنش: {amount}'**
+  String todayTransactionTotal(String amount);
+
+  /// The SMS draft date is unknown or only a receipt fallback; never presents it as an extracted date.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ تراکنش نیاز به بررسی دارد'**
+  String get todayTransactionDateNeedsReview;
+
+  /// Explicit reviewer-selected transaction date in the Today SMS preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ بازبینی‌شده: {date}'**
+  String todayTransactionReviewedDate(String date);
+
   /// Feedback when the captured sequential review queue has no remaining eligible items. New arrivals are not included.
   ///
   /// In fa, this message translates to:

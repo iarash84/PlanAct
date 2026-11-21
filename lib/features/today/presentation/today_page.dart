@@ -17,7 +17,7 @@ import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/domain/commitment_checklist.dart';
 import 'package:planact/features/today/application/attention_engine.dart';
-import 'package:planact/features/inbox/domain/inbox.dart';
+import 'package:planact/features/today/presentation/today_transaction_preview.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 
 class TodayPage extends StatelessWidget {
@@ -427,6 +427,9 @@ class _ActionItemCardState extends State<_ActionItemCard> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
+    if (_boundedPreview(item)) {
+      return TodayTransactionPreview(item: item, onReview: widget.onReview);
+    }
     final details = item.attentionItem;
     final financial = details == null
         ? const <String>[]
@@ -477,22 +480,17 @@ class _ActionItemCardState extends State<_ActionItemCard> {
           : commitment == null || commitment.tags.isEmpty
           ? null
           : TagLabels(labels: commitment.tags),
-      metadata: details?.inboxDraft != null
-          ? _InboxPreviewMetadata(draft: details!.inboxDraft!)
-          : item.attentionAction == AttentionAction.classifyTransaction &&
-                details != null
-          ? _RelationshipPreviewMetadata(item: details)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  [
-                    item.subtitle,
-                    if (financial.isNotEmpty) financial.first,
-                  ].join(' · '),
-                ),
-              ],
-            ),
+      metadata: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            [
+              item.subtitle,
+              if (financial.isNotEmpty) financial.first,
+            ].join(' · '),
+          ),
+        ],
+      ),
       actions: [
         if (commitment != null)
           IconButton(
@@ -545,95 +543,6 @@ class _ActionItemCardState extends State<_ActionItemCard> {
         PlanActSpacing.md,
       ),
       child: Text(description),
-    );
-  }
-}
-
-class _RelationshipPreviewMetadata extends StatelessWidget {
-  const _RelationshipPreviewMetadata({required this.item});
-
-  final AttentionItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = planActL10n(context);
-    final occurredAt = item.occurredAt;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (item.amountMinorUnits != null)
-          Text(
-            PersianMoneyText.amount(
-              item.amountMinorUnits!,
-              item.currency ?? '',
-              unit: MoneyUnitScope.of(context),
-            ),
-          ),
-        Text(
-          [
-            l10n.transactionRelationshipPageBuildChildren3(
-              item.accountName ?? l10n.commonUnknown,
-            ),
-            l10n.inboxPageBuildChildren12(item.bankName ?? l10n.commonUnknown),
-          ].join(' · '),
-        ),
-        Text(
-          l10n.todayRelationshipDate(
-            occurredAt == null
-                ? l10n.commonUnknown
-                : PersianDateFormatter.date(
-                    JalaliDate.fromDateTime(
-                      occurredAt.isUtc ? occurredAt.toLocal() : occurredAt,
-                    ),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// پیش‌نمایش فقط‌خواندنی شواهد صندوق؛ زمان دریافت، تاریخ استخراج‌شده نیست.
-class _InboxPreviewMetadata extends StatelessWidget {
-  const _InboxPreviewMetadata({required this.draft});
-
-  final TransactionDraft draft;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = planActL10n(context);
-    final evidence = draft.currencyEvidence;
-    final amount = evidence != null && evidence.requiresSelection
-        ? l10n.inboxPageAmountMessage(
-            PersianMoneyText.amount(evidence.sourceAmount, '').trim(),
-          )
-        : PersianMoneyText.money(
-            draft.amount,
-            unit: MoneyUnitScope.of(context),
-          );
-    final bank = draft.bank?.trim();
-    final sender = draft.sourceAddress?.trim();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          [
-            amount,
-            if (bank != null && bank.isNotEmpty)
-              l10n.inboxPageBuildChildren12(bank),
-          ].join(' · '),
-        ),
-        if (sender != null && sender.isNotEmpty)
-          Text(l10n.inboxPageSmsSenderLabel(sender)),
-        if (draft.dateSource == TransactionDateSource.extracted)
-          Text(
-            l10n.inboxPageBuildChildren8(
-              PersianDateFormatter.date(
-                JalaliDate.fromDateTime(draft.occurredAt),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

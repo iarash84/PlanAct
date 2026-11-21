@@ -10,6 +10,26 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get todayTransactionUnconfirmed => 'هنوز ثبت نشده';
+
+  @override
+  String get todayTransactionRemainder => 'مبلغ بدون ارتباط';
+
+  @override
+  String todayTransactionTotal(String amount) {
+    return 'کل تراکنش: $amount';
+  }
+
+  @override
+  String get todayTransactionDateNeedsReview =>
+      'تاریخ تراکنش نیاز به بررسی دارد';
+
+  @override
+  String todayTransactionReviewedDate(String date) {
+    return 'تاریخ بازبینی‌شده: $date';
+  }
+
+  @override
   String get sequentialReviewFinished => 'بررسی این نوبت تمام شد.';
 
   @override
