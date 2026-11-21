@@ -1,4 +1,12 @@
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/features/finance/presentation/account_form_sheet.dart'
+    show accountTypeLabel;
+import 'package:planact/core/localization/persian_date_formatter.dart';
+import 'package:planact/core/time/jalali_date.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/finance/presentation/account_identity_icon.dart';
+import 'package:planact/features/finance/presentation/transaction_account_icon.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/money_unit_scope.dart';
@@ -296,6 +304,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
         padding: const EdgeInsets.all(PlanActSpacing.lg),
         children: [
           Text(planActL10n(context).relationshipQueuePageBuildChildren),
+          const SizedBox(height: PlanActSpacing.lg),
           TextField(
             decoration: InputDecoration(
               labelText: planActL10n(context)
@@ -303,8 +312,10 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
             ),
             onChanged: (value) => _filter(() => _query = value.trim()),
           ),
+          const SizedBox(height: PlanActSpacing.lg),
           Wrap(
             spacing: PlanActSpacing.sm,
+            runSpacing: PlanActSpacing.xs,
             children: [
               ChoiceChip(
                 label: Text(
@@ -450,98 +461,149 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
           if (!_loading && _error == null)
             for (final item in visible) ...[
               const SizedBox(height: PlanActSpacing.lg),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: item.selectable
-                          ? Checkbox(
-                              value: _selection.containsKey(
-                                item.transaction.id,
-                              ),
-                              semanticLabel: planActL10n(context)
-                                  .relationshipQueuePageBuildSemanticLabel2(
-                                    (item.transaction.note ??
-                                            planActL10n(
-                                              context,
-                                            ).relationshipQueuePageBuildSemanticLabel)
-                                        .toString(),
-                                  ),
-                              onChanged: _running
-                                  ? null
-                                  : (value) => setState(() {
-                                      if (value == true) {
-                                        _selection[item.transaction.id] = item;
-                                      } else {
-                                        _selection.remove(item.transaction.id);
-                                      }
-                                    }),
-                            )
-                          : const Icon(Icons.check_circle_outline),
-                      title: Text(
-                        item.transaction.note ??
-                            planActL10n(context)
-                                .relationshipQueuePageBuildSemanticLabel,
-                      ),
-                      subtitle: Text(
-                        planActL10n(context)
-                            .relationshipQueuePageBuildSubtitle2(
-                              (item.transaction.type == AccountEntryType.income
-                                      ? planActL10n(context)
-                                            .inboxPageBuildTitle4
-                                      : planActL10n(context)
-                                            .inboxPageBuildTitle3)
-                                  .toString(),
-                              (PersianMoneyText.amount(
-                                item.review.remainderMinorUnits,
-                                item.review.transactionAmount.currency,
-                                unit: MoneyUnitScope.of(context),
-                              )).toString(),
-                              (item.review.isIndependent
-                                      ? planActL10n(context)
-                                            .relationshipQueuePageBuildSubtitle
-                                      : '')
+              TransactionCard(
+                key: ValueKey(
+                  'relationship-transaction:${item.transaction.id.value}',
+                ),
+                entry: item.transaction,
+                label: item.transaction.type == AccountEntryType.income
+                    ? planActL10n(context).inboxPageBuildTitle4
+                    : planActL10n(context).inboxPageBuildTitle3,
+                amount: PersianMoneyText.amount(
+                  item.transaction.amount.minorUnits,
+                  item.transaction.amount.currency,
+                  unit: MoneyUnitScope.of(context),
+                ),
+                operations: item.selectable
+                    ? Checkbox(
+                        value: _selection.containsKey(item.transaction.id),
+                        semanticLabel: planActL10n(context)
+                            .relationshipQueuePageBuildSemanticLabel2(
+                              (item.transaction.note ??
+                                      planActL10n(
+                                        context,
+                                      ).relationshipQueuePageBuildSemanticLabel)
                                   .toString(),
                             ),
-                      ),
+                        onChanged: _running
+                            ? null
+                            : (value) => setState(() {
+                                if (value == true) {
+                                  _selection[item.transaction.id] = item;
+                                } else {
+                                  _selection.remove(item.transaction.id);
+                                }
+                              }),
+                      )
+                    : const Icon(Icons.check_circle_outline),
+                children: [
+                  _transactionMetadata(item),
+                  Text(
+                    planActL10n(context).relationshipQueuePageBuildSubtitle2(
+                      (item.transaction.type == AccountEntryType.income
+                              ? planActL10n(context).inboxPageBuildTitle4
+                              : planActL10n(context).inboxPageBuildTitle3)
+                          .toString(),
+                      (PersianMoneyText.amount(
+                        item.review.remainderMinorUnits,
+                        item.review.transactionAmount.currency,
+                        unit: MoneyUnitScope.of(context),
+                      )).toString(),
+                      (item.review.isIndependent
+                              ? planActL10n(context)
+                                    .relationshipQueuePageBuildSubtitle
+                              : '')
+                          .toString(),
                     ),
-                    if (_active == item.transaction.id)
-                      const LinearProgressIndicator(),
-                    if (_failures.containsKey(item.transaction.id))
-                      Text(
-                        planActL10n(context)
-                            .relationshipQueuePageBuildChildren9,
+                  ),
+                  if (_active == item.transaction.id)
+                    const LinearProgressIndicator(),
+                  if (_failures.containsKey(item.transaction.id))
+                    Text(
+                      planActL10n(context).relationshipQueuePageBuildChildren9,
+                    ),
+                  Wrap(
+                    spacing: PlanActSpacing.sm,
+                    children: [
+                      TextButton(
+                        onPressed: _active == item.transaction.id
+                            ? null
+                            : () => _open(item),
+                        child: Text(
+                          planActL10n(context)
+                              .relationshipQueuePageBuildChildren10,
+                        ),
                       ),
-                    Wrap(
-                      spacing: PlanActSpacing.sm,
-                      children: [
+                      if (item.review.isIndependent)
                         TextButton(
                           onPressed: _active == item.transaction.id
                               ? null
-                              : () => _open(item),
+                              : () => _reopen(item),
                           child: Text(
                             planActL10n(context)
-                                .relationshipQueuePageBuildChildren10,
+                                .relationshipQueuePageBuildChildren11,
                           ),
                         ),
-                        if (item.review.isIndependent)
-                          TextButton(
-                            onPressed: _active == item.transaction.id
-                                ? null
-                                : () => _reopen(item),
-                            child: Text(
-                              planActL10n(context)
-                                  .relationshipQueuePageBuildChildren11,
-                            ),
-                          ),
-                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionMetadata(RelationshipQueueItem item) {
+    final entry = item.transaction;
+    final local = entry.occurredAt.toLocal();
+    final account = item.account;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: PlanActSpacing.sm,
+      children: [
+        Text(
+          [
+            '${PersianDateFormatter.date(JalaliDate.fromDateTime(local))} ${PersianNumbers.format(JalaliDate.fromDateTime(local).year)}',
+            PersianNumbers.format(
+              '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}',
+            ),
+          ].join(' · '),
+        ),
+        if (account == null)
+          Text(planActL10n(context).financeTransactionAccountUnavailable)
+        else
+          Row(
+            children: [
+              TransactionAccountIcon(account: account),
+              const SizedBox(width: PlanActSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(account.name),
+                    Text(
+                      [
+                        accountTypeLabel(account.type),
+                        if (account.bank != null)
+                          iranianBankLabel(context, account.bank!),
+                        if (account.status == FinancialAccountStatus.archived)
+                          planActL10n(context).financeAccountsArchived,
+                      ].join(' · '),
                     ),
                   ],
                 ),
               ),
             ],
-        ],
-      ),
+          ),
+        if (entry.category?.trim().isNotEmpty ?? false) Text(entry.category!),
+        Text(
+          entry.note?.trim().isNotEmpty == true
+              ? entry.note!
+              : planActL10n(context).financePageBuildChildren4,
+        ),
+        if (item.tagLabels.isNotEmpty) TagLabels(labels: item.tagLabels),
+      ],
     );
   }
 }

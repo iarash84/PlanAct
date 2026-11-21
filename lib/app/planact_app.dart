@@ -960,6 +960,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           queue: RelationshipQueue(
             _financeRepository,
             repository as RelationshipReviewRepository,
+            tags: _tagRepository,
           ),
           onOpen: _openRelationship,
           onReview: (id, remaining) async {
