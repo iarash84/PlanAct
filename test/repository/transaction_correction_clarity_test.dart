@@ -63,6 +63,14 @@ void main() {
           tag: replacementTag,
           type: TaggableType.accountEntry,
         );
+        final sharedTag = (await tagRepository.list()).singleWhere(
+          (tag) => tag.label == 'مشترک',
+        );
+        await tagRepository.detach(
+          recordId: replacement.id.value,
+          tag: sharedTag,
+          type: TaggableType.accountEntry,
+        );
         final finalEntry = await commands.correctEntry(
           original: replacement,
           account: other,
@@ -98,8 +106,16 @@ void main() {
               labels[id]!,
           };
           expect(await directTags(first), {'برچسب اصلی', 'مشترک'});
-          expect(await directTags(middle), {'برچسب جایگزین'});
-          expect(await directTags(last), isEmpty);
+          expect(await directTags(middle), {'برچسب اصلی', 'برچسب جایگزین'});
+          expect(await directTags(last), {'برچسب اصلی', 'برچسب جایگزین'});
+          expect(middle.category, 'دسته اصلی');
+          expect(last.category, 'دسته اصلی');
+          expect(last.note, 'نهایی');
+          for (final reversal in entries.where(
+            (entry) => entry.type == AccountEntryType.reversal,
+          )) {
+            expect(await directTags(reversal), isEmpty);
+          }
           final originalItem = last.history!.chain.singleWhere(
             (item) => item.entry.id == original.id,
           );
@@ -110,7 +126,7 @@ void main() {
             last.history!.chain
                 .singleWhere((item) => item.entry.id == replacement.id)
                 .tags,
-            ['برچسب جایگزین'],
+            unorderedEquals(['برچسب اصلی', 'برچسب جایگزین']),
           );
           expect(middle.history!.role.replacement, isTrue);
           expect(middle.history!.role.corrected, isTrue);

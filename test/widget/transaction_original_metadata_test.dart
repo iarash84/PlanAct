@@ -70,12 +70,15 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 200));
         });
         await tester.pumpAndSettle();
+        expect(find.text('#برچسب اصلی محفوظ'), findsOneWidget);
+        expect(find.textContaining('دسته اصلی محفوظ'), findsOneWidget);
+        expect(find.textContaining('شرح جایگزین مستقل'), findsOneWidget);
         await tester.ensureVisible(find.text('مشاهدهٔ ثبت‌های مرتبط'));
         await tester.tap(find.text('مشاهدهٔ ثبت‌های مرتبط'));
         await tester.pumpAndSettle();
         expect(find.text('شرح اصلی محفوظ'), findsOneWidget);
-        expect(find.text('دسته اصلی محفوظ'), findsOneWidget);
-        expect(find.text('#برچسب اصلی محفوظ'), findsOneWidget);
+        expect(find.text('دسته اصلی محفوظ'), findsWidgets);
+        expect(find.text('#برچسب اصلی محفوظ'), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );

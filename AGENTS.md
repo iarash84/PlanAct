@@ -183,6 +183,9 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+User-approved 2026-11-21 current-transaction metadata: financial correction must copy fresh durable tag memberships to the replacement atomically with reversal, replacement and operation evidence, retaining original memberships. Preserve the category when no replacement category is supplied. The form retains the existing note; explicit edits or clearing apply only to the replacement. Subsequent corrections copy the current owner, not the chain root. Do not copy financial allocations, relationship-review decisions or SMS provenance. Do not backfill old replacements heuristically. This supersedes earlier no-tag-copy limitations; see docs/verification/TRANSACTION_CORRECTION_CLARITY_VERIFICATION.md.
+
+
 User-approved correction-record clarity: derive read-only transaction roles and
 related chains centrally from explicit durable financial operation evidence and
 validated reversal relationships, never arbitrary reference IDs, SMS references,
@@ -238,7 +241,7 @@ Financial accounts include bank accounts, cash wallets, digital wallets, and pot
 - Account balance must be rebuildable from account entries.
 - A transfer between the user’s own accounts is **not** income and **not** expense.
 - A correction/reversal must leave an audit trail; do not erase history.
-- User-approved 2026-11-14 transaction account correction: Finance correction may assign an income/expense replacement to a different active same-currency account. Reverse the original in its original account and append the linked replacement atomically under fresh writer admission; validate both accounts, disclose both balance effects, and never model this as an own-account transfer. Preserve original SMS evidence, tags and allocations without automatic reassignment, with explicit pre-save disclosure. See docs/TRANSACTION_ACCOUNT_CORRECTION_VERIFICATION.md.
+- User-approved 2026-11-14 transaction account correction: Finance correction may assign an income/expense replacement to a different active same-currency account. Reverse the original in its original account and append the linked replacement atomically under fresh writer admission; validate both accounts, disclose both balance effects, and never model this as an own-account transfer. Preserve original SMS evidence and financial allocations without automatic reassignment, with explicit pre-save disclosure. The later approved descriptive-metadata rule above copies tag memberships to the replacement without removing original memberships. See docs/TRANSACTION_ACCOUNT_CORRECTION_VERIFICATION.md.
 - User-approved Undo repair (2026-10-14): new financial reversals use the stable reversal enum and exactly negate the original signed integer effect. Transactional fresh writer admission rejects repeated cancellation; transfer cancellation covers both legs and recorded fees with explicit disclosure. Versioned append-only Undo evidence in the existing metadata extension store must survive restart and backup, with durable per-owner heads rejecting superseded operations. Known legacy compensation cannot be silently rewritten or cancelled twice. Lifecycle Undo restores recorded prior status; legacy archive restoration to active must be disclosed. Schedule Undo retains every definition and uses forward versioning for series restoration. See ADR 0007 and SCHEDULE_ACTUAL_VERIFICATION.md; unchanged schema does not establish older-writer safety or release acceptance.
 - Accounts with history should be archived, not hard-deleted.
 

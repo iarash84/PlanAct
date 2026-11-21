@@ -259,7 +259,23 @@ class DriftFinanceRepository
       for (final reversal in reversals) {
         await saveEntry(reversal);
       }
-      if (corrected != null) await saveEntry(corrected);
+      if (corrected != null) {
+        await saveEntry(corrected);
+        final tags = await (database.select(
+          database.accountEntryTags,
+        )..where((row) => row.accountEntryId.equals(expected.id.value))).get();
+        for (final tag in tags) {
+          await database
+              .into(database.accountEntryTags)
+              .insert(
+                db.AccountEntryTagsCompanion.insert(
+                  accountEntryId: corrected.id.value,
+                  tagId: tag.tagId,
+                  lastUsedAt: Value(occurredAt.toUtc()),
+                ),
+              );
+        }
+      }
       await journal.append(
         owner: 'finance:${expected.id.value}',
         before: [for (final e in reversals) e.referenceId],

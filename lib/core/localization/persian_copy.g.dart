@@ -764,7 +764,7 @@ abstract final class PersianCopy {
   static const undoRefreshPending = "تغییر ثبت شد؛ بازخوانی صفحه انجام نشد. دوباره بازخوانی کنید.";
   static const financeCorrectAction = "اصلاح تراکنش";
   static const financeCancelTransferMessage = "دو سمت انتقال و کارمزد ثبت‌شدهٔ آن با ثبت‌های جبرانی خنثی می‌شوند. سابقه حذف نمی‌شود. ادامه می‌دهید؟";
-  static const financeCorrectMessage = "تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.";
+  static const financeCorrectMessage = "اثر مالی تراکنش قبلی با ثبت برگشت خنثی و نسخهٔ اصلاح‌شده جداگانه ثبت می‌شود. برچسب‌ها و دسته‌بندی روی نسخهٔ اصلاح‌شده هم حفظ می‌شوند و شرح مطابق فرم ثبت می‌شود؛ سابقهٔ قبلی دست‌نخورده می‌ماند. ارتباط‌های مالی و منشأ پیامکی خودکار منتقل نمی‌شوند.";
   static const financeArchivedAccountAction = "بایگانی حساب";
   static const financeRestoreAccountAction = "بازگردانی حساب";
   static const financeArchiveAccountMessage = "حساب بایگانی می‌شود؛ موجودی و سابقهٔ مالی حفظ می‌شوند و حساب بعداً قابل بازگردانی است.";

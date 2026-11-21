@@ -456,7 +456,7 @@ class FinanceUseCases {
       type: type,
       amount: amount,
       occurredAt: occurredAt,
-      category: category,
+      category: category ?? original.category,
     )) {
       if (repository case final AtomicTransactionNoteEditing editor) {
         return editor.editEntryNote(original, note);
@@ -475,7 +475,7 @@ class FinanceUseCases {
       occurredAt: occurredAt.toUtc(),
       referenceId: original.id.value,
       note: note,
-      category: category,
+      category: category ?? original.category,
       source: AccountEntrySource.manual,
     );
     if (repository case AtomicFinanceReversal atomic) {

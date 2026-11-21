@@ -7801,7 +7801,7 @@ abstract class AppLocalizations {
   /// Undo repair: explicit operation feedback and confirmation.
   ///
   /// In fa, this message translates to:
-  /// **'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.'**
+  /// **'اثر مالی تراکنش قبلی با ثبت برگشت خنثی و نسخهٔ اصلاح‌شده جداگانه ثبت می‌شود. برچسب‌ها و دسته‌بندی روی نسخهٔ اصلاح‌شده هم حفظ می‌شوند و شرح مطابق فرم ثبت می‌شود؛ سابقهٔ قبلی دست‌نخورده می‌ماند. ارتباط‌های مالی و منشأ پیامکی خودکار منتقل نمی‌شوند.'**
   String get financeCorrectMessage;
 
   /// Undo repair: explicit operation feedback and confirmation.
