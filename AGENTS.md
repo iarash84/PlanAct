@@ -207,6 +207,13 @@ retain the existing explicit correction confirmation and reversal path. Preserve
 note heads/history in personal backup; unchanged schema does not approve older
 writers. See docs/verification/TRANSACTION_NOTE_EDIT_VERIFICATION.md.
 
+User-approved 2026-11-21 bank report review form: when the report unit is unknown,
+propose the persisted money-unit preference visibly and pin it for the open form.
+Preserve known source/reviewed units and source amounts; never reinterpret known
+reports through Settings. Opening/cancellation writes nothing; only explicit review
+confirmation persists the proposed unit through the existing revision-checked command.
+Use shared spacing tokens between review controls. See docs/verification/BANK_REVIEW_FORM_VERIFICATION.md.
+
 Bank evidence review checkpoint (2026-11-16, step 1): preserve incomplete independent
 balance evidence without borrowing transaction units, Settings or receipt time.
 Keep original observations immutable; explicit account/amount/unit/time review,
