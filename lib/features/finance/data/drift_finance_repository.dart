@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:planact/features/finance/domain/transaction_history.dart';
+
 import 'package:planact/features/finance/domain/bank_balance.dart';
 import 'package:planact/features/finance/data/bank_balance_store.dart';
 
@@ -323,7 +325,7 @@ class DriftFinanceRepository
   @override
   Future<List<AccountEntry>> listEntries() => CommandGate.runFor(
     this,
-    () async {
+    () => database.transaction(() async {
       final rows = await database.select(database.accountEntries).get();
       final revisionRows = await database
           .customSelect(
@@ -347,7 +349,7 @@ class DriftFinanceRepository
         revisions[id] =
             (event['after'] as Map<String, dynamic>)['revision'] as int;
       }
-      return rows
+      final entries = rows
           .map(
             (row) => AccountEntry(
               id: StableId.parse(row.id),
@@ -366,7 +368,40 @@ class DriftFinanceRepository
             ),
           )
           .toList(growable: false);
-    },
+      final events = await database
+          .customSelect(
+            "SELECT e.value AS event_value FROM schema_metadata h "
+            "JOIN schema_metadata e ON e.key = 'undo_event_v1:' || h.value "
+            "WHERE h.key LIKE 'undo_head_v1:finance:%'",
+            readsFrom: {database.schemaMetadata},
+          )
+          .get();
+      final operations = <FinanceHistoryOperation>[];
+      for (final row in events) {
+        final event =
+            jsonDecode(row.read<String>('event_value')) as Map<String, dynamic>;
+        final owner = event['owner'];
+        final before = event['before'];
+        final after = event['after'];
+        if (event['version'] == 1 &&
+            event['undoOf'] == null &&
+            owner is String &&
+            owner.startsWith('finance:') &&
+            before is List &&
+            after is List &&
+            before.every((id) => id is String) &&
+            after.every((id) => id is String) &&
+            before.contains(owner.substring('finance:'.length))) {
+          operations.add(
+            FinanceHistoryOperation(
+              before: before.cast<String>(),
+              after: after.cast<String>(),
+            ),
+          );
+        }
+      }
+      return projectTransactionHistory(entries, operations);
+    }),
   );
 
   Future<FinancialAccount> _readAccount(db.FinancialAccount row) async {

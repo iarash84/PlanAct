@@ -5388,4 +5388,44 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get helpAccountsRecoveryAnswer =>
       'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.';
+
+  @override
+  String get transactionCorrected => 'اصلاح‌شده';
+
+  @override
+  String get transactionCorrectionReversal => 'برگشت بابت اصلاح';
+
+  @override
+  String get transactionCorrectionReversalHelp =>
+      'این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.';
+
+  @override
+  String get transactionReplacement => 'ثبت اصلاحی — جایگزین تراکنش قبلی';
+
+  @override
+  String get transactionReplacementHelp =>
+      'این ثبت، تراکنش مالی معتبرِ جایگزین است.';
+
+  @override
+  String get transactionCancellationReversal => 'برگشت بابت لغو';
+
+  @override
+  String get transactionCancellationReversalHelp =>
+      'این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.';
+
+  @override
+  String get transactionReversedHistory =>
+      'برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست';
+
+  @override
+  String get transactionUnknownReversal => 'برگشت ثبت قبلی';
+
+  @override
+  String get transactionHistoryOpen => 'مشاهدهٔ ثبت‌های مرتبط';
+
+  @override
+  String get transactionHistoryTitle => 'زنجیرهٔ ثبت‌های مرتبط';
+
+  @override
+  String get transactionHistoryOriginal => 'ثبت اولیه';
 }

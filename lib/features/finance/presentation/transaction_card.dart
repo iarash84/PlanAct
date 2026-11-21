@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
+import 'package:planact/features/finance/presentation/transaction_history_section.dart';
 
 /// Presentation only: consumers retain their own amount and history semantics.
 class TransactionCard extends StatelessWidget {
@@ -118,6 +119,13 @@ class TransactionCard extends StatelessWidget {
                   );
                 },
               ),
+              if (entry.history case final history?)
+                if (history.chain.isNotEmpty ||
+                    history.role.replacement ||
+                    history.role.corrected ||
+                    history.role.reversed ||
+                    history.role.reversalPurpose != null)
+                  TransactionHistorySection(history: history),
               if (children.isNotEmpty) ...[
                 const Divider(height: PlanActSpacing.xs),
                 DefaultTextStyle.merge(

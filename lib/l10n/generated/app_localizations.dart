@@ -9051,6 +9051,78 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.'**
   String get helpAccountsRecoveryAnswer;
+
+  /// Badge for an original entry superseded by a confirmed correction.
+  ///
+  /// In fa, this message translates to:
+  /// **'اصلاح‌شده'**
+  String get transactionCorrected;
+
+  /// Role of the reversal committed with a correction replacement.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت بابت اصلاح'**
+  String get transactionCorrectionReversal;
+
+  /// Explains the correction reversal without changing ledger semantics.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.'**
+  String get transactionCorrectionReversalHelp;
+
+  /// Role of a valid replacement financial entry.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت اصلاحی — جایگزین تراکنش قبلی'**
+  String get transactionReplacement;
+
+  /// Explains that an unreversed replacement remains a valid financial entry.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت، تراکنش مالی معتبرِ جایگزین است.'**
+  String get transactionReplacementHelp;
+
+  /// Role of an explicitly journalled cancellation reversal.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت بابت لغو'**
+  String get transactionCancellationReversal;
+
+  /// Explains a cancellation reversal, distinct from correction.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.'**
+  String get transactionCancellationReversalHelp;
+
+  /// Status for a reversed original or replacement.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست'**
+  String get transactionReversedHistory;
+
+  /// Neutral role when reversal purpose has insufficient evidence.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت ثبت قبلی'**
+  String get transactionUnknownReversal;
+
+  /// Action opening read-only related financial records.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ ثبت‌های مرتبط'**
+  String get transactionHistoryOpen;
+
+  /// Title of the read-only correction and cancellation history.
+  ///
+  /// In fa, this message translates to:
+  /// **'زنجیرهٔ ثبت‌های مرتبط'**
+  String get transactionHistoryTitle;
+
+  /// Role for the initial entry in the related records viewer.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت اولیه'**
+  String get transactionHistoryOriginal;
 }
 
 class _AppLocalizationsDelegate

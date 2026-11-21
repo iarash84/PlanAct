@@ -1,3 +1,4 @@
+import 'package:planact/features/finance/domain/transaction_history.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/errors/app_error.dart';
@@ -141,6 +142,15 @@ class InMemoryFinanceRepository
       _entries[entry.id] = entry;
     }
     if (corrected != null) _entries[corrected.id] = corrected;
+    _historyOperations.add(
+      FinanceHistoryOperation(
+        before: [for (final e in reversals) e.referenceId!],
+        after: [
+          for (final e in reversals) e.id.value,
+          if (corrected != null) corrected.id.value,
+        ],
+      ),
+    );
     return reversals.firstWhere((e) => e.referenceId == expected.id.value);
   }
 
@@ -189,13 +199,14 @@ class InMemoryFinanceRepository
 
   final Map<StableId, FinancialAccount> _accounts = {};
   final Map<StableId, AccountEntry> _entries = {};
+  final List<FinanceHistoryOperation> _historyOperations = [];
 
   @override
   Future<List<FinancialAccount>> listAccounts() async =>
       List.unmodifiable(_accounts.values);
   @override
   Future<List<AccountEntry>> listEntries() async =>
-      List.unmodifiable(_entries.values);
+      projectTransactionHistory(_entries.values.toList(), _historyOperations);
 
   @override
   Future<void> reorderAccounts(List<StableId> orderedIds) async {

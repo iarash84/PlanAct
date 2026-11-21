@@ -183,6 +183,15 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+User-approved correction-record clarity: derive read-only transaction roles and
+related chains centrally from explicit durable financial operation evidence and
+validated reversal relationships, never arbitrary reference IDs, SMS references,
+notes or timestamp proximity. Distinguish correction from cancellation reversals;
+retain user notes separately from system explanations. A replacement remains a
+valid entry only while unreversed; repeated corrections preserve the entire chain.
+Role projection must not mutate money, allocations or historical records. Missing
+legacy evidence stays unknown. See docs/verification/TRANSACTION_CORRECTION_CLARITY_VERIFICATION.md.
+
 User-approved 2026-11-21 transaction-note repair: when only an income/expense
 note changes, preserve the existing entry ID and all financial fields, source,
 tags, allocations and relationship decisions; do not reverse or replace money.

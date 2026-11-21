@@ -8486,5 +8486,65 @@
   "@helpAccountsRecoveryAnswer": {
     "description": "Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "transactionCorrected": "اصلاح‌شده",
+  "@transactionCorrected": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Badge for an original entry superseded by a confirmed correction."
+  },
+  "transactionCorrectionReversal": "برگشت بابت اصلاح",
+  "@transactionCorrectionReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of the reversal committed with a correction replacement."
+  },
+  "transactionCorrectionReversalHelp": "این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.",
+  "@transactionCorrectionReversalHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains the correction reversal without changing ledger semantics."
+  },
+  "transactionReplacement": "ثبت اصلاحی — جایگزین تراکنش قبلی",
+  "@transactionReplacement": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of a valid replacement financial entry."
+  },
+  "transactionReplacementHelp": "این ثبت، تراکنش مالی معتبرِ جایگزین است.",
+  "@transactionReplacementHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains that an unreversed replacement remains a valid financial entry."
+  },
+  "transactionCancellationReversal": "برگشت بابت لغو",
+  "@transactionCancellationReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of an explicitly journalled cancellation reversal."
+  },
+  "transactionCancellationReversalHelp": "این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.",
+  "@transactionCancellationReversalHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains a cancellation reversal, distinct from correction."
+  },
+  "transactionReversedHistory": "برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست",
+  "@transactionReversedHistory": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Status for a reversed original or replacement."
+  },
+  "transactionUnknownReversal": "برگشت ثبت قبلی",
+  "@transactionUnknownReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Neutral role when reversal purpose has insufficient evidence."
+  },
+  "transactionHistoryOpen": "مشاهدهٔ ثبت‌های مرتبط",
+  "@transactionHistoryOpen": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Action opening read-only related financial records."
+  },
+  "transactionHistoryTitle": "زنجیرهٔ ثبت‌های مرتبط",
+  "@transactionHistoryTitle": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Title of the read-only correction and cancellation history."
+  },
+  "transactionHistoryOriginal": "ثبت اولیه",
+  "@transactionHistoryOriginal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role for the initial entry in the related records viewer."
   }
 }
