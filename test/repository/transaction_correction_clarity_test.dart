@@ -6,6 +6,8 @@ import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/backup/data/sqlite_backup_snapshot.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/domain/finance.dart';
@@ -43,6 +45,8 @@ void main() {
           amount: const Money(minorUnits: 100, currency: 'IRR'),
           occurredAt: DateTime.utc(2026, 11),
           note: 'یادداشت اصلی',
+          category: 'دسته اصلی',
+          tags: {'برچسب اصلی', 'مشترک'},
         );
         final replacement = await commands.correctEntry(
           original: original,
@@ -51,6 +55,13 @@ void main() {
           amount: const Money(minorUnits: 200, currency: 'IRR'),
           occurredAt: original.occurredAt,
           note: 'یادداشت کاربر',
+        );
+        final tagRepository = DriftTagRepository(database);
+        final replacementTag = await tagRepository.getOrCreate('برچسب جایگزین');
+        await tagRepository.attach(
+          recordId: replacement.id.value,
+          tag: replacementTag,
+          type: TaggableType.accountEntry,
         );
         final finalEntry = await commands.correctEntry(
           original: replacement,
@@ -69,6 +80,38 @@ void main() {
           final last = entries.singleWhere((e) => e.id == finalEntry.id);
           expect(first.history!.role.corrected, isTrue);
           expect(first.note, 'یادداشت اصلی');
+          expect(first.category, 'دسته اصلی');
+          expect(first.source, original.source);
+          expect(first.accountId, original.accountId);
+          expect(first.amount, original.amount);
+          expect(first.referenceId, original.referenceId);
+          expect(first.noteRevision, original.noteRevision);
+          final tags = DriftTagRepository(database);
+          final labels = {
+            for (final tag in await tags.list()) tag.id: tag.label,
+          };
+          Future<Set<String>> directTags(AccountEntry entry) async => {
+            for (final id in await tags.tagsFor(
+              entry.id.value,
+              TaggableType.accountEntry,
+            ))
+              labels[id]!,
+          };
+          expect(await directTags(first), {'برچسب اصلی', 'مشترک'});
+          expect(await directTags(middle), {'برچسب جایگزین'});
+          expect(await directTags(last), isEmpty);
+          final originalItem = last.history!.chain.singleWhere(
+            (item) => item.entry.id == original.id,
+          );
+          expect(originalItem.tags, unorderedEquals(['برچسب اصلی', 'مشترک']));
+          expect(originalItem.entry.note, 'یادداشت اصلی');
+          expect(originalItem.entry.category, 'دسته اصلی');
+          expect(
+            last.history!.chain
+                .singleWhere((item) => item.entry.id == replacement.id)
+                .tags,
+            ['برچسب جایگزین'],
+          );
           expect(middle.history!.role.replacement, isTrue);
           expect(middle.history!.role.corrected, isTrue);
           expect(middle.history!.role.reversed, isTrue);

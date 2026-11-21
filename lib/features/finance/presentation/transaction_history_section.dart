@@ -6,6 +6,7 @@ import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
 import 'package:planact/features/finance/domain/transaction_history.dart';
 import 'package:planact/features/finance/presentation/transaction_direction.dart';
 
@@ -56,8 +57,12 @@ class TransactionHistorySection extends StatelessWidget {
                               ),
                             ),
                           ),
+                          if (item.entry.category?.isNotEmpty ?? false)
+                            Text(item.entry.category!),
                           if (item.entry.note?.isNotEmpty ?? false)
                             Text(item.entry.note!),
+                          if (item.tags.isNotEmpty)
+                            TagLabels(labels: item.tags),
                         ],
                       ),
                   ],

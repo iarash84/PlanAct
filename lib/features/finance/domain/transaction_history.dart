@@ -24,9 +24,10 @@ class TransactionHistoryRole {
 }
 
 class TransactionHistoryItem {
-  const TransactionHistoryItem(this.entry, this.role);
+  const TransactionHistoryItem(this.entry, this.role, {this.tags = const []});
   final AccountEntry entry;
   final TransactionHistoryRole role;
+  final List<String> tags;
 }
 
 class TransactionHistory {
@@ -39,8 +40,9 @@ class TransactionHistory {
 /// Missing evidence leaves a reversal unknown rather than calling it a cancel.
 List<AccountEntry> projectTransactionHistory(
   List<AccountEntry> entries,
-  Iterable<FinanceHistoryOperation> operations,
-) {
+  Iterable<FinanceHistoryOperation> operations, {
+  Map<String, List<String>> tagsByEntry = const {},
+}) {
   final byId = {for (final e in entries) e.id.value: e};
   final corrected = <String>{};
   final replacements = <String>{};
@@ -128,7 +130,12 @@ List<AccountEntry> projectTransactionHistory(
     }
     final chain = List<TransactionHistoryItem>.unmodifiable([
       for (final e in entries)
-        if (visited.contains(e.id.value)) TransactionHistoryItem(e, role(e)),
+        if (visited.contains(e.id.value))
+          TransactionHistoryItem(
+            e,
+            role(e),
+            tags: List.unmodifiable(tagsByEntry[e.id.value] ?? const []),
+          ),
     ]);
     for (final member in visited) {
       chains[member] = chain;

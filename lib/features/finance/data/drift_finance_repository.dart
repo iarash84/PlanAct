@@ -400,7 +400,31 @@ class DriftFinanceRepository
           );
         }
       }
-      return projectTransactionHistory(entries, operations);
+      final tagsByEntry = <String, List<String>>{};
+      if (operations.isNotEmpty) {
+        final links = await database.select(database.accountEntryTags).join([
+          innerJoin(
+            database.tags,
+            database.tags.id.equalsExp(database.accountEntryTags.tagId),
+          ),
+        ]).get();
+        for (final link in links) {
+          final entryId = link
+              .readTable(database.accountEntryTags)
+              .accountEntryId;
+          (tagsByEntry[entryId] ??= []).add(
+            link.readTable(database.tags).label,
+          );
+        }
+        for (final labels in tagsByEntry.values) {
+          labels.sort();
+        }
+      }
+      return projectTransactionHistory(
+        entries,
+        operations,
+        tagsByEntry: tagsByEntry,
+      );
     }),
   );
 
