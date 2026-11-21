@@ -443,13 +443,17 @@ void main() {
         ),
         findsOneWidget,
       );
+      // Correction history is hidden by default, not removed from the ledger.
       expect(
-        find.descendant(
-          of: find.byKey(ValueKey('transaction-account:${entry.id.value}')),
-          matching: find.text(bank.name),
-        ),
-        findsOneWidget,
+        find.byKey(ValueKey('transaction-account:${entry.id.value}')),
+        findsNothing,
       );
+      final retainedOriginal = (await finance.listEntries()).singleWhere(
+        (e) => e.id == entry.id,
+      );
+      expect(retainedOriginal.accountId, bank.id);
+      expect(retainedOriginal.amount, entry.amount);
+      expect(retainedOriginal.history!.role.corrected, isTrue);
 
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());

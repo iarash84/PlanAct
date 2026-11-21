@@ -144,6 +144,34 @@ void main() {
     },
   );
 
+  test('Today preview additions are separate from the migration baseline', () {
+    final copy = AppLocalizationsFa();
+    expect(copy.todayTransactionUnconfirmed, 'هنوز ثبت نشده');
+    expect(copy.todayTransactionRemainder, 'مبلغ بدون ارتباط');
+    expect(copy.todayTransactionTotal('۱۰۰ ریال'), 'کل تراکنش: ۱۰۰ ریال');
+    expect(
+      copy.todayTransactionDateNeedsReview,
+      'تاریخ تراکنش نیاز به بررسی دارد',
+    );
+    expect(
+      copy.todayTransactionReviewedDate('۱۴۰۵/۰۸/۳۰'),
+      'تاریخ بازبینی‌شده: ۱۴۰۵/۰۸/۳۰',
+    );
+    for (final key in [
+      'todayTransactionUnconfirmed',
+      'todayTransactionRemainder',
+      'todayTransactionTotal',
+      'todayTransactionDateNeedsReview',
+      'todayTransactionReviewedDate',
+    ]) {
+      expect(
+        (catalog['@$key'] as Map)['x-planact-introduced'],
+        'today-transaction-preview-2026-11-21',
+        reason: key,
+      );
+    }
+  });
+
   test('all migrated Persian templates preserve the pre-migration copy', () {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
@@ -188,6 +216,7 @@ void main() {
                     'account-help-2026-11-18',
                     'transaction-correction-clarity-2026-11-21',
                     'finance-correction-history-2026-11-21',
+                    'today-transaction-preview-2026-11-21',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],

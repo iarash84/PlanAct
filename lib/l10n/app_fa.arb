@@ -1,14 +1,17 @@
 {
   "todayTransactionUnconfirmed": "هنوز ثبت نشده",
   "@todayTransactionUnconfirmed": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Today SMS preview status: this suggestion has not been confirmed into the ledger."
   },
   "todayTransactionRemainder": "مبلغ بدون ارتباط",
   "@todayTransactionRemainder": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Labels the unallocated amount in the Today relationship preview, not the original transaction total."
   },
   "todayTransactionTotal": "کل تراکنش: {amount}",
   "@todayTransactionTotal": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Original transaction total shown only when the unallocated remainder differs.",
     "placeholders": {
       "amount": { "type": "String", "description": "Exactly formatted original amount including the visible currency unit." }
@@ -16,10 +19,12 @@
   },
   "todayTransactionDateNeedsReview": "تاریخ تراکنش نیاز به بررسی دارد",
   "@todayTransactionDateNeedsReview": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "The SMS draft date is unknown or only a receipt fallback; never presents it as an extracted date."
   },
   "todayTransactionReviewedDate": "تاریخ بازبینی‌شده: {date}",
   "@todayTransactionReviewedDate": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Explicit reviewer-selected transaction date in the Today SMS preview.",
     "placeholders": {
       "date": { "type": "String", "description": "Localized Jalali date; does not imply independently extracted time evidence." }
