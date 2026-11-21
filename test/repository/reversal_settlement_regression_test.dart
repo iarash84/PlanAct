@@ -94,8 +94,21 @@ void main() {
             return entry;
           }
 
-          final original = await pay(operation == 'partial' ? 60 : 100);
+          var original = await pay(operation == 'partial' ? 60 : 100);
           if (operation == 'partial') await pay(40);
+          expect((await expectations.settled()).single.remainingMinorUnits, 0);
+          // A descriptive edit must keep the existing settlement and match IDs.
+          final described = await FinanceUseCases(finance).correctEntry(
+            original: original,
+            account: bank,
+            type: original.type,
+            amount: original.amount,
+            occurredAt: original.occurredAt,
+            note: 'updated description only',
+            category: original.category,
+          );
+          expect(described.id, original.id);
+          original = described;
           expect((await expectations.settled()).single.remainingMinorUnits, 0);
           final matchesBefore = allocationFingerprintFor(
             await DriftReconciliationRepository(database).list(),

@@ -147,6 +147,7 @@ class AccountEntry {
     this.category,
     this.source = AccountEntrySource.manual,
     this.transferGroupId,
+    this.noteRevision = 0,
   }) {
     if (amount.minorUnits == 0) {
       throw const ValidationError('Entry amount cannot be zero');
@@ -162,6 +163,34 @@ class AccountEntry {
   final String? category;
   final AccountEntrySource source;
   final StableId? transferGroupId;
+  final int noteRevision;
+
+  bool hasSameFinancialDetails({
+    required StableId accountId,
+    required AccountEntryType type,
+    required Money amount,
+    required DateTime occurredAt,
+    required String? category,
+  }) =>
+      this.accountId == accountId &&
+      this.type == type &&
+      this.amount == amount &&
+      this.occurredAt.isAtSameMomentAs(occurredAt) &&
+      this.category == category;
+
+  AccountEntry withNote(String? note) => AccountEntry(
+    id: id,
+    accountId: accountId,
+    type: type,
+    amount: amount,
+    occurredAt: occurredAt,
+    referenceId: referenceId,
+    note: note,
+    category: category,
+    source: source,
+    transferGroupId: transferGroupId,
+    noteRevision: noteRevision + 1,
+  );
 
   Money get signedAmount {
     switch (type) {

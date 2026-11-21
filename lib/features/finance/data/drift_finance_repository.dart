@@ -26,6 +26,7 @@ class DriftFinanceRepository
         BankObservationReviewRepository,
         AtomicAccountEditing,
         AtomicFinanceCorrection,
+        AtomicTransactionNoteEditing,
         AtomicFinanceReversal,
         AccountStatusUndoRepository,
         TaggedFinanceCreation {
@@ -209,6 +210,32 @@ class DriftFinanceRepository
       );
 
   @override
+  Future<AccountEntry> editEntryNote(AccountEntry expected, String? note) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final edited = prepareEntryNoteEdit(
+            expected: expected,
+            note: note,
+            entries: await listEntries(),
+            accounts: await listAccounts(),
+          );
+          if (edited.noteRevision == expected.noteRevision) return edited;
+          await (database.update(database.accountEntries)
+                ..where((t) => t.id.equals(expected.id.value)))
+              .write(db.AccountEntriesCompanion(note: Value(note)));
+          await journal.append(
+            owner: 'transaction-note:${expected.id.value}',
+            before: {'note': expected.note, 'revision': expected.noteRevision},
+            after: {'note': edited.note, 'revision': edited.noteRevision},
+          );
+          return edited;
+        }),
+      );
+
+  @override
   Future<AccountEntry> reverseEntry({
     required AccountEntry expected,
     required StableId accountId,
@@ -298,6 +325,28 @@ class DriftFinanceRepository
     this,
     () async {
       final rows = await database.select(database.accountEntries).get();
+      final revisionRows = await database
+          .customSelect(
+            "SELECT h.key AS owner_key, e.value AS event_value FROM schema_metadata h "
+            "JOIN schema_metadata e ON e.key = 'undo_event_v1:' || h.value "
+            "WHERE h.key LIKE 'undo_head_v1:transaction-note:%'",
+            readsFrom: {database.schemaMetadata},
+          )
+          .get();
+      final revisions = <String, int>{};
+      for (final revisionRow in revisionRows) {
+        final event = jsonDecode(
+          revisionRow.read<String>('event_value'),
+        ) as Map<String, dynamic>;
+        if (event['version'] != 1) {
+          throw const ValidationError('Unsupported transaction note history');
+        }
+        final id = revisionRow
+            .read<String>('owner_key')
+            .substring('undo_head_v1:transaction-note:'.length);
+        revisions[id] =
+            (event['after'] as Map<String, dynamic>)['revision'] as int;
+      }
       return rows
           .map(
             (row) => AccountEntry(
@@ -308,6 +357,7 @@ class DriftFinanceRepository
               occurredAt: row.occurredAt.toUtc(),
               referenceId: row.referenceId,
               note: row.note,
+              noteRevision: revisions[row.id] ?? 0,
               category: row.category,
               source: AccountEntrySource.values[row.source],
               transferGroupId: row.transferGroupId == null

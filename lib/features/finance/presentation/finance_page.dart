@@ -447,10 +447,23 @@ class FinancePageState extends State<FinancePage> {
                   });
                   try {
                     if (original != null) {
-                      if (!await confirmRecordedAction(
-                            context,
-                            '${planActL10n(context).financeCorrectAccountEffects(originalAccount?.name ?? original.accountId.value, PersianMoneyText.money(-original.signedAmount, unit: moneyInput.unit, isolateNumber: true), selectedAccount.name, PersianMoneyText.amount(income ? value : -value, selectedAccount.currency, unit: moneyInput.unit, isolateNumber: true))}\n\n${planActL10n(context).financeCorrectMessage}',
-                          ) ||
+                      final noteOnly = original.hasSameFinancialDetails(
+                        accountId: selectedAccount.id,
+                        type: income
+                            ? AccountEntryType.income
+                            : AccountEntryType.expense,
+                        amount: Money(
+                          minorUnits: value,
+                          currency: selectedAccount.currency,
+                        ),
+                        occurredAt: occurredAt,
+                        category: original.category,
+                      );
+                      if ((!noteOnly &&
+                              !await confirmRecordedAction(
+                                context,
+                                '${planActL10n(context).financeCorrectAccountEffects(originalAccount?.name ?? original.accountId.value, PersianMoneyText.money(-original.signedAmount, unit: moneyInput.unit, isolateNumber: true), selectedAccount.name, PersianMoneyText.amount(income ? value : -value, selectedAccount.currency, unit: moneyInput.unit, isolateNumber: true))}\n\n${planActL10n(context).financeCorrectMessage}',
+                              )) ||
                           !context.mounted) {
                         if (context.mounted) {
                           setDialogState(() => saving = false);

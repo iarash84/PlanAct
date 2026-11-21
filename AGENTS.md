@@ -183,6 +183,16 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+User-approved 2026-11-21 transaction-note repair: when only an income/expense
+note changes, preserve the existing entry ID and all financial fields, source,
+tags, allocations and relationship decisions; do not reverse or replace money.
+Compare fresh durable state and a monotonic note revision under SQLite writer
+admission, updating only the note and appending before/after history atomically.
+Reject stale/reversed entries; no-op saves add no history. Financial-field changes
+retain the existing explicit correction confirmation and reversal path. Preserve
+note heads/history in personal backup; unchanged schema does not approve older
+writers. See docs/verification/TRANSACTION_NOTE_EDIT_VERIFICATION.md.
+
 Bank evidence review checkpoint (2026-11-16, step 1): preserve incomplete independent
 balance evidence without borrowing transaction units, Settings or receipt time.
 Keep original observations immutable; explicit account/amount/unit/time review,
