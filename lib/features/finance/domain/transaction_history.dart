@@ -162,3 +162,16 @@ bool _isReversalOf(AccountEntry reversal, AccountEntry original) =>
     reversal.amount.currency == original.amount.currency &&
     BigInt.from(reversal.signedAmount.minorUnits) ==
         -BigInt.from(original.signedAmount.minorUnits);
+
+/// Main Finance list only; ledger and related chains remain complete.
+bool showInFinanceTransactionList(
+  AccountEntry entry, {
+  bool showCorrectionHistory = false,
+}) {
+  if (showCorrectionHistory) return true;
+  final role = entry.history?.role;
+  if (role == null) return true;
+  return !role.corrected &&
+      role.reversalPurpose != ReversalPurpose.correction &&
+      !(role.replacement && role.reversed);
+}

@@ -5428,4 +5428,15 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get transactionHistoryOriginal => 'ثبت اولیه';
+
+  @override
+  String get financeShowCorrectionHistory => 'نمایش سوابق اصلاح تراکنش‌ها';
+
+  @override
+  String get financeShowCorrectionHistoryDescription =>
+      'نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.';
+
+  @override
+  String get financeCorrectionHistorySaveError =>
+      'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.';
 }

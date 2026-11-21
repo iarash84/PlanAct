@@ -186,6 +186,7 @@ void main() {
                     'sequential-review-2026-11-17',
                     'account-help-2026-11-18',
                     'transaction-correction-clarity-2026-11-21',
+                    'finance-correction-history-2026-11-21',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -215,6 +216,11 @@ void main() {
 
   test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'finance-correction-history-2026-11-21': {
+        'financeShowCorrectionHistory',
+        'financeShowCorrectionHistoryDescription',
+        'financeCorrectionHistorySaveError',
+      },
       'bank-recovery-2026-11-16': {
         'bankRecoveryTitle',
         'bankRecoveryDisclosure',

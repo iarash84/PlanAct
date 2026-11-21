@@ -95,6 +95,12 @@ class AppSettings {
   Future<void> writeAppLockEnabled(bool enabled) =>
       database.writeMetadata(_appLockKey, enabled.toString());
 
+  Future<bool> readShowTransactionCorrectionHistory() async =>
+      await database.readMetadata('finance_correction_history_v1') == 'true';
+
+  Future<void> writeShowTransactionCorrectionHistory(bool enabled) => database
+      .writeMetadata('finance_correction_history_v1', enabled.toString());
+
   Future<bool> readShowArchivedAccounts() async =>
       (await database.readMetadata(_showArchivedAccountsKey)) == 'true';
 

@@ -27,6 +27,8 @@ class SettingsPage extends StatefulWidget {
     this.backupMessage,
     required this.themeMode,
     required this.onThemeModeChanged,
+    this.showTransactionCorrectionHistory = false,
+    this.onShowTransactionCorrectionHistoryChanged,
     this.showArchivedAccounts = false,
     this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
@@ -47,6 +49,9 @@ class SettingsPage extends StatefulWidget {
   final String? backupMessage;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final bool showTransactionCorrectionHistory;
+  final Future<void> Function(bool enabled)?
+  onShowTransactionCorrectionHistoryChanged;
   final bool showArchivedAccounts;
   final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
@@ -66,6 +71,9 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late ThemeMode _themeMode = widget.themeMode;
   late bool _showArchivedAccounts = widget.showArchivedAccounts;
+  late bool _showCorrectionHistory = widget.showTransactionCorrectionHistory;
+  bool _savingCorrectionHistory = false;
+  bool _correctionHistorySaveFailed = false;
   bool _savingAccounts = false;
   bool _accountsSaveFailed = false;
   bool _morningReminderEnabled = false;
@@ -163,6 +171,22 @@ class _SettingsPageState extends State<SettingsPage> {
   String _formatMorningTime(int minutes) =>
       TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60).format(context);
 
+  Future<void> _changeCorrectionHistory(bool enabled) async {
+    if (_savingCorrectionHistory) return;
+    setState(() {
+      _savingCorrectionHistory = true;
+      _correctionHistorySaveFailed = false;
+    });
+    try {
+      await widget.onShowTransactionCorrectionHistoryChanged!(enabled);
+      if (mounted) setState(() => _showCorrectionHistory = enabled);
+    } catch (_) {
+      if (mounted) setState(() => _correctionHistorySaveFailed = true);
+    } finally {
+      if (mounted) setState(() => _savingCorrectionHistory = false);
+    }
+  }
+
   Future<void> _changeArchivedAccounts(bool enabled) async {
     if (_savingAccounts) return;
     setState(() {
@@ -183,6 +207,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void didUpdateWidget(covariant SettingsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.themeMode != widget.themeMode) _themeMode = widget.themeMode;
+    if (oldWidget.showTransactionCorrectionHistory !=
+        widget.showTransactionCorrectionHistory) {
+      _showCorrectionHistory = widget.showTransactionCorrectionHistory;
+    }
     if (oldWidget.showArchivedAccounts != widget.showArchivedAccounts) {
       _showArchivedAccounts = widget.showArchivedAccounts;
     }
@@ -264,6 +292,31 @@ class _SettingsPageState extends State<SettingsPage> {
             value: widget.background,
             onChanged: widget.onBackgroundChanged!,
           ),
+        ],
+        if (widget.onShowTransactionCorrectionHistoryChanged != null) ...[
+          const SizedBox(height: PlanActSpacing.lg),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.history),
+              title: Text(planActL10n(context).financeShowCorrectionHistory),
+              subtitle: Text(
+                planActL10n(context).financeShowCorrectionHistoryDescription,
+              ),
+              value: _showCorrectionHistory,
+              onChanged: _savingCorrectionHistory
+                  ? null
+                  : _changeCorrectionHistory,
+            ),
+          ),
+          if (_savingCorrectionHistory) const LinearProgressIndicator(),
+          if (_correctionHistorySaveFailed)
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                planActL10n(context).financeCorrectionHistorySaveError,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
         ],
         if (widget.onShowArchivedAccountsChanged != null) ...[
           const SizedBox(height: PlanActSpacing.lg),

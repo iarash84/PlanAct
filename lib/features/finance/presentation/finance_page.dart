@@ -1,3 +1,4 @@
+import 'package:planact/features/finance/domain/transaction_history.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/finance/presentation/accounts_management_view.dart';
 import 'package:planact/features/finance/domain/bank_balance.dart';
@@ -85,6 +86,7 @@ class FinancePage extends StatefulWidget {
     this.embedded = false,
     this.bottomContentPadding = 0,
     this.showArchivedAccounts = false,
+    this.showTransactionCorrectionHistory = false,
     this.manageAccounts = false,
     this.initialAccountFilter,
     this.focusedRecordId,
@@ -99,6 +101,7 @@ class FinancePage extends StatefulWidget {
   final bool embedded;
   final double bottomContentPadding;
   final bool showArchivedAccounts;
+  final bool showTransactionCorrectionHistory;
   final bool manageAccounts;
   final StableId? initialAccountFilter;
 
@@ -145,6 +148,15 @@ class FinancePageState extends State<FinancePage> {
   void initState() {
     super.initState();
     _refresh();
+  }
+
+  @override
+  void didUpdateWidget(covariant FinancePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showTransactionCorrectionHistory !=
+        widget.showTransactionCorrectionHistory) {
+      _entryPage = 0;
+    }
   }
 
   Future<void> _refresh() async {
@@ -780,6 +792,15 @@ class FinancePageState extends State<FinancePage> {
         e.type == AccountEntryType.reversal ? byId[e.referenceId] ?? e : e;
     final entries =
         _entries
+            .where(
+              (entry) =>
+                  widget.focusedRecordId != null ||
+                  showInFinanceTransactionList(
+                    entry,
+                    showCorrectionHistory:
+                        widget.showTransactionCorrectionHistory,
+                  ),
+            )
             .where(
               (entry) =>
                   _accountFilter == null || entry.accountId == _accountFilter,

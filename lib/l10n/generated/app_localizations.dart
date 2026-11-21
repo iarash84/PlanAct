@@ -9123,6 +9123,24 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'ثبت اولیه'**
   String get transactionHistoryOriginal;
+
+  /// Finance setting label for correction history, off by default.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش سوابق اصلاح تراکنش‌ها'**
+  String get financeShowCorrectionHistory;
+
+  /// Explains the display-only Finance correction history preference.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.'**
+  String get financeShowCorrectionHistoryDescription;
+
+  /// Save failure retaining the previous effective preference with retry guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.'**
+  String get financeCorrectionHistorySaveError;
 }
 
 class _AppLocalizationsDelegate

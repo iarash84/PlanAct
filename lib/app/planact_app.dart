@@ -141,6 +141,7 @@ class _PlanActAppState extends State<PlanActApp> {
   late final ThemePresetController _themePresets;
   AppBackground _background = AppBackground.none;
   bool _showArchivedAccounts = false;
+  bool _showTransactionCorrectionHistory = false;
   bool _backgroundLoaded = true;
   bool _backgroundLoadFailed = false;
   AppSettings? _settings;
@@ -165,6 +166,7 @@ class _PlanActAppState extends State<PlanActApp> {
       _backgroundLoaded = false;
       _loadBackground();
       _loadShowArchivedAccounts();
+      _loadShowTransactionCorrectionHistory();
       _loadAppLockSetting();
     }
     _themePresets = ThemePresetController(_settings)
@@ -250,6 +252,22 @@ class _PlanActAppState extends State<PlanActApp> {
     if (settings == null) throw StateError('Persistent settings unavailable');
     await settings.writeBackground(background);
     if (mounted) setState(() => _background = background);
+  }
+
+  Future<void> _loadShowTransactionCorrectionHistory() async {
+    try {
+      final value = await _settings!.readShowTransactionCorrectionHistory();
+      if (mounted) setState(() => _showTransactionCorrectionHistory = value);
+    } catch (_) {
+      // Preserve the effective preference on read failure.
+    }
+  }
+
+  Future<void> _setShowTransactionCorrectionHistory(bool enabled) async {
+    final settings = _settings;
+    if (settings == null) throw StateError('Persistent settings unavailable');
+    await settings.writeShowTransactionCorrectionHistory(enabled);
+    if (mounted) setState(() => _showTransactionCorrectionHistory = enabled);
   }
 
   Future<void> _loadShowArchivedAccounts() async {
@@ -413,6 +431,10 @@ class _PlanActAppState extends State<PlanActApp> {
               tagRepository: widget.tagRepository,
               planRepository: widget.planRepository,
               settings: _settings,
+              showTransactionCorrectionHistory:
+                  _showTransactionCorrectionHistory,
+              onShowTransactionCorrectionHistoryChanged:
+                  _setShowTransactionCorrectionHistory,
               showArchivedAccounts: _showArchivedAccounts,
               onShowArchivedAccountsChanged: _setShowArchivedAccounts,
               themeMode: _themeMode,
@@ -479,6 +501,8 @@ class HomeShell extends StatefulWidget {
     this.backupMessage,
     this.smsSource,
     this.themeMode = ThemeMode.system,
+    this.showTransactionCorrectionHistory = false,
+    this.onShowTransactionCorrectionHistoryChanged,
     this.showArchivedAccounts = false,
     this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
@@ -501,6 +525,9 @@ class HomeShell extends StatefulWidget {
   final BackupActions? backupActions;
   final String? backupMessage;
   final ThemeMode themeMode;
+  final bool showTransactionCorrectionHistory;
+  final Future<void> Function(bool enabled)?
+  onShowTransactionCorrectionHistoryChanged;
   final bool showArchivedAccounts;
   final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
@@ -1777,7 +1804,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     backupActions: widget.backupActions,
     backupMessage: widget.backupMessage,
     settings: widget.settings,
+    showTransactionCorrectionHistory: widget.showTransactionCorrectionHistory,
     showArchivedAccounts: widget.showArchivedAccounts,
+    onShowTransactionCorrectionHistoryChanged:
+        widget.onShowTransactionCorrectionHistoryChanged,
     onShowArchivedAccountsChanged: widget.onShowArchivedAccountsChanged,
     themeMode: widget.themeMode,
     background: widget.background,
@@ -1804,6 +1834,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           onTagsChanged: _tagsChanged,
           onDataChanged: _refresh,
           onDetermineRelationship: _openRelationship,
+          showTransactionCorrectionHistory:
+              widget.showTransactionCorrectionHistory,
           showArchivedAccounts: widget.showArchivedAccounts,
           manageAccounts: true,
         ),
@@ -1978,6 +2010,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         bottomContentPadding: _quickAddScrollClearance,
         embedded: true,
         repository: _financeRepository,
+        showTransactionCorrectionHistory:
+            widget.showTransactionCorrectionHistory,
         showArchivedAccounts: widget.showArchivedAccounts,
         onDetermineRelationship: _openRelationship,
         tagRepository: _tagRepository,

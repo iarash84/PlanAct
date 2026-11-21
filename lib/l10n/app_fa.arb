@@ -8546,5 +8546,21 @@
   "@transactionHistoryOriginal": {
     "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
     "description": "Role for the initial entry in the related records viewer."
+  },
+
+  "financeShowCorrectionHistory": "نمایش سوابق اصلاح تراکنش‌ها",
+  "@financeShowCorrectionHistory": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Finance setting label for correction history, off by default."
+  },
+  "financeShowCorrectionHistoryDescription": "نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.",
+  "@financeShowCorrectionHistoryDescription": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Explains the display-only Finance correction history preference."
+  },
+  "financeCorrectionHistorySaveError": "تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.",
+  "@financeCorrectionHistorySaveError": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Save failure retaining the previous effective preference with retry guidance."
   }
 }

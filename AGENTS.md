@@ -186,6 +186,8 @@ Independent correction checkpoint: count termination and package credit are sepa
 User-approved 2026-11-21 current-transaction metadata: financial correction must copy fresh durable tag memberships to the replacement atomically with reversal, replacement and operation evidence, retaining original memberships. Preserve the category when no replacement category is supplied. The form retains the existing note; explicit edits or clearing apply only to the replacement. Subsequent corrections copy the current owner, not the chain root. Do not copy financial allocations, relationship-review decisions or SMS provenance. Do not backfill old replacements heuristically. This supersedes earlier no-tag-copy limitations; see docs/verification/TRANSACTION_CORRECTION_CLARITY_VERIFICATION.md.
 
 
+User-approved 2026-11-21 Finance display preference: “نمایش سوابق اصلاح تراکنش‌ها” defaults off. Filter only centrally proven correction history (superseded originals/intermediate replacements and correction reversals) before main-list counts/pagination; retain only unreversed current replacements. Cancelling a final replacement never resurrects earlier versions. Ordinary cancellation reversals and unknown legacy evidence remain visible. Focused records and related chains stay accessible; never filter ledger balances, reports or Calendar. Persist before publishing, retain prior effective value on failure with Persian retry feedback, and preserve metadata through restart/backup.
+
 User-approved correction-record clarity: derive read-only transaction roles and
 related chains centrally from explicit durable financial operation evidence and
 validated reversal relationships, never arbitrary reference IDs, SMS references,
