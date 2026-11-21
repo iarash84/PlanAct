@@ -14,7 +14,7 @@ import 'package:planact/features/inbox/presentation/inbox_page.dart';
 import '../repository/bank_recovery_test.dart' show account, chain;
 import 'inbox_account_selection_test.dart' show selectAccount;
 
-const recovery = 'بازیابی تطبیق‌های وابسته';
+const recovery = 'بررسی تطبیق‌های قبلی';
 Future<void> tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
   if (finder.evaluate().isEmpty) {
@@ -91,7 +91,10 @@ void main() {
           '350',
         );
         await tap(tester, find.widgetWithText(TextButton, recovery).last);
-        await tap(tester, find.widgetWithText(FilledButton, recovery));
+        await tap(
+          tester,
+          find.widgetWithText(FilledButton, 'لغو ۲ تطبیق قبلی'),
+        );
         expect(find.byType(BankObservationReview), findsOneWidget);
         expect((await repo.listEntries()).length, 4);
         expect(
@@ -160,7 +163,10 @@ void main() {
           isNot(SuggestionStatus.confirmed),
         );
         await tap(tester, find.widgetWithText(TextButton, recovery).last);
-        await tap(tester, find.widgetWithText(FilledButton, recovery));
+        await tap(
+          tester,
+          find.widgetWithText(FilledButton, 'لغو ۲ تطبیق قبلی'),
+        );
         expect((await repo.listEntries()).length, 4);
         expect(
           (await inbox.repository.listSuggestions()).single.status,

@@ -1300,7 +1300,7 @@ class _ConfirmationSheetState extends State<_ConfirmationSheet> {
               widget.finance is BankRecoveryRepository)
             TextButton(
               onPressed: _saving ? null : _recover,
-              child: Text(planActL10n(context).bankRecoveryTitle),
+              child: Text(planActL10n(context).bankRecoveryReview),
             ),
           if (_item.suggestion.draft.currencyEvidence?.requiresSelection ==
               true)

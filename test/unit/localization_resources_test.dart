@@ -178,6 +178,7 @@ void main() {
                     'bank-balance-2026-11-11',
                     'bank-evidence-review-2026-11-16',
                     'bank-recovery-2026-11-16',
+                    'bank-usability-2026-11-21',
                     'calendar-visibility-2026-11-14',
                     'transaction-account-correction-2026-11-14',
                     'finance-account-management-2026-11-14',

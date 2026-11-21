@@ -213,7 +213,7 @@ class _BankObservationReviewState extends State<BankObservationReview> {
                 widget.repository is BankRecoveryRepository)
               TextButton(
                 onPressed: _busy ? null : _recover,
-                child: Text(l10n.bankRecoveryTitle),
+                child: Text(l10n.bankRecoveryReview),
               ),
             if (_busy) const LinearProgressIndicator(),
           ],

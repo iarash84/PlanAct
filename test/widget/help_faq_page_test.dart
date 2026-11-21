@@ -65,8 +65,8 @@ void main() {
         'شماره کارت، شبا و شماره حساب چگونه محافظت می‌شوند؟',
         'تفاوت موجودی دفتر با گزارش موجودی بانک چیست؟',
         'بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟',
-        'تطبیق موجودی بانک چگونه انجام می‌شود؟',
-        'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟',
+        'مقایسه با موجودی بانک چگونه انجام می‌شود؟',
+        'لغو تطبیق‌های قبلی چه زمانی لازم است؟',
       ]) {
         final tile = find.byKey(ValueKey(question));
         await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);
@@ -81,12 +81,9 @@ void main() {
         if (question.startsWith('بررسی گزارش')) {
           expect(answer.data, contains('تراکنش یا موجودی دفتر تغییر نمی‌کند'));
         }
-        if (question.startsWith('بازیابی')) {
-          expect(answer.data, contains('همهٔ تطبیق‌های فعال'));
-          expect(
-            answer.data,
-            contains('این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند'),
-          );
+        if (question.startsWith('لغو')) {
+          expect(answer.data, contains('خالص اثر لغو هر حساب'));
+          expect(answer.data, contains('گزارش یا پیامک خودکار ذخیره نمی‌شود'));
         }
         expect(tester.takeException(), isNull);
         await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);

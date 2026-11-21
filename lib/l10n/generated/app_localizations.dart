@@ -151,7 +151,7 @@ abstract class AppLocalizations {
   /// Action opening a read-only account reconciliation preview; opening it does not write a financial entry.
   ///
   /// In fa, this message translates to:
-  /// **'بررسی و تطبیق حساب'**
+  /// **'مقایسه با موجودی بانک'**
   String get bankBalanceReconcile;
 
   /// Label for the ledger balance through the valid source report time, not the current balance.
@@ -8941,25 +8941,25 @@ abstract class AppLocalizations {
   /// Title and explicit action for reversing dependent bank reconciliations.
   ///
   /// In fa, this message translates to:
-  /// **'بازیابی تطبیق‌های وابسته'**
+  /// **'لغو تطبیق‌های قبلی'**
   String get bankRecoveryTitle;
 
   /// Disclosure before explicit atomic dependency recovery.
   ///
   /// In fa, this message translates to:
-  /// **'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.'**
+  /// **'این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.'**
   String get bankRecoveryDisclosure;
 
   /// Successful recovery; user must explicitly retry the retained draft.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.'**
+  /// **'تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.'**
   String get bankRecoveryDone;
 
   /// Empty recovery preview.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق فعالی برای بازیابی وجود ندارد.'**
+  /// **'تطبیق فعالی برای لغو وجود ندارد.'**
   String get bankRecoveryEmpty;
 
   /// Label for immutable source observation identity.
@@ -9031,25 +9031,25 @@ abstract class AppLocalizations {
   /// Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق موجودی بانک چگونه انجام می‌شود؟'**
+  /// **'مقایسه با موجودی بانک چگونه انجام می‌شود؟'**
   String get helpAccountsReconcileQuestion;
 
   /// Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.'**
+  /// **'از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.'**
   String get helpAccountsReconcileAnswer;
 
   /// Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟'**
+  /// **'لغو تطبیق‌های قبلی چه زمانی لازم است؟'**
   String get helpAccountsRecoveryQuestion;
 
   /// Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.'**
+  /// **'وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.'**
   String get helpAccountsRecoveryAnswer;
 
   /// Badge for an original entry superseded by a confirmed correction.
@@ -9141,6 +9141,94 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.'**
   String get financeCorrectionHistorySaveError;
+
+  /// Explains historical bank comparison.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.'**
+  String get bankBalanceComparisonHelp;
+
+  /// Unselected reason hint; no financial reason is assumed.
+  ///
+  /// In fa, this message translates to:
+  /// **'علت اختلاف را انتخاب کنید'**
+  String get bankBalanceReason;
+
+  /// Guidance-only choice; never creates an adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنشی جا افتاده یا اشتباه ثبت شده'**
+  String get bankBalanceMissingTransaction;
+
+  /// Guides explicit transaction repair without automatic adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.'**
+  String get bankBalanceTransactionGuidance;
+
+  /// Final explicit action recording a known fee expense.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت کارمزد'**
+  String get bankBalanceRegisterFee;
+
+  /// Final explicit action recording an unknown signed balance adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت تعدیل موجودی'**
+  String get bankBalanceRegisterAdjustment;
+
+  /// Read-only zero difference state.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک و دفتر در زمان گزارش برابر است.'**
+  String get bankBalanceEqual;
+
+  /// Explains contextual reversal preview without automatic reversal.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.'**
+  String get bankBalanceAlreadyReconciled;
+
+  /// Opens read-only reversal preview, not confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی تطبیق‌های قبلی'**
+  String get bankRecoveryReview;
+
+  /// Reloads preview after failed or stale consent.
+  ///
+  /// In fa, this message translates to:
+  /// **'دریافت دوبارهٔ پیش‌نمایش'**
+  String get bankRecoveryRetry;
+
+  /// Directional comparison when bank is lower.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک {amount} کمتر از دفتر است.'**
+  String bankBalanceBankLower(String amount);
+
+  /// Directional comparison when bank is higher.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک {amount} بیشتر از دفتر است.'**
+  String bankBalanceBankHigher(String amount);
+
+  /// Final confirmation naming total reversals.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغو {count} تطبیق قبلی'**
+  String bankRecoveryConfirmCount(String count);
+
+  /// Per-account reversal count and exact signed net effect.
+  ///
+  /// In fa, this message translates to:
+  /// **'{account}؛ {count} تطبیق؛ خالص تغییر موجودی: {amount}'**
+  String bankRecoveryAccountSummary(
+    String account,
+    String count,
+    String amount,
+  );
 }
 
 class _AppLocalizationsDelegate

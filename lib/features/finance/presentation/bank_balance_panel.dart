@@ -95,6 +95,7 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
   Future<void> _review() async {
     final l10n = planActL10n(context);
     BankReconciliationReason? reason;
+    var missingTransaction = false;
     final approved = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -121,25 +122,61 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
                   '${l10n.bankBalanceLedgerAtReport}: ${_money(widget.snapshot.ledgerAtReport)}',
                 ),
                 Text(
-                  '${l10n.bankBalanceDifference}: ${_money(widget.snapshot.difference!)}',
+                  widget.snapshot.difference! < 0
+                      ? l10n.bankBalanceBankLower(
+                          _money(-widget.snapshot.difference!),
+                        )
+                      : l10n.bankBalanceBankHigher(
+                          _money(widget.snapshot.difference!),
+                        ),
                 ),
-                DropdownButton<BankReconciliationReason>(
-                  isExpanded: true,
-                  value: reason,
-                  hint: Text(l10n.bankBalanceReconcile),
-                  items: [
-                    if (widget.snapshot.difference! < 0)
-                      DropdownMenuItem(
-                        value: BankReconciliationReason.knownFee,
-                        child: Text(l10n.bankBalanceKnownFee),
-                      ),
-                    DropdownMenuItem(
-                      value: BankReconciliationReason.unknownAdjustment,
-                      child: Text(l10n.bankBalanceUnknownAdjustment),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.bankBalanceMissingTransaction),
+                  value: missingTransaction,
+                  onChanged: (value) => update(() {
+                    missingTransaction = value!;
+                    reason = null;
+                  }),
+                ),
+                if (missingTransaction)
+                  Text(l10n.bankBalanceTransactionGuidance),
+                if (!missingTransaction)
+                  DropdownButton<BankReconciliationReason>(
+                    isExpanded: true,
+                    itemHeight: null,
+                    value: reason,
+                    hint: Text(
+                      l10n.bankBalanceReason,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  onChanged: (value) => update(() => reason = value),
-                ),
+                    selectedItemBuilder: (context) => [
+                      if (widget.snapshot.difference! < 0)
+                        Text(
+                          l10n.bankBalanceKnownFee,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      Text(
+                        l10n.bankBalanceUnknownAdjustment,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    items: [
+                      if (widget.snapshot.difference! < 0)
+                        DropdownMenuItem(
+                          value: BankReconciliationReason.knownFee,
+                          child: Text(l10n.bankBalanceKnownFee),
+                        ),
+                      DropdownMenuItem(
+                        value: BankReconciliationReason.unknownAdjustment,
+                        child: Text(l10n.bankBalanceUnknownAdjustment),
+                      ),
+                    ],
+                    onChanged: (value) => update(() => reason = value),
+                  ),
               ],
             ),
           ),
@@ -152,7 +189,13 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
               onPressed: reason == null
                   ? null
                   : () => Navigator.pop(context, true),
-              child: Text(l10n.bankBalanceConfirm),
+              child: Text(
+                reason == BankReconciliationReason.knownFee
+                    ? l10n.bankBalanceRegisterFee
+                    : reason == BankReconciliationReason.unknownAdjustment
+                    ? l10n.bankBalanceRegisterAdjustment
+                    : l10n.bankBalanceConfirm,
+              ),
             ),
           ],
         ),
@@ -217,17 +260,35 @@ class _BankBalancePanelState extends State<BankBalancePanel> {
                 ? null
                 : () => _evidence(evidence),
           ),
-        if (snapshot.canReconcile)
-          TextButton.icon(
-            onPressed: _busy || !widget.enabled ? null : _review,
-            icon: const Icon(Icons.balance_outlined),
-            label: Text(l10n.bankBalanceReconcile),
+        Text(l10n.bankBalanceComparisonHelp),
+        if (snapshot.latest != null && !snapshot.ambiguous) ...[
+          Text(
+            '${l10n.bankBalanceLedgerAtReport}: ${_money(snapshot.ledgerAtReport)}',
           ),
-        if (widget.repository is BankRecoveryRepository)
+          if (snapshot.difference case final difference?)
+            Text(
+              difference == 0
+                  ? l10n.bankBalanceEqual
+                  : difference < 0
+                  ? l10n.bankBalanceBankLower(_money(-difference))
+                  : l10n.bankBalanceBankHigher(_money(difference)),
+            ),
+        ],
+        if (snapshot.activeReconciliation)
+          Text(l10n.bankBalanceAlreadyReconciled),
+        TextButton.icon(
+          onPressed: _busy || !widget.enabled || !snapshot.canReconcile
+              ? null
+              : _review,
+          icon: const Icon(Icons.balance_outlined),
+          label: Text(l10n.bankBalanceReconcile),
+        ),
+        if (snapshot.activeReconciliation &&
+            widget.repository is BankRecoveryRepository)
           TextButton.icon(
             onPressed: _busy || !widget.enabled ? null : _recover,
             icon: const Icon(Icons.history_outlined),
-            label: Text(l10n.bankRecoveryTitle),
+            label: Text(l10n.bankRecoveryReview),
           ),
         if (_busy) const LinearProgressIndicator(),
       ],

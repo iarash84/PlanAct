@@ -51,7 +51,7 @@
     "x-planact-introduced": "bank-balance-2026-11-11",
     "description": "Warning that unknown or equal source transaction times prevent safely identifying the latest reported balance; receipt time must not substitute."
   },
-  "bankBalanceReconcile": "بررسی و تطبیق حساب",
+  "bankBalanceReconcile": "مقایسه با موجودی بانک",
   "@bankBalanceReconcile": {
     "x-planact-introduced": "bank-balance-2026-11-11",
     "description": "Action opening a read-only account reconciliation preview; opening it does not write a financial entry."
@@ -8392,22 +8392,22 @@
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceConfirm"
   },
-  "bankRecoveryTitle": "بازیابی تطبیق‌های وابسته",
+  "bankRecoveryTitle": "لغو تطبیق‌های قبلی",
   "@bankRecoveryTitle": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Title and explicit action for reversing dependent bank reconciliations."
   },
-  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
+  "bankRecoveryDisclosure": "این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.",
   "@bankRecoveryDisclosure": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Disclosure before explicit atomic dependency recovery."
   },
-  "bankRecoveryDone": "تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
+  "bankRecoveryDone": "تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
   "@bankRecoveryDone": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Successful recovery; user must explicitly retry the retained draft."
   },
-  "bankRecoveryEmpty": "تطبیق فعالی برای بازیابی وجود ندارد.",
+  "bankRecoveryEmpty": "تطبیق فعالی برای لغو وجود ندارد.",
   "@bankRecoveryEmpty": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Empty recovery preview."
@@ -8467,22 +8467,22 @@
     "description": "Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsReconcileQuestion": "تطبیق موجودی بانک چگونه انجام می‌شود؟",
+  "helpAccountsReconcileQuestion": "مقایسه با موجودی بانک چگونه انجام می‌شود؟",
   "@helpAccountsReconcileQuestion": {
     "description": "Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsReconcileAnswer": "وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.",
+  "helpAccountsReconcileAnswer": "از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.",
   "@helpAccountsReconcileAnswer": {
     "description": "Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsRecoveryQuestion": "بازیابی تطبیق‌های وابسته چه زمانی لازم است؟",
+  "helpAccountsRecoveryQuestion": "لغو تطبیق‌های قبلی چه زمانی لازم است؟",
   "@helpAccountsRecoveryQuestion": {
     "description": "Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsRecoveryAnswer": "اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.",
+  "helpAccountsRecoveryAnswer": "وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.",
   "@helpAccountsRecoveryAnswer": {
     "description": "Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
@@ -8562,5 +8562,107 @@
   "@financeCorrectionHistorySaveError": {
     "x-planact-introduced": "finance-correction-history-2026-11-21",
     "description": "Save failure retaining the previous effective preference with retry guidance."
+  },
+  "bankBalanceComparisonHelp": "موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.",
+  "@bankBalanceComparisonHelp": {
+    "description": "Explains historical bank comparison.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceReason": "علت اختلاف را انتخاب کنید",
+  "@bankBalanceReason": {
+    "description": "Unselected reason hint; no financial reason is assumed.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceMissingTransaction": "تراکنشی جا افتاده یا اشتباه ثبت شده",
+  "@bankBalanceMissingTransaction": {
+    "description": "Guidance-only choice; never creates an adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceTransactionGuidance": "تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.",
+  "@bankBalanceTransactionGuidance": {
+    "description": "Guides explicit transaction repair without automatic adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceRegisterFee": "ثبت کارمزد",
+  "@bankBalanceRegisterFee": {
+    "description": "Final explicit action recording a known fee expense.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceRegisterAdjustment": "ثبت تعدیل موجودی",
+  "@bankBalanceRegisterAdjustment": {
+    "description": "Final explicit action recording an unknown signed balance adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceEqual": "موجودی بانک و دفتر در زمان گزارش برابر است.",
+  "@bankBalanceEqual": {
+    "description": "Read-only zero difference state.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceAlreadyReconciled": "تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.",
+  "@bankBalanceAlreadyReconciled": {
+    "description": "Explains contextual reversal preview without automatic reversal.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankRecoveryReview": "بررسی تطبیق‌های قبلی",
+  "@bankRecoveryReview": {
+    "description": "Opens read-only reversal preview, not confirmation.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankRecoveryRetry": "دریافت دوبارهٔ پیش‌نمایش",
+  "@bankRecoveryRetry": {
+    "description": "Reloads preview after failed or stale consent.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceBankLower": "موجودی بانک {amount} کمتر از دفتر است.",
+  "@bankBalanceBankLower": {
+    "description": "Directional comparison when bank is lower.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
+  },
+  "bankBalanceBankHigher": "موجودی بانک {amount} بیشتر از دفتر است.",
+  "@bankBalanceBankHigher": {
+    "description": "Directional comparison when bank is higher.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
+  },
+  "bankRecoveryConfirmCount": "لغو {count} تطبیق قبلی",
+  "@bankRecoveryConfirmCount": {
+    "description": "Final confirmation naming total reversals.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "Preformatted localized count."
+      }
+    }
+  },
+  "bankRecoveryAccountSummary": "{account}؛ {count} تطبیق؛ خالص تغییر موجودی: {amount}",
+  "@bankRecoveryAccountSummary": {
+    "description": "Per-account reversal count and exact signed net effect.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "account": {
+        "type": "String",
+        "description": "Preformatted localized account."
+      },
+      "count": {
+        "type": "String",
+        "description": "Preformatted localized count."
+      },
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
   }
 }

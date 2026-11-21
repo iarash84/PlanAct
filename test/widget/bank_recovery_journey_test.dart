@@ -5,6 +5,7 @@ import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/database/app_database.dart' show AppDatabase;
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/presentation/bank_observation_review.dart';
+import 'package:planact/features/finance/presentation/bank_recovery_dialog.dart';
 import 'package:planact/features/inbox/application/inbox_use_cases.dart';
 import 'package:planact/features/inbox/data/drift_inbox_repository.dart';
 import 'package:planact/features/inbox/domain/inbox.dart';
@@ -13,7 +14,7 @@ import 'package:planact/features/inbox/presentation/inbox_page.dart';
 import '../repository/bank_recovery_test.dart' show account, chain;
 import 'inbox_account_selection_test.dart' show selectAccount;
 
-const recovery = 'بازیابی تطبیق‌های وابسته';
+const recovery = 'بررسی تطبیق‌های قبلی';
 Future<void> tap(WidgetTester tester, Finder finder) async {
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
@@ -29,6 +30,45 @@ Widget host(Widget child, bool dark) => MaterialApp(
 );
 
 void main() {
+  testWidgets(
+    'multi-account preview shows exact count and net effects without writes',
+    (tester) async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final repo = DriftFinanceRepository(db);
+      final a = account('حساب اول');
+      final b = account('حساب دوم');
+      await chain(db, repo, a);
+      await chain(db, repo, b);
+      await tester.pumpWidget(
+        host(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () =>
+                  showBankRecovery(context, repo, {a.id.value, b.id.value}),
+              child: const Text('پیش‌نمایش'),
+            ),
+          ),
+          false,
+        ),
+      );
+      await tap(tester, find.text('پیش‌نمایش'));
+      for (final name in [a.name, b.name]) {
+        expect(
+          find.text('$name؛ ۲ تطبیق؛ خالص تغییر موجودی: \u2066-۲۰۰\u2069 ریال'),
+          findsOneWidget,
+        );
+      }
+      expect(
+        find.widgetWithText(FilledButton, 'لغو ۴ تطبیق قبلی'),
+        findsOneWidget,
+      );
+      expect((await repo.listEntries()).length, 4);
+      await tap(tester, find.widgetWithText(TextButton, 'انصراف'));
+      expect((await repo.listEntries()).length, 4);
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final dark in [false, true]) {
     testWidgets(
       'evidence recovery cancellation retains form; recovery never saves $dark',
@@ -78,7 +118,10 @@ void main() {
           '350',
         );
         await tap(tester, find.widgetWithText(TextButton, recovery));
-        await tap(tester, find.widgetWithText(FilledButton, recovery));
+        await tap(
+          tester,
+          find.widgetWithText(FilledButton, 'لغو ۲ تطبیق قبلی'),
+        );
         expect(find.byType(BankObservationReview), findsOneWidget);
         expect((await repo.listEntries()).length, 4);
         expect(
@@ -135,7 +178,10 @@ void main() {
           isNot(SuggestionStatus.confirmed),
         );
         await tap(tester, find.widgetWithText(TextButton, recovery));
-        await tap(tester, find.widgetWithText(FilledButton, recovery));
+        await tap(
+          tester,
+          find.widgetWithText(FilledButton, 'لغو ۲ تطبیق قبلی'),
+        );
         expect((await repo.listEntries()).length, 4);
         expect(
           (await inbox.repository.listSuggestions()).single.status,

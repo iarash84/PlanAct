@@ -43,7 +43,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.';
 
   @override
-  String get bankBalanceReconcile => 'بررسی و تطبیق حساب';
+  String get bankBalanceReconcile => 'مقایسه با موجودی بانک';
 
   @override
   String get bankBalanceLedgerAtReport => 'ماندهٔ دفتر تا زمان گزارش';
@@ -5319,18 +5319,18 @@ class AppLocalizationsFa extends AppLocalizations {
   String get bankEvidenceConfirm => 'تأیید بررسی گزارش موجودی';
 
   @override
-  String get bankRecoveryTitle => 'بازیابی تطبیق‌های وابسته';
+  String get bankRecoveryTitle => 'لغو تطبیق‌های قبلی';
 
   @override
   String get bankRecoveryDisclosure =>
-      'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.';
+      'این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.';
 
   @override
   String get bankRecoveryDone =>
-      'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
+      'تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
 
   @override
-  String get bankRecoveryEmpty => 'تطبیق فعالی برای بازیابی وجود ندارد.';
+  String get bankRecoveryEmpty => 'تطبیق فعالی برای لغو وجود ندارد.';
 
   @override
   String get bankRecoverySource => 'شناسهٔ گزارش موجودی';
@@ -5375,19 +5375,19 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get helpAccountsReconcileQuestion =>
-      'تطبیق موجودی بانک چگونه انجام می‌شود؟';
+      'مقایسه با موجودی بانک چگونه انجام می‌شود؟';
 
   @override
   String get helpAccountsReconcileAnswer =>
-      'وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.';
+      'از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.';
 
   @override
   String get helpAccountsRecoveryQuestion =>
-      'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟';
+      'لغو تطبیق‌های قبلی چه زمانی لازم است؟';
 
   @override
   String get helpAccountsRecoveryAnswer =>
-      'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.';
+      'وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.';
 
   @override
   String get transactionCorrected => 'اصلاح‌شده';
@@ -5439,4 +5439,62 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get financeCorrectionHistorySaveError =>
       'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.';
+
+  @override
+  String get bankBalanceComparisonHelp =>
+      'موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.';
+
+  @override
+  String get bankBalanceReason => 'علت اختلاف را انتخاب کنید';
+
+  @override
+  String get bankBalanceMissingTransaction =>
+      'تراکنشی جا افتاده یا اشتباه ثبت شده';
+
+  @override
+  String get bankBalanceTransactionGuidance =>
+      'تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.';
+
+  @override
+  String get bankBalanceRegisterFee => 'ثبت کارمزد';
+
+  @override
+  String get bankBalanceRegisterAdjustment => 'ثبت تعدیل موجودی';
+
+  @override
+  String get bankBalanceEqual => 'موجودی بانک و دفتر در زمان گزارش برابر است.';
+
+  @override
+  String get bankBalanceAlreadyReconciled =>
+      'تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.';
+
+  @override
+  String get bankRecoveryReview => 'بررسی تطبیق‌های قبلی';
+
+  @override
+  String get bankRecoveryRetry => 'دریافت دوبارهٔ پیش‌نمایش';
+
+  @override
+  String bankBalanceBankLower(String amount) {
+    return 'موجودی بانک $amount کمتر از دفتر است.';
+  }
+
+  @override
+  String bankBalanceBankHigher(String amount) {
+    return 'موجودی بانک $amount بیشتر از دفتر است.';
+  }
+
+  @override
+  String bankRecoveryConfirmCount(String count) {
+    return 'لغو $count تطبیق قبلی';
+  }
+
+  @override
+  String bankRecoveryAccountSummary(
+    String account,
+    String count,
+    String amount,
+  ) {
+    return '$account؛ $count تطبیق؛ خالص تغییر موجودی: $amount';
+  }
 }
