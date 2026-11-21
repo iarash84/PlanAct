@@ -9055,7 +9055,7 @@ abstract class AppLocalizations {
   /// Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.'**
+  /// **'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد معلوم گزارش مستقل از تنظیم نمایش ریال یا تومان حفظ می‌شود. اگر واحد نامعلوم باشد، واحد تنظیمات به‌صورت پیشنهاد قابل تغییر برای همان فرم ثابت می‌ماند؛ فقط تأیید نهایی آن را ذخیره می‌کند. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.'**
   String get helpAccountsReviewAnswer;
 
   /// Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.
@@ -9259,6 +9259,384 @@ abstract class AppLocalizations {
     String count,
     String amount,
   );
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع کار'**
+  String get helpFaqGettingStartedTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پلن‌اکت برای چه کاری است؟'**
+  String get helpFaqPurposeQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پلن‌اکت برای برنامه‌ریزی تعهدها، زمان‌بندی جلسات، پیگیری یادآوری‌ها و هم‌زمان‌سازی وضعیت واقعی با وضعیت برنامه‌ریزی‌شده استفاده می‌شود. این برنامه بیشتر به‌صورت محلی و آفلاین کار می‌کند و داده‌ها روی دستگاه شما نگهداری می‌شوند.'**
+  String get helpFaqPurposeAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از کجا شروع کنم؟'**
+  String get helpFaqStartQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از دکمهٔ + یا گزینهٔ «افزودن تعهد» در منوی کناری شروع کنید. عنوان و زمان‌بندی را مشخص کنید و گزینه‌های اختیاری را در همان فرم باز کنید. پس از ذخیره، نوبت‌ها را در امروز، تقویم یا جزئیات تعهد پیگیری کنید.'**
+  String get helpFaqStartAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت تعهد، برنامه و رخداد چیست؟'**
+  String get helpFaqConceptsQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهد همان مفهوم اصلی است؛ برنامهٔ تکرارشونده یا یک‌باره تعیین می‌کند قرار است چه زمانی رخ بدهد و رخداد همان نوبت یا جلسهٔ خاصی است که از آن برنامه ساخته می‌شود. این جداسازی باعث می‌شود تغییرات در برنامه، تاریخچهٔ قبلی را به‌صورت ناخواسته بازنویسی نکند.'**
+  String get helpFaqConceptsAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدها و زمان‌بندی'**
+  String get helpFaqCommitmentsTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک تعهد جدید بسازم؟'**
+  String get helpFaqCreateQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از دکمهٔ + یا «افزودن تعهد» در منوی کناری استفاده کنید؛ مسیر «بیشتر» هم در دسترس است. عنوان و زمان‌بندی را وارد کنید و در صورت نیاز بخش‌های اختیاری مانند یادآوری را باز کنید. تاریخ و ساعت را آگاهانه انتخاب کنید؛ فهرست کارها را پس از ساخت از اقدام‌ها یا جزئیات تعهد مدیریت کنید.'**
+  String get helpFaqCreateAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک برنامهٔ تکرارشونده ایجاد کنم؟'**
+  String get helpFaqRecurrenceQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'در بخش زمان‌بندی فرم، الگوی تکرار روزانه، هفتگی، ماهانه یا سالانه و پایان مورد نظر را تنظیم کنید. تعداد نوبت یا تاریخ پایان با بازهٔ آماده‌سازی نوبت‌ها فرق دارد؛ همهٔ نوبت‌های دوردست از ابتدا ثبت نمی‌شوند. تعداد نوبت، اعتبار جلسه یا پرداخت نیست.'**
+  String get helpFaqRecurrenceAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا تغییر برنامه، تاریخچهٔ قبلی را تغییر می‌دهد؟'**
+  String get helpFaqHistoryQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر زمان‌بندی نباید سوابق انجام‌شده یا لغوشده را بازنویسی کند. فقط از دامنهٔ تغییری استفاده کنید که فرم موجود صریحاً پشتیبانی می‌کند؛ اگر نوع تکرار یا پایان برنامه قابل ویرایش نیست، آن را با تغییر دیگری دور نزنید. بازگشایی یک نوبت نیز سابقهٔ نتیجهٔ قبلی را پاک نمی‌کند.'**
+  String get helpFaqHistoryAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت زمان‌بندی با اعتبار جلسات چیست؟'**
+  String get helpFaqCreditQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان‌بندی می‌گوید نوبت‌ها چه زمانی و چند بار باشند؛ اعتبار جلسات حق مصرف یک بسته است. تعداد تکرار به‌تنهایی اعتبار ایجاد نمی‌کند. فرم عمومی افزودن تعهد اکنون مسیر ساخت بستهٔ اعتبار جلسات ندارد؛ آن را با تعداد نوبت اشتباه نگیرید.'**
+  String get helpFaqCreditAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟'**
+  String get helpFaqOutcomeQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از جزئیات تعهد یا اقدام‌های نوبت، گزینهٔ موجود برای انجام، لغو یا تغییر زمان را انتخاب کنید و تأیید لازم را انجام دهید. سابقه حفظ می‌شود؛ یادآوری‌های آینده با زمان و وضعیت جدید هماهنگ می‌شوند و اعلان غیرضروری نوبت انجام‌شده یا لغوشده نباید فعال بماند. بازگشایی نوبت به معنی برگشت خودکار پول یا اعتبار نیست.'**
+  String get helpFaqOutcomeAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه حساب مالی بسازم؟'**
+  String get helpFaqCreateAccountQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از مالی ← حساب‌ها یا گزینهٔ «حساب‌ها» در منوی کناری، حساب اضافه کنید. نام و نوع حساب را مشخص کنید؛ شناسه‌های کارت، شبا و شماره حساب اختیاری‌اند. ثبت درآمد، هزینه و انتقال را پس از ساخت حساب از مسیر مالی انجام دهید.'**
+  String get helpFaqCreateAccountAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت درآمد، هزینه و انتقال بین حساب‌ها چیست؟'**
+  String get helpFaqTransferQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'درآمد و هزینه‌ها ثبت‌های مالی مستقیم هستند؛ انتقال بین حساب‌ها یک عملیات داخلی است که از درآمد و هزینه جدا می‌ماند و به‌عنوان جابه‌جایی بین دو حساب نگهداری می‌شود.'**
+  String get helpFaqTransferAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟'**
+  String get helpFaqPaymentQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌شدن یک نوبت با لغوشدن آن فرق دارد و هیچ‌کدام به‌تنهایی پرداخت را ثابت نمی‌کند. پرداخت واقعی باید به‌صورت تراکنش ثبت شود و ارتباط مبلغ با تعهد یا نوبت، جداگانه تأیید شود؛ پرداخت جزئی نیز با تسویهٔ کامل فرق دارد.'**
+  String get helpFaqPaymentAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبالغ چگونه ذخیره و نمایش داده می‌شوند؟'**
+  String get helpFaqMoneyQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از تنظیمات، واحد نمایش و ورود مبلغ را ریال یا تومان انتخاب کنید؛ پیش‌فرض ریال است. این انتخاب تبدیل ارز نیست و مبالغ قبلی را تغییر نمی‌دهد. فرم باز، واحد نمایش‌داده‌شدهٔ خود را تا بسته‌شدن حفظ می‌کند. مبالغ ایرانی جدید با دقت عدد صحیح ریال ذخیره و با رقم فارسی و جداکنندهٔ سه‌رقمی نمایش داده می‌شوند؛ ماندهٔ یک‌دهم تومان گرد نمی‌شود.'**
+  String get helpFaqMoneyAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'صندوق ورودی و پیامک'**
+  String get helpFaqInboxTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟'**
+  String get helpFaqSmsConsentQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از صندوق ورودی، راه‌اندازی پیامک را باز کنید. دسترسی گوشی به‌تنهایی رضایت خواندن نیست: بازهٔ ۷ روز، ۳۰ روز یا از همین حالا را صریحاً انتخاب کنید. دریافت خودکار انتخاب جداگانه و ابتدا خاموش است. دکمهٔ بررسی دستی و کشیدن صندوق ورودی برای تازه‌سازی، در محدودهٔ رضایت دستی کار می‌کنند؛ خاموش‌بودن دریافت خودکار مانع بررسی دستی نیست. هیچ تراکنشی بدون تأیید شما ثبت نمی‌شود.'**
+  String get helpFaqSmsConsentAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا پیشنهاد پیامک قبل از ثبت مالی نیاز به تأیید دارد؟'**
+  String get helpFaqSmsConfirmQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'زیرا دادهٔ پیامک ممکن است نامشخص، ناقص یا دارای واحد پول مبهم باشد. پیش‌نمایش پیامک فقط پیشنهاد است و ثبت نهایی فقط با تأیید و بررسی کاربر انجام می‌شود.'**
+  String get helpFaqSmsConfirmAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر واحد مبلغ ریال یا تومان نامشخص باشد چه کار کنم؟'**
+  String get helpFaqSmsUnitQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر واحد پیامک نامعلوم باشد، فرم بررسی واحد تنظیمات را به‌صورت پیشنهادی و قابل تغییر نشان می‌دهد و آن را برای همان فرم نگه می‌دارد. واحد شناسایی‌شده یا قبلاً بررسی‌شده تغییر نمی‌کند. مبلغ و واحد را بررسی و سپس تأیید نهایی کنید؛ بازکردن فرم یا انصراف، پیشنهاد واحد را ذخیره نمی‌کند.'**
+  String get helpFaqSmsUnitAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا رد کردن پیشنهاد پیامک، تراکنشی را حذف می‌کند؟'**
+  String get helpFaqSmsRejectQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'نه. فقط پیشنهاد تأییدنشده را رد می‌کنید و می‌توانید همان مورد را دوباره برای بررسی باز کنید. تراکنش تأییدشده از صندوق ورودی حذف یا برگردانده نمی‌شود؛ برای اصلاح یا لغو آن از مسیر مالی استفاده کنید.'**
+  String get helpFaqSmsRejectAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه برای یک رخداد یادآوری تنظیم کنم؟'**
+  String get helpFaqReminderSetupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'در فرم تعهد، بخش یادآوری را باز و گزینهٔ زمانی موجود را انتخاب کنید؛ ویرایش یادآوری نوبت نیز از اقدام‌های مربوط در دسترس است. اعلان معمولی با هشدار زنگ‌دار اختیاری اندروید فرق دارد و ممکن است به دسترسی گوشی نیاز داشته باشد. توقف یا تعویق هشدار، نوبت را انجام‌شده نمی‌کند.'**
+  String get helpFaqReminderSetupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا بعد از تکمیل یا لغو رخداد، یادآوری فعال باقی نمی‌ماند؟'**
+  String get helpFaqReminderCleanupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پس از انجام یا لغو نوبت، قصد یادآوری آینده با وضعیت تازه هماهنگ می‌شود تا اعلان اضافی ارسال نشود؛ سابقهٔ نوبت و یادآوری پاک نمی‌شود. تغییر زمان هم نیازمند هماهنگی یادآوری‌های آینده است. محدودیت مجوز یا تحویل گوشی می‌تواند نیاز به بررسی و تلاش مجدد داشته باشد.'**
+  String get helpFaqReminderCleanupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت ثبت رخداد با ارسال اعلان چیست؟'**
+  String get helpFaqDeliveryQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ تعهد یا تغییر وضعیت، ثبت داده در برنامه است؛ ارسال اعلان یا هشدار مرحلهٔ جداگانه‌ای روی گوشی است. خطای تحویل اعلان لزوماً به معنی شکست ذخیره نیست. ابتدا نتیجهٔ ذخیره را بررسی کنید و برای رفع مشکل اعلان، دسترسی و تنظیمات یادآوری را بررسی کنید؛ ثبت تکراری نسازید.'**
+  String get helpFaqDeliveryAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پشتیبان‌گیری و حریم خصوصی'**
+  String get helpFaqBackupTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات من کجا نگهداری می‌شود؟'**
+  String get helpFaqStorageQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'داده‌های اصلی برنامه به‌صورت محلی روی دستگاه شما نگهداری می‌شوند و برای استفادهٔ اصلی نیاز به اینترنت یا سرویس ابری نیست. با نسخه‌برداری و بازیابی محلی هم می‌توانید از داده‌ها محافظت کنید.'**
+  String get helpFaqStorageAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا برای استفاده از قابلیت‌های اصلی اینترنت یا حساب ابری لازم است؟'**
+  String get helpFaqOfflineQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'خیر. استفادهٔ اصلی پلن‌اکت آفلاین است و برای برنامه‌ریزی، تعهد، یادآوری، مالی و دسترسی به داده‌های محلی نیاز به اینترنت یا حساب ابری ندارید.'**
+  String get helpFaqOfflineAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه پشتیبان تهیه و بازیابی کنم؟'**
+  String get helpFaqBackupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از بخش پشتیبان‌گیری، فایل رمزگذاری‌شده بسازید. هر خروجی جدید کلید بازیابی مستقل دارد؛ هشدارها را بخوانید، کلید را جداگانه نگه دارید و سپس فایل را ذخیره کنید. برای بازیابی، فایل و کلید همان خروجی لازم است؛ اعتبار و سازگاری پیش از جایگزینی بررسی می‌شود. نسخه‌های قدیمی با قالب وابسته به کلید نصب، به همان کلید نصب قبلی نیاز دارند.'**
+  String get helpFaqBackupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟'**
+  String get helpFaqRecoveryKeyQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'کلید امکان بازکردن فایل رمزگذاری‌شده را می‌دهد؛ آن را کنار فایل نگه ندارید و در جای امن جداگانه حفظ کنید. اگر کلید همان خروجی را از دست بدهید، برنامه نمی‌تواند آن را بازیابی کند. داشتن فایل به‌تنهایی کافی نیست؛ هر خروجی جدید کلید جداگانهٔ خود را دارد.'**
+  String get helpFaqRecoveryKeyAnswer;
+
+  /// Help FAQ question about Correction in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟'**
+  String get helpFaqCorrectionQuestion;
+
+  /// Help FAQ answer about Correction in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر فقط شرح درآمد یا هزینه را تغییر دهید، همان تراکنش با حفظ مبلغ، حساب، هشتگ‌ها و ارتباط‌ها به‌روزرسانی می‌شود و سابقهٔ ویرایش شرح می‌ماند. تغییر اطلاعات مالی مسیر تأیید اصلاح دارد: اصل با ثبت برگشت خنثی و جایگزین ساخته می‌شود. هشتگ‌ها و دستهٔ نسخهٔ جاری حفظ می‌شوند مگر دسته را عوض کنید؛ تخصیص پرداخت و منشأ پیامک خودکار به جایگزین منتقل نمی‌شوند. لغو نیز با ثبت برگشت انجام می‌شود، نه پاک‌کردن تاریخچه.'**
+  String get helpFaqCorrectionAnswer;
+
+  /// Help FAQ question about CorrectionHistory in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟'**
+  String get helpFaqCorrectionHistoryQuestion;
+
+  /// Help FAQ answer about CorrectionHistory in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'گزینهٔ «نمایش سوابق اصلاح تراکنش‌ها» در تنظیمات پیش‌فرض خاموش است؛ فهرست مالی نسخهٔ جاریِ لغونشده را نشان می‌دهد و سوابق اثبات‌شدهٔ اصلاح را پنهان می‌کند. آن را برای دیدن نسخه‌های قبلی و برگشت‌های اصلاح روشن کنید؛ سوابق مرتبط از مسیر خود رکورد هم در دسترس‌اند. لغو نسخهٔ نهایی، نسخهٔ قدیمی را برنمی‌گرداند. موجودی، گزارش‌ها و تقویم از این فیلتر تغییر نمی‌کنند.'**
+  String get helpFaqCorrectionHistoryAnswer;
+
+  /// Help FAQ question about Relationship in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعیین ارتباط تراکنش با تطبیق پرداخت چه فرقی دارد؟'**
+  String get helpFaqRelationshipQuestion;
+
+  /// Help FAQ answer about Relationship in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق پرداخت، مبلغ تراکنش را به تعهد یا نوبت مربوط می‌کند و می‌تواند جزئی باشد. تعیین ارتباط برای بررسی مبلغ بدون ارتباط است؛ تنها تأیید صریح مستقل‌بودن، آن مانده را از صف بررسی خارج می‌کند. بازکردن یا بستن صفحه تصمیم نیست و بازکردن دوبارهٔ بررسی، پول یا تطبیق‌های قبلی را برنمی‌گرداند.'**
+  String get helpFaqRelationshipAnswer;
+
+  /// Help FAQ question about SmsNotification in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟'**
+  String get helpFaqSmsNotificationQuestion;
+
+  /// Help FAQ answer about SmsNotification in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان تشخیص پیامک انتخابی جدا از مجوز و رضایت خواندن پیامک است. روشن‌کردن آن به معنی اجازهٔ ثبت مالی نیست؛ با لمس اعلان، پیشنهادهای باقی‌مانده را در صندوق ورودی و در صورت نیاز پس از بازکردن قفل برنامه بررسی می‌کنید. اعلان صفحهٔ قفل عمومی است و هیچ تأیید یا رد مالی از خود اعلان انجام نمی‌شود. تحویل پس‌زمینه تابع محدودیت‌های اندروید است و در توقف اجباری تضمین نمی‌شود.'**
+  String get helpFaqSmsNotificationAnswer;
+
+  /// Help FAQ question about CalendarVisibility in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟'**
+  String get helpFaqCalendarVisibilityQuestion;
+
+  /// Help FAQ answer about CalendarVisibility in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'در تنظیمات ← تقویم، تعهدها و یادداشت‌ها پیش‌فرض روشن و درآمد، هزینه و انتقال بین حساب‌ها پیش‌فرض خاموش‌اند. دستهٔ مورد نظر را روشن کنید تا در ماه و هفته نمایش داده شود. تاریخ تراکنش ثبت‌شده ملاک است، نه زمان دریافت یا تأیید پیامک. پنهان‌کردن فقط نمایش را عوض می‌کند و پول، نوبت و یادآوری را تغییر نمی‌دهد.'**
+  String get helpFaqCalendarVisibilityAnswer;
+
+  /// Help FAQ question about NotesChecklist in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت یادداشت تقویم با فهرست کارهای تعهد چیست؟'**
+  String get helpFaqNotesChecklistQuestion;
+
+  /// Help FAQ answer about NotesChecklist in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'از افزودن سریع می‌توانید یادداشت مستقل با تاریخ شمسی بسازید؛ یادداشت تعهد، یادآوری یا اثر مالی ایجاد نمی‌کند. فهرست کارها متعلق به خود تعهد است و میان نوبت‌ها مشترک می‌ماند. تیک‌زدن همهٔ کارها به‌تنهایی نوبت را انجام‌شده نمی‌کند، پرداخت ثبت نمی‌کند و اعتبار جلسه مصرف نمی‌کند.'**
+  String get helpFaqNotesChecklistAnswer;
+
+  /// Help FAQ category for calendar visibility, notes and commitment checklists.
+  ///
+  /// In fa, this message translates to:
+  /// **'تقویم و فهرست کارها'**
+  String get helpFaqCalendarTitle;
 }
 
 class _AppLocalizationsDelegate

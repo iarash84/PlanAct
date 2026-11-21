@@ -217,6 +217,7 @@ void main() {
                     'transaction-correction-clarity-2026-11-21',
                     'finance-correction-history-2026-11-21',
                     'today-transaction-preview-2026-11-21',
+                    'help-faq-refresh-2026-11-21',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
