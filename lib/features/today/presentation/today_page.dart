@@ -80,9 +80,9 @@ class TodayPage extends StatelessWidget {
     final content = ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
-        PlanActSpacing.lg,
+        PlanActSpacing.page,
         PlanActSpacing.md,
-        PlanActSpacing.lg,
+        PlanActSpacing.page,
         PlanActSpacing.lg + bottomContentPadding,
       ),
       children: [
@@ -555,6 +555,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PlanActStateMessage(
     message: planActL10n(context).todayPageBuildMessage3,
+    kind: PlanActMessageKind.empty,
     action: OutlinedButton.icon(
       onPressed: onAdd,
       icon: const Icon(Icons.add),

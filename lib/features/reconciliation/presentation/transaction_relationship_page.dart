@@ -348,7 +348,7 @@ class _TransactionRelationshipPageState
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : ListView(
-                padding: const EdgeInsets.all(PlanActSpacing.lg),
+                padding: const EdgeInsets.all(PlanActSpacing.page),
                 children: [
                   if (widget.reviewRemaining != null)
                     Text(

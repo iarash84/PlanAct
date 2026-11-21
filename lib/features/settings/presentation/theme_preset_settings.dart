@@ -1,3 +1,4 @@
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_colors.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
@@ -61,9 +62,9 @@ class ThemePresetSettings extends StatelessWidget {
           ),
           if (controller.busy) const LinearProgressIndicator(),
           if (controller.loadFailed) ...[
-            Text(
-              l10n.settingsPaletteLoadError,
-              semanticsLabel: l10n.settingsPaletteLoadError,
+            PlanActStateMessage(
+              message: l10n.settingsPaletteLoadError,
+              kind: PlanActMessageKind.error,
             ),
             Align(
               alignment: AlignmentDirectional.centerStart,
@@ -76,9 +77,9 @@ class ThemePresetSettings extends StatelessWidget {
           if (controller.saveFailed)
             Semantics(
               liveRegion: true,
-              child: Text(
-                l10n.settingsPaletteSaveError,
-                style: TextStyle(color: theme.colorScheme.error),
+              child: PlanActStateMessage(
+                message: l10n.settingsPaletteSaveError,
+                kind: PlanActMessageKind.error,
               ),
             ),
         ],

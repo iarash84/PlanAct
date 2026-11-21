@@ -1,3 +1,4 @@
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
 import 'package:planact/features/inbox/presentation/sms_notification_settings.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
@@ -218,7 +219,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(PlanActSpacing.page),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -236,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).commonGeneral,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         Card(
           child: Column(
             children: [
@@ -248,7 +249,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(PlanActSpacing.lg),
                 child: SegmentedButton<ThemeMode>(
                   segments: [
                     ButtonSegment(
@@ -312,9 +313,9 @@ class _SettingsPageState extends State<SettingsPage> {
           if (_correctionHistorySaveFailed)
             Semantics(
               liveRegion: true,
-              child: Text(
-                planActL10n(context).financeCorrectionHistorySaveError,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              child: PlanActStateMessage(
+                message: planActL10n(context).financeCorrectionHistorySaveError,
+                kind: PlanActMessageKind.error,
               ),
             ),
         ],
@@ -333,9 +334,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           if (_savingAccounts) const LinearProgressIndicator(),
           if (_accountsSaveFailed)
-            Text(
-              planActL10n(context).financeArchivedAccountsSaveError,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            PlanActStateMessage(
+              message: planActL10n(context).financeArchivedAccountsSaveError,
+              kind: PlanActMessageKind.error,
             ),
         ],
         if (widget.settings != null) ...[
@@ -344,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
             planActL10n(context).settingsMorningReminderTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PlanActSpacing.md),
           Card(
             child: Column(
               children: [
@@ -398,9 +399,9 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           if (_morningReminderSaveFailed)
-            Text(
-              planActL10n(context).settingsMorningReminderSaveError,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            PlanActStateMessage(
+              message: planActL10n(context).settingsMorningReminderSaveError,
+              kind: PlanActMessageKind.error,
             ),
         ],
         const SizedBox(height: 20),
@@ -408,7 +409,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).settingsSecurity,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         AppLockSettingsCard(
           enabled: widget.appLockEnabled,
           change: widget.onAppLockChanged,
@@ -422,7 +423,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).settingsAbout,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         Card(
           child: ListTile(
             leading: const Icon(Icons.info_outline),

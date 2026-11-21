@@ -19,6 +19,7 @@ import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/presentation/planact_form_sheet.dart';
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
 import 'package:planact/core/logging/app_logger.dart';
 import 'package:planact/features/inbox/presentation/sms_review_editor.dart';
@@ -837,12 +838,13 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       return RefreshIndicator(
         onRefresh: _checkNewSms,
         child: ListView(
+          padding: const EdgeInsets.all(PlanActSpacing.page),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             SizedBox(
               height: 320,
               child: _InboxStateCard(
-                icon: Icons.error_outline,
+                kind: PlanActMessageKind.error,
                 title: planActL10n(context).inboxPageBuildTitle,
                 message: _error!,
                 actionLabel: planActL10n(context).commonRetry,
@@ -1010,7 +1012,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
             SizedBox(
               height: 300,
               child: _InboxStateCard(
-                icon: Icons.inbox_outlined,
+                kind: PlanActMessageKind.empty,
                 title: planActL10n(context).inboxPageHeaderTitle,
                 message: planActL10n(context).inboxPageHeaderMessage,
               ),
@@ -1041,7 +1043,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
       child: ListView.builder(
         controller: _scroll,
         key: const PageStorageKey('inbox-review'),
-        padding: const EdgeInsets.all(PlanActSpacing.md),
+        padding: const EdgeInsets.all(PlanActSpacing.page),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: _pageItems.length + 1,
         findChildIndexCallback: (key) {
@@ -1055,7 +1057,7 @@ class _InboxPageState extends State<InboxPage> with WidgetsBindingObserver {
           if (index == 0) return header;
           final item = _pageItems[index - 1];
           return Padding(
-            padding: const EdgeInsets.only(bottom: PlanActSpacing.md),
+            padding: const EdgeInsets.only(bottom: PlanActSpacing.lg),
             child: _ReviewCard(
               key: ValueKey(item.suggestion.id),
               item: item,
@@ -1523,25 +1525,10 @@ class _ReviewCardState extends State<_ReviewCard> {
               draft.merchant ?? _direction(draft.direction),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            if (BulkInboxReject.eligible(widget.item.suggestion))
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(planActL10n(context).inboxPageBuildTitle8),
-                value: widget.selected,
-                onChanged: widget.onSelection,
-              ),
-            Text(amount, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 6),
-            Text('${widget.item.sourceLabel} · ${_direction(draft.direction)}'),
-            Text(
-              draft.receivedAt == null
-                  ? planActL10n(context).inboxPageBuildChildren6
-                  : planActL10n(context).inboxPageBuildChildren7(
-                      (PersianDateFormatter.date(
-                        JalaliDate.fromDateTime(draft.receivedAt!),
-                      )).toString(),
-                    ),
-            ),
+            if (draft.merchant != null) Text(_direction(draft.direction)),
+            const SizedBox(height: PlanActSpacing.xs),
+            Text(amount, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: PlanActSpacing.sm),
             Text(
               draft.dateSource == TransactionDateSource.extracted
                   ? planActL10n(context)
@@ -1553,17 +1540,6 @@ class _ReviewCardState extends State<_ReviewCard> {
                       (smsReviewTimestamp(draft.occurredAt)).toString(),
                     )
                   : planActL10n(context).inboxPageBuildChildren11,
-            ),
-            Text(
-              planActL10n(context).inboxPageBuildChildren12(
-                (draft.bank ?? planActL10n(context).commonUnknown).toString(),
-              ),
-            ),
-            Text(
-              planActL10n(context).inboxPageSmsSenderLabel(
-                (draft.sourceAddress ?? planActL10n(context).commonUnknown)
-                    .toString(),
-              ),
             ),
             Text(
               draft.currencyEvidence == null
@@ -1597,6 +1573,13 @@ class _ReviewCardState extends State<_ReviewCard> {
                   color: PlanActStatusColors.of(context).attention,
                 ),
               ),
+            if (BulkInboxReject.eligible(widget.item.suggestion))
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(planActL10n(context).inboxPageBuildTitle8),
+                value: widget.selected,
+                onChanged: widget.onSelection,
+              ),
             TextButton.icon(
               onPressed: () => setState(() => _showDetails = !_showDetails),
               icon: Icon(_showDetails ? Icons.expand_less : Icons.expand_more),
@@ -1607,6 +1590,19 @@ class _ReviewCardState extends State<_ReviewCard> {
               ),
             ),
             if (_showDetails) ...[
+              Text(
+                widget.item.sourceLabel ?? planActL10n(context).commonUnknown,
+              ),
+              Text(
+                draft.receivedAt == null
+                    ? planActL10n(context).inboxPageBuildChildren6
+                    : planActL10n(context).inboxPageBuildChildren7(
+                        PersianDateFormatter.date(
+                          JalaliDate.fromDateTime(draft.receivedAt!),
+                        ),
+                      ),
+              ),
+              const SizedBox(height: PlanActSpacing.sm),
               SmsOriginalEvidence(suggestion: widget.item.suggestion),
               const SizedBox(height: PlanActSpacing.md),
               Text(
@@ -1709,14 +1705,14 @@ class _ReviewCardState extends State<_ReviewCard> {
 
 class _InboxStateCard extends StatelessWidget {
   const _InboxStateCard({
-    required this.icon,
+    required this.kind,
     required this.title,
     required this.message,
     this.actionLabel,
     this.onAction,
   });
 
-  final IconData icon;
+  final PlanActMessageKind kind;
   final String title;
   final String message;
   final String? actionLabel;
@@ -1724,24 +1720,14 @@ class _InboxStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
-            if (actionLabel != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
-            ],
-          ],
-        ),
+    child: SingleChildScrollView(
+      child: PlanActStateMessage(
+        kind: kind,
+        title: title,
+        message: message,
+        action: actionLabel == null
+            ? null
+            : OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
       ),
     ),
   );

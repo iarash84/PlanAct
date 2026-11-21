@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/features/calendar/domain/calendar_visibility.dart';
 import 'package:planact/features/calendar/presentation/calendar_visibility_controller.dart';
 
@@ -86,17 +87,19 @@ class _CalendarVisibilitySettingsState
           if (controller.saving ||
               (!controller.ready && !controller.loadFailed))
             const LinearProgressIndicator(),
-          if (controller.loadFailed) ...[
-            Text(l10n.calendarVisibilityLoadError),
-            TextButton(
-              onPressed: controller.load,
-              child: Text(l10n.commonRetry),
+          if (controller.loadFailed)
+            PlanActStateMessage(
+              message: l10n.calendarVisibilityLoadError,
+              kind: PlanActMessageKind.error,
+              action: TextButton(
+                onPressed: controller.load,
+                child: Text(l10n.commonRetry),
+              ),
             ),
-          ],
           if (_failed)
-            Text(
-              l10n.calendarVisibilityError,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            PlanActStateMessage(
+              message: l10n.calendarVisibilityError,
+              kind: PlanActMessageKind.error,
             ),
         ],
       );

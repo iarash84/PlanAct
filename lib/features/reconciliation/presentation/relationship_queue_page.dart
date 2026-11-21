@@ -301,7 +301,7 @@ class _RelationshipQueuePageState extends State<RelationshipQueuePage> {
         title: Text(planActL10n(context).relationshipQueuePageBuildTitle),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(PlanActSpacing.lg),
+        padding: const EdgeInsets.all(PlanActSpacing.page),
         children: [
           Text(planActL10n(context).relationshipQueuePageBuildChildren),
           const SizedBox(height: PlanActSpacing.lg),

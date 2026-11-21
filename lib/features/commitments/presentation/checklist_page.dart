@@ -176,7 +176,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
             maxWidth: PlanActSpacing.contentWidth,
           ),
           child: ListView(
-            padding: const EdgeInsets.all(PlanActSpacing.lg),
+            padding: const EdgeInsets.all(PlanActSpacing.page),
             children: [
               Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
               Text(l10n.checklistScope),

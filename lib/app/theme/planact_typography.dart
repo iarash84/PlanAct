@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 abstract final class PlanActTypography {
+  static const fontFamily = 'Vazirmatn';
   static TextTheme textTheme(ColorScheme scheme) {
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-    ).textTheme.apply(fontFamily: 'sans', bodyColor: scheme.onSurface);
+    ).textTheme.apply(fontFamily: fontFamily, bodyColor: scheme.onSurface);
     return base.copyWith(
       bodyLarge: base.bodyLarge?.copyWith(height: 1.6),
       bodyMedium: base.bodyMedium?.copyWith(height: 1.6),

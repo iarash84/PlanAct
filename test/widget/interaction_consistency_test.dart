@@ -311,6 +311,10 @@ void main() {
             await tester.tap(manageCommitment);
             await tester.pumpAndSettle();
             expect(find.byType(CommitmentDetailsPage), findsOneWidget);
+            await tester.tap(
+              find.byKey(const ValueKey('commitment-details-edit')),
+            );
+            await tester.pumpAndSettle();
             await tester.enterText(
               find.widgetWithText(TextField, 'عنوان'),
               'تعهد تقویم ویرایش‌شده',
@@ -380,10 +384,7 @@ void main() {
             await tester.tap(manageFromWeek);
             await tester.pumpAndSettle();
             expect(find.byType(CommitmentDetailsPage), findsOneWidget);
-            expect(
-              find.widgetWithText(TextField, 'تعهد تقویم ویرایش‌شده'),
-              findsOneWidget,
-            );
+            expect(find.text('تعهد تقویم ویرایش‌شده'), findsOneWidget);
             await tester.pageBack();
             await tester.pumpAndSettle();
 

@@ -62,6 +62,7 @@ import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/app/theme/theme_preset_controller.dart';
 import 'package:planact/app/theme/planact_radius.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
+import 'package:planact/app/theme/commitment_identity_palette.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/checklist_repository.dart';
 import 'package:planact/features/commitments/data/drift_checklist_repository.dart';
@@ -2407,6 +2408,20 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
   late CommitmentPriority _priority = widget.commitment.priority;
   late CommitmentColor? _color = widget.commitment.color;
   bool _saving = false;
+  bool _editing = false;
+
+  Future<void> _cancelEditing() async {
+    if (_saving || !await _confirmLeave() || !mounted) return;
+    _title.text = widget.commitment.title;
+    _description.text = widget.commitment.description ?? '';
+    setState(() {
+      _priority = widget.commitment.priority;
+      _color = widget.commitment.color;
+      _editing = false;
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   bool get _dirty =>
       _title.text != widget.commitment.title ||
       _description.text != (widget.commitment.description ?? '') ||
@@ -2429,26 +2444,35 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
   }
 
   Future<bool> _confirmLeave() async =>
-      !_dirty ||
-      (await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text(PersianCopy.planactAppConfirmLeaveTitle),
-              content: const Text(PersianCopy.planactAppConfirmLeaveContent),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text(PersianCopy.planactAppConfirmLeaveActions),
+      !_saving &&
+      (!_dirty ||
+          (await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text(PersianCopy.planactAppConfirmLeaveTitle),
+                  content: const Text(
+                    PersianCopy.planactAppConfirmLeaveContent,
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text(
+                        PersianCopy.planactAppConfirmLeaveActions,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text(
+                        PersianCopy.planactAppConfirmLeaveActions2,
+                      ),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text(PersianCopy.planactAppConfirmLeaveActions2),
-                ),
-              ],
-            ),
-          ) ??
-          false);
+              ) ??
+              false));
   Future<void> _save() async {
+    if (_saving || !_editing) return;
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _saving = true);
     try {
       await UpdateCommitmentMetadata(widget.repository)(
@@ -2461,7 +2485,17 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
         color: _color,
         updateColor: true,
       );
-      await widget.onSaved();
+      // The durable write has succeeded. A failed read must not invite resaving
+      // this draft or report the committed metadata as a failed write.
+      try {
+        await widget.onSaved();
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(planActL10n(context).undoRefreshPending)),
+          );
+        }
+      }
       if (mounted) Navigator.pop(context);
     } catch (_) {
       if (mounted) {
@@ -2483,240 +2517,304 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
       }
     },
     child: Scaffold(
-      appBar: AppBar(title: Text(planActL10n(context).planactAppBuildTitle4)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          CommitmentProgressSection(
-            reader: _progressReader,
-            commitmentId: widget.commitment.id,
-            revision: _progressRevision,
-          ),
-          Text(
-            planActL10n(context).planactAppBuildChildren(
-              (_statusLabel(widget.commitment.status)).toString(),
+      appBar: AppBar(
+        title: Text(planActL10n(context).planactAppBuildTitle4),
+        actions: [
+          if (!_editing)
+            IconButton(
+              key: const ValueKey('commitment-details-edit'),
+              tooltip: planActL10n(context).commitmentEdit,
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => setState(() => _editing = true),
             ),
-            textAlign: TextAlign.start,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            planActL10n(context).planactAppBuildChildren2(
-              (_kindLabel(widget.commitment.kind)).toString(),
-            ),
-            textAlign: TextAlign.start,
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _title,
-            decoration: InputDecoration(
-              labelText: planActL10n(context).planactAppBuildLabelText,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _description,
-            maxLines: 4,
-            decoration: InputDecoration(
-              labelText: planActL10n(context).planactAppBuildLabelText2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (widget.checklistRepository
-              case final ChecklistRepository repository)
-            CommitmentChecklistSection(
-              repository: repository,
-              commitmentId: widget.commitment.id,
-              onChanged: _refreshDetails,
-            ),
-          if (widget.checklistRepository != null) const SizedBox(height: 16),
-          CommitmentColorPicker(
-            selected: _color,
-            enabled: !_saving,
-            onChanged: (color) => setState(() => _color = color),
-          ),
-          DropdownButtonFormField<CommitmentPriority>(
-            initialValue: _priority,
-            decoration: InputDecoration(
-              labelText: planActL10n(context).planactAppBuildLabelText3,
-            ),
-            items: CommitmentPriority.values
-                .map(
-                  (value) => DropdownMenuItem(
-                    value: value,
-                    child: Text(_priorityLabel(value)),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value != null) setState(() => _priority = value);
-            },
-          ),
-          const SizedBox(height: 24),
-          if (widget.tagRepository case final TagRepository tags)
-            RecordTagEditor(
-              repository: tags,
-              recordId: widget.commitment.id.value,
-              type: TaggableType.commitment,
-              onChanged: () async {
-                // Re-read durable state before any later metadata/status command.
-                await widget.repository.findById(widget.commitment.id);
-                await _refreshDetails();
-              },
-            )
-          else
-            TagLabels(labels: widget.commitment.tags),
-          const SizedBox(height: PlanActSpacing.lg),
-          if (widget.planRepository case final ScheduleUndoRepository undo)
-            ScheduleUndoButton(
-              repository: undo,
-              commitmentId: widget.commitment.id,
-              reminders:
-                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
-                  ? (widget.occurrenceExecutor
-                            as PersistedOccurrenceActionExecutor)
-                        .reminders
-                  : null,
-              onChanged: _refreshDetails,
-            ),
-          if (widget.planRepository
-              case final DriftCommitmentPlanRepository plans)
-            CommitmentCorrectionCard(
-              repository: DriftCommitmentCorrectionRepository(plans.database),
-              commitmentId: widget.commitment.id,
-              reminders:
-                  widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
-                  ? (widget.occurrenceExecutor
-                            as PersistedOccurrenceActionExecutor)
-                        .reminders
-                  : null,
-              onSaved: _refreshDetails,
-            ),
-          PlannedDetailsRange(
-            key: ValueKey('planned-details-$_progressRevision'),
-            commitment: widget.commitment,
-            repository: widget.planRepository,
-            onSaved: _refreshDetails,
-            synchronizeReminders:
-                widget.occurrenceExecutor is PersistedOccurrenceActionExecutor
-                ? () async =>
-                      (widget.occurrenceExecutor
-                              as PersistedOccurrenceActionExecutor)
-                          .reminders
-                          ?.reconcile(now: DateTime.now())
-                : null,
-            builder: (plan, occurrences) {
-              if (occurrences.isEmpty) return const SizedBox.shrink();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(planActL10n(context).planactAppBuildChildren3),
-                  const SizedBox(height: 8),
-                  for (final occurrence in occurrences)
-                    OccurrenceActionRow(
-                      occurrence: occurrence,
-                      executor: widget.occurrenceExecutor,
-                      useActionsMenu: true,
-                      key: ValueKey(
-                        '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
-                      ),
-                      onChanged: _refreshDetails,
-                      onEdit: widget.planRepository is CommitmentPlanTransaction
-                          ? (selected) async {
-                              final selection =
-                                  await showDialog<ScheduleEditSelection>(
-                                    context: context,
-                                    builder: (_) => EditScheduleDialog(
-                                      occurrence: selected,
-                                      recurring:
-                                          plan.schedule.mode !=
-                                          ScheduleMode.oneOff,
-                                    ),
-                                  );
-                              if (selection == null || !mounted) return;
-                              try {
-                                final executor = widget.occurrenceExecutor;
-                                final pending =
-                                    await EditCommitmentSchedule(
-                                      widget.planRepository,
-                                      reminders:
-                                          executor
-                                              is PersistedOccurrenceActionExecutor
-                                          ? executor.reminders
-                                          : null,
-                                    )(
-                                      commitmentId: widget.commitment.id,
-                                      expected: selected,
-                                      scheduledAt: selection.scheduledAt,
-                                      scope: selection.scope,
-                                      now: DateTime.now(),
-                                    );
-                                await _refreshDetails();
-                                if (!context.mounted) return;
-                                setState(() {});
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      pending
-                                          ? planActL10n(context)
-                                                .planactAppBuildContent
-                                          : planActL10n(context)
-                                                .planactAppBuildContent2,
-                                    ),
-                                  ),
-                                );
-                              } catch (_) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      planActL10n(context)
-                                          .planactAppBuildContent3,
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          : null,
-                    ),
-                  if (widget.occurrenceExecutor
-                      case final PersistedOccurrenceActionExecutor executor)
-                    if (executor.reminders != null)
-                      for (final occurrence in occurrences)
-                        OccurrenceReminders(
-                          key: ValueKey(
-                            'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
-                          ),
-                          occurrence: occurrence,
-                          service: executor.reminders!,
-                          onSaved: widget.onSaved,
-                        ),
-                  const SizedBox(height: 16),
-                  ExpansionTile(
-                    title: Text(planActL10n(context).planactAppBuildTitle5),
-                    children: [
-                      Text(planActL10n(context).planactAppBuildChildren4),
-                      for (final occurrence in occurrences)
-                        _FinancialExpectationOccurrenceRow(
-                          occurrence: occurrence,
-                          onSaved: () => setState(() => _progressRevision++),
-                          useCases: FinancialExpectationUseCases(
-                            widget.expectationRepository,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const CircularProgressIndicator()
-                : Text(planActL10n(context).commonSave),
-          ),
         ],
+      ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: PlanActSpacing.contentWidth,
+          ),
+          child: ListView(
+            padding: const EdgeInsets.all(PlanActSpacing.page),
+            children: [
+              CommitmentProgressSection(
+                reader: _progressReader,
+                commitmentId: widget.commitment.id,
+                revision: _progressRevision,
+              ),
+              Text(
+                planActL10n(context).planactAppBuildChildren(
+                  (_statusLabel(widget.commitment.status)).toString(),
+                ),
+                textAlign: TextAlign.start,
+              ),
+              const SizedBox(height: PlanActSpacing.lg),
+              Text(
+                planActL10n(context).planactAppBuildChildren2(
+                  (_kindLabel(widget.commitment.kind)).toString(),
+                ),
+                textAlign: TextAlign.start,
+              ),
+              const SizedBox(height: PlanActSpacing.page),
+              if (!_editing) ...[
+                Text(
+                  widget.commitment.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                if (widget.commitment.description case final String description)
+                  Padding(
+                    padding: const EdgeInsets.only(top: PlanActSpacing.md),
+                    child: Text(description),
+                  ),
+                const SizedBox(height: PlanActSpacing.lg),
+                Text(
+                  '${planActL10n(context).planactAppBuildLabelText3}: ${_priorityLabel(widget.commitment.priority)}',
+                ),
+                const SizedBox(height: PlanActSpacing.sm),
+                Text(
+                  '${planActL10n(context).commitmentColorPickerBuildChildren}: ${widget.commitment.color == null ? planActL10n(context).commitmentColorPickerBuildLabel : CommitmentIdentityPalette.label(widget.commitment.color!)}',
+                ),
+              ],
+              if (_editing) ...[
+                TextField(
+                  enabled: !_saving,
+                  controller: _title,
+                  decoration: InputDecoration(
+                    labelText: planActL10n(context).planactAppBuildLabelText,
+                  ),
+                ),
+                const SizedBox(height: PlanActSpacing.lg),
+                TextField(
+                  enabled: !_saving,
+                  controller: _description,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: planActL10n(context).planactAppBuildLabelText2,
+                  ),
+                ),
+                const SizedBox(height: PlanActSpacing.lg),
+                CommitmentColorPicker(
+                  selected: _color,
+                  enabled: !_saving,
+                  onChanged: (color) => setState(() => _color = color),
+                ),
+                DropdownButtonFormField<CommitmentPriority>(
+                  initialValue: _priority,
+                  decoration: InputDecoration(
+                    labelText: planActL10n(context).planactAppBuildLabelText3,
+                  ),
+                  items: CommitmentPriority.values
+                      .map(
+                        (value) => DropdownMenuItem(
+                          value: value,
+                          child: Text(_priorityLabel(value)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: _saving
+                      ? null
+                      : (value) {
+                          if (value != null) setState(() => _priority = value);
+                        },
+                ),
+                const SizedBox(height: PlanActSpacing.lg),
+                Wrap(
+                  spacing: PlanActSpacing.sm,
+                  runSpacing: PlanActSpacing.sm,
+                  children: [
+                    FilledButton(
+                      onPressed: _saving ? null : _save,
+                      child: _saving
+                          ? const CircularProgressIndicator()
+                          : Text(planActL10n(context).commonSave),
+                    ),
+                    TextButton(
+                      key: const ValueKey('commitment-details-cancel-edit'),
+                      onPressed: _saving ? null : _cancelEditing,
+                      child: Text(planActL10n(context).commonCancel),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: PlanActSpacing.xl),
+              if (widget.checklistRepository
+                  case final ChecklistRepository repository)
+                CommitmentChecklistSection(
+                  repository: repository,
+                  commitmentId: widget.commitment.id,
+                  onChanged: _refreshDetails,
+                ),
+              if (widget.checklistRepository != null)
+                const SizedBox(height: PlanActSpacing.lg),
+              if (widget.tagRepository case final TagRepository tags)
+                RecordTagEditor(
+                  repository: tags,
+                  recordId: widget.commitment.id.value,
+                  type: TaggableType.commitment,
+                  onChanged: () async {
+                    // Re-read durable state before any later metadata/status command.
+                    await widget.repository.findById(widget.commitment.id);
+                    await _refreshDetails();
+                  },
+                )
+              else
+                TagLabels(labels: widget.commitment.tags),
+              const SizedBox(height: PlanActSpacing.lg),
+              if (widget.planRepository case final ScheduleUndoRepository undo)
+                ScheduleUndoButton(
+                  repository: undo,
+                  commitmentId: widget.commitment.id,
+                  reminders:
+                      widget.occurrenceExecutor
+                          is PersistedOccurrenceActionExecutor
+                      ? (widget.occurrenceExecutor
+                                as PersistedOccurrenceActionExecutor)
+                            .reminders
+                      : null,
+                  onChanged: _refreshDetails,
+                ),
+              if (widget.planRepository
+                  case final DriftCommitmentPlanRepository plans)
+                CommitmentCorrectionCard(
+                  repository: DriftCommitmentCorrectionRepository(
+                    plans.database,
+                  ),
+                  commitmentId: widget.commitment.id,
+                  reminders:
+                      widget.occurrenceExecutor
+                          is PersistedOccurrenceActionExecutor
+                      ? (widget.occurrenceExecutor
+                                as PersistedOccurrenceActionExecutor)
+                            .reminders
+                      : null,
+                  onSaved: _refreshDetails,
+                ),
+              PlannedDetailsRange(
+                key: ValueKey('planned-details-$_progressRevision'),
+                commitment: widget.commitment,
+                repository: widget.planRepository,
+                onSaved: _refreshDetails,
+                synchronizeReminders:
+                    widget.occurrenceExecutor
+                        is PersistedOccurrenceActionExecutor
+                    ? () async =>
+                          (widget.occurrenceExecutor
+                                  as PersistedOccurrenceActionExecutor)
+                              .reminders
+                              ?.reconcile(now: DateTime.now())
+                    : null,
+                builder: (plan, occurrences) {
+                  if (occurrences.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(planActL10n(context).planactAppBuildChildren3),
+                      const SizedBox(height: PlanActSpacing.sm),
+                      for (final occurrence in occurrences)
+                        OccurrenceActionRow(
+                          occurrence: occurrence,
+                          executor: widget.occurrenceExecutor,
+                          useActionsMenu: true,
+                          key: ValueKey(
+                            '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
+                          ),
+                          onChanged: _refreshDetails,
+                          onEdit:
+                              widget.planRepository is CommitmentPlanTransaction
+                              ? (selected) async {
+                                  final selection =
+                                      await showDialog<ScheduleEditSelection>(
+                                        context: context,
+                                        builder: (_) => EditScheduleDialog(
+                                          occurrence: selected,
+                                          recurring:
+                                              plan.schedule.mode !=
+                                              ScheduleMode.oneOff,
+                                        ),
+                                      );
+                                  if (selection == null || !mounted) return;
+                                  try {
+                                    final executor = widget.occurrenceExecutor;
+                                    final pending =
+                                        await EditCommitmentSchedule(
+                                          widget.planRepository,
+                                          reminders:
+                                              executor
+                                                  is PersistedOccurrenceActionExecutor
+                                              ? executor.reminders
+                                              : null,
+                                        )(
+                                          commitmentId: widget.commitment.id,
+                                          expected: selected,
+                                          scheduledAt: selection.scheduledAt,
+                                          scope: selection.scope,
+                                          now: DateTime.now(),
+                                        );
+                                    await _refreshDetails();
+                                    if (!context.mounted) return;
+                                    setState(() {});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          pending
+                                              ? planActL10n(context)
+                                                    .planactAppBuildContent
+                                              : planActL10n(context)
+                                                    .planactAppBuildContent2,
+                                        ),
+                                      ),
+                                    );
+                                  } catch (_) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          planActL10n(context)
+                                              .planactAppBuildContent3,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              : null,
+                        ),
+                      if (widget.occurrenceExecutor
+                          case final PersistedOccurrenceActionExecutor executor)
+                        if (executor.reminders != null)
+                          for (final occurrence in occurrences)
+                            OccurrenceReminders(
+                              key: ValueKey(
+                                'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
+                              ),
+                              occurrence: occurrence,
+                              service: executor.reminders!,
+                              onSaved: widget.onSaved,
+                            ),
+                      const SizedBox(height: PlanActSpacing.lg),
+                      ExpansionTile(
+                        title: Text(planActL10n(context).planactAppBuildTitle5),
+                        children: [
+                          Text(planActL10n(context).planactAppBuildChildren4),
+                          for (final occurrence in occurrences)
+                            _FinancialExpectationOccurrenceRow(
+                              occurrence: occurrence,
+                              onSaved: () =>
+                                  setState(() => _progressRevision++),
+                              useCases: FinancialExpectationUseCases(
+                                widget.expectationRepository,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: PlanActSpacing.xl),
+            ],
+          ),
+        ),
       ),
     ),
   );

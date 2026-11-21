@@ -63,6 +63,9 @@ void main() {
 
     expect(find.text('جزئیات تعهد'), findsOneWidget);
     expect(find.text('توضیحات کلاس'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'عنوان'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('commitment-details-edit')));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextField, 'عنوان'),
       'کلاس جدید',
@@ -98,6 +101,8 @@ void main() {
       scrollable: find.byType(Scrollable).last,
     );
     await tester.tap(find.text('جزئیات و ویرایش'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('commitment-details-edit')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'تغییر');
     await tester.tap(find.byType(BackButton));

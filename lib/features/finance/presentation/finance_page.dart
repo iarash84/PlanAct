@@ -1032,9 +1032,9 @@ class FinancePageState extends State<FinancePage> {
                     : ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.fromLTRB(
+                          PlanActSpacing.page,
                           PlanActSpacing.lg,
-                          PlanActSpacing.lg,
-                          PlanActSpacing.lg,
+                          PlanActSpacing.page,
                           PlanActSpacing.lg + widget.bottomContentPadding,
                         ),
                         children: [
