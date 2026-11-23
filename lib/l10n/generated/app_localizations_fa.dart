@@ -10,6 +10,51 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get scheduleEditPattern => 'ویرایش الگو و پایان تکرار';
+
+  @override
+  String get scheduleEditFrequency => 'الگوی تکرار';
+
+  @override
+  String get scheduleEditInterval => 'فاصلهٔ تکرار (عدد مثبت)';
+
+  @override
+  String get scheduleEditTermination => 'پایان تکرار';
+
+  @override
+  String get scheduleEditEndDate => 'تاریخ پایان (شامل این روز)';
+
+  @override
+  String get scheduleEditTotalCount => 'تعداد کل نوبت‌های برنامه';
+
+  @override
+  String get scheduleEditAnchorsPreserved =>
+      'تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.';
+
+  @override
+  String get scheduleEditInvalid =>
+      'فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.';
+
+  @override
+  String get scheduleEditPreview => 'پیش‌نمایش تغییرات';
+
+  @override
+  String get scheduleEditConfirm => 'تأیید و ثبت تغییرات';
+
+  @override
+  String get scheduleEditPreviewFailed =>
+      'پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.';
+
+  @override
+  String get scheduleEditSaveFailed =>
+      'تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.';
+
+  @override
+  String scheduleEditPreviewSummary(String boundary, String count) {
+    return 'مرز اثر: $boundary؛ $count نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.';
+  }
+
+  @override
   String get todayTransactionUnconfirmed => 'هنوز ثبت نشده';
 
   @override

@@ -94,6 +94,84 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Opt-in switch for editing recurrence rather than date and time only.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش الگو و پایان تکرار'**
+  String get scheduleEditPattern;
+
+  /// Recurrence frequency field in the schedule editor.
+  ///
+  /// In fa, this message translates to:
+  /// **'الگوی تکرار'**
+  String get scheduleEditFrequency;
+
+  /// Positive recurrence interval, measured in the selected frequency unit.
+  ///
+  /// In fa, this message translates to:
+  /// **'فاصلهٔ تکرار (عدد مثبت)'**
+  String get scheduleEditInterval;
+
+  /// Selects open, inclusive end date, or total logical count termination.
+  ///
+  /// In fa, this message translates to:
+  /// **'پایان تکرار'**
+  String get scheduleEditTermination;
+
+  /// Inclusive end-date choice and date-picker action.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ پایان (شامل این روز)'**
+  String get scheduleEditEndDate;
+
+  /// Total logical schedule slots including those before the edit boundary; not session credit.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعداد کل نوبت‌های برنامه'**
+  String get scheduleEditTotalCount;
+
+  /// Explains preserved recurrence anchors and guarded edits without implying entitlement changes.
+  ///
+  /// In fa, this message translates to:
+  /// **'تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.'**
+  String get scheduleEditAnchorsPreserved;
+
+  /// Actionable local validation feedback before requesting a recurrence preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.'**
+  String get scheduleEditInvalid;
+
+  /// Read-only preview action; does not save the draft.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیش‌نمایش تغییرات'**
+  String get scheduleEditPreview;
+
+  /// Explicit confirmation after viewing a fresh recurrence preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید و ثبت تغییرات'**
+  String get scheduleEditConfirm;
+
+  /// Preview rejection or failure; retains draft and invites an explicit retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.'**
+  String get scheduleEditPreviewFailed;
+
+  /// Save failure with retained draft; recurrence confirmation requires another preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.'**
+  String get scheduleEditSaveFailed;
+
+  /// Read-only effect preview showing the backend boundary and affected persisted rows, not the full logical count.
+  ///
+  /// In fa, this message translates to:
+  /// **'مرز اثر: {boundary}؛ {count} نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.'**
+  String scheduleEditPreviewSummary(String boundary, String count);
+
   /// Today SMS preview status: this suggestion has not been confirmed into the ledger.
   ///
   /// In fa, this message translates to:

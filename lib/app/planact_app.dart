@@ -2723,11 +2723,44 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                           onEdit:
                               widget.planRepository is CommitmentPlanTransaction
                               ? (selected) async {
+                                  final executor = widget.occurrenceExecutor;
+                                  final command = EditCommitmentSchedule(
+                                    widget.planRepository,
+                                    reminders:
+                                        executor
+                                            is PersistedOccurrenceActionExecutor
+                                        ? executor.reminders
+                                        : null,
+                                  );
+                                  var pending = false;
                                   final selection =
                                       await showDialog<ScheduleEditSelection>(
                                         context: context,
                                         builder: (_) => EditScheduleDialog(
                                           occurrence: selected,
+                                          schedule: plan.schedule,
+                                          onPreview: (draft) => command.preview(
+                                            commitmentId: widget.commitment.id,
+                                            expected: selected,
+                                            scheduledAt: draft.scheduledAt,
+                                            scope: draft.scope,
+                                            now: DateTime.now(),
+                                            recurrenceEdit:
+                                                draft.recurrenceEdit!,
+                                          ),
+                                          onConfirm: (draft) async {
+                                            pending = await command(
+                                              commitmentId:
+                                                  widget.commitment.id,
+                                              expected: selected,
+                                              scheduledAt: draft.scheduledAt,
+                                              scope: draft.scope,
+                                              now: DateTime.now(),
+                                              recurrenceEdit:
+                                                  draft.recurrenceEdit,
+                                              previewToken: draft.previewToken,
+                                            );
+                                          },
                                           recurring:
                                               plan.schedule.mode !=
                                               ScheduleMode.oneOff,
@@ -2735,22 +2768,6 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                                       );
                                   if (selection == null || !mounted) return;
                                   try {
-                                    final executor = widget.occurrenceExecutor;
-                                    final pending =
-                                        await EditCommitmentSchedule(
-                                          widget.planRepository,
-                                          reminders:
-                                              executor
-                                                  is PersistedOccurrenceActionExecutor
-                                              ? executor.reminders
-                                              : null,
-                                        )(
-                                          commitmentId: widget.commitment.id,
-                                          expected: selected,
-                                          scheduledAt: selection.scheduledAt,
-                                          scope: selection.scope,
-                                          now: DateTime.now(),
-                                        );
                                     await _refreshDetails();
                                     if (!context.mounted) return;
                                     setState(() {});

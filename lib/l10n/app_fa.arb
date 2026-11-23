@@ -1,4 +1,36 @@
 {
+  "scheduleEditPattern": "ویرایش الگو و پایان تکرار",
+  "@scheduleEditPattern": {"description": "Opt-in switch for editing recurrence rather than date and time only."},
+  "scheduleEditFrequency": "الگوی تکرار",
+  "@scheduleEditFrequency": {"description": "Recurrence frequency field in the schedule editor."},
+  "scheduleEditInterval": "فاصلهٔ تکرار (عدد مثبت)",
+  "@scheduleEditInterval": {"description": "Positive recurrence interval, measured in the selected frequency unit."},
+  "scheduleEditTermination": "پایان تکرار",
+  "@scheduleEditTermination": {"description": "Selects open, inclusive end date, or total logical count termination."},
+  "scheduleEditEndDate": "تاریخ پایان (شامل این روز)",
+  "@scheduleEditEndDate": {"description": "Inclusive end-date choice and date-picker action."},
+  "scheduleEditTotalCount": "تعداد کل نوبت‌های برنامه",
+  "@scheduleEditTotalCount": {"description": "Total logical schedule slots including those before the edit boundary; not session credit."},
+  "scheduleEditAnchorsPreserved": "تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.",
+  "@scheduleEditAnchorsPreserved": {"description": "Explains preserved recurrence anchors and guarded edits without implying entitlement changes."},
+  "scheduleEditInvalid": "فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.",
+  "@scheduleEditInvalid": {"description": "Actionable local validation feedback before requesting a recurrence preview."},
+  "scheduleEditPreview": "پیش‌نمایش تغییرات",
+  "@scheduleEditPreview": {"description": "Read-only preview action; does not save the draft."},
+  "scheduleEditConfirm": "تأیید و ثبت تغییرات",
+  "@scheduleEditConfirm": {"description": "Explicit confirmation after viewing a fresh recurrence preview."},
+  "scheduleEditPreviewFailed": "پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.",
+  "@scheduleEditPreviewFailed": {"description": "Preview rejection or failure; retains draft and invites an explicit retry."},
+  "scheduleEditSaveFailed": "تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.",
+  "@scheduleEditSaveFailed": {"description": "Save failure with retained draft; recurrence confirmation requires another preview."},
+  "scheduleEditPreviewSummary": "مرز اثر: {boundary}؛ {count} نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.",
+  "@scheduleEditPreviewSummary": {
+    "description": "Read-only effect preview showing the backend boundary and affected persisted rows, not the full logical count.",
+    "placeholders": {
+      "boundary": {"type": "String", "description": "Formatted Jalali boundary date."},
+      "count": {"type": "String", "description": "Persian-formatted number of affected persisted occurrences."}
+    }
+  },
   "todayTransactionUnconfirmed": "هنوز ثبت نشده",
   "@todayTransactionUnconfirmed": {
     "x-planact-introduced": "today-transaction-preview-2026-11-21",
