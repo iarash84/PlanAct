@@ -45,7 +45,7 @@ void main() {
             startDate: DateTime.utc(2026, 1, 1),
             consumedUnits: 0,
             completionRule: 0,
-            status: 0,
+            status: 1,
           ),
         );
     await database

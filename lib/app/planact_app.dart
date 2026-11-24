@@ -1,3 +1,6 @@
+import 'package:planact/features/commitments/presentation/commitment_cycles_section.dart';
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
+import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
 import 'package:planact/features/inbox/data/drift_sms_detection_notification_store.dart';
 import 'package:planact/features/inbox/data/android_sms_detection_notifications.dart';
@@ -827,11 +830,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       final plans = <StableId, List<Occurrence>>{};
       final checklists = <StableId, CommitmentChecklist>{};
       for (final item in items) {
-        final plan = await _planRepository.findByCommitmentId(item.id);
-        if (plan == null) continue;
-        plans[item.id] = plan.occurrences;
+        final cycles = await _planRepository.listByCommitmentId(item.id);
+        final occurrences = [for (final plan in cycles) ...plan.occurrences];
+        plans[item.id] = occurrences;
         schedules[item.id.value] = [
-          for (final occurrence in plan.occurrences)
+          for (final occurrence in occurrences)
             if (occurrence.currentScheduledAt case final DateTime date)
               date.isUtc ? date.toLocal() : date
             else if (occurrence.currentScheduledAt case final LocalDate date)
@@ -2364,6 +2367,10 @@ class CommitmentDetailsPage extends StatefulWidget {
 }
 
 class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
+  CommitmentPlan? _selectedCycle;
+  bool get _cycleEnabled =>
+      widget.planRepository is! CommitmentCyclesRepository ||
+      _selectedCycle?.cycle.status == CommitmentCycleStatus.active;
   int _progressRevision = 0;
   late CommitmentProgressReader _progressReader = _createProgressReader();
 
@@ -2538,11 +2545,48 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
           child: ListView(
             padding: const EdgeInsets.all(PlanActSpacing.page),
             children: [
-              CommitmentProgressSection(
-                reader: _progressReader,
-                commitmentId: widget.commitment.id,
-                revision: _progressRevision,
-              ),
+              if (widget.planRepository
+                  case final CommitmentCyclesRepository cycles)
+                CommitmentCyclesSection(
+                  owner: widget.commitment,
+                  repository: cycles,
+                  create: CreateCommitmentPlan(
+                    commitments: widget.repository,
+                    plans: widget.planRepository,
+                    financialExpectations: FinancialExpectationUseCases(
+                      widget.expectationRepository,
+                    ),
+                    reminderService:
+                        widget.occurrenceExecutor
+                            is PersistedOccurrenceActionExecutor
+                        ? (widget.occurrenceExecutor
+                                  as PersistedOccurrenceActionExecutor)
+                              .reminders
+                        : null,
+                  ),
+                  revision: _progressRevision,
+                  onSaved: _refreshDetails,
+                  onSelected: (plan) {
+                    if (mounted) setState(() => _selectedCycle = plan);
+                  },
+                ),
+              if (widget.planRepository is! CommitmentCyclesRepository ||
+                  _selectedCycle != null)
+                CommitmentProgressSection(
+                  key: ValueKey('cycle-progress-${_selectedCycle?.cycle.id}'),
+                  readSelectedCycle: _selectedCycle == null
+                      ? null
+                      : () {
+                          final reader = _progressReader;
+                          return reader is DriftCommitmentProgressReader
+                              ? reader.readCycle(_selectedCycle!.cycle.id)
+                              : (reader as RepositoryCommitmentProgressReader)
+                                    .readCycle(_selectedCycle!.cycle.id);
+                        },
+                  reader: _progressReader,
+                  commitmentId: widget.commitment.id,
+                  revision: _progressRevision,
+                ),
               Text(
                 planActL10n(context).planactAppBuildChildren(
                   (_statusLabel(widget.commitment.status)).toString(),
@@ -2661,173 +2705,203 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
               else
                 TagLabels(labels: widget.commitment.tags),
               const SizedBox(height: PlanActSpacing.lg),
-              if (widget.planRepository case final ScheduleUndoRepository undo)
-                ScheduleUndoButton(
-                  repository: undo,
-                  commitmentId: widget.commitment.id,
-                  reminders:
-                      widget.occurrenceExecutor
-                          is PersistedOccurrenceActionExecutor
-                      ? (widget.occurrenceExecutor
-                                as PersistedOccurrenceActionExecutor)
-                            .reminders
-                      : null,
-                  onChanged: _refreshDetails,
-                ),
-              if (widget.planRepository
-                  case final DriftCommitmentPlanRepository plans)
-                CommitmentCorrectionCard(
-                  repository: DriftCommitmentCorrectionRepository(
-                    plans.database,
-                  ),
-                  commitmentId: widget.commitment.id,
-                  reminders:
-                      widget.occurrenceExecutor
-                          is PersistedOccurrenceActionExecutor
-                      ? (widget.occurrenceExecutor
-                                as PersistedOccurrenceActionExecutor)
-                            .reminders
-                      : null,
-                  onSaved: _refreshDetails,
-                ),
-              PlannedDetailsRange(
-                key: ValueKey('planned-details-$_progressRevision'),
-                commitment: widget.commitment,
-                repository: widget.planRepository,
-                onSaved: _refreshDetails,
-                synchronizeReminders:
-                    widget.occurrenceExecutor
-                        is PersistedOccurrenceActionExecutor
-                    ? () async =>
-                          (widget.occurrenceExecutor
+              if (_cycleEnabled)
+                if (widget.planRepository
+                    case final ScheduleUndoRepository undo)
+                  ScheduleUndoButton(
+                    repository: undo,
+                    commitmentId: widget.commitment.id,
+                    reminders:
+                        widget.occurrenceExecutor
+                            is PersistedOccurrenceActionExecutor
+                        ? (widget.occurrenceExecutor
                                   as PersistedOccurrenceActionExecutor)
                               .reminders
-                              ?.reconcile(now: DateTime.now())
-                    : null,
-                builder: (plan, occurrences) {
-                  if (occurrences.isEmpty) return const SizedBox.shrink();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(planActL10n(context).planactAppBuildChildren3),
-                      const SizedBox(height: PlanActSpacing.sm),
-                      for (final occurrence in occurrences)
-                        OccurrenceActionRow(
-                          occurrence: occurrence,
-                          executor: widget.occurrenceExecutor,
-                          useActionsMenu: true,
-                          key: ValueKey(
-                            '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
-                          ),
-                          onChanged: _refreshDetails,
-                          onEdit:
-                              widget.planRepository is CommitmentPlanTransaction
-                              ? (selected) async {
-                                  final executor = widget.occurrenceExecutor;
-                                  final command = EditCommitmentSchedule(
-                                    widget.planRepository,
-                                    reminders:
-                                        executor
-                                            is PersistedOccurrenceActionExecutor
-                                        ? executor.reminders
-                                        : null,
-                                  );
-                                  var pending = false;
-                                  final selection =
-                                      await showDialog<ScheduleEditSelection>(
-                                        context: context,
-                                        builder: (_) => EditScheduleDialog(
-                                          occurrence: selected,
-                                          schedule: plan.schedule,
-                                          onPreview: (draft) => command.preview(
-                                            commitmentId: widget.commitment.id,
-                                            expected: selected,
-                                            scheduledAt: draft.scheduledAt,
-                                            scope: draft.scope,
-                                            now: DateTime.now(),
-                                            recurrenceEdit:
-                                                draft.recurrenceEdit!,
+                        : null,
+                    onChanged: _refreshDetails,
+                  ),
+              if (_cycleEnabled)
+                if (widget.planRepository
+                    case final DriftCommitmentPlanRepository plans)
+                  CommitmentCorrectionCard(
+                    key: ValueKey(
+                      'cycle-correction-${_selectedCycle?.cycle.id}',
+                    ),
+                    cycleId: _selectedCycle?.cycle.id,
+                    repository: DriftCommitmentCorrectionRepository(
+                      plans.database,
+                    ),
+                    commitmentId: widget.commitment.id,
+                    reminders:
+                        widget.occurrenceExecutor
+                            is PersistedOccurrenceActionExecutor
+                        ? (widget.occurrenceExecutor
+                                  as PersistedOccurrenceActionExecutor)
+                              .reminders
+                        : null,
+                    onSaved: _refreshDetails,
+                  ),
+              if (widget.planRepository is! CommitmentCyclesRepository ||
+                  _selectedCycle != null)
+                PlannedDetailsRange(
+                  initialDate: !_cycleEnabled
+                      ? _selectedCycle?.cycle.startDate.toLocal()
+                      : null,
+                  cycleId: _selectedCycle?.cycle.id,
+                  readOnly: !_cycleEnabled,
+                  key: ValueKey(
+                    'planned-details-$_progressRevision-${_selectedCycle?.cycle.id}',
+                  ),
+                  commitment: widget.commitment,
+                  repository: widget.planRepository,
+                  onSaved: _refreshDetails,
+                  synchronizeReminders:
+                      widget.occurrenceExecutor
+                          is PersistedOccurrenceActionExecutor
+                      ? () async =>
+                            (widget.occurrenceExecutor
+                                    as PersistedOccurrenceActionExecutor)
+                                .reminders
+                                ?.reconcile(now: DateTime.now())
+                      : null,
+                  builder: (plan, occurrences) {
+                    if (occurrences.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(planActL10n(context).planactAppBuildChildren3),
+                        const SizedBox(height: PlanActSpacing.sm),
+                        for (final occurrence in occurrences)
+                          OccurrenceActionRow(
+                            occurrence: occurrence,
+                            executor: widget.occurrenceExecutor,
+                            useActionsMenu: true,
+                            readOnly: !_cycleEnabled,
+                            key: ValueKey(
+                              '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
+                            ),
+                            onChanged: _refreshDetails,
+                            onEdit:
+                                widget.planRepository
+                                    is CommitmentPlanTransaction
+                                ? (selected) async {
+                                    final executor = widget.occurrenceExecutor;
+                                    final command = EditCommitmentSchedule(
+                                      widget.planRepository,
+                                      reminders:
+                                          executor
+                                              is PersistedOccurrenceActionExecutor
+                                          ? executor.reminders
+                                          : null,
+                                    );
+                                    var pending = false;
+                                    final selection =
+                                        await showDialog<ScheduleEditSelection>(
+                                          context: context,
+                                          builder: (_) => EditScheduleDialog(
+                                            occurrence: selected,
+                                            schedule: plan.schedule,
+                                            onPreview: (draft) =>
+                                                command.preview(
+                                                  commitmentId:
+                                                      widget.commitment.id,
+                                                  expected: selected,
+                                                  scheduledAt:
+                                                      draft.scheduledAt,
+                                                  scope: draft.scope,
+                                                  now: DateTime.now(),
+                                                  recurrenceEdit:
+                                                      draft.recurrenceEdit!,
+                                                ),
+                                            onConfirm: (draft) async {
+                                              pending = await command(
+                                                commitmentId:
+                                                    widget.commitment.id,
+                                                expected: selected,
+                                                scheduledAt: draft.scheduledAt,
+                                                scope: draft.scope,
+                                                now: DateTime.now(),
+                                                recurrenceEdit:
+                                                    draft.recurrenceEdit,
+                                                previewToken:
+                                                    draft.previewToken,
+                                              );
+                                            },
+                                            recurring:
+                                                plan.schedule.mode !=
+                                                ScheduleMode.oneOff,
                                           ),
-                                          onConfirm: (draft) async {
-                                            pending = await command(
-                                              commitmentId:
-                                                  widget.commitment.id,
-                                              expected: selected,
-                                              scheduledAt: draft.scheduledAt,
-                                              scope: draft.scope,
-                                              now: DateTime.now(),
-                                              recurrenceEdit:
-                                                  draft.recurrenceEdit,
-                                              previewToken: draft.previewToken,
-                                            );
-                                          },
-                                          recurring:
-                                              plan.schedule.mode !=
-                                              ScheduleMode.oneOff,
+                                        );
+                                    if (selection == null || !mounted) return;
+                                    try {
+                                      await _refreshDetails();
+                                      if (!context.mounted) return;
+                                      setState(() {});
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            pending
+                                                ? planActL10n(context)
+                                                      .planactAppBuildContent
+                                                : planActL10n(context)
+                                                      .planactAppBuildContent2,
+                                          ),
                                         ),
                                       );
-                                  if (selection == null || !mounted) return;
-                                  try {
-                                    await _refreshDetails();
-                                    if (!context.mounted) return;
-                                    setState(() {});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          pending
-                                              ? planActL10n(context)
-                                                    .planactAppBuildContent
-                                              : planActL10n(context)
-                                                    .planactAppBuildContent2,
-                                        ),
-                                      ),
-                                    );
-                                  } catch (_) {
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          planActL10n(context)
-                                              .planactAppBuildContent3,
-                                        ),
-                                      ),
-                                    );
+                                    } catch (_) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                planActL10n(context)
+                                                    .planactAppBuildContent3,
+                                              ),
+                                            ),
+                                          );
+                                    }
                                   }
-                                }
-                              : null,
+                                : null,
+                          ),
+                        if (_cycleEnabled)
+                          if (widget.occurrenceExecutor
+                              case final PersistedOccurrenceActionExecutor
+                                  executor)
+                            if (executor.reminders != null)
+                              for (final occurrence in occurrences)
+                                OccurrenceReminders(
+                                  key: ValueKey(
+                                    'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
+                                  ),
+                                  occurrence: occurrence,
+                                  service: executor.reminders!,
+                                  onSaved: widget.onSaved,
+                                ),
+                        const SizedBox(height: PlanActSpacing.lg),
+                        ExpansionTile(
+                          title: Text(
+                            planActL10n(context).planactAppBuildTitle5,
+                          ),
+                          children: [
+                            Text(planActL10n(context).planactAppBuildChildren4),
+                            for (final occurrence in occurrences)
+                              _FinancialExpectationOccurrenceRow(
+                                occurrence: occurrence,
+                                readOnly: !_cycleEnabled,
+                                onSaved: () =>
+                                    setState(() => _progressRevision++),
+                                useCases: FinancialExpectationUseCases(
+                                  widget.expectationRepository,
+                                ),
+                              ),
+                          ],
                         ),
-                      if (widget.occurrenceExecutor
-                          case final PersistedOccurrenceActionExecutor executor)
-                        if (executor.reminders != null)
-                          for (final occurrence in occurrences)
-                            OccurrenceReminders(
-                              key: ValueKey(
-                                'reminders:${occurrence.id}:${occurrence.status}:${occurrence.currentScheduledAt}',
-                              ),
-                              occurrence: occurrence,
-                              service: executor.reminders!,
-                              onSaved: widget.onSaved,
-                            ),
-                      const SizedBox(height: PlanActSpacing.lg),
-                      ExpansionTile(
-                        title: Text(planActL10n(context).planactAppBuildTitle5),
-                        children: [
-                          Text(planActL10n(context).planactAppBuildChildren4),
-                          for (final occurrence in occurrences)
-                            _FinancialExpectationOccurrenceRow(
-                              occurrence: occurrence,
-                              onSaved: () =>
-                                  setState(() => _progressRevision++),
-                              useCases: FinancialExpectationUseCases(
-                                widget.expectationRepository,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      ],
+                    );
+                  },
+                ),
               const SizedBox(height: PlanActSpacing.xl),
             ],
           ),
@@ -2840,11 +2914,13 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
 class _FinancialExpectationOccurrenceRow extends StatefulWidget {
   const _FinancialExpectationOccurrenceRow({
     required this.occurrence,
+    this.readOnly = false,
     required this.useCases,
     required this.onSaved,
   });
 
   final Occurrence occurrence;
+  final bool readOnly;
   final FinancialExpectationUseCases useCases;
   final VoidCallback onSaved;
 
@@ -2890,6 +2966,7 @@ class _FinancialExpectationOccurrenceRowState
               child: _loadingAccounts
                   ? const LinearProgressIndicator()
                   : FinancialExpectationEditor(
+                      readOnly: widget.readOnly,
                       occurrenceId: widget.occurrence.id,
                       useCases: widget.useCases,
                       accounts: _accounts,

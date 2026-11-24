@@ -204,7 +204,7 @@ void main() {
       [commitment, 'کلاس'],
     );
     await database.customStatement(
-      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 0)',
+      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 1)',
       [cycle, commitment],
     );
     await database.customStatement(

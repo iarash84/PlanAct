@@ -1,35 +1,73 @@
 {
   "scheduleEditPattern": "ویرایش الگو و پایان تکرار",
-  "@scheduleEditPattern": {"description": "Opt-in switch for editing recurrence rather than date and time only."},
+  "@scheduleEditPattern": {
+    "description": "Opt-in switch for editing recurrence rather than date and time only.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditFrequency": "الگوی تکرار",
-  "@scheduleEditFrequency": {"description": "Recurrence frequency field in the schedule editor."},
+  "@scheduleEditFrequency": {
+    "description": "Recurrence frequency field in the schedule editor.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditInterval": "فاصلهٔ تکرار (عدد مثبت)",
-  "@scheduleEditInterval": {"description": "Positive recurrence interval, measured in the selected frequency unit."},
-  "scheduleEditTermination": "پایان تکرار",
-  "@scheduleEditTermination": {"description": "Selects open, inclusive end date, or total logical count termination."},
+  "@scheduleEditInterval": {
+    "description": "Positive recurrence interval, measured in the selected frequency unit.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditEndDate": "تاریخ پایان (شامل این روز)",
-  "@scheduleEditEndDate": {"description": "Inclusive end-date choice and date-picker action."},
+  "@scheduleEditEndDate": {
+    "description": "Inclusive end-date choice and date-picker action.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditTotalCount": "تعداد کل نوبت‌های برنامه",
-  "@scheduleEditTotalCount": {"description": "Total logical schedule slots including those before the edit boundary; not session credit."},
+  "@scheduleEditTotalCount": {
+    "description": "Total logical schedule slots including those before the edit boundary; not session credit.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditAnchorsPreserved": "تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.",
-  "@scheduleEditAnchorsPreserved": {"description": "Explains preserved recurrence anchors and guarded edits without implying entitlement changes."},
+  "@scheduleEditAnchorsPreserved": {
+    "description": "Explains preserved recurrence anchors and guarded edits without implying entitlement changes.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditInvalid": "فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.",
-  "@scheduleEditInvalid": {"description": "Actionable local validation feedback before requesting a recurrence preview."},
+  "@scheduleEditInvalid": {
+    "description": "Actionable local validation feedback before requesting a recurrence preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditPreview": "پیش‌نمایش تغییرات",
-  "@scheduleEditPreview": {"description": "Read-only preview action; does not save the draft."},
+  "@scheduleEditPreview": {
+    "description": "Read-only preview action; does not save the draft.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditConfirm": "تأیید و ثبت تغییرات",
-  "@scheduleEditConfirm": {"description": "Explicit confirmation after viewing a fresh recurrence preview."},
+  "@scheduleEditConfirm": {
+    "description": "Explicit confirmation after viewing a fresh recurrence preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditPreviewFailed": "پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.",
-  "@scheduleEditPreviewFailed": {"description": "Preview rejection or failure; retains draft and invites an explicit retry."},
+  "@scheduleEditPreviewFailed": {
+    "description": "Preview rejection or failure; retains draft and invites an explicit retry.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditSaveFailed": "تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.",
-  "@scheduleEditSaveFailed": {"description": "Save failure with retained draft; recurrence confirmation requires another preview."},
+  "@scheduleEditSaveFailed": {
+    "description": "Save failure with retained draft; recurrence confirmation requires another preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
   "scheduleEditPreviewSummary": "مرز اثر: {boundary}؛ {count} نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.",
   "@scheduleEditPreviewSummary": {
     "description": "Read-only effect preview showing the backend boundary and affected persisted rows, not the full logical count.",
     "placeholders": {
-      "boundary": {"type": "String", "description": "Formatted Jalali boundary date."},
-      "count": {"type": "String", "description": "Persian-formatted number of affected persisted occurrences."}
-    }
+      "boundary": {
+        "type": "String",
+        "description": "Formatted Jalali boundary date."
+      },
+      "count": {
+        "type": "String",
+        "description": "Persian-formatted number of affected persisted occurrences."
+      }
+    },
+    "x-planact-introduced": "schedule-edit-2026-11-24"
   },
   "todayTransactionUnconfirmed": "هنوز ثبت نشده",
   "@todayTransactionUnconfirmed": {
@@ -46,7 +84,10 @@
     "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Original transaction total shown only when the unallocated remainder differs.",
     "placeholders": {
-      "amount": { "type": "String", "description": "Exactly formatted original amount including the visible currency unit." }
+      "amount": {
+        "type": "String",
+        "description": "Exactly formatted original amount including the visible currency unit."
+      }
     }
   },
   "todayTransactionDateNeedsReview": "تاریخ تراکنش نیاز به بررسی دارد",
@@ -59,7 +100,10 @@
     "x-planact-introduced": "today-transaction-preview-2026-11-21",
     "description": "Explicit reviewer-selected transaction date in the Today SMS preview.",
     "placeholders": {
-      "date": { "type": "String", "description": "Localized Jalali date; does not imply independently extracted time evidence." }
+      "date": {
+        "type": "String",
+        "description": "Localized Jalali date; does not imply independently extracted time evidence."
+      }
     }
   },
   "sequentialReviewFinished": "بررسی این نوبت تمام شد.",
@@ -77,7 +121,10 @@
     "x-planact-introduced": "sequential-review-2026-11-17",
     "description": "Explains sequential review, remaining snapshot candidates and how to exit without deciding another item.",
     "placeholders": {
-      "count": { "type": "String", "description": "Localized remaining candidate count; eligibility is rechecked before opening." }
+      "count": {
+        "type": "String",
+        "description": "Localized remaining candidate count; eligibility is rechecked before opening."
+      }
     }
   },
   "bankBalanceBackdatedBlocked": "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.",
@@ -203,31 +250,82 @@
   },
   "@@locale": "fa",
   "settingsPaletteTitle": "تم رنگی",
-  "@settingsPaletteTitle": {"description": "Coordinated application palette selector title.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteTitle": {
+    "description": "Coordinated application palette selector title.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteDescription": "هر تم نسخهٔ روشن و تاریک هماهنگ دارد؛ حالت نمایش را جداگانه انتخاب کنید.",
-  "@settingsPaletteDescription": {"description": "Explains palette independence from display brightness.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteDescription": {
+    "description": "Explains palette independence from display brightness.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteOriginal": "اصلی پلن‌اکت",
-  "@settingsPaletteOriginal": {"description": "Default original PlanAct palette.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteOriginal": {
+    "description": "Default original PlanAct palette.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteBlue": "آبی آرام",
-  "@settingsPaletteBlue": {"description": "Calm blue palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteBlue": {
+    "description": "Calm blue palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPalettePurple": "بنفش ملایم",
-  "@settingsPalettePurple": {"description": "Soft purple palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPalettePurple": {
+    "description": "Soft purple palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteEarth": "خاکی گرم",
-  "@settingsPaletteEarth": {"description": "Warm earth palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteEarth": {
+    "description": "Warm earth palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteSaveError": "ذخیرهٔ تم انجام نشد؛ تم قبلی حفظ شده است. دوباره انتخاب کنید.",
-  "@settingsPaletteSaveError": {"description": "Palette save failed; previous effective selection retained and retry available.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteSaveError": {
+    "description": "Palette save failed; previous effective selection retained and retry available.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteLoadError": "خواندن تم ذخیره‌شده انجام نشد. دوباره تلاش کنید.",
-  "@settingsPaletteLoadError": {"description": "Palette load failure with retry and disabled selection.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteLoadError": {
+    "description": "Palette load failure with retry and disabled selection.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "tagSelectionChoose": "انتخاب برچسب‌ها",
-  "@tagSelectionChoose": {"description": "Open the compact searchable tag selector.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionChoose": {
+    "description": "Open the compact searchable tag selector.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionSearch": "جست‌وجوی برچسب",
-  "@tagSelectionSearch": {"description": "Pinned tag search field; typing does not save anything.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionSearch": {
+    "description": "Pinned tag search field; typing does not save anything.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionEmpty": "برچسبی پیدا نشد.",
-  "@tagSelectionEmpty": {"description": "No tag matches the search.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionEmpty": {
+    "description": "No tag matches the search.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionRemaining": "و {count} برچسب دیگر",
-  "@tagSelectionRemaining": {"description": "Selected tags omitted from the bounded summary.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"count": {"type": "String", "description": "Locale formatted remaining count."}}},
+  "@tagSelectionRemaining": {
+    "description": "Selected tags omitted from the bounded summary.",
+    "x-planact-introduced": "compact-tags-2026-11-08",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "Locale formatted remaining count."
+      }
+    }
+  },
   "tagSelectionCreate": "افزودن برچسب «{label}»",
-  "@tagSelectionCreate": {"description": "Explicit creation action, draft-only inside creation forms.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"label": {"type": "String", "description": "Normalized proposed tag label."}}},
+  "@tagSelectionCreate": {
+    "description": "Explicit creation action, draft-only inside creation forms.",
+    "x-planact-introduced": "compact-tags-2026-11-08",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Normalized proposed tag label."
+      }
+    }
+  },
   "appLockAuthenticationReason": "برای ورود به پلن‌اکت هویت خود را تأیید کنید.",
   "@appLockAuthenticationReason": {
     "description": "Application copy. Original usage: lib/app/app_lock.dart:30.",
@@ -6345,7 +6443,8 @@
   "reportsPageContentMessage45": "پایان دوره",
   "@reportsPageContentMessage45": {
     "description": "Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:979.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Report boundary label, not a completion command."
   },
   "reportsPageContentTitle7": "روند موجودی پایان روز از کل دفتر",
   "@reportsPageContentTitle7": {
@@ -8082,9 +8181,15 @@
     "x-planact-default": true
   },
   "inboxOptionalTags": "برچسب‌ها · اختیاری",
-  "@inboxOptionalTags": {"description": "Optional draft tags in Inbox confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "@inboxOptionalTags": {
+    "description": "Optional draft tags in Inbox confirmation.",
+    "x-planact-introduced": "inbox-tags-2026-11-08"
+  },
   "inboxAddTag": "افزودن برچسب",
-  "@inboxAddTag": {"description": "Open draft tag creation when no reusable tags exist.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "@inboxAddTag": {
+    "description": "Open draft tag creation when no reusable tags exist.",
+    "x-planact-introduced": "inbox-tags-2026-11-08"
+  },
   "inboxAllTags": "همهٔ برچسب‌ها",
   "@inboxAllTags": {
     "description": "Search all reusable tags before confirmation.",
@@ -8610,7 +8715,6 @@
     "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
     "description": "Role for the initial entry in the related records viewer."
   },
-
   "financeShowCorrectionHistory": "نمایش سوابق اصلاح تراکنش‌ها",
   "@financeShowCorrectionHistory": {
     "x-planact-introduced": "finance-correction-history-2026-11-21",
@@ -9042,5 +9146,61 @@
   "@helpFaqCalendarTitle": {
     "description": "Help FAQ category for calendar visibility, notes and commitment checklists.",
     "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "cycleSelect": "دورهٔ انتخابی",
+  "@cycleSelect": {
+    "description": "Label for selecting one commitment cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleCreate": "ایجاد دورهٔ بعدی",
+  "@cycleCreate": {
+    "description": "Action to schedule the next cycle of the same commitment.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleFinish": "پایان دوره",
+  "@cycleFinish": {
+    "description": "Explicit action to complete the active cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24",
+    "x-planact-distinct-context": "Explicit cycle completion action, not a report boundary."
+  },
+  "cycleFinishConfirm": "همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.",
+  "@cycleFinishConfirm": {
+    "description": "Completion confirmation explaining history and no carry-over.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleReadOnly": "این دوره تاریخی و فقط خواندنی است.",
+  "@cycleReadOnly": {
+    "description": "Explanation for hidden mutation controls on a historical cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleInactiveOwner": "برای عملیات دوره، تعهد باید فعال باشد.",
+  "@cycleInactiveOwner": {
+    "description": "Explanation when an inactive commitment blocks cycle actions.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleFailure": "عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.",
+  "@cycleFailure": {
+    "description": "Retry feedback for rejected or stale cycle commands.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleLoadError": "دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.",
+  "@cycleLoadError": {
+    "description": "Cycle listing read failure.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleActive": "دورهٔ فعال",
+  "@cycleActive": {
+    "description": "Active cycle status label.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleHistorical": "دورهٔ تاریخی",
+  "@cycleHistorical": {
+    "description": "Read-only historical cycle status label.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleNoTransfer": "برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.",
+  "@cycleNoTransfer": {
+    "description": "Next-cycle authoring disclosure.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
   }
 }

@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/core/errors/app_error.dart';
@@ -101,6 +102,7 @@ class CreateCommitmentPlan {
   Future<CommitmentPlan> call({
     required String title,
     required DateTime startAt,
+    NewCommitmentCycleContext? newCycle,
     CommitmentKind kind = CommitmentKind.oneOff,
     CommitmentPriority priority = CommitmentPriority.normal,
     String? description,
@@ -145,19 +147,35 @@ class CreateCommitmentPlan {
         : reminderOffset == null
         ? const <Duration>[]
         : [reminderOffset];
-    final commitment = Commitment.create(
-      title: title,
-      now: startAt,
-      kind: kind,
-      priority: priority,
-      description: description,
-      color: color,
-      tags: tags,
-      attachmentIds: attachmentIds,
-    );
+    final existingOwner = newCycle == null
+        ? null
+        : await commitments.findById(newCycle.commitmentId);
+    if (newCycle != null &&
+        (existingOwner == null ||
+            existingOwner.status != CommitmentStatus.active)) {
+      throw const ValidationError('Next cycle requires an active owner');
+    }
+    if (newCycle != null && checklistTitles.isNotEmpty) {
+      throw const ValidationError(
+        'Next cycle cannot replace the shared checklist',
+      );
+    }
+    final effectiveKind = existingOwner?.kind ?? kind;
+    final commitment =
+        existingOwner ??
+        Commitment.create(
+          title: title,
+          now: startAt,
+          kind: kind,
+          priority: priority,
+          description: description,
+          color: color,
+          tags: tags,
+          attachmentIds: attachmentIds,
+        );
     final cycle = CommitmentCycle.create(
       commitmentId: commitment.id,
-      cycleType: kind == CommitmentKind.oneOff
+      cycleType: effectiveKind == CommitmentKind.oneOff
           ? CommitmentCycleType.fixedCount
           : occurrenceCount != null
           ? CommitmentCycleType.fixedCount
@@ -172,13 +190,14 @@ class CreateCommitmentPlan {
           : CompletionRule.manual,
       plannedEndDate: endDate,
       targetUnits:
-          occurrenceCount ?? (kind == CommitmentKind.oneOff ? 1 : null),
+          occurrenceCount ??
+          (effectiveKind == CommitmentKind.oneOff ? 1 : null),
     ).activate();
     final localDate = LocalDate.fromDateTime(startAt);
     final jalali = JalaliDate.fromDateTime(startAt);
     final schedule = ScheduleDefinition.create(
       cycleId: cycle.id,
-      mode: kind == CommitmentKind.oneOff
+      mode: effectiveKind == CommitmentKind.oneOff
           ? ScheduleMode.oneOff
           : occurrenceCount != null
           ? ScheduleMode.fixedCount
@@ -189,7 +208,7 @@ class CreateCommitmentPlan {
       startDate: localDate,
       localTime: LocalTime(startAt.hour, startAt.minute),
       timeZoneId: 'local',
-      recurrenceRule: kind == CommitmentKind.oneOff
+      recurrenceRule: effectiveKind == CommitmentKind.oneOff
           ? null
           : RecurrenceRule(
               frequency: frequency ?? RecurrenceFrequency.weekly,
@@ -223,7 +242,9 @@ class CreateCommitmentPlan {
     );
     final through = endDate == null
         ? localDate.addDays(
-            kind == CommitmentKind.oneOff ? 0 : schedule.generationHorizonDays,
+            effectiveKind == CommitmentKind.oneOff
+                ? 0
+                : schedule.generationHorizonDays,
           )
         : LocalDate.fromDateTime(endDate);
     final occurrences = OccurrenceGenerator().generate(
@@ -237,7 +258,7 @@ class CreateCommitmentPlan {
             occurrenceId: occurrence.id,
             offset: offset,
             delivery: reminderDelivery,
-            title: title,
+            title: commitment.title,
           ),
     ];
     final plan = CommitmentPlan(
@@ -261,7 +282,19 @@ class CreateCommitmentPlan {
           );
         }
       }
-      await commitments.save(commitment);
+      if (newCycle != null) {
+        final repository = plans;
+        if (repository is! CommitmentCyclesRepository ||
+            repository is! CommitmentPlanTransaction) {
+          throw const ValidationError('Atomic cycle creation is unsupported');
+        }
+        await (repository as CommitmentCyclesRepository).admitNextCycle(
+          newCycle,
+          startAt,
+        );
+      } else {
+        await commitments.save(commitment);
+      }
       if (checklistTitles.isNotEmpty) {
         final repository = checklists;
         if (repository == null) {

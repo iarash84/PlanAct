@@ -17,9 +17,11 @@ class CommitmentCorrectionCard extends StatefulWidget {
     required this.commitmentId,
     required this.onSaved,
     this.reminders,
+    this.cycleId,
   });
   final CommitmentCorrectionRepository repository;
   final StableId commitmentId;
+  final StableId? cycleId;
   final Future<void> Function() onSaved;
   final ReminderService? reminders;
   @override
@@ -38,7 +40,7 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
   @override
   void initState() {
     super.initState();
-    _history = widget.repository.history(widget.commitmentId);
+    _history = _loadHistory();
   }
 
   @override
@@ -47,6 +49,11 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
     _reason.dispose();
     super.dispose();
   }
+
+  Future<List<CommitmentCorrectionRecord>> _loadHistory() =>
+      widget.cycleId == null
+      ? widget.repository.history(widget.commitmentId)
+      : Future.value(const []);
 
   Future<void> _preview() async {
     setState(() {
@@ -66,6 +73,7 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       final preview = await widget.repository.preview(
         CommitmentCorrectionRequest(
           commitmentId: widget.commitmentId,
+          cycleId: widget.cycleId,
           reason: _reason.text,
           scheduleCount: _credit ? null : value,
           creditDelta: _credit ? value : null,
@@ -135,7 +143,7 @@ class _CommitmentCorrectionCardState extends State<CommitmentCorrectionCard> {
       );
       if (confirmed != true || !mounted) return;
       await widget.repository.confirm(preview, DateTime.now());
-      _history = widget.repository.history(widget.commitmentId);
+      _history = _loadHistory();
       var pending = false;
       try {
         await widget.reminders?.reconcile(now: DateTime.now());

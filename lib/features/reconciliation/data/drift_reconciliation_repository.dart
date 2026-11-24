@@ -11,6 +11,7 @@ import 'package:planact/core/money/money.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/reconciliation/data/drift_transaction_match_reader.dart';
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 
 class DriftReconciliationRepository
     implements
@@ -172,6 +173,9 @@ class DriftReconciliationRepository
   );
 
   Future<void> _validateSave(TransactionMatch match) async {
+    for (final allocation in match.allocations) {
+      await requireWritableOccurrence(database, allocation.occurrenceId.value);
+    }
     final old = (await list()).where((m) => m.id == match.id).firstOrNull;
     // Allocation history is immutable. Only explicit active -> resolved state
     // transitions are accepted; a resolved match cannot be silently reactivated.

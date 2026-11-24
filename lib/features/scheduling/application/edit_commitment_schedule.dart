@@ -117,8 +117,7 @@ class EditCommitmentSchedule {
       }
       final plan = await plans.findByCommitmentId(commitmentId);
       if (plan == null) throw const ValidationError('Plan was not found.');
-      if (plan.commitment.status != CommitmentStatus.active ||
-          plan.cycle.status != CommitmentCycleStatus.active) {
+      if (plan.cycle.status != CommitmentCycleStatus.active) {
         throw const ValidationError('Only an active cycle can be edited.');
       }
       final occurrence = plan.occurrences

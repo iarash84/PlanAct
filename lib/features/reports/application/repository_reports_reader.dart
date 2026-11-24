@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/commitments/application/commitment_repository.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
@@ -32,8 +33,7 @@ class RepositoryReportsReader implements ReportsReader {
     final savedPlans = <CommitmentPlan>[];
     final memberships = <StableId, Set<StableId>>{};
     for (final owner in owners) {
-      final plan = await plans.findByCommitmentId(owner.id);
-      if (plan != null) savedPlans.add(plan);
+      savedPlans.addAll(await plans.listByCommitmentId(owner.id));
       memberships[owner.id] = await tags.tagsFor(
         owner.id.value,
         TaggableType.commitment,

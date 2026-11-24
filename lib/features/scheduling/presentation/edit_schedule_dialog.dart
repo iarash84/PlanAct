@@ -330,7 +330,8 @@ class _EditScheduleDialogState extends State<EditScheduleDialog> {
                       initialValue: _termination,
                       isExpanded: true,
                       decoration: InputDecoration(
-                        labelText: l10n.scheduleEditTermination,
+                        labelText:
+                            l10n.quickCaptureSheetScheduleFieldsLabelText4,
                       ),
                       items: [
                         DropdownMenuItem(

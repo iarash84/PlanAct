@@ -1,3 +1,5 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
+
 import 'dart:convert';
 
 import 'package:planact/features/scheduling/application/recurrence_schedule_edit.dart';
@@ -200,14 +202,24 @@ mixin ScheduleUndoPersistence
             'Changed, past or protected schedule effects cannot be undone',
           );
         }
+        await requireWritableCycle(database, row['cycle_id'] as String);
         changed.add(prior);
       }
       if (changed.isEmpty) {
         throw const ValidationError('No editable schedule change');
       }
+      final cycleIds = changed.map((row) => row['cycle_id']).toSet();
+      if (cycleIds.length != 1) {
+        throw const ValidationError('Schedule Undo must target one cycle');
+      }
+      final cycleId = cycleIds.single;
       String? newScheduleId;
-      final schedules = current['schedules'] as List;
-      final oldSchedules = before['schedules'] as List;
+      final schedules = (current['schedules'] as List)
+          .where((row) => (row as Map)['cycle_id'] == cycleId)
+          .toList();
+      final oldSchedules = (before['schedules'] as List)
+          .where((row) => (row as Map)['cycle_id'] == cycleId)
+          .toList();
       if (schedules.length != oldSchedules.length) {
         final source = Map<String, dynamic>.from(oldSchedules.last as Map);
         final latest = schedules.last as Map;
@@ -241,7 +253,7 @@ mixin ScheduleUndoPersistence
         undoOf: expected.id,
       );
       final plan = await DriftCommitmentPlanRepository(database)
-          .findByCommitmentId(id);
+          .findByCycleId(StableId.parse(cycleId as String));
       final ids = changed.map((r) => r['id']).toSet();
       return plan!.occurrences.where((o) => ids.contains(o.id.value)).toList();
     }),

@@ -1,3 +1,5 @@
+import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
@@ -100,7 +102,13 @@ class PlannedDetailsRange extends StatefulWidget {
     required this.builder,
     required this.onSaved,
     this.synchronizeReminders,
+    this.cycleId,
+    this.readOnly = false,
+    this.initialDate,
   });
+  final StableId? cycleId;
+  final bool readOnly;
+  final DateTime? initialDate;
   final Commitment commitment;
   final CommitmentPlanRepository repository;
   final Widget Function(CommitmentPlan, List<Occurrence>) builder;
@@ -126,7 +134,9 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
   @override
   void initState() {
     super.initState();
-    final now = JalaliDate.now();
+    final now = widget.initialDate == null
+        ? JalaliDate.now()
+        : JalaliDate.fromDateTime(widget.initialDate!);
     _month = JalaliDate(now.year, now.month, 1);
     _load();
   }
@@ -145,9 +155,14 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
       _error = false;
     });
     try {
-      final plan = await widget.repository.findByCommitmentId(
-        widget.commitment.id,
-      );
+      final repository = widget.repository;
+      final plan =
+          widget.cycleId != null && repository is CommitmentCyclesRepository
+          ? await (repository as CommitmentCyclesRepository).findByCycleId(
+              widget.cycleId!,
+            )
+          : (await repository.listByCommitmentId(widget.commitment.id))
+                .lastOrNull;
       final start = LocalDate.fromDateTime(month.toDateTime());
       final range = await _planned?.loadPlannedRange(
         start,
@@ -331,19 +346,28 @@ class _PlannedDetailsRangeState extends State<PlannedDetailsRange> {
             plan,
             _range == null
                 ? plan.occurrences
-                : _range!.recorded[widget.commitment.id.value] ?? const [],
+                : (_range!.recorded[widget.commitment.id.value] ??
+                          const <Occurrence>[])
+                      .where((o) => o.cycleId == plan.cycle.id)
+                      .toList(),
           ),
           for (final slot
               in _range?.preview[widget.commitment.id.value] ??
                   <PlannedOccurrenceSlot>[])
-            PlannedSlotTile(
-              slot: slot,
-              busy: _preparing,
-              onPrepare: () => _prepare(slot),
-            ),
+            if (slot.cycleId == plan.cycle.id && !widget.readOnly)
+              PlannedSlotTile(
+                slot: slot,
+                busy: _preparing,
+                onPrepare: widget.readOnly ? null : () => _prepare(slot),
+              ),
           if (_range != null &&
-              (_range!.recorded[widget.commitment.id.value] ?? []).isEmpty &&
-              (_range!.preview[widget.commitment.id.value] ?? []).isEmpty)
+              !(_range!.recorded[widget.commitment.id.value] ?? []).any(
+                (o) => o.cycleId == plan.cycle.id,
+              ) &&
+              (widget.readOnly ||
+                  !(_range!.preview[widget.commitment.id.value] ?? []).any(
+                    (s) => s.cycleId == plan.cycle.id,
+                  )))
             Text(planActL10n(context).plannedOccurrenceWidgetsBuildChildren8),
         ],
         const SizedBox(height: PlanActSpacing.sm),

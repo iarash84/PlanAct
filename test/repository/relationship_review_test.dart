@@ -57,7 +57,7 @@ void main() {
       [commitment, 'کلاس'],
     );
     await database.customStatement(
-      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 0)',
+      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 1)',
       [cycle, commitment],
     );
     await database.customStatement(
@@ -90,6 +90,19 @@ void main() {
         decision: RelationshipReviewDecision.independent,
         recordedAt: DateTime.utc(2026),
       );
+
+  test(
+    'completed cycle rejects new allocation without changing financial history',
+    () async {
+      await database.customStatement('UPDATE commitment_cycles SET status = 2');
+      await expectLater(match(400), throwsA(isA<ValidationError>()));
+      expect(await repository.list(), isEmpty);
+      expect(
+        await database.select(database.accountEntries).get(),
+        hasLength(1),
+      );
+    },
+  );
 
   test('partial remainder decision and explicit reopen survive cold restart without financial mutation', () async {
     await match(400);

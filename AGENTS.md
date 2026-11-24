@@ -142,6 +142,20 @@ Commitment
 - `Occurrence` is one scheduled instance.
 - `Actual/Evidence` records what happened.
 
+Successive-cycle checkpoint (2026-11-24): explicit Details commands complete the
+active cycle only after recorded occurrences are resolved, using a user-selected
+actual local end date, then create an independent next cycle under the same owner.
+Admit both commands against fresh durable owner/cycle/occurrence state and a
+cycle-set token under SQLite writer admission; creation and dependent intent are
+atomic. Permit one active cycle and no overlap with retained prior completion or
+recorded dates. Never transfer credit, debt, results, payments or reminder rules.
+Completed cycles are read-only; owner archive/restore must not reactivate them.
+Keep approved historical date/result edits for still-active cycles of paused or
+archived owners, without notification delivery. Details selects an explicit cycle;
+reports and history retain all cycles. No schema migration alone can establish
+older-writer safety. See docs/SCHEDULE_ACTUAL_VERIFICATION.md for bounded evidence
+and independent/device release gates.
+
 ### 6.2 Status separation
 
 Commitment lifecycle is separate from occurrence status.

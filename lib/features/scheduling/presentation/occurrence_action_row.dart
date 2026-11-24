@@ -21,6 +21,7 @@ class OccurrenceActionRow extends StatefulWidget {
     required this.onChanged,
     this.onEdit,
     this.useActionsMenu = false,
+    this.readOnly = false,
   });
 
   final Occurrence occurrence;
@@ -31,6 +32,7 @@ class OccurrenceActionRow extends StatefulWidget {
   /// Keeps the compact presentation local to the Commitment Details route.
   /// Today and Calendar intentionally keep the expanded action rows.
   final bool useActionsMenu;
+  final bool readOnly;
 
   @override
   State<OccurrenceActionRow> createState() => _OccurrenceActionRowState();
@@ -270,6 +272,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     final actions = availableOccurrenceActions(occurrence)
         .where(
           (action) =>
+              !widget.readOnly &&
               action.type != OccurrenceActionType.makeup &&
               (action.type != OccurrenceActionType.reschedule ||
                   widget.onEdit != null),
@@ -292,7 +295,7 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
                     height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : widget.useActionsMenu
+                : widget.useActionsMenu && !widget.readOnly
                 ? PopupMenuButton<OccurrenceActionType>(
                     key: ValueKey(
                       'occurrence-actions-menu-${occurrence.id.value}',

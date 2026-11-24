@@ -168,9 +168,16 @@ class DriftCommitmentCorrectionRepository
         PersianCopy.driftCommitmentCorrectionRepositoryPrepareMessage,
       );
     }
-    final plan = await DriftCommitmentPlanRepository(database)
-        .findByCommitmentId(request.commitmentId);
+    final plans = DriftCommitmentPlanRepository(database);
+    if (request.cycleId == null &&
+        (await plans.listByCommitmentId(request.commitmentId)).length > 1) {
+      throw const ValidationError('Select an explicit cycle before correcting');
+    }
+    final plan = request.cycleId == null
+        ? await plans.findByCommitmentId(request.commitmentId)
+        : await plans.findByCycleId(request.cycleId!);
     if (plan == null ||
+        plan.commitment.id != request.commitmentId ||
         plan.commitment.status != CommitmentStatus.active ||
         plan.cycle.status != CommitmentCycleStatus.active) {
       throw const ValidationError(

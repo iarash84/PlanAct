@@ -14,7 +14,9 @@ class CommitmentProgressSection extends StatefulWidget {
     required this.reader,
     required this.commitmentId,
     this.revision = 0,
+    this.readSelectedCycle,
   });
+  final Future<CountedCommitmentProgress?> Function()? readSelectedCycle;
   final CommitmentProgressReader reader;
   final StableId commitmentId;
   final int revision;
@@ -52,7 +54,9 @@ class _CommitmentProgressSectionState extends State<CommitmentProgressSection> {
       _error = false;
     });
     try {
-      final result = await widget.reader.read(widget.commitmentId);
+      final result =
+          await (widget.readSelectedCycle?.call() ??
+              widget.reader.read(widget.commitmentId));
       if (!mounted || request != _request) return;
       setState(() {
         _progress = result;

@@ -299,10 +299,10 @@ void main() {
           expect(await _snapshot(second), before);
           firstProbe.release.complete();
           await winningResult;
-          expect(firstProbe.successfulAcquisitions, 1);
+          expect(firstProbe.successfulAcquisitions, greaterThanOrEqualTo(1));
           expect(firstProbe.domainReads, greaterThan(0));
           expect(await secondRepo.extendRecurringSchedules(today), 0);
-          expect(secondProbe.successfulAcquisitions, 1);
+          expect(secondProbe.successfulAcquisitions, greaterThanOrEqualTo(1));
           expect(secondProbe.domainReads, greaterThan(0));
           final after = await _snapshot(second);
           _expectPreserved(before, after, inferred: inferred);

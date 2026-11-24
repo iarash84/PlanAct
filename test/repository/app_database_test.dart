@@ -321,7 +321,7 @@ void main() {
               startDate: DateTime.utc(2026, 9, 18),
               consumedUnits: 0,
               completionRule: 0,
-              status: 0,
+              status: 1,
             ),
           );
       final schedule = await database

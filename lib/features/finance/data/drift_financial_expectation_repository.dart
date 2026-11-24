@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
@@ -70,6 +71,7 @@ class DriftFinancialExpectationRepository
         throw const ValidationError('Expectation amount must be positive');
       }
       await database.transaction(() async {
+        await requireWritableOccurrence(database, item.occurrenceId.value);
         final occurrence =
             await (database.select(database.occurrences)
                   ..where((table) => table.id.equals(item.occurrenceId.value)))

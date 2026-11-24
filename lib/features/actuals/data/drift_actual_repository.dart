@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/database/undo_journal.dart';
 import 'package:drift/drift.dart';
@@ -49,6 +50,11 @@ class DriftActualRepository
   @override
   Future<void> save(Actual actual) => CommandGate.runFor(this, () async {
     await database.transaction(() async {
+      await requireWritableOccurrence(
+        database,
+        actual.occurrenceId.value,
+        requireActiveOwner: false,
+      );
       final existing = await (database.select(
         database.actuals,
       )..where((t) => t.id.equals(actual.id.value))).getSingleOrNull();
@@ -100,6 +106,11 @@ class DriftActualRepository
     () => database.transaction(() async {
       final journal = UndoJournal(database);
       await journal.admitWriter();
+      await requireWritableOccurrence(
+        database,
+        expected.id.value,
+        requireActiveOwner: false,
+      );
       final history = await database
           .customSelect(
             'SELECT id, outcome FROM actuals WHERE occurrence_id = ? ORDER BY rowid',
@@ -130,7 +141,7 @@ class DriftActualRepository
         database.commitmentCycles,
       )..where((t) => t.id.equals(row.cycleId))).getSingle();
       final plan = await DriftCommitmentPlanRepository(database)
-          .findByCommitmentId(StableId.parse(cycle.commitmentId));
+          .findByCycleId(StableId.parse(cycle.id));
       final current = plan?.occurrences
           .where((item) => item.id == expected.id)
           .firstOrNull;

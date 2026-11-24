@@ -19,9 +19,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get scheduleEditInterval => 'فاصلهٔ تکرار (عدد مثبت)';
 
   @override
-  String get scheduleEditTermination => 'پایان تکرار';
-
-  @override
   String get scheduleEditEndDate => 'تاریخ پایان (شامل این روز)';
 
   @override
@@ -5799,4 +5796,40 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get helpFaqCalendarTitle => 'تقویم و فهرست کارها';
+
+  @override
+  String get cycleSelect => 'دورهٔ انتخابی';
+
+  @override
+  String get cycleCreate => 'ایجاد دورهٔ بعدی';
+
+  @override
+  String get cycleFinish => 'پایان دوره';
+
+  @override
+  String get cycleFinishConfirm =>
+      'همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.';
+
+  @override
+  String get cycleReadOnly => 'این دوره تاریخی و فقط خواندنی است.';
+
+  @override
+  String get cycleInactiveOwner => 'برای عملیات دوره، تعهد باید فعال باشد.';
+
+  @override
+  String get cycleFailure =>
+      'عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.';
+
+  @override
+  String get cycleLoadError => 'دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.';
+
+  @override
+  String get cycleActive => 'دورهٔ فعال';
+
+  @override
+  String get cycleHistorical => 'دورهٔ تاریخی';
+
+  @override
+  String get cycleNoTransfer =>
+      'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.';
 }

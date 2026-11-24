@@ -112,12 +112,6 @@ abstract class AppLocalizations {
   /// **'فاصلهٔ تکرار (عدد مثبت)'**
   String get scheduleEditInterval;
 
-  /// Selects open, inclusive end date, or total logical count termination.
-  ///
-  /// In fa, this message translates to:
-  /// **'پایان تکرار'**
-  String get scheduleEditTermination;
-
   /// Inclusive end-date choice and date-picker action.
   ///
   /// In fa, this message translates to:
@@ -9715,6 +9709,72 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'تقویم و فهرست کارها'**
   String get helpFaqCalendarTitle;
+
+  /// Label for selecting one commitment cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ انتخابی'**
+  String get cycleSelect;
+
+  /// Action to schedule the next cycle of the same commitment.
+  ///
+  /// In fa, this message translates to:
+  /// **'ایجاد دورهٔ بعدی'**
+  String get cycleCreate;
+
+  /// Explicit action to complete the active cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'پایان دوره'**
+  String get cycleFinish;
+
+  /// Completion confirmation explaining history and no carry-over.
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.'**
+  String get cycleFinishConfirm;
+
+  /// Explanation for hidden mutation controls on a historical cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'این دوره تاریخی و فقط خواندنی است.'**
+  String get cycleReadOnly;
+
+  /// Explanation when an inactive commitment blocks cycle actions.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای عملیات دوره، تعهد باید فعال باشد.'**
+  String get cycleInactiveOwner;
+
+  /// Retry feedback for rejected or stale cycle commands.
+  ///
+  /// In fa, this message translates to:
+  /// **'عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.'**
+  String get cycleFailure;
+
+  /// Cycle listing read failure.
+  ///
+  /// In fa, this message translates to:
+  /// **'دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.'**
+  String get cycleLoadError;
+
+  /// Active cycle status label.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ فعال'**
+  String get cycleActive;
+
+  /// Read-only historical cycle status label.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ تاریخی'**
+  String get cycleHistorical;
+
+  /// Next-cycle authoring disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.'**
+  String get cycleNoTransfer;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
@@ -74,8 +75,8 @@ class ContextualReconciliation {
     final targets = <RelationshipTarget>[];
     for (final commitment in await commitments.list()) {
       // Archived commitments remain selectable as explicitly labelled history.
-      final plan = await plans.findByCommitmentId(commitment.id);
-      for (final occurrence in plan?.occurrences ?? <Occurrence>[]) {
+      final allPlans = await plans.listByCommitmentId(commitment.id);
+      for (final occurrence in allPlans.expand((p) => p.occurrences)) {
         targets.add(RelationshipTarget(commitment, occurrence));
       }
     }
