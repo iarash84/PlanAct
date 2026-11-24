@@ -1,5 +1,9 @@
 # AGENTS.md — Personal Commitment Manager
 
+## Approved descriptive financial relationships (2026-11-24)
+
+A transaction may explicitly associate with one commitment without an occurrence. This is descriptive only, never settlement, debt, credit, account effect or independent-remainder review. Create/change/unlink append revisioned history under fresh SQLite writer admission, checking durable transaction, account, target and expected revision atomically. Preserve heads/history through cold reopen and strict personal-backup validation. Financial correction must not transfer the association. Today retains the remainder until valid allocation or explicit independent review; reports distinguish association from settlement. New allocations are bounded by transaction remainder and same-currency outstanding expectation; retain legacy allocations without rewriting or transferable credit. See docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md for the contract and separate independent/device/older-writer gates.
+
 This file is the repository-level execution contract for human developers and AI coding agents.
 It defines **how PlanAct must be implemented**, while `docs/product/PRD.md` defines **what product behavior must exist and why**.
 Read both files before changing product behavior. Read `docs/DESIGN_SYSTEM.md` before meaningful presentation or design-system work. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.

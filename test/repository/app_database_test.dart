@@ -357,6 +357,10 @@ void main() {
               isManualOverride: false,
             ),
           );
+      await database.customStatement(
+        'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 1000, ?, 0, 0, 0)',
+        [StableId.generate().value, occurrenceId.value, 'IRR'],
+      );
       final repository = DriftReconciliationRepository(database);
       final matchId = StableId.generate(timestamp: DateTime.utc(2026, 9, 21));
       final correctedMatchId = StableId.generate(

@@ -10,6 +10,55 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get commitmentAssociationTitle => 'ارتباط توصیفی با تعهد';
+
+  @override
+  String get commitmentAssociationDisclaimer =>
+      'این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.';
+
+  @override
+  String get commitmentAssociationNone => 'هنوز ارتباط توصیفی ثبت نشده است.';
+
+  @override
+  String commitmentAssociationCurrent(String title) {
+    return 'تعهد مرتبط: $title';
+  }
+
+  @override
+  String get commitmentAssociationSelect => 'انتخاب تعهد برای ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationEmpty => 'تعهدی برای انتخاب وجود ندارد.';
+
+  @override
+  String get commitmentAssociationSave => 'ثبت ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationChange => 'تغییر ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationUnlink => 'قطع ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationSaveConfirm =>
+      'ارتباط توصیفی با تعهد انتخاب‌شده ثبت شود؟ هیچ مبلغی تخصیص نمی‌یابد و وضعیت تسویه و بررسی باقی‌مانده تغییر نمی‌کند.';
+
+  @override
+  String get commitmentAssociationUnlinkConfirm =>
+      'ارتباط توصیفی قطع شود؟ سابقه حفظ می‌شود؛ تخصیص‌های واقعی و تراکنش تغییر نمی‌کنند.';
+
+  @override
+  String get commitmentAssociationSaved =>
+      'ارتباط توصیفی ذخیره شد؛ تسویه تغییری نکرد.';
+
+  @override
+  String get commitmentAssociationError =>
+      'ارتباط ذخیره نشد. انتخاب شما حفظ شده است؛ دوباره تلاش کنید. اگر اطلاعات تغییر کرده، ابتدا بازخوانی کنید.';
+
+  @override
+  String get commitmentAssociationSettlementTitle => 'تخصیص واقعی مبلغ به نوبت';
+
+  @override
   String get scheduleEditPattern => 'ویرایش الگو و پایان تکرار';
 
   @override

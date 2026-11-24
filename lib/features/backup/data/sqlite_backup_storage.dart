@@ -6,6 +6,8 @@ import 'package:crypto/crypto.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/features/backup/application/backup_service.dart';
 import 'package:sqlite3/sqlite3.dart';
+import 'package:planact/features/reconciliation/data/commitment_association_metadata.dart';
+import 'package:planact/features/finance/domain/finance.dart';
 
 /// File operations run only while the owning application scope is suspended.
 /// Recovery always chooses the old snapshot until the marker is committed.
@@ -150,6 +152,23 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
       if (schema(db).join('\n') != expectedSchema.join('\n')) {
         _validateLegacyRows(db);
       }
+      CommitmentAssociationMetadata.validate(
+        metadata: {
+          for (final row in db.select('SELECT key, value FROM schema_metadata'))
+            row['key'] as String: row['value'] as String,
+        },
+        eligibleTransactionIds: {
+          for (final row in db.select(
+            'SELECT id FROM account_entries WHERE type IN (?, ?)',
+            [AccountEntryType.income.index, AccountEntryType.expense.index],
+          ))
+            row['id'] as String,
+        },
+        commitmentIds: {
+          for (final row in db.select('SELECT id FROM commitments'))
+            row['id'] as String,
+        },
+      );
       final metadata = db.select(
         "SELECT value FROM schema_metadata WHERE key = 'schema_version'",
       );

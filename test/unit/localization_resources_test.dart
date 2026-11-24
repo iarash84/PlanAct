@@ -220,6 +220,7 @@ void main() {
                     'help-faq-refresh-2026-11-21',
                     'commitment-cycles-2026-11-24',
                     'schedule-edit-2026-11-24',
+                    'commitment-association-2026-11-24',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -249,6 +250,22 @@ void main() {
 
   test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'commitment-association-2026-11-24': {
+        'commitmentAssociationTitle',
+        'commitmentAssociationDisclaimer',
+        'commitmentAssociationNone',
+        'commitmentAssociationCurrent',
+        'commitmentAssociationSelect',
+        'commitmentAssociationEmpty',
+        'commitmentAssociationSave',
+        'commitmentAssociationChange',
+        'commitmentAssociationUnlink',
+        'commitmentAssociationSaveConfirm',
+        'commitmentAssociationUnlinkConfirm',
+        'commitmentAssociationSaved',
+        'commitmentAssociationError',
+        'commitmentAssociationSettlementTitle',
+      },
       'finance-correction-history-2026-11-21': {
         'financeShowCorrectionHistory',
         'financeShowCorrectionHistoryDescription',

@@ -13,6 +13,9 @@ import 'package:planact/features/reconciliation/domain/relationship_review.dart'
 import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 
+import 'package:planact/features/reconciliation/application/commitment_association_repository.dart';
+import 'package:planact/features/reconciliation/domain/commitment_association.dart';
+
 class RelationshipTarget {
   const RelationshipTarget(this.commitment, this.occurrence);
   final Commitment commitment;
@@ -27,7 +30,11 @@ class TransactionRelationshipContext {
     required this.targets,
     this.review,
     this.matches = const [],
+    this.association,
+    this.commitments = const [],
   });
+  final CommitmentAssociation? association;
+  final List<Commitment> commitments;
   final AccountEntry transaction;
   final FinancialAccount? account;
   final Money available;
@@ -73,7 +80,8 @@ class ContextualReconciliation {
         )
         .fold<int>(0, (sum, m) => sum + m.allocatedMinorUnits);
     final targets = <RelationshipTarget>[];
-    for (final commitment in await commitments.list()) {
+    final selectableCommitments = await commitments.list();
+    for (final commitment in selectableCommitments) {
       // Archived commitments remain selectable as explicitly labelled history.
       final allPlans = await plans.listByCommitmentId(commitment.id);
       for (final occurrence in allPlans.expand((p) => p.occurrences)) {
@@ -87,6 +95,11 @@ class ContextualReconciliation {
           )
         : null;
     return TransactionRelationshipContext(
+      association: repository is CommitmentAssociationRepository
+          ? await (repository as CommitmentAssociationRepository)
+                .loadAssociation(transactionId)
+          : null,
+      commitments: List.unmodifiable(selectableCommitments),
       review: review,
       transaction: transaction,
       account: accounts.where((a) => a.id == transaction.accountId).firstOrNull,
@@ -104,6 +117,22 @@ class ContextualReconciliation {
       matches: List.unmodifiable(
         matches.where((m) => m.transactionId == transactionId),
       ),
+    );
+  }
+
+  Future<CommitmentAssociation> associateCommitment({
+    required CommitmentAssociation expected,
+    required StableId transactionId,
+    required StableId? commitmentId,
+  }) {
+    final repository = reconciliation.repository;
+    if (repository is! CommitmentAssociationRepository) {
+      throw const ValidationError('Commitment association is unavailable');
+    }
+    return (repository as CommitmentAssociationRepository).associateCommitment(
+      expected: expected,
+      transactionId: transactionId,
+      commitmentId: commitmentId,
     );
   }
 

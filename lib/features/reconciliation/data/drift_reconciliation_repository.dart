@@ -5,6 +5,7 @@ import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/features/finance/domain/finance.dart';
+import 'package:planact/features/finance/data/drift_financial_expectation_repository.dart';
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 import 'package:planact/core/money/money.dart';
@@ -13,18 +14,47 @@ import 'package:planact/features/reconciliation/domain/reconciliation.dart';
 import 'package:planact/features/reconciliation/data/drift_transaction_match_reader.dart';
 import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 
+import 'package:planact/features/reconciliation/application/commitment_association_repository.dart';
+import 'package:planact/features/reconciliation/data/drift_commitment_association_repository.dart';
+import 'package:planact/features/reconciliation/domain/commitment_association.dart';
+
 class DriftReconciliationRepository
     implements
         CommandGateProvider,
         ReconciliationRepository,
         AtomicMatchCorrection,
         AtomicMatchRemoval,
-        RelationshipReviewRepository {
+        RelationshipReviewRepository,
+        CommitmentAssociationRepository {
   DriftReconciliationRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  DriftCommitmentAssociationRepository get _associations =>
+      DriftCommitmentAssociationRepository(database);
+
+  @override
+  Future<CommitmentAssociation> loadAssociation(StableId transactionId) =>
+      _associations.loadAssociation(transactionId);
+  @override
+  Future<List<CommitmentAssociation>> listAssociations() =>
+      _associations.listAssociations();
+  @override
+  Future<List<CommitmentAssociationRevision>> associationHistory(
+    StableId transactionId,
+  ) => _associations.associationHistory(transactionId);
+  @override
+  Future<CommitmentAssociation> associateCommitment({
+    required CommitmentAssociation expected,
+    required StableId transactionId,
+    required StableId? commitmentId,
+  }) => _associations.associateCommitment(
+    expected: expected,
+    transactionId: transactionId,
+    commitmentId: commitmentId,
+  );
 
   @override
   Future<void> removeMatch(TransactionMatch expected) => CommandGate.runFor(
@@ -234,6 +264,24 @@ class DriftReconciliationRepository
       throw const ValidationError(
         'Cumulative allocation exceeds transaction amount',
       );
+    }
+    // Existing immutable allocations remain historical, even when they exceed
+    // today's expectation. Apply the new cap only to newly admitted matches.
+    if (old == null) {
+      final snapshot = await DriftFinancialExpectationRepository(database)
+          .readSettlementSnapshot();
+      final reversedReferences = snapshot.entries
+          .where((entry) => entry.type == AccountEntryType.reversal)
+          .map((entry) => entry.referenceId)
+          .toSet();
+      OutstandingExpectationCapacity(
+        expectations: snapshot.expectations,
+        matches: snapshot.matches,
+        reversedTransactionIds: snapshot.entries
+            .where((entry) => reversedReferences.contains(entry.id.value))
+            .map((entry) => entry.id)
+            .toSet(),
+      ).requireAllocations(match.allocations);
     }
   }
 

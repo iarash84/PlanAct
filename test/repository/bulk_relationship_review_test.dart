@@ -215,6 +215,10 @@ void main() {
       "INSERT INTO occurrences VALUES (?, ?, ?, 'one', 0, '2026-01-01', '2026-01-01', 0, 0)",
       [occurrence.value, cycle, schedule],
     );
+    await database.customStatement(
+      'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 1000, ?, 0, 0, 0)',
+      [StableId.generate().value, occurrence.value, 'IRR'],
+    );
     final second = AppDatabase.forTesting(NativeDatabase(file));
     try {
       await ReconciliationUseCases(DriftReconciliationRepository(second)).match(

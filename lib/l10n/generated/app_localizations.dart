@@ -94,6 +94,90 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Heading for the amount-free commitment association editor and report section.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی با تعهد'**
+  String get commitmentAssociationTitle;
+
+  /// Explicit distinction between descriptive association, settlement and remainder review, shared by editor and reports.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.'**
+  String get commitmentAssociationDisclaimer;
+
+  /// No persisted descriptive commitment association for this transaction.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز ارتباط توصیفی ثبت نشده است.'**
+  String get commitmentAssociationNone;
+
+  /// Persisted descriptive association, distinct from the unsaved selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهد مرتبط: {title}'**
+  String commitmentAssociationCurrent(String title);
+
+  /// Explicit commitment selection; choosing does not write data.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب تعهد برای ارتباط توصیفی'**
+  String get commitmentAssociationSelect;
+
+  /// Empty commitment selection in the descriptive association editor.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدی برای انتخاب وجود ندارد.'**
+  String get commitmentAssociationEmpty;
+
+  /// Action opening confirmation before creating a descriptive association.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت ارتباط توصیفی'**
+  String get commitmentAssociationSave;
+
+  /// Action opening confirmation before changing the associated commitment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ارتباط توصیفی'**
+  String get commitmentAssociationChange;
+
+  /// Non-destructive unlink action retaining association history.
+  ///
+  /// In fa, this message translates to:
+  /// **'قطع ارتباط توصیفی'**
+  String get commitmentAssociationUnlink;
+
+  /// Confirmation for creating or changing the descriptive association; no financial effects.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی با تعهد انتخاب‌شده ثبت شود؟ هیچ مبلغی تخصیص نمی‌یابد و وضعیت تسویه و بررسی باقی‌مانده تغییر نمی‌کند.'**
+  String get commitmentAssociationSaveConfirm;
+
+  /// Explicit unlink confirmation explaining retained history and unchanged allocations.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی قطع شود؟ سابقه حفظ می‌شود؛ تخصیص‌های واقعی و تراکنش تغییر نمی‌کنند.'**
+  String get commitmentAssociationUnlinkConfirm;
+
+  /// Success feedback for descriptive association writes, including unlink.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی ذخیره شد؛ تسویه تغییری نکرد.'**
+  String get commitmentAssociationSaved;
+
+  /// Retryable association error retaining the draft and guiding stale-state refresh.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط ذخیره نشد. انتخاب شما حفظ شده است؛ دوباره تلاش کنید. اگر اطلاعات تغییر کرده، ابتدا بازخوانی کنید.'**
+  String get commitmentAssociationError;
+
+  /// Heading separating existing amount-based occurrence settlement from descriptive association.
+  ///
+  /// In fa, this message translates to:
+  /// **'تخصیص واقعی مبلغ به نوبت'**
+  String get commitmentAssociationSettlementTitle;
+
   /// Opt-in switch for editing recurrence rather than date and time only.
   ///
   /// In fa, this message translates to:

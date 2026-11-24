@@ -480,6 +480,10 @@ void main() {
         plans: plans,
         reconciliation: reconciliation,
       );
+      await database.customStatement(
+        'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 100, ?, 0, 0, 0)',
+        [StableId.generate().value, plan.occurrences.single.id.value, 'IRR'],
+      );
       await flow.confirm(
         transactionId: entry.id,
         occurrenceId: plan.occurrences.single.id,
