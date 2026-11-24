@@ -1,3 +1,5 @@
+import 'package:planact/core/presentation/planact_state_message.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/localization/persian_copy.g.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,7 @@ class _MoneyUnitSettingsCardState extends State<MoneyUnitSettingsCard> {
     final controller = MoneyUnitScope.controllerOf(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PlanActSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -39,7 +41,7 @@ class _MoneyUnitSettingsCardState extends State<MoneyUnitSettingsCard> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(planActL10n(context).moneyUnitSettingsCardBuildChildren2),
-            const SizedBox(height: 12),
+            const SizedBox(height: PlanActSpacing.md),
             SegmentedButton<IranianMoneyUnit>(
               segments: [
                 ButtonSegment(
@@ -59,9 +61,9 @@ class _MoneyUnitSettingsCardState extends State<MoneyUnitSettingsCard> {
             ),
             if (controller?.saving ?? false) const LinearProgressIndicator(),
             if (_error != null)
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              PlanActStateMessage(
+                message: _error!,
+                kind: PlanActMessageKind.error,
               ),
           ],
         ),

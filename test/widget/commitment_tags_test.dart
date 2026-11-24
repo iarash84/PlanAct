@@ -65,6 +65,8 @@ void main() {
       await tester.tap(find.byTooltip('بستن').last);
       await tester.pumpAndSettle();
       expect((await commitments.findById(commitment.id))!.tags, isEmpty);
+      await tester.tap(find.byKey(const ValueKey('commitment-details-edit')));
+      await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.widgetWithText(TextField, 'عنوان'),
         -200,

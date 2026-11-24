@@ -222,9 +222,9 @@ class TransactionMatch {
     )) {
       throw const ValidationError('Match currencies must be equal');
     }
-    // Allocations may exceed the transaction amount: the excess is retained as
-    // an explicit overpayment/credit projection instead of being discarded.
-    // Negative allocation values remain forbidden by MatchAllocation.
+    // Retain legacy overallocations for read-only history. Prospective admission
+    // checks transaction capacity and outstanding expectations separately;
+    // this projection does not authorize transferable credit.
   }
 
   final StableId id;
@@ -252,6 +252,70 @@ class TransactionMatch {
       allocatedMinorUnits > 0 &&
       allocatedMinorUnits < transactionAmount.minorUnits;
   bool get isOverpayment => allocatedMinorUnits > transactionAmount.minorUnits;
+}
+
+/// Prospective capacity only: never rewrites or redistributes historical money.
+class OutstandingExpectationCapacity {
+  OutstandingExpectationCapacity({
+    required Iterable<FinancialExpectation> expectations,
+    required Iterable<TransactionMatch> matches,
+    Set<StableId> reversedTransactionIds = const {},
+    StableId? excludingMatchId,
+  }) {
+    for (final expectation in expectations) {
+      if (expectation.status == FinancialExpectationStatus.active) {
+        (_expectations[expectation.occurrenceId] ??= []).add(expectation);
+      }
+    }
+    for (final match in matches) {
+      if (match.status != MatchStatus.active ||
+          match.id == excludingMatchId ||
+          reversedTransactionIds.contains(match.transactionId)) {
+        continue;
+      }
+      for (final allocation in match.allocations) {
+        final key = (allocation.occurrenceId, allocation.amount.currency);
+        _used.update(
+          key,
+          (value) => value + allocation.amount.minorUnits,
+          ifAbsent: () => allocation.amount.minorUnits,
+        );
+      }
+    }
+  }
+
+  final _expectations = <StableId, List<FinancialExpectation>>{};
+  final _used = <(StableId, String), int>{};
+
+  int remaining(StableId occurrenceId, String currency) {
+    final expectations = _expectations[occurrenceId];
+    if (expectations == null || expectations.length != 1) return 0;
+    final expectation = expectations.single;
+    if (expectation.currency != currency) return 0;
+    return (expectation.amount - (_used[(occurrenceId, currency)] ?? 0)).clamp(
+      0,
+      expectation.amount,
+    );
+  }
+
+  void requireAllocations(Iterable<MatchAllocation> allocations) {
+    final proposed = <(StableId, String), int>{};
+    for (final allocation in allocations) {
+      final key = (allocation.occurrenceId, allocation.amount.currency);
+      proposed.update(
+        key,
+        (value) => value + allocation.amount.minorUnits,
+        ifAbsent: () => allocation.amount.minorUnits,
+      );
+    }
+    for (final entry in proposed.entries) {
+      if (entry.value > remaining(entry.key.$1, entry.key.$2)) {
+        throw const ValidationError(
+          'Allocation exceeds outstanding financial expectation',
+        );
+      }
+    }
+  }
 }
 
 class FinancialPlannedVsActual {

@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:drift/drift.dart';
 import 'package:planact/core/database/app_database.dart' as db;
@@ -189,6 +190,7 @@ class DriftReminderRepository
   Future<void> saveRule(ReminderRule rule) => CommandGate.runFor(
     this,
     () => database.transaction(() async {
+      await requireWritableOccurrence(database, rule.occurrenceId.value);
       await database
           .into(database.reminderRules)
           .insertOnConflictUpdate(
@@ -211,42 +213,47 @@ class DriftReminderRepository
   );
 
   @override
-  Future<void> saveInstance(ReminderInstance instance) => CommandGate.runFor(
-    this,
-    () async {
-      final scheduledAt = instance.scheduledAt.toUtc();
-      await database.transaction(() async {
-        final existing =
-            await (database.select(database.reminderInstances)..where(
-                  (table) =>
-                      table.ruleId.equals(instance.ruleId.value) &
-                      table.occurrenceId.equals(instance.occurrenceId.value) &
-                      table.scheduledAt.equals(scheduledAt),
-                ))
-                .getSingleOrNull();
-        final companion = db.ReminderInstancesCompanion(
-          id: Value(existing?.id ?? instance.id.value),
-          ruleId: Value(instance.ruleId.value),
-          occurrenceId: Value(instance.occurrenceId.value),
-          scheduledAt: Value(scheduledAt),
-          status: Value(instance.status.index),
-          snoozedUntil: Value(instance.snoozedUntil?.toUtc()),
-          platformNotificationId: Value(instance.platformNotificationId),
-        );
-        if (existing == null) {
-          await database.into(database.reminderInstances).insert(companion);
-        } else {
-          await (database.update(
-            database.reminderInstances,
-          )..where((table) => table.id.equals(existing.id))).write(companion);
-        }
-        await database.writeMetadata(
-          'reminder_delivery_v1:instance:${existing?.id ?? instance.id.value}',
-          instance.delivery.name,
-        );
-      });
-    },
-  );
+  Future<void> saveInstance(
+    ReminderInstance instance,
+  ) => CommandGate.runFor(this, () async {
+    final scheduledAt = instance.scheduledAt.toUtc();
+    await database.transaction(() async {
+      if ({
+        ReminderInstanceStatus.scheduled,
+        ReminderInstanceStatus.snoozed,
+      }.contains(instance.status)) {
+        await requireWritableOccurrence(database, instance.occurrenceId.value);
+      }
+      final existing =
+          await (database.select(database.reminderInstances)..where(
+                (table) =>
+                    table.ruleId.equals(instance.ruleId.value) &
+                    table.occurrenceId.equals(instance.occurrenceId.value) &
+                    table.scheduledAt.equals(scheduledAt),
+              ))
+              .getSingleOrNull();
+      final companion = db.ReminderInstancesCompanion(
+        id: Value(existing?.id ?? instance.id.value),
+        ruleId: Value(instance.ruleId.value),
+        occurrenceId: Value(instance.occurrenceId.value),
+        scheduledAt: Value(scheduledAt),
+        status: Value(instance.status.index),
+        snoozedUntil: Value(instance.snoozedUntil?.toUtc()),
+        platformNotificationId: Value(instance.platformNotificationId),
+      );
+      if (existing == null) {
+        await database.into(database.reminderInstances).insert(companion);
+      } else {
+        await (database.update(
+          database.reminderInstances,
+        )..where((table) => table.id.equals(existing.id))).write(companion);
+      }
+      await database.writeMetadata(
+        'reminder_delivery_v1:instance:${existing?.id ?? instance.id.value}',
+        instance.delivery.name,
+      );
+    });
+  });
 
   Future<ReminderDelivery> _delivery(String kind, String id) async {
     final value = await database.readMetadata('reminder_delivery_v1:$kind:$id');

@@ -236,7 +236,15 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      // Supporting bank provenance is now behind the existing disclosure.
+      expect(find.text('بانک: نامشخص'), findsNothing);
+      await tester.ensureVisible(find.text('جزئیات پیشنهاد').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('جزئیات پیشنهاد').first);
+      await tester.pumpAndSettle();
       expect(find.text('بانک: نامشخص'), findsWidgets);
+      await tester.tap(find.text('بستن جزئیات').first);
+      await tester.pumpAndSettle();
       expect(
         find.text(
           'تاریخ تراکنش نامشخص؛ تاریخ دریافت برای ثبت پیشنهاد شده است.',

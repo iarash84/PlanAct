@@ -98,7 +98,31 @@ class _BankRecoveryDialogState extends State<_BankRecoveryDialog> {
               if (_busy) const LinearProgressIndicator(),
               if (_failed) Text(l10n.bankBalanceFailure),
               if (preview != null) ...[
-                for (final account in preview.accounts) Text(account.name),
+                for (final account in preview.accounts)
+                  Text(
+                    l10n.bankRecoveryAccountSummary(
+                      account.name,
+                      PersianNumbers.format(
+                        preview.decisions
+                            .where((d) => d.entry.accountId == account.id)
+                            .length,
+                      ),
+                      PersianMoneyText.money(
+                        Money(
+                          minorUnits: preview.decisions
+                              .where((d) => d.entry.accountId == account.id)
+                              .fold<int>(
+                                0,
+                                (sum, d) =>
+                                    sum - d.entry.signedAmount.minorUnits,
+                              ),
+                          currency: account.currency,
+                        ),
+                        unit: MoneyUnitScope.of(context),
+                        isolateNumber: true,
+                      ),
+                    ),
+                  ),
                 if (preview.decisions.isEmpty) Text(l10n.bankRecoveryEmpty),
                 for (final decision in preview.decisions)
                   ListTile(
@@ -146,13 +170,17 @@ class _BankRecoveryDialogState extends State<_BankRecoveryDialog> {
           if (_failed)
             TextButton(
               onPressed: _busy ? null : _load,
-              child: Text(l10n.bankRecoveryTitle),
+              child: Text(l10n.bankRecoveryRetry),
             ),
           FilledButton(
             onPressed: _busy || preview == null || preview.decisions.isEmpty
                 ? null
                 : _confirm,
-            child: Text(l10n.bankRecoveryTitle),
+            child: Text(
+              l10n.bankRecoveryConfirmCount(
+                PersianNumbers.format(preview?.decisions.length ?? 0),
+              ),
+            ),
           ),
         ],
       ),

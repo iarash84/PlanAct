@@ -211,6 +211,7 @@ class _CommitmentBrowseSheetState extends State<CommitmentBrowseSheet> {
                         sliver: SliverToBoxAdapter(
                           child: PlanActStateMessage(
                             message: l10n.planactAppShowTimelineContent,
+                            kind: PlanActMessageKind.empty,
                           ),
                         ),
                       )

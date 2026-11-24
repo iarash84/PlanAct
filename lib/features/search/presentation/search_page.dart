@@ -174,7 +174,7 @@ class _SearchPageState extends State<SearchPage> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(PlanActSpacing.lg),
+                  padding: const EdgeInsets.all(PlanActSpacing.page),
                   child: TextField(
                     key: const ValueKey('global-search-query'),
                     controller: _query,
@@ -213,7 +213,7 @@ class _SearchPageState extends State<SearchPage> {
                     slivers: [
                       SliverPadding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: PlanActSpacing.lg,
+                          horizontal: PlanActSpacing.page,
                         ),
                         sliver: SliverToBoxAdapter(
                           child: Column(
@@ -272,6 +272,7 @@ class _SearchPageState extends State<SearchPage> {
                                 else if (_results.isEmpty)
                                   PlanActStateMessage(
                                     message: l10n.searchNoResults,
+                                    kind: PlanActMessageKind.empty,
                                   )
                                 else
                                   Semantics(

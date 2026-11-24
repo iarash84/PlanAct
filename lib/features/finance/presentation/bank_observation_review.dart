@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:planact/app/money_unit_scope.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/features/finance/presentation/bank_recovery_dialog.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
@@ -29,12 +31,22 @@ class _BankObservationReviewState extends State<BankObservationReview> {
     text: MoneyInputFormatter.format(widget.observation.sourceAmount),
   );
   late String _account = widget.observation.accountId;
-  late String? _unit = widget.observation.sourceUnit;
+  String? _unit;
+  bool _unitInitialized = false;
   late DateTime? _time = widget.observation.transactionTime?.toLocal();
   late bool _active = widget.observation.active;
   bool _busy = false;
   String? _error;
   Set<String>? _recoveryAccounts;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_unitInitialized) {
+      _unit = widget.observation.sourceUnit ?? MoneyUnitScope.of(context).name;
+      _unitInitialized = true;
+    }
+  }
 
   Future<void> _recover() async {
     final repository = widget.repository;
@@ -153,6 +165,7 @@ class _BankObservationReviewState extends State<BankObservationReview> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: PlanActSpacing.lg,
           children: [
             Text(l10n.bankEvidenceDisclosure),
             DropdownButton<String>(
@@ -213,7 +226,7 @@ class _BankObservationReviewState extends State<BankObservationReview> {
                 widget.repository is BankRecoveryRepository)
               TextButton(
                 onPressed: _busy ? null : _recover,
-                child: Text(l10n.bankRecoveryTitle),
+                child: Text(l10n.bankRecoveryReview),
               ),
             if (_busy) const LinearProgressIndicator(),
           ],

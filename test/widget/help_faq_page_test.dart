@@ -39,6 +39,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('drawer opens help and Back retains the current tab', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(NavigationDestination, 'تقویم'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('shell-menu')));
+    await tester.pumpAndSettle();
+    final help = find.byKey(const ValueKey('navigation-help'));
+    await tester.ensureVisible(help);
+    await tester.pumpAndSettle();
+    await tester.tap(help);
+    await tester.pumpAndSettle();
+    expect(find.byType(HelpFaqPage), findsOneWidget);
+    expect(find.byType(Drawer), findsNothing);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(HelpFaqPage), findsNothing);
+    expect(find.widgetWithText(AppBar, 'تقویم'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final dark in [false, true]) {
     testWidgets('account help explains consent and recovery dark=$dark', (
       tester,
@@ -61,12 +84,26 @@ void main() {
       );
       await tester.pumpAndSettle();
       for (final question in [
+        'چگونه یک تعهد جدید بسازم؟',
+        'تفاوت زمان‌بندی با اعتبار جلسات چیست؟',
+        'چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟',
         'چگونه حساب‌ها و تراکنش‌های هر حساب را مدیریت کنم؟',
         'شماره کارت، شبا و شماره حساب چگونه محافظت می‌شوند؟',
         'تفاوت موجودی دفتر با گزارش موجودی بانک چیست؟',
         'بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟',
-        'تطبیق موجودی بانک چگونه انجام می‌شود؟',
-        'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟',
+        'مقایسه با موجودی بانک چگونه انجام می‌شود؟',
+        'لغو تطبیق‌های قبلی چه زمانی لازم است؟',
+        'تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟',
+        'چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟',
+        'تعیین ارتباط تراکنش با تطبیق پرداخت چه فرقی دارد؟',
+        'چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟',
+        'مبالغ چگونه ذخیره و نمایش داده می‌شوند؟',
+        'اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟',
+        'پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟',
+        'چگونه برای یک رخداد یادآوری تنظیم کنم؟',
+        'چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟',
+        'تفاوت یادداشت تقویم با فهرست کارهای تعهد چیست؟',
+        'چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟',
       ]) {
         final tile = find.byKey(ValueKey(question));
         await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);
@@ -78,15 +115,66 @@ void main() {
         );
         expect(answer.data, isNotEmpty);
         expect(answer.data, isNot(contains('شاهد')));
+        final requiredCopy = <String, List<String>>{
+          'چگونه یک تعهد جدید بسازم؟': ['منوی کناری', 'پس از ساخت'],
+          'تفاوت زمان‌بندی با اعتبار جلسات چیست؟': [
+            'اعتبار ایجاد نمی‌کند',
+            'ندارد',
+          ],
+          'چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟': [
+            'هماهنگ',
+            'نباید فعال بماند',
+          ],
+          'تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟': [
+            'همان تراکنش',
+            'جایگزین',
+            'خودکار',
+          ],
+          'چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟': [
+            'پیش‌فرض خاموش',
+            'نسخهٔ قدیمی را برنمی‌گرداند',
+          ],
+          'چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟': [
+            'لغوشدن آن فرق دارد',
+            'تأیید',
+          ],
+          'مبالغ چگونه ذخیره و نمایش داده می‌شوند؟': [
+            'پیش‌فرض ریال',
+            'گرد نمی‌شود',
+          ],
+          'پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟': [
+            'به‌تنهایی رضایت خواندن نیست',
+            'ابتدا خاموش',
+            'بررسی دستی',
+          ],
+          'اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟': [
+            'جدا',
+            'تضمین نمی‌شود',
+          ],
+          'چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟': [
+            'پیش‌فرض خاموش',
+            'ماه و هفته',
+          ],
+          'چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟': [
+            'نمی‌تواند آن را بازیابی کند',
+            'هر خروجی جدید',
+          ],
+          'بررسی گزارش موجودی چه چیزی را تغییر می‌دهد؟': [
+            'پیشنهاد قابل تغییر',
+            'فقط تأیید نهایی',
+          ],
+        };
+        for (final phrase in requiredCopy[question] ?? <String>[]) {
+          expect(answer.data, contains(phrase), reason: question);
+        }
+        expect(answer.data, isNot(contains('提醒')));
+        expect(Directionality.of(tester.element(tile)), TextDirection.rtl);
         if (question.startsWith('بررسی گزارش')) {
           expect(answer.data, contains('تراکنش یا موجودی دفتر تغییر نمی‌کند'));
         }
-        if (question.startsWith('بازیابی')) {
-          expect(answer.data, contains('همهٔ تطبیق‌های فعال'));
-          expect(
-            answer.data,
-            contains('این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند'),
-          );
+        if (question.startsWith('لغو')) {
+          expect(answer.data, contains('خالص اثر لغو هر حساب'));
+          expect(answer.data, contains('گزارش یا پیامک خودکار ذخیره نمی‌شود'));
         }
         expect(tester.takeException(), isNull);
         await tester.scrollUntilVisible(tile, 250, maxScrolls: 100);

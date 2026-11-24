@@ -151,7 +151,7 @@ void main() {
             );
           }
         }
-        expect(find.textContaining('BANK0'), findsOneWidget);
+        expect(find.textContaining('BANK0'), findsNothing);
         expect(find.textContaining('BANK3'), findsNothing);
         expect(find.textContaining('بانک ملی'), findsNWidgets(3));
         expect(

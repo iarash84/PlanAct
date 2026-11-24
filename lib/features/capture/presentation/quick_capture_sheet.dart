@@ -30,7 +30,9 @@ class QuickCaptureSheet extends StatefulWidget {
     this.onSave,
     this.tagRepository,
     this.financeRepository,
+    this.cycleOwner,
   });
+  final Commitment? cycleOwner;
   final TagRepository? tagRepository;
   final FinanceRepository? financeRepository;
 
@@ -68,6 +70,16 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   final _financeController = ExpansibleController();
   String? _error;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final owner = widget.cycleOwner;
+    if (owner != null) {
+      _title.text = owner.title;
+      _draft = CommitmentDraft(title: owner.title, kind: owner.kind);
+    }
+  }
 
   @override
   void dispose() {
@@ -180,7 +192,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
     return PopScope(
       canPop: !_saving,
       child: PlanActFormSheet(
-        title: planActL10n(context).planactAppBuildTitle,
+        title: widget.cycleOwner == null
+            ? planActL10n(context).planactAppBuildTitle
+            : planActL10n(context).cycleCreate,
         primaryLabel: planActL10n(context).quickCaptureSheetBuildPrimaryLabel,
         onPrimary: _save,
         isLoading: _saving,
@@ -193,19 +207,22 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  enabled: !_saving,
-                  key: const ValueKey('commitment-title-field'),
-                  controller: _title,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: planActL10n(context)
-                        .quickCaptureSheetBuildLabelText,
-                    hintText: planActL10n(context)
-                        .quickCaptureSheetBuildHintText,
+                if (widget.cycleOwner != null)
+                  Text(planActL10n(context).cycleNoTransfer),
+                if (widget.cycleOwner == null)
+                  TextFormField(
+                    enabled: !_saving,
+                    key: const ValueKey('commitment-title-field'),
+                    controller: _title,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: planActL10n(context)
+                          .quickCaptureSheetBuildLabelText,
+                      hintText: planActL10n(context)
+                          .quickCaptureSheetBuildHintText,
+                    ),
+                    onChanged: (_) => setState(_syncDraft),
                   ),
-                  onChanged: (_) => setState(_syncDraft),
-                ),
                 const SizedBox(height: PlanActSpacing.lg),
                 Text(
                   planActL10n(context).quickCaptureSheetBuildChildren,
@@ -241,13 +258,14 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
                   controller: _financeController,
                   child: _financialFields(),
                 ),
-                _section(
-                  key: 'commitment-details-section',
-                  title: planActL10n(context).quickCaptureSheetBuildTitle4,
-                  subtitle: planActL10n(context)
-                      .quickCaptureSheetBuildSubtitle4,
-                  child: _detailFields(),
-                ),
+                if (widget.cycleOwner == null)
+                  _section(
+                    key: 'commitment-details-section',
+                    title: planActL10n(context).quickCaptureSheetBuildTitle4,
+                    subtitle: planActL10n(context)
+                        .quickCaptureSheetBuildSubtitle4,
+                    child: _detailFields(),
+                  ),
                 const SizedBox(height: PlanActSpacing.md),
                 _summary(),
               ],
@@ -385,8 +403,9 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             child: Text(PersianCopy.planactAppCommitmentKindRecurring),
           ),
         ],
-        onChanged: (value) =>
-            setState(() => _draft = _draft.copyWith(kind: value)),
+        onChanged: widget.cycleOwner != null
+            ? null
+            : (value) => setState(() => _draft = _draft.copyWith(kind: value)),
       ),
       const SizedBox(height: PlanActSpacing.md),
       Column(

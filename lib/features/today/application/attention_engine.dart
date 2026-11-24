@@ -76,6 +76,8 @@ class AttentionItem {
     this.inboxDraft,
     this.bankName,
     this.tags = const [],
+    this.transactionType,
+    this.transactionTotalMinorUnits,
   });
 
   final String id;
@@ -91,6 +93,8 @@ class AttentionItem {
   final TransactionDraft? inboxDraft;
   final String? bankName;
   final List<String> tags;
+  final AccountEntryType? transactionType;
+  final int? transactionTotalMinorUnits;
 
   AttentionAction get action => reason.action;
 
@@ -492,6 +496,8 @@ class AttentionEngine {
           explanation: PersianCopy.attentionEngineBuildExplanation5,
           urgency: 65,
           amountMinorUnits: reviews[entry.id]!.remainderMinorUnits,
+          transactionType: entry.type,
+          transactionTotalMinorUnits: entry.amount.minorUnits,
           currency: entry.amount.currency,
           occurredAt: entry.occurredAt,
           accountName: accountsById[entry.accountId]?.name,

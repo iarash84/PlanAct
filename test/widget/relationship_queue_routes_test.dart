@@ -1,6 +1,10 @@
 import 'dart:io';
 
 import 'package:drift/native.dart';
+import 'package:planact/features/classification/data/drift_tag_repository.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/planact_app.dart';
@@ -33,6 +37,7 @@ void main() {
       name: 'حساب آزمون',
       currency: 'IRR',
       type: FinancialAccountType.bank,
+      bank: IranianBank.mellat,
     );
     await finance.saveAccount(account);
     transaction = AccountEntry(
@@ -44,6 +49,13 @@ void main() {
       note: 'پرداخت مستقل آزمون',
     );
     await finance.saveEntry(transaction);
+    final tags = DriftTagRepository(database);
+    final tag = await tags.getOrCreate('صف ارتباط');
+    await tags.attach(
+      recordId: transaction.id.value,
+      tag: tag,
+      type: TaggableType.accountEntry,
+    );
   });
   tearDown(() async {
     await database.close();
@@ -83,6 +95,17 @@ void main() {
       await tester.tap(find.text('صف بررسی ارتباط تراکنش‌ها'));
       await tester.pumpAndSettle();
       expect(find.byType(RelationshipQueuePage), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byType(TransactionCard),
+        150,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('حساب آزمون'), findsOneWidget);
+      expect(find.textContaining('ملت'), findsOneWidget);
+      expect(tester.widget<TagLabels>(find.byType(TagLabels)).labels, [
+        'صف ارتباط',
+      ]);
+      expect(await finance.listEntries(), hasLength(1));
       await tester.tap(find.text('انتخاب همین صفحه'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('مستقل ثبت کن (۱)'));

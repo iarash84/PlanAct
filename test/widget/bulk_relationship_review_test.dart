@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/classification/presentation/tag_controls.dart';
+import 'package:planact/features/finance/presentation/transaction_card.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -38,10 +41,12 @@ class ControlledReviews extends InMemoryReconciliationRepository {
 void main() {
   late InMemoryFinanceRepository finance;
   late ControlledReviews reviews;
+  late InMemoryTagRepository tags;
   late List<AccountEntry> entries;
   setUp(() {
     finance = InMemoryFinanceRepository();
     reviews = ControlledReviews();
+    tags = InMemoryTagRepository();
     entries = [];
   });
   Future<void> seed(int count) async {
@@ -78,7 +83,7 @@ void main() {
           ),
         ),
         home: RelationshipQueuePage(
-          queue: RelationshipQueue(finance, reviews),
+          queue: RelationshipQueue(finance, reviews, tags: tags),
           onOpen: onOpen ?? (_) async {},
           onDataChanged: () async {},
         ),
@@ -88,7 +93,9 @@ void main() {
   }
 
   Future<void> tap(WidgetTester tester, String label) async {
-    final finder = find.text(label);
+    final finder = label == 'درآمد'
+        ? find.widgetWithText(ChoiceChip, label)
+        : find.text(label);
     await tester.ensureVisible(finder);
     await tester.pumpAndSettle();
     await tester.tap(finder);
@@ -96,6 +103,66 @@ void main() {
   }
 
   for (final dark in [false, true]) {
+    testWidgets('rich queue metadata wraps at 320 and scale 2 dark=$dark', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final account = FinancialAccount(
+        id: StableId.generate(),
+        name: 'حساب بانکی با نام طولانی برای آزمون نمایش',
+        currency: 'IRR',
+        type: FinancialAccountType.bank,
+        bank: IranianBank.mellat,
+        status: FinancialAccountStatus.archived,
+      );
+      await finance.saveAccount(account);
+      final entry = AccountEntry(
+        id: StableId.generate(),
+        accountId: account.id,
+        type: AccountEntryType.expense,
+        amount: const Money(minorUnits: 1234567, currency: 'IRR'),
+        occurredAt: DateTime(2026, 11, 21, 14, 35),
+        note: 'شرح بلند تراکنش برای بررسی خوانایی و شکست طبیعی متن در کارت',
+        category: 'خرید روزانه',
+      );
+      await finance.saveEntry(entry);
+      final tag = await tags.getOrCreate('خرید خانه');
+      await tags.attach(
+        recordId: entry.id.value,
+        tag: tag,
+        type: TaggableType.accountEntry,
+      );
+      await show(tester, dark: dark, scale: 2);
+      final card = find.byType(TransactionCard);
+      await tester.scrollUntilVisible(
+        card,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(account.name), findsOneWidget);
+      expect(find.textContaining('ملت'), findsOneWidget);
+      expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
+      expect(find.textContaining('۱۴۰۵'), findsOneWidget);
+      expect(find.textContaining('بایگانی'), findsWidgets);
+      expect(find.text(entry.note!), findsOneWidget);
+      expect(find.text('خرید روزانه'), findsOneWidget);
+      expect(find.byType(TagLabels), findsOneWidget);
+      expect(tester.widget<TagLabels>(find.byType(TagLabels)).labels, [
+        'خرید خانه',
+      ]);
+      expect(
+        tester.widget<TransactionCard>(card).amount,
+        contains('۱,۲۳۴,۵۶۷'),
+      );
+      expect(reviews.calls, 0);
+      expect(await finance.listEntries(), hasLength(1));
+      expect(await reviews.reviewHistory(entry), isEmpty);
+      expect(tester.takeException(), isNull);
+    });
     for (final scale in [1.0, 2.0]) {
       testWidgets('queue card separation dark=$dark scale=$scale', (
         tester,
@@ -132,6 +199,7 @@ void main() {
             : firstRect.top - secondRect.bottom;
         expect(gap, greaterThanOrEqualTo(16));
         expect(reviews.calls, 0);
+        expect(find.text('اطلاعات حساب در دسترس نیست'), findsWidgets);
         expect(tester.takeException(), isNull);
       });
     }

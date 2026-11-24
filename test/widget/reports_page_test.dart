@@ -460,6 +460,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CommitmentDetailsPage), findsOneWidget);
       expect(find.text('جزئیات و ویرایش'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('commitment-details-edit')));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'عنوان'),
         'عنوان تازه',
@@ -470,6 +472,13 @@ void main() {
         find.widgetWithText(FilledButton, 'ذخیره'),
         150,
         scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'ذخیره'));
+      await tester.pumpAndSettle();
+      expect(
+        find.widgetWithText(FilledButton, 'ذخیره').hitTestable(),
+        findsOneWidget,
       );
       await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
       await tester.pumpAndSettle();

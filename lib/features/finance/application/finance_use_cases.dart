@@ -1,3 +1,4 @@
+import 'package:planact/features/finance/domain/transaction_history.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/application/undo_token.dart';
 import 'package:planact/core/errors/app_error.dart';
@@ -39,6 +40,47 @@ abstract interface class TaggedFinanceCreation {
   Future<void> createTaggedEntry(AccountEntry entry, Set<String> tags);
 }
 
+abstract interface class AtomicTransactionNoteEditing {
+  Future<AccountEntry> editEntryNote(AccountEntry expected, String? note);
+}
+
+AccountEntry prepareEntryNoteEdit({
+  required AccountEntry expected,
+  required String? note,
+  required List<AccountEntry> entries,
+  required List<FinancialAccount> accounts,
+}) {
+  final fresh = entries.where((e) => e.id == expected.id).firstOrNull;
+  if (fresh == null ||
+      fresh.noteRevision != expected.noteRevision ||
+      fresh.note != expected.note ||
+      fresh.source != expected.source ||
+      fresh.referenceId != expected.referenceId ||
+      fresh.transferGroupId != null ||
+      !{
+        AccountEntryType.income,
+        AccountEntryType.expense,
+      }.contains(fresh.type) ||
+      !fresh.hasSameFinancialDetails(
+        accountId: expected.accountId,
+        type: expected.type,
+        amount: expected.amount,
+        occurredAt: expected.occurredAt,
+        category: expected.category,
+      )) {
+    throw const ValidationError('Transaction note edit conflict');
+  }
+  // Reuse the existing active-account and reversal/legacy compensation guards.
+  prepareFinanceReversal(
+    expected: fresh,
+    accountId: fresh.accountId,
+    entries: entries,
+    accounts: accounts,
+    occurredAt: fresh.occurredAt,
+  );
+  return fresh.note == note ? fresh : fresh.withNote(note);
+}
+
 abstract interface class AtomicFinanceCorrection {
   Future<void> saveCorrection({
     required AccountEntry reversal,
@@ -61,7 +103,26 @@ abstract interface class AccountStatusUndoRepository {
 }
 
 class InMemoryFinanceRepository
-    implements FinanceRepository, AtomicAccountEditing, AtomicFinanceReversal {
+    implements
+        FinanceRepository,
+        AtomicAccountEditing,
+        AtomicFinanceReversal,
+        AtomicTransactionNoteEditing {
+  @override
+  Future<AccountEntry> editEntryNote(
+    AccountEntry expected,
+    String? note,
+  ) async {
+    final edited = prepareEntryNoteEdit(
+      expected: expected,
+      note: note,
+      entries: _entries.values.toList(),
+      accounts: _accounts.values.toList(),
+    );
+    _entries[edited.id] = edited;
+    return edited;
+  }
+
   @override
   Future<AccountEntry> reverseEntry({
     required AccountEntry expected,
@@ -81,6 +142,15 @@ class InMemoryFinanceRepository
       _entries[entry.id] = entry;
     }
     if (corrected != null) _entries[corrected.id] = corrected;
+    _historyOperations.add(
+      FinanceHistoryOperation(
+        before: [for (final e in reversals) e.referenceId!],
+        after: [
+          for (final e in reversals) e.id.value,
+          if (corrected != null) corrected.id.value,
+        ],
+      ),
+    );
     return reversals.firstWhere((e) => e.referenceId == expected.id.value);
   }
 
@@ -129,13 +199,14 @@ class InMemoryFinanceRepository
 
   final Map<StableId, FinancialAccount> _accounts = {};
   final Map<StableId, AccountEntry> _entries = {};
+  final List<FinanceHistoryOperation> _historyOperations = [];
 
   @override
   Future<List<FinancialAccount>> listAccounts() async =>
       List.unmodifiable(_accounts.values);
   @override
   Future<List<AccountEntry>> listEntries() async =>
-      List.unmodifiable(_entries.values);
+      projectTransactionHistory(_entries.values.toList(), _historyOperations);
 
   @override
   Future<void> reorderAccounts(List<StableId> orderedIds) async {
@@ -380,6 +451,20 @@ class FinanceUseCases {
   }) => CommandGate.runFor(repository, () async {
     _assertActive(account);
     _assertCurrency(account, amount);
+    if (original.hasSameFinancialDetails(
+      accountId: account.id,
+      type: type,
+      amount: amount,
+      occurredAt: occurredAt,
+      category: category ?? original.category,
+    )) {
+      if (repository case final AtomicTransactionNoteEditing editor) {
+        return editor.editEntryNote(original, note);
+      }
+      throw const ValidationError(
+        'Atomic transaction note editing is required',
+      );
+    }
     final corrected = AccountEntry(
       id: StableId.generate(
         timestamp: occurredAt.add(const Duration(microseconds: 1)),
@@ -390,7 +475,7 @@ class FinanceUseCases {
       occurredAt: occurredAt.toUtc(),
       referenceId: original.id.value,
       note: note,
-      category: category,
+      category: category ?? original.category,
       source: AccountEntrySource.manual,
     );
     if (repository case AtomicFinanceReversal atomic) {
@@ -453,6 +538,8 @@ List<AccountEntry> prepareFinanceReversal({
       original.type != expected.type ||
       original.amount != expected.amount ||
       original.referenceId != expected.referenceId ||
+      original.noteRevision != expected.noteRevision ||
+      original.note != expected.note ||
       original.transferGroupId != expected.transferGroupId ||
       original.occurredAt.millisecondsSinceEpoch ~/ 1000 !=
           expected.occurredAt.millisecondsSinceEpoch ~/ 1000 ||

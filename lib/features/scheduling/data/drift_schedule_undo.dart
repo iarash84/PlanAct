@@ -1,4 +1,8 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
+
 import 'dart:convert';
+
+import 'package:planact/features/scheduling/application/recurrence_schedule_edit.dart';
 
 import 'package:drift/drift.dart';
 import 'package:planact/core/application/command_gate.dart';
@@ -14,8 +18,61 @@ import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
 mixin ScheduleUndoPersistence
-    implements ScheduleUndoRepository, CommandGateProvider {
+    implements
+        ScheduleUndoRepository,
+        CommandGateProvider,
+        RecurrenceEditRepository {
   AppDatabase get database;
+
+  @override
+  Future<void> recordScheduleReminderIntent(StableId id) =>
+      database.writeMetadata('reminder_reopen_v1:${id.value}', '1');
+
+  @override
+  Future<String> recurrenceEditToken(StableId id) =>
+      database.transaction(() async {
+        final snapshot = await _snapshot(id);
+        final matches = await database
+            .customSelect(
+              'SELECT m.* FROM transaction_matches m WHERE m.id IN '
+              '(SELECT a.match_id FROM match_allocations a JOIN occurrences o ON o.id = a.occurrence_id '
+              'JOIN commitment_cycles c ON c.id = o.cycle_id WHERE c.commitment_id = ?) ORDER BY m.id',
+              variables: [Variable(id.value)],
+            )
+            .get();
+        final ledger = await database
+            .customSelect(
+              'SELECT e.* FROM account_entries e WHERE e.id IN '
+              '(SELECT m.transaction_id FROM transaction_matches m JOIN match_allocations a ON a.match_id = m.id '
+              'JOIN occurrences o ON o.id = a.occurrence_id JOIN commitment_cycles c ON c.id = o.cycle_id '
+              'WHERE c.commitment_id = ?) OR e.reference_id IN '
+              '(SELECT m.transaction_id FROM transaction_matches m JOIN match_allocations a ON a.match_id = m.id '
+              'JOIN occurrences o ON o.id = a.occurrence_id JOIN commitment_cycles c ON c.id = o.cycle_id '
+              'WHERE c.commitment_id = ?) ORDER BY e.id',
+              variables: [Variable(id.value), Variable(id.value)],
+            )
+            .get();
+        return jsonEncode([
+          snapshot,
+          matches.map((r) => r.data).toList(),
+          ledger.map((r) => r.data).toList(),
+        ]);
+      });
+
+  @override
+  Future<Set<StableId>> protectedScheduleOccurrences(StableId id) async {
+    final snapshot = await _snapshot(id);
+    return {
+      for (final key in ['actuals', 'allocations'])
+        for (final row in snapshot[key] as List)
+          StableId.parse((row as Map)['occurrence_id'] as String),
+      for (final row in snapshot['credit'] as List)
+        if ((row as Map)['reference_id'] is String)
+          StableId.parse(row['reference_id'] as String),
+      for (final row in snapshot['replacements'] as List)
+        StableId.parse((row as Map)['original_occurrence_id'] as String),
+    };
+  }
 
   Future<Map<String, dynamic>> _snapshot(StableId id) async {
     Future<List<Map<String, dynamic>>> rows(String sql) async =>
@@ -145,14 +202,24 @@ mixin ScheduleUndoPersistence
             'Changed, past or protected schedule effects cannot be undone',
           );
         }
+        await requireWritableCycle(database, row['cycle_id'] as String);
         changed.add(prior);
       }
       if (changed.isEmpty) {
         throw const ValidationError('No editable schedule change');
       }
+      final cycleIds = changed.map((row) => row['cycle_id']).toSet();
+      if (cycleIds.length != 1) {
+        throw const ValidationError('Schedule Undo must target one cycle');
+      }
+      final cycleId = cycleIds.single;
       String? newScheduleId;
-      final schedules = current['schedules'] as List;
-      final oldSchedules = before['schedules'] as List;
+      final schedules = (current['schedules'] as List)
+          .where((row) => (row as Map)['cycle_id'] == cycleId)
+          .toList();
+      final oldSchedules = (before['schedules'] as List)
+          .where((row) => (row as Map)['cycle_id'] == cycleId)
+          .toList();
       if (schedules.length != oldSchedules.length) {
         final source = Map<String, dynamic>.from(oldSchedules.last as Map);
         final latest = schedules.last as Map;
@@ -186,7 +253,7 @@ mixin ScheduleUndoPersistence
         undoOf: expected.id,
       );
       final plan = await DriftCommitmentPlanRepository(database)
-          .findByCommitmentId(id);
+          .findByCycleId(StableId.parse(cycleId as String));
       final ids = changed.map((r) => r['id']).toSet();
       return plan!.occurrences.where((o) => ids.contains(o.id.value)).toList();
     }),

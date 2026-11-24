@@ -1,4 +1,139 @@
 {
+  "commitmentAssociationTitle": "ارتباط توصیفی با تعهد",
+  "@commitmentAssociationTitle": {"description": "Heading for the amount-free commitment association editor and report section.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationDisclaimer": "این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.",
+  "@commitmentAssociationDisclaimer": {"description": "Explicit distinction between descriptive association, settlement and remainder review, shared by editor and reports.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationNone": "هنوز ارتباط توصیفی ثبت نشده است.",
+  "@commitmentAssociationNone": {"description": "No persisted descriptive commitment association for this transaction.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationCurrent": "تعهد مرتبط: {title}",
+  "@commitmentAssociationCurrent": {"description": "Persisted descriptive association, distinct from the unsaved selection.", "placeholders": {"title": {"type": "String", "description": "User-authored commitment title."}}, "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationSelect": "انتخاب تعهد برای ارتباط توصیفی",
+  "@commitmentAssociationSelect": {"description": "Explicit commitment selection; choosing does not write data.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationEmpty": "تعهدی برای انتخاب وجود ندارد.",
+  "@commitmentAssociationEmpty": {"description": "Empty commitment selection in the descriptive association editor.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationSave": "ثبت ارتباط توصیفی",
+  "@commitmentAssociationSave": {"description": "Action opening confirmation before creating a descriptive association.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationChange": "تغییر ارتباط توصیفی",
+  "@commitmentAssociationChange": {"description": "Action opening confirmation before changing the associated commitment.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationUnlink": "قطع ارتباط توصیفی",
+  "@commitmentAssociationUnlink": {"description": "Non-destructive unlink action retaining association history.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationSaveConfirm": "ارتباط توصیفی با تعهد انتخاب‌شده ثبت شود؟ هیچ مبلغی تخصیص نمی‌یابد و وضعیت تسویه و بررسی باقی‌مانده تغییر نمی‌کند.",
+  "@commitmentAssociationSaveConfirm": {"description": "Confirmation for creating or changing the descriptive association; no financial effects.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationUnlinkConfirm": "ارتباط توصیفی قطع شود؟ سابقه حفظ می‌شود؛ تخصیص‌های واقعی و تراکنش تغییر نمی‌کنند.",
+  "@commitmentAssociationUnlinkConfirm": {"description": "Explicit unlink confirmation explaining retained history and unchanged allocations.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationSaved": "ارتباط توصیفی ذخیره شد؛ تسویه تغییری نکرد.",
+  "@commitmentAssociationSaved": {"description": "Success feedback for descriptive association writes, including unlink.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationError": "ارتباط ذخیره نشد. انتخاب شما حفظ شده است؛ دوباره تلاش کنید. اگر اطلاعات تغییر کرده، ابتدا بازخوانی کنید.",
+  "@commitmentAssociationError": {"description": "Retryable association error retaining the draft and guiding stale-state refresh.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "commitmentAssociationSettlementTitle": "تخصیص واقعی مبلغ به نوبت",
+  "@commitmentAssociationSettlementTitle": {"description": "Heading separating existing amount-based occurrence settlement from descriptive association.", "x-planact-introduced": "commitment-association-2026-11-24"},
+  "scheduleEditPattern": "ویرایش الگو و پایان تکرار",
+  "@scheduleEditPattern": {
+    "description": "Opt-in switch for editing recurrence rather than date and time only.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditFrequency": "الگوی تکرار",
+  "@scheduleEditFrequency": {
+    "description": "Recurrence frequency field in the schedule editor.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditInterval": "فاصلهٔ تکرار (عدد مثبت)",
+  "@scheduleEditInterval": {
+    "description": "Positive recurrence interval, measured in the selected frequency unit.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditEndDate": "تاریخ پایان (شامل این روز)",
+  "@scheduleEditEndDate": {
+    "description": "Inclusive end-date choice and date-picker action.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditTotalCount": "تعداد کل نوبت‌های برنامه",
+  "@scheduleEditTotalCount": {
+    "description": "Total logical schedule slots including those before the edit boundary; not session credit.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditAnchorsPreserved": "تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.",
+  "@scheduleEditAnchorsPreserved": {
+    "description": "Explains preserved recurrence anchors and guarded edits without implying entitlement changes.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditInvalid": "فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.",
+  "@scheduleEditInvalid": {
+    "description": "Actionable local validation feedback before requesting a recurrence preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditPreview": "پیش‌نمایش تغییرات",
+  "@scheduleEditPreview": {
+    "description": "Read-only preview action; does not save the draft.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditConfirm": "تأیید و ثبت تغییرات",
+  "@scheduleEditConfirm": {
+    "description": "Explicit confirmation after viewing a fresh recurrence preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditPreviewFailed": "پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.",
+  "@scheduleEditPreviewFailed": {
+    "description": "Preview rejection or failure; retains draft and invites an explicit retry.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditSaveFailed": "تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.",
+  "@scheduleEditSaveFailed": {
+    "description": "Save failure with retained draft; recurrence confirmation requires another preview.",
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "scheduleEditPreviewSummary": "مرز اثر: {boundary}؛ {count} نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.",
+  "@scheduleEditPreviewSummary": {
+    "description": "Read-only effect preview showing the backend boundary and affected persisted rows, not the full logical count.",
+    "placeholders": {
+      "boundary": {
+        "type": "String",
+        "description": "Formatted Jalali boundary date."
+      },
+      "count": {
+        "type": "String",
+        "description": "Persian-formatted number of affected persisted occurrences."
+      }
+    },
+    "x-planact-introduced": "schedule-edit-2026-11-24"
+  },
+  "todayTransactionUnconfirmed": "هنوز ثبت نشده",
+  "@todayTransactionUnconfirmed": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
+    "description": "Today SMS preview status: this suggestion has not been confirmed into the ledger."
+  },
+  "todayTransactionRemainder": "مبلغ بدون ارتباط",
+  "@todayTransactionRemainder": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
+    "description": "Labels the unallocated amount in the Today relationship preview, not the original transaction total."
+  },
+  "todayTransactionTotal": "کل تراکنش: {amount}",
+  "@todayTransactionTotal": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
+    "description": "Original transaction total shown only when the unallocated remainder differs.",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Exactly formatted original amount including the visible currency unit."
+      }
+    }
+  },
+  "todayTransactionDateNeedsReview": "تاریخ تراکنش نیاز به بررسی دارد",
+  "@todayTransactionDateNeedsReview": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
+    "description": "The SMS draft date is unknown or only a receipt fallback; never presents it as an extracted date."
+  },
+  "todayTransactionReviewedDate": "تاریخ بازبینی‌شده: {date}",
+  "@todayTransactionReviewedDate": {
+    "x-planact-introduced": "today-transaction-preview-2026-11-21",
+    "description": "Explicit reviewer-selected transaction date in the Today SMS preview.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "description": "Localized Jalali date; does not imply independently extracted time evidence."
+      }
+    }
+  },
   "sequentialReviewFinished": "بررسی این نوبت تمام شد.",
   "@sequentialReviewFinished": {
     "x-planact-introduced": "sequential-review-2026-11-17",
@@ -14,7 +149,10 @@
     "x-planact-introduced": "sequential-review-2026-11-17",
     "description": "Explains sequential review, remaining snapshot candidates and how to exit without deciding another item.",
     "placeholders": {
-      "count": { "type": "String", "description": "Localized remaining candidate count; eligibility is rechecked before opening." }
+      "count": {
+        "type": "String",
+        "description": "Localized remaining candidate count; eligibility is rechecked before opening."
+      }
     }
   },
   "bankBalanceBackdatedBlocked": "این ثبت بر بازهٔ تطبیق‌شده اثر دارد. ابتدا ثبت تطبیق حساب را از فهرست تراکنش‌ها برگشت دهید، سپس دوباره تلاش کنید.",
@@ -51,7 +189,7 @@
     "x-planact-introduced": "bank-balance-2026-11-11",
     "description": "Warning that unknown or equal source transaction times prevent safely identifying the latest reported balance; receipt time must not substitute."
   },
-  "bankBalanceReconcile": "بررسی و تطبیق حساب",
+  "bankBalanceReconcile": "مقایسه با موجودی بانک",
   "@bankBalanceReconcile": {
     "x-planact-introduced": "bank-balance-2026-11-11",
     "description": "Action opening a read-only account reconciliation preview; opening it does not write a financial entry."
@@ -140,31 +278,82 @@
   },
   "@@locale": "fa",
   "settingsPaletteTitle": "تم رنگی",
-  "@settingsPaletteTitle": {"description": "Coordinated application palette selector title.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteTitle": {
+    "description": "Coordinated application palette selector title.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteDescription": "هر تم نسخهٔ روشن و تاریک هماهنگ دارد؛ حالت نمایش را جداگانه انتخاب کنید.",
-  "@settingsPaletteDescription": {"description": "Explains palette independence from display brightness.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteDescription": {
+    "description": "Explains palette independence from display brightness.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteOriginal": "اصلی پلن‌اکت",
-  "@settingsPaletteOriginal": {"description": "Default original PlanAct palette.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteOriginal": {
+    "description": "Default original PlanAct palette.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteBlue": "آبی آرام",
-  "@settingsPaletteBlue": {"description": "Calm blue palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteBlue": {
+    "description": "Calm blue palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPalettePurple": "بنفش ملایم",
-  "@settingsPalettePurple": {"description": "Soft purple palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPalettePurple": {
+    "description": "Soft purple palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteEarth": "خاکی گرم",
-  "@settingsPaletteEarth": {"description": "Warm earth palette name.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteEarth": {
+    "description": "Warm earth palette name.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteSaveError": "ذخیرهٔ تم انجام نشد؛ تم قبلی حفظ شده است. دوباره انتخاب کنید.",
-  "@settingsPaletteSaveError": {"description": "Palette save failed; previous effective selection retained and retry available.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteSaveError": {
+    "description": "Palette save failed; previous effective selection retained and retry available.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "settingsPaletteLoadError": "خواندن تم ذخیره‌شده انجام نشد. دوباره تلاش کنید.",
-  "@settingsPaletteLoadError": {"description": "Palette load failure with retry and disabled selection.", "x-planact-introduced": "theme-presets-2026-11-09"},
+  "@settingsPaletteLoadError": {
+    "description": "Palette load failure with retry and disabled selection.",
+    "x-planact-introduced": "theme-presets-2026-11-09"
+  },
   "tagSelectionChoose": "انتخاب برچسب‌ها",
-  "@tagSelectionChoose": {"description": "Open the compact searchable tag selector.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionChoose": {
+    "description": "Open the compact searchable tag selector.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionSearch": "جست‌وجوی برچسب",
-  "@tagSelectionSearch": {"description": "Pinned tag search field; typing does not save anything.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionSearch": {
+    "description": "Pinned tag search field; typing does not save anything.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionEmpty": "برچسبی پیدا نشد.",
-  "@tagSelectionEmpty": {"description": "No tag matches the search.", "x-planact-introduced": "compact-tags-2026-11-08"},
+  "@tagSelectionEmpty": {
+    "description": "No tag matches the search.",
+    "x-planact-introduced": "compact-tags-2026-11-08"
+  },
   "tagSelectionRemaining": "و {count} برچسب دیگر",
-  "@tagSelectionRemaining": {"description": "Selected tags omitted from the bounded summary.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"count": {"type": "String", "description": "Locale formatted remaining count."}}},
+  "@tagSelectionRemaining": {
+    "description": "Selected tags omitted from the bounded summary.",
+    "x-planact-introduced": "compact-tags-2026-11-08",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "Locale formatted remaining count."
+      }
+    }
+  },
   "tagSelectionCreate": "افزودن برچسب «{label}»",
-  "@tagSelectionCreate": {"description": "Explicit creation action, draft-only inside creation forms.", "x-planact-introduced": "compact-tags-2026-11-08", "placeholders": {"label": {"type": "String", "description": "Normalized proposed tag label."}}},
+  "@tagSelectionCreate": {
+    "description": "Explicit creation action, draft-only inside creation forms.",
+    "x-planact-introduced": "compact-tags-2026-11-08",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "description": "Normalized proposed tag label."
+      }
+    }
+  },
   "appLockAuthenticationReason": "برای ورود به پلن‌اکت هویت خود را تأیید کنید.",
   "@appLockAuthenticationReason": {
     "description": "Application copy. Original usage: lib/app/app_lock.dart:30.",
@@ -6282,7 +6471,8 @@
   "reportsPageContentMessage45": "پایان دوره",
   "@reportsPageContentMessage45": {
     "description": "Application copy. Original usage: lib/features/reports/presentation/reports_page.dart:979.",
-    "x-planact-default": true
+    "x-planact-default": true,
+    "x-planact-distinct-context": "Report boundary label, not a completion command."
   },
   "reportsPageContentTitle7": "روند موجودی پایان روز از کل دفتر",
   "@reportsPageContentTitle7": {
@@ -7274,7 +7464,7 @@
       }
     }
   },
-  "financeCorrectMessage": "تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.",
+  "financeCorrectMessage": "اثر مالی تراکنش قبلی با ثبت برگشت خنثی و نسخهٔ اصلاح‌شده جداگانه ثبت می‌شود. برچسب‌ها و دسته‌بندی روی نسخهٔ اصلاح‌شده هم حفظ می‌شوند و شرح مطابق فرم ثبت می‌شود؛ سابقهٔ قبلی دست‌نخورده می‌ماند. ارتباط‌های مالی و منشأ پیامکی خودکار منتقل نمی‌شوند.",
   "@financeCorrectMessage": {
     "description": "Undo repair: explicit operation feedback and confirmation.",
     "x-planact-introduced": "undo-2026-10-14",
@@ -8019,9 +8209,15 @@
     "x-planact-default": true
   },
   "inboxOptionalTags": "برچسب‌ها · اختیاری",
-  "@inboxOptionalTags": {"description": "Optional draft tags in Inbox confirmation.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "@inboxOptionalTags": {
+    "description": "Optional draft tags in Inbox confirmation.",
+    "x-planact-introduced": "inbox-tags-2026-11-08"
+  },
   "inboxAddTag": "افزودن برچسب",
-  "@inboxAddTag": {"description": "Open draft tag creation when no reusable tags exist.", "x-planact-introduced": "inbox-tags-2026-11-08"},
+  "@inboxAddTag": {
+    "description": "Open draft tag creation when no reusable tags exist.",
+    "x-planact-introduced": "inbox-tags-2026-11-08"
+  },
   "inboxAllTags": "همهٔ برچسب‌ها",
   "@inboxAllTags": {
     "description": "Search all reusable tags before confirmation.",
@@ -8392,22 +8588,22 @@
     "x-planact-introduced": "bank-evidence-review-2026-11-16",
     "description": "Bank observation evidence review: bankEvidenceConfirm"
   },
-  "bankRecoveryTitle": "بازیابی تطبیق‌های وابسته",
+  "bankRecoveryTitle": "لغو تطبیق‌های قبلی",
   "@bankRecoveryTitle": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Title and explicit action for reversing dependent bank reconciliations."
   },
-  "bankRecoveryDisclosure": "همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.",
+  "bankRecoveryDisclosure": "این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.",
   "@bankRecoveryDisclosure": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Disclosure before explicit atomic dependency recovery."
   },
-  "bankRecoveryDone": "تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
+  "bankRecoveryDone": "تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.",
   "@bankRecoveryDone": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Successful recovery; user must explicitly retry the retained draft."
   },
-  "bankRecoveryEmpty": "تطبیق فعالی برای بازیابی وجود ندارد.",
+  "bankRecoveryEmpty": "تطبیق فعالی برای لغو وجود ندارد.",
   "@bankRecoveryEmpty": {
     "x-planact-introduced": "bank-recovery-2026-11-16",
     "description": "Empty recovery preview."
@@ -8462,29 +8658,577 @@
     "description": "Account help: ReviewQuestion. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsReviewAnswer": "از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.",
+  "helpAccountsReviewAnswer": "از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد معلوم گزارش مستقل از تنظیم نمایش ریال یا تومان حفظ می‌شود. اگر واحد نامعلوم باشد، واحد تنظیمات به‌صورت پیشنهاد قابل تغییر برای همان فرم ثابت می‌ماند؛ فقط تأیید نهایی آن را ذخیره می‌کند. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.",
   "@helpAccountsReviewAnswer": {
     "description": "Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsReconcileQuestion": "تطبیق موجودی بانک چگونه انجام می‌شود؟",
+  "helpAccountsReconcileQuestion": "مقایسه با موجودی بانک چگونه انجام می‌شود؟",
   "@helpAccountsReconcileQuestion": {
     "description": "Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsReconcileAnswer": "وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.",
+  "helpAccountsReconcileAnswer": "از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.",
   "@helpAccountsReconcileAnswer": {
     "description": "Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsRecoveryQuestion": "بازیابی تطبیق‌های وابسته چه زمانی لازم است؟",
+  "helpAccountsRecoveryQuestion": "لغو تطبیق‌های قبلی چه زمانی لازم است؟",
   "@helpAccountsRecoveryQuestion": {
     "description": "Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
   },
-  "helpAccountsRecoveryAnswer": "اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.",
+  "helpAccountsRecoveryAnswer": "وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.",
   "@helpAccountsRecoveryAnswer": {
     "description": "Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.",
     "x-planact-introduced": "account-help-2026-11-18"
+  },
+  "transactionCorrected": "اصلاح‌شده",
+  "@transactionCorrected": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Badge for an original entry superseded by a confirmed correction."
+  },
+  "transactionCorrectionReversal": "برگشت بابت اصلاح",
+  "@transactionCorrectionReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of the reversal committed with a correction replacement."
+  },
+  "transactionCorrectionReversalHelp": "این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.",
+  "@transactionCorrectionReversalHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains the correction reversal without changing ledger semantics."
+  },
+  "transactionReplacement": "ثبت اصلاحی — جایگزین تراکنش قبلی",
+  "@transactionReplacement": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of a valid replacement financial entry."
+  },
+  "transactionReplacementHelp": "این ثبت، تراکنش مالی معتبرِ جایگزین است.",
+  "@transactionReplacementHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains that an unreversed replacement remains a valid financial entry."
+  },
+  "transactionCancellationReversal": "برگشت بابت لغو",
+  "@transactionCancellationReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role of an explicitly journalled cancellation reversal."
+  },
+  "transactionCancellationReversalHelp": "این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.",
+  "@transactionCancellationReversalHelp": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Explains a cancellation reversal, distinct from correction."
+  },
+  "transactionReversedHistory": "برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست",
+  "@transactionReversedHistory": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Status for a reversed original or replacement."
+  },
+  "transactionUnknownReversal": "برگشت ثبت قبلی",
+  "@transactionUnknownReversal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Neutral role when reversal purpose has insufficient evidence."
+  },
+  "transactionHistoryOpen": "مشاهدهٔ ثبت‌های مرتبط",
+  "@transactionHistoryOpen": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Action opening read-only related financial records."
+  },
+  "transactionHistoryTitle": "زنجیرهٔ ثبت‌های مرتبط",
+  "@transactionHistoryTitle": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Title of the read-only correction and cancellation history."
+  },
+  "transactionHistoryOriginal": "ثبت اولیه",
+  "@transactionHistoryOriginal": {
+    "x-planact-introduced": "transaction-correction-clarity-2026-11-21",
+    "description": "Role for the initial entry in the related records viewer."
+  },
+  "financeShowCorrectionHistory": "نمایش سوابق اصلاح تراکنش‌ها",
+  "@financeShowCorrectionHistory": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Finance setting label for correction history, off by default."
+  },
+  "financeShowCorrectionHistoryDescription": "نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.",
+  "@financeShowCorrectionHistoryDescription": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Explains the display-only Finance correction history preference."
+  },
+  "financeCorrectionHistorySaveError": "تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.",
+  "@financeCorrectionHistorySaveError": {
+    "x-planact-introduced": "finance-correction-history-2026-11-21",
+    "description": "Save failure retaining the previous effective preference with retry guidance."
+  },
+  "bankBalanceComparisonHelp": "موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.",
+  "@bankBalanceComparisonHelp": {
+    "description": "Explains historical bank comparison.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceReason": "علت اختلاف را انتخاب کنید",
+  "@bankBalanceReason": {
+    "description": "Unselected reason hint; no financial reason is assumed.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceMissingTransaction": "تراکنشی جا افتاده یا اشتباه ثبت شده",
+  "@bankBalanceMissingTransaction": {
+    "description": "Guidance-only choice; never creates an adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceTransactionGuidance": "تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.",
+  "@bankBalanceTransactionGuidance": {
+    "description": "Guides explicit transaction repair without automatic adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceRegisterFee": "ثبت کارمزد",
+  "@bankBalanceRegisterFee": {
+    "description": "Final explicit action recording a known fee expense.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceRegisterAdjustment": "ثبت تعدیل موجودی",
+  "@bankBalanceRegisterAdjustment": {
+    "description": "Final explicit action recording an unknown signed balance adjustment.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceEqual": "موجودی بانک و دفتر در زمان گزارش برابر است.",
+  "@bankBalanceEqual": {
+    "description": "Read-only zero difference state.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceAlreadyReconciled": "تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.",
+  "@bankBalanceAlreadyReconciled": {
+    "description": "Explains contextual reversal preview without automatic reversal.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankRecoveryReview": "بررسی تطبیق‌های قبلی",
+  "@bankRecoveryReview": {
+    "description": "Opens read-only reversal preview, not confirmation.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankRecoveryRetry": "دریافت دوبارهٔ پیش‌نمایش",
+  "@bankRecoveryRetry": {
+    "description": "Reloads preview after failed or stale consent.",
+    "x-planact-introduced": "bank-usability-2026-11-21"
+  },
+  "bankBalanceBankLower": "موجودی بانک {amount} کمتر از دفتر است.",
+  "@bankBalanceBankLower": {
+    "description": "Directional comparison when bank is lower.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
+  },
+  "bankBalanceBankHigher": "موجودی بانک {amount} بیشتر از دفتر است.",
+  "@bankBalanceBankHigher": {
+    "description": "Directional comparison when bank is higher.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
+  },
+  "bankRecoveryConfirmCount": "لغو {count} تطبیق قبلی",
+  "@bankRecoveryConfirmCount": {
+    "description": "Final confirmation naming total reversals.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "count": {
+        "type": "String",
+        "description": "Preformatted localized count."
+      }
+    }
+  },
+  "bankRecoveryAccountSummary": "{account}؛ {count} تطبیق؛ خالص تغییر موجودی: {amount}",
+  "@bankRecoveryAccountSummary": {
+    "description": "Per-account reversal count and exact signed net effect.",
+    "x-planact-introduced": "bank-usability-2026-11-21",
+    "placeholders": {
+      "account": {
+        "type": "String",
+        "description": "Preformatted localized account."
+      },
+      "count": {
+        "type": "String",
+        "description": "Preformatted localized count."
+      },
+      "amount": {
+        "type": "String",
+        "description": "Preformatted localized amount."
+      }
+    }
+  },
+  "helpFaqGettingStartedTitle": "شروع کار",
+  "@helpFaqGettingStartedTitle": {
+    "description": "Help FAQ title for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqPurposeQuestion": "پلن‌اکت برای چه کاری است؟",
+  "@helpFaqPurposeQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqPurposeAnswer": "پلن‌اکت برای برنامه‌ریزی تعهدها، زمان‌بندی جلسات، پیگیری یادآوری‌ها و هم‌زمان‌سازی وضعیت واقعی با وضعیت برنامه‌ریزی‌شده استفاده می‌شود. این برنامه بیشتر به‌صورت محلی و آفلاین کار می‌کند و داده‌ها روی دستگاه شما نگهداری می‌شوند.",
+  "@helpFaqPurposeAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqStartQuestion": "از کجا شروع کنم؟",
+  "@helpFaqStartQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqStartAnswer": "از دکمهٔ + یا گزینهٔ «افزودن تعهد» در منوی کناری شروع کنید. عنوان و زمان‌بندی را مشخص کنید و گزینه‌های اختیاری را در همان فرم باز کنید. پس از ذخیره، نوبت‌ها را در امروز، تقویم یا جزئیات تعهد پیگیری کنید.",
+  "@helpFaqStartAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqConceptsQuestion": "تفاوت تعهد، برنامه و رخداد چیست؟",
+  "@helpFaqConceptsQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqConceptsAnswer": "تعهد همان مفهوم اصلی است؛ برنامهٔ تکرارشونده یا یک‌باره تعیین می‌کند قرار است چه زمانی رخ بدهد و رخداد همان نوبت یا جلسهٔ خاصی است که از آن برنامه ساخته می‌شود. این جداسازی باعث می‌شود تغییرات در برنامه، تاریخچهٔ قبلی را به‌صورت ناخواسته بازنویسی نکند.",
+  "@helpFaqConceptsAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCommitmentsTitle": "تعهدها و زمان‌بندی",
+  "@helpFaqCommitmentsTitle": {
+    "description": "Help FAQ title for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreateQuestion": "چگونه یک تعهد جدید بسازم؟",
+  "@helpFaqCreateQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreateAnswer": "از دکمهٔ + یا «افزودن تعهد» در منوی کناری استفاده کنید؛ مسیر «بیشتر» هم در دسترس است. عنوان و زمان‌بندی را وارد کنید و در صورت نیاز بخش‌های اختیاری مانند یادآوری را باز کنید. تاریخ و ساعت را آگاهانه انتخاب کنید؛ فهرست کارها را پس از ساخت از اقدام‌ها یا جزئیات تعهد مدیریت کنید.",
+  "@helpFaqCreateAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRecurrenceQuestion": "چگونه یک برنامهٔ تکرارشونده ایجاد کنم؟",
+  "@helpFaqRecurrenceQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRecurrenceAnswer": "در بخش زمان‌بندی فرم، الگوی تکرار روزانه، هفتگی، ماهانه یا سالانه و پایان مورد نظر را تنظیم کنید. تعداد نوبت یا تاریخ پایان با بازهٔ آماده‌سازی نوبت‌ها فرق دارد؛ همهٔ نوبت‌های دوردست از ابتدا ثبت نمی‌شوند. تعداد نوبت، اعتبار جلسه یا پرداخت نیست.",
+  "@helpFaqRecurrenceAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqHistoryQuestion": "آیا تغییر برنامه، تاریخچهٔ قبلی را تغییر می‌دهد؟",
+  "@helpFaqHistoryQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqHistoryAnswer": "تغییر زمان‌بندی نباید سوابق انجام‌شده یا لغوشده را بازنویسی کند. فقط از دامنهٔ تغییری استفاده کنید که فرم موجود صریحاً پشتیبانی می‌کند؛ اگر نوع تکرار یا پایان برنامه قابل ویرایش نیست، آن را با تغییر دیگری دور نزنید. بازگشایی یک نوبت نیز سابقهٔ نتیجهٔ قبلی را پاک نمی‌کند.",
+  "@helpFaqHistoryAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreditQuestion": "تفاوت زمان‌بندی با اعتبار جلسات چیست؟",
+  "@helpFaqCreditQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreditAnswer": "زمان‌بندی می‌گوید نوبت‌ها چه زمانی و چند بار باشند؛ اعتبار جلسات حق مصرف یک بسته است. تعداد تکرار به‌تنهایی اعتبار ایجاد نمی‌کند. فرم عمومی افزودن تعهد اکنون مسیر ساخت بستهٔ اعتبار جلسات ندارد؛ آن را با تعداد نوبت اشتباه نگیرید.",
+  "@helpFaqCreditAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqOutcomeQuestion": "چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟",
+  "@helpFaqOutcomeQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqOutcomeAnswer": "از جزئیات تعهد یا اقدام‌های نوبت، گزینهٔ موجود برای انجام، لغو یا تغییر زمان را انتخاب کنید و تأیید لازم را انجام دهید. سابقه حفظ می‌شود؛ یادآوری‌های آینده با زمان و وضعیت جدید هماهنگ می‌شوند و اعلان غیرضروری نوبت انجام‌شده یا لغوشده نباید فعال بماند. بازگشایی نوبت به معنی برگشت خودکار پول یا اعتبار نیست.",
+  "@helpFaqOutcomeAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreateAccountQuestion": "چگونه حساب مالی بسازم؟",
+  "@helpFaqCreateAccountQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCreateAccountAnswer": "از مالی ← حساب‌ها یا گزینهٔ «حساب‌ها» در منوی کناری، حساب اضافه کنید. نام و نوع حساب را مشخص کنید؛ شناسه‌های کارت، شبا و شماره حساب اختیاری‌اند. ثبت درآمد، هزینه و انتقال را پس از ساخت حساب از مسیر مالی انجام دهید.",
+  "@helpFaqCreateAccountAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqTransferQuestion": "تفاوت درآمد، هزینه و انتقال بین حساب‌ها چیست؟",
+  "@helpFaqTransferQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqTransferAnswer": "درآمد و هزینه‌ها ثبت‌های مالی مستقیم هستند؛ انتقال بین حساب‌ها یک عملیات داخلی است که از درآمد و هزینه جدا می‌ماند و به‌عنوان جابه‌جایی بین دو حساب نگهداری می‌شود.",
+  "@helpFaqTransferAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqPaymentQuestion": "چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟",
+  "@helpFaqPaymentQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqPaymentAnswer": "انجام‌شدن یک نوبت با لغوشدن آن فرق دارد و هیچ‌کدام به‌تنهایی پرداخت را ثابت نمی‌کند. پرداخت واقعی باید به‌صورت تراکنش ثبت شود و ارتباط مبلغ با تعهد یا نوبت، جداگانه تأیید شود؛ پرداخت جزئی نیز با تسویهٔ کامل فرق دارد.",
+  "@helpFaqPaymentAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqMoneyQuestion": "مبالغ چگونه ذخیره و نمایش داده می‌شوند؟",
+  "@helpFaqMoneyQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqMoneyAnswer": "از تنظیمات، واحد نمایش و ورود مبلغ را ریال یا تومان انتخاب کنید؛ پیش‌فرض ریال است. این انتخاب تبدیل ارز نیست و مبالغ قبلی را تغییر نمی‌دهد. فرم باز، واحد نمایش‌داده‌شدهٔ خود را تا بسته‌شدن حفظ می‌کند. مبالغ ایرانی جدید با دقت عدد صحیح ریال ذخیره و با رقم فارسی و جداکنندهٔ سه‌رقمی نمایش داده می‌شوند؛ ماندهٔ یک‌دهم تومان گرد نمی‌شود.",
+  "@helpFaqMoneyAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqInboxTitle": "صندوق ورودی و پیامک",
+  "@helpFaqInboxTitle": {
+    "description": "Help FAQ title for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsConsentQuestion": "پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟",
+  "@helpFaqSmsConsentQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsConsentAnswer": "از صندوق ورودی، راه‌اندازی پیامک را باز کنید. دسترسی گوشی به‌تنهایی رضایت خواندن نیست: بازهٔ ۷ روز، ۳۰ روز یا از همین حالا را صریحاً انتخاب کنید. دریافت خودکار انتخاب جداگانه و ابتدا خاموش است. دکمهٔ بررسی دستی و کشیدن صندوق ورودی برای تازه‌سازی، در محدودهٔ رضایت دستی کار می‌کنند؛ خاموش‌بودن دریافت خودکار مانع بررسی دستی نیست. هیچ تراکنشی بدون تأیید شما ثبت نمی‌شود.",
+  "@helpFaqSmsConsentAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsConfirmQuestion": "چرا پیشنهاد پیامک قبل از ثبت مالی نیاز به تأیید دارد؟",
+  "@helpFaqSmsConfirmQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsConfirmAnswer": "زیرا دادهٔ پیامک ممکن است نامشخص، ناقص یا دارای واحد پول مبهم باشد. پیش‌نمایش پیامک فقط پیشنهاد است و ثبت نهایی فقط با تأیید و بررسی کاربر انجام می‌شود.",
+  "@helpFaqSmsConfirmAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsUnitQuestion": "اگر واحد مبلغ ریال یا تومان نامشخص باشد چه کار کنم؟",
+  "@helpFaqSmsUnitQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsUnitAnswer": "اگر واحد پیامک نامعلوم باشد، فرم بررسی واحد تنظیمات را به‌صورت پیشنهادی و قابل تغییر نشان می‌دهد و آن را برای همان فرم نگه می‌دارد. واحد شناسایی‌شده یا قبلاً بررسی‌شده تغییر نمی‌کند. مبلغ و واحد را بررسی و سپس تأیید نهایی کنید؛ بازکردن فرم یا انصراف، پیشنهاد واحد را ذخیره نمی‌کند.",
+  "@helpFaqSmsUnitAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsRejectQuestion": "آیا رد کردن پیشنهاد پیامک، تراکنشی را حذف می‌کند؟",
+  "@helpFaqSmsRejectQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsRejectAnswer": "نه. فقط پیشنهاد تأییدنشده را رد می‌کنید و می‌توانید همان مورد را دوباره برای بررسی باز کنید. تراکنش تأییدشده از صندوق ورودی حذف یا برگردانده نمی‌شود؛ برای اصلاح یا لغو آن از مسیر مالی استفاده کنید.",
+  "@helpFaqSmsRejectAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqReminderSetupQuestion": "چگونه برای یک رخداد یادآوری تنظیم کنم؟",
+  "@helpFaqReminderSetupQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqReminderSetupAnswer": "در فرم تعهد، بخش یادآوری را باز و گزینهٔ زمانی موجود را انتخاب کنید؛ ویرایش یادآوری نوبت نیز از اقدام‌های مربوط در دسترس است. اعلان معمولی با هشدار زنگ‌دار اختیاری اندروید فرق دارد و ممکن است به دسترسی گوشی نیاز داشته باشد. توقف یا تعویق هشدار، نوبت را انجام‌شده نمی‌کند.",
+  "@helpFaqReminderSetupAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqReminderCleanupQuestion": "چرا بعد از تکمیل یا لغو رخداد، یادآوری فعال باقی نمی‌ماند؟",
+  "@helpFaqReminderCleanupQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqReminderCleanupAnswer": "پس از انجام یا لغو نوبت، قصد یادآوری آینده با وضعیت تازه هماهنگ می‌شود تا اعلان اضافی ارسال نشود؛ سابقهٔ نوبت و یادآوری پاک نمی‌شود. تغییر زمان هم نیازمند هماهنگی یادآوری‌های آینده است. محدودیت مجوز یا تحویل گوشی می‌تواند نیاز به بررسی و تلاش مجدد داشته باشد.",
+  "@helpFaqReminderCleanupAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqDeliveryQuestion": "تفاوت ثبت رخداد با ارسال اعلان چیست؟",
+  "@helpFaqDeliveryQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqDeliveryAnswer": "ذخیرهٔ تعهد یا تغییر وضعیت، ثبت داده در برنامه است؛ ارسال اعلان یا هشدار مرحلهٔ جداگانه‌ای روی گوشی است. خطای تحویل اعلان لزوماً به معنی شکست ذخیره نیست. ابتدا نتیجهٔ ذخیره را بررسی کنید و برای رفع مشکل اعلان، دسترسی و تنظیمات یادآوری را بررسی کنید؛ ثبت تکراری نسازید.",
+  "@helpFaqDeliveryAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqBackupTitle": "پشتیبان‌گیری و حریم خصوصی",
+  "@helpFaqBackupTitle": {
+    "description": "Help FAQ title for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqStorageQuestion": "اطلاعات من کجا نگهداری می‌شود؟",
+  "@helpFaqStorageQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqStorageAnswer": "داده‌های اصلی برنامه به‌صورت محلی روی دستگاه شما نگهداری می‌شوند و برای استفادهٔ اصلی نیاز به اینترنت یا سرویس ابری نیست. با نسخه‌برداری و بازیابی محلی هم می‌توانید از داده‌ها محافظت کنید.",
+  "@helpFaqStorageAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqOfflineQuestion": "آیا برای استفاده از قابلیت‌های اصلی اینترنت یا حساب ابری لازم است؟",
+  "@helpFaqOfflineQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqOfflineAnswer": "خیر. استفادهٔ اصلی پلن‌اکت آفلاین است و برای برنامه‌ریزی، تعهد، یادآوری، مالی و دسترسی به داده‌های محلی نیاز به اینترنت یا حساب ابری ندارید.",
+  "@helpFaqOfflineAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqBackupQuestion": "چگونه پشتیبان تهیه و بازیابی کنم؟",
+  "@helpFaqBackupQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqBackupAnswer": "از بخش پشتیبان‌گیری، فایل رمزگذاری‌شده بسازید. هر خروجی جدید کلید بازیابی مستقل دارد؛ هشدارها را بخوانید، کلید را جداگانه نگه دارید و سپس فایل را ذخیره کنید. برای بازیابی، فایل و کلید همان خروجی لازم است؛ اعتبار و سازگاری پیش از جایگزینی بررسی می‌شود. نسخه‌های قدیمی با قالب وابسته به کلید نصب، به همان کلید نصب قبلی نیاز دارند.",
+  "@helpFaqBackupAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRecoveryKeyQuestion": "چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟",
+  "@helpFaqRecoveryKeyQuestion": {
+    "description": "Help FAQ question for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRecoveryKeyAnswer": "کلید امکان بازکردن فایل رمزگذاری‌شده را می‌دهد؛ آن را کنار فایل نگه ندارید و در جای امن جداگانه حفظ کنید. اگر کلید همان خروجی را از دست بدهید، برنامه نمی‌تواند آن را بازیابی کند. داشتن فایل به‌تنهایی کافی نیست؛ هر خروجی جدید کلید جداگانهٔ خود را دارد.",
+  "@helpFaqRecoveryKeyAnswer": {
+    "description": "Help FAQ answer for the local read-only help page.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCorrectionQuestion": "تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟",
+  "@helpFaqCorrectionQuestion": {
+    "description": "Help FAQ question about Correction in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCorrectionAnswer": "اگر فقط شرح درآمد یا هزینه را تغییر دهید، همان تراکنش با حفظ مبلغ، حساب، هشتگ‌ها و ارتباط‌ها به‌روزرسانی می‌شود و سابقهٔ ویرایش شرح می‌ماند. تغییر اطلاعات مالی مسیر تأیید اصلاح دارد: اصل با ثبت برگشت خنثی و جایگزین ساخته می‌شود. هشتگ‌ها و دستهٔ نسخهٔ جاری حفظ می‌شوند مگر دسته را عوض کنید؛ تخصیص پرداخت و منشأ پیامک خودکار به جایگزین منتقل نمی‌شوند. لغو نیز با ثبت برگشت انجام می‌شود، نه پاک‌کردن تاریخچه.",
+  "@helpFaqCorrectionAnswer": {
+    "description": "Help FAQ answer about Correction in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCorrectionHistoryQuestion": "چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟",
+  "@helpFaqCorrectionHistoryQuestion": {
+    "description": "Help FAQ question about CorrectionHistory in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCorrectionHistoryAnswer": "گزینهٔ «نمایش سوابق اصلاح تراکنش‌ها» در تنظیمات پیش‌فرض خاموش است؛ فهرست مالی نسخهٔ جاریِ لغونشده را نشان می‌دهد و سوابق اثبات‌شدهٔ اصلاح را پنهان می‌کند. آن را برای دیدن نسخه‌های قبلی و برگشت‌های اصلاح روشن کنید؛ سوابق مرتبط از مسیر خود رکورد هم در دسترس‌اند. لغو نسخهٔ نهایی، نسخهٔ قدیمی را برنمی‌گرداند. موجودی، گزارش‌ها و تقویم از این فیلتر تغییر نمی‌کنند.",
+  "@helpFaqCorrectionHistoryAnswer": {
+    "description": "Help FAQ answer about CorrectionHistory in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRelationshipQuestion": "تعیین ارتباط تراکنش با تطبیق پرداخت چه فرقی دارد؟",
+  "@helpFaqRelationshipQuestion": {
+    "description": "Help FAQ question about Relationship in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqRelationshipAnswer": "تطبیق پرداخت، مبلغ تراکنش را به تعهد یا نوبت مربوط می‌کند و می‌تواند جزئی باشد. تعیین ارتباط برای بررسی مبلغ بدون ارتباط است؛ تنها تأیید صریح مستقل‌بودن، آن مانده را از صف بررسی خارج می‌کند. بازکردن یا بستن صفحه تصمیم نیست و بازکردن دوبارهٔ بررسی، پول یا تطبیق‌های قبلی را برنمی‌گرداند.",
+  "@helpFaqRelationshipAnswer": {
+    "description": "Help FAQ answer about Relationship in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsNotificationQuestion": "اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟",
+  "@helpFaqSmsNotificationQuestion": {
+    "description": "Help FAQ question about SmsNotification in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqSmsNotificationAnswer": "اعلان تشخیص پیامک انتخابی جدا از مجوز و رضایت خواندن پیامک است. روشن‌کردن آن به معنی اجازهٔ ثبت مالی نیست؛ با لمس اعلان، پیشنهادهای باقی‌مانده را در صندوق ورودی و در صورت نیاز پس از بازکردن قفل برنامه بررسی می‌کنید. اعلان صفحهٔ قفل عمومی است و هیچ تأیید یا رد مالی از خود اعلان انجام نمی‌شود. تحویل پس‌زمینه تابع محدودیت‌های اندروید است و در توقف اجباری تضمین نمی‌شود.",
+  "@helpFaqSmsNotificationAnswer": {
+    "description": "Help FAQ answer about SmsNotification in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCalendarVisibilityQuestion": "چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟",
+  "@helpFaqCalendarVisibilityQuestion": {
+    "description": "Help FAQ question about CalendarVisibility in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCalendarVisibilityAnswer": "در تنظیمات ← تقویم، تعهدها و یادداشت‌ها پیش‌فرض روشن و درآمد، هزینه و انتقال بین حساب‌ها پیش‌فرض خاموش‌اند. دستهٔ مورد نظر را روشن کنید تا در ماه و هفته نمایش داده شود. تاریخ تراکنش ثبت‌شده ملاک است، نه زمان دریافت یا تأیید پیامک. پنهان‌کردن فقط نمایش را عوض می‌کند و پول، نوبت و یادآوری را تغییر نمی‌دهد.",
+  "@helpFaqCalendarVisibilityAnswer": {
+    "description": "Help FAQ answer about CalendarVisibility in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqNotesChecklistQuestion": "تفاوت یادداشت تقویم با فهرست کارهای تعهد چیست؟",
+  "@helpFaqNotesChecklistQuestion": {
+    "description": "Help FAQ question about NotesChecklist in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqNotesChecklistAnswer": "از افزودن سریع می‌توانید یادداشت مستقل با تاریخ شمسی بسازید؛ یادداشت تعهد، یادآوری یا اثر مالی ایجاد نمی‌کند. فهرست کارها متعلق به خود تعهد است و میان نوبت‌ها مشترک می‌ماند. تیک‌زدن همهٔ کارها به‌تنهایی نوبت را انجام‌شده نمی‌کند، پرداخت ثبت نمی‌کند و اعتبار جلسه مصرف نمی‌کند.",
+  "@helpFaqNotesChecklistAnswer": {
+    "description": "Help FAQ answer about NotesChecklist in the current local app.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "helpFaqCalendarTitle": "تقویم و فهرست کارها",
+  "@helpFaqCalendarTitle": {
+    "description": "Help FAQ category for calendar visibility, notes and commitment checklists.",
+    "x-planact-introduced": "help-faq-refresh-2026-11-21"
+  },
+  "cycleSelect": "دورهٔ انتخابی",
+  "@cycleSelect": {
+    "description": "Label for selecting one commitment cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleCreate": "ایجاد دورهٔ بعدی",
+  "@cycleCreate": {
+    "description": "Action to schedule the next cycle of the same commitment.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleFinish": "پایان دوره",
+  "@cycleFinish": {
+    "description": "Explicit action to complete the active cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24",
+    "x-planact-distinct-context": "Explicit cycle completion action, not a report boundary."
+  },
+  "cycleFinishConfirm": "همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.",
+  "@cycleFinishConfirm": {
+    "description": "Completion confirmation explaining history and no carry-over.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleReadOnly": "این دوره تاریخی و فقط خواندنی است.",
+  "@cycleReadOnly": {
+    "description": "Explanation for hidden mutation controls on a historical cycle.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleInactiveOwner": "برای عملیات دوره، تعهد باید فعال باشد.",
+  "@cycleInactiveOwner": {
+    "description": "Explanation when an inactive commitment blocks cycle actions.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleFailure": "عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.",
+  "@cycleFailure": {
+    "description": "Retry feedback for rejected or stale cycle commands.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleLoadError": "دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.",
+  "@cycleLoadError": {
+    "description": "Cycle listing read failure.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleActive": "دورهٔ فعال",
+  "@cycleActive": {
+    "description": "Active cycle status label.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleHistorical": "دورهٔ تاریخی",
+  "@cycleHistorical": {
+    "description": "Read-only historical cycle status label.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
+  },
+  "cycleNoTransfer": "برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.",
+  "@cycleNoTransfer": {
+    "description": "Next-cycle authoring disclosure.",
+    "x-planact-introduced": "commitment-cycles-2026-11-24"
   }
 }

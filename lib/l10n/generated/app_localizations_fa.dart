@@ -10,6 +10,117 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get commitmentAssociationTitle => 'ارتباط توصیفی با تعهد';
+
+  @override
+  String get commitmentAssociationDisclaimer =>
+      'این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.';
+
+  @override
+  String get commitmentAssociationNone => 'هنوز ارتباط توصیفی ثبت نشده است.';
+
+  @override
+  String commitmentAssociationCurrent(String title) {
+    return 'تعهد مرتبط: $title';
+  }
+
+  @override
+  String get commitmentAssociationSelect => 'انتخاب تعهد برای ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationEmpty => 'تعهدی برای انتخاب وجود ندارد.';
+
+  @override
+  String get commitmentAssociationSave => 'ثبت ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationChange => 'تغییر ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationUnlink => 'قطع ارتباط توصیفی';
+
+  @override
+  String get commitmentAssociationSaveConfirm =>
+      'ارتباط توصیفی با تعهد انتخاب‌شده ثبت شود؟ هیچ مبلغی تخصیص نمی‌یابد و وضعیت تسویه و بررسی باقی‌مانده تغییر نمی‌کند.';
+
+  @override
+  String get commitmentAssociationUnlinkConfirm =>
+      'ارتباط توصیفی قطع شود؟ سابقه حفظ می‌شود؛ تخصیص‌های واقعی و تراکنش تغییر نمی‌کنند.';
+
+  @override
+  String get commitmentAssociationSaved =>
+      'ارتباط توصیفی ذخیره شد؛ تسویه تغییری نکرد.';
+
+  @override
+  String get commitmentAssociationError =>
+      'ارتباط ذخیره نشد. انتخاب شما حفظ شده است؛ دوباره تلاش کنید. اگر اطلاعات تغییر کرده، ابتدا بازخوانی کنید.';
+
+  @override
+  String get commitmentAssociationSettlementTitle => 'تخصیص واقعی مبلغ به نوبت';
+
+  @override
+  String get scheduleEditPattern => 'ویرایش الگو و پایان تکرار';
+
+  @override
+  String get scheduleEditFrequency => 'الگوی تکرار';
+
+  @override
+  String get scheduleEditInterval => 'فاصلهٔ تکرار (عدد مثبت)';
+
+  @override
+  String get scheduleEditEndDate => 'تاریخ پایان (شامل این روز)';
+
+  @override
+  String get scheduleEditTotalCount => 'تعداد کل نوبت‌های برنامه';
+
+  @override
+  String get scheduleEditAnchorsPreserved =>
+      'تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.';
+
+  @override
+  String get scheduleEditInvalid =>
+      'فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.';
+
+  @override
+  String get scheduleEditPreview => 'پیش‌نمایش تغییرات';
+
+  @override
+  String get scheduleEditConfirm => 'تأیید و ثبت تغییرات';
+
+  @override
+  String get scheduleEditPreviewFailed =>
+      'پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.';
+
+  @override
+  String get scheduleEditSaveFailed =>
+      'تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.';
+
+  @override
+  String scheduleEditPreviewSummary(String boundary, String count) {
+    return 'مرز اثر: $boundary؛ $count نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.';
+  }
+
+  @override
+  String get todayTransactionUnconfirmed => 'هنوز ثبت نشده';
+
+  @override
+  String get todayTransactionRemainder => 'مبلغ بدون ارتباط';
+
+  @override
+  String todayTransactionTotal(String amount) {
+    return 'کل تراکنش: $amount';
+  }
+
+  @override
+  String get todayTransactionDateNeedsReview =>
+      'تاریخ تراکنش نیاز به بررسی دارد';
+
+  @override
+  String todayTransactionReviewedDate(String date) {
+    return 'تاریخ بازبینی‌شده: $date';
+  }
+
+  @override
   String get sequentialReviewFinished => 'بررسی این نوبت تمام شد.';
 
   @override
@@ -43,7 +154,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'زمان نامعلوم یا برابر است؛ تعیین آخرین مانده و تطبیق امن ممکن نیست.';
 
   @override
-  String get bankBalanceReconcile => 'بررسی و تطبیق حساب';
+  String get bankBalanceReconcile => 'مقایسه با موجودی بانک';
 
   @override
   String get bankBalanceLedgerAtReport => 'ماندهٔ دفتر تا زمان گزارش';
@@ -4660,7 +4771,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get financeCorrectMessage =>
-      'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.';
+      'اثر مالی تراکنش قبلی با ثبت برگشت خنثی و نسخهٔ اصلاح‌شده جداگانه ثبت می‌شود. برچسب‌ها و دسته‌بندی روی نسخهٔ اصلاح‌شده هم حفظ می‌شوند و شرح مطابق فرم ثبت می‌شود؛ سابقهٔ قبلی دست‌نخورده می‌ماند. ارتباط‌های مالی و منشأ پیامکی خودکار منتقل نمی‌شوند.';
 
   @override
   String get financeArchivedAccountAction => 'بایگانی حساب';
@@ -5319,18 +5430,18 @@ class AppLocalizationsFa extends AppLocalizations {
   String get bankEvidenceConfirm => 'تأیید بررسی گزارش موجودی';
 
   @override
-  String get bankRecoveryTitle => 'بازیابی تطبیق‌های وابسته';
+  String get bankRecoveryTitle => 'لغو تطبیق‌های قبلی';
 
   @override
   String get bankRecoveryDisclosure =>
-      'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.';
+      'این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.';
 
   @override
   String get bankRecoveryDone =>
-      'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
+      'تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.';
 
   @override
-  String get bankRecoveryEmpty => 'تطبیق فعالی برای بازیابی وجود ندارد.';
+  String get bankRecoveryEmpty => 'تطبیق فعالی برای لغو وجود ندارد.';
 
   @override
   String get bankRecoverySource => 'شناسهٔ گزارش موجودی';
@@ -5371,21 +5482,403 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get helpAccountsReviewAnswer =>
-      'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.';
+      'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد معلوم گزارش مستقل از تنظیم نمایش ریال یا تومان حفظ می‌شود. اگر واحد نامعلوم باشد، واحد تنظیمات به‌صورت پیشنهاد قابل تغییر برای همان فرم ثابت می‌ماند؛ فقط تأیید نهایی آن را ذخیره می‌کند. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.';
 
   @override
   String get helpAccountsReconcileQuestion =>
-      'تطبیق موجودی بانک چگونه انجام می‌شود؟';
+      'مقایسه با موجودی بانک چگونه انجام می‌شود؟';
 
   @override
   String get helpAccountsReconcileAnswer =>
-      'وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.';
+      'از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.';
 
   @override
   String get helpAccountsRecoveryQuestion =>
-      'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟';
+      'لغو تطبیق‌های قبلی چه زمانی لازم است؟';
 
   @override
   String get helpAccountsRecoveryAnswer =>
-      'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.';
+      'وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.';
+
+  @override
+  String get transactionCorrected => 'اصلاح‌شده';
+
+  @override
+  String get transactionCorrectionReversal => 'برگشت بابت اصلاح';
+
+  @override
+  String get transactionCorrectionReversalHelp =>
+      'این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.';
+
+  @override
+  String get transactionReplacement => 'ثبت اصلاحی — جایگزین تراکنش قبلی';
+
+  @override
+  String get transactionReplacementHelp =>
+      'این ثبت، تراکنش مالی معتبرِ جایگزین است.';
+
+  @override
+  String get transactionCancellationReversal => 'برگشت بابت لغو';
+
+  @override
+  String get transactionCancellationReversalHelp =>
+      'این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.';
+
+  @override
+  String get transactionReversedHistory =>
+      'برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست';
+
+  @override
+  String get transactionUnknownReversal => 'برگشت ثبت قبلی';
+
+  @override
+  String get transactionHistoryOpen => 'مشاهدهٔ ثبت‌های مرتبط';
+
+  @override
+  String get transactionHistoryTitle => 'زنجیرهٔ ثبت‌های مرتبط';
+
+  @override
+  String get transactionHistoryOriginal => 'ثبت اولیه';
+
+  @override
+  String get financeShowCorrectionHistory => 'نمایش سوابق اصلاح تراکنش‌ها';
+
+  @override
+  String get financeShowCorrectionHistoryDescription =>
+      'نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.';
+
+  @override
+  String get financeCorrectionHistorySaveError =>
+      'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.';
+
+  @override
+  String get bankBalanceComparisonHelp =>
+      'موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.';
+
+  @override
+  String get bankBalanceReason => 'علت اختلاف را انتخاب کنید';
+
+  @override
+  String get bankBalanceMissingTransaction =>
+      'تراکنشی جا افتاده یا اشتباه ثبت شده';
+
+  @override
+  String get bankBalanceTransactionGuidance =>
+      'تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.';
+
+  @override
+  String get bankBalanceRegisterFee => 'ثبت کارمزد';
+
+  @override
+  String get bankBalanceRegisterAdjustment => 'ثبت تعدیل موجودی';
+
+  @override
+  String get bankBalanceEqual => 'موجودی بانک و دفتر در زمان گزارش برابر است.';
+
+  @override
+  String get bankBalanceAlreadyReconciled =>
+      'تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.';
+
+  @override
+  String get bankRecoveryReview => 'بررسی تطبیق‌های قبلی';
+
+  @override
+  String get bankRecoveryRetry => 'دریافت دوبارهٔ پیش‌نمایش';
+
+  @override
+  String bankBalanceBankLower(String amount) {
+    return 'موجودی بانک $amount کمتر از دفتر است.';
+  }
+
+  @override
+  String bankBalanceBankHigher(String amount) {
+    return 'موجودی بانک $amount بیشتر از دفتر است.';
+  }
+
+  @override
+  String bankRecoveryConfirmCount(String count) {
+    return 'لغو $count تطبیق قبلی';
+  }
+
+  @override
+  String bankRecoveryAccountSummary(
+    String account,
+    String count,
+    String amount,
+  ) {
+    return '$account؛ $count تطبیق؛ خالص تغییر موجودی: $amount';
+  }
+
+  @override
+  String get helpFaqGettingStartedTitle => 'شروع کار';
+
+  @override
+  String get helpFaqPurposeQuestion => 'پلن‌اکت برای چه کاری است؟';
+
+  @override
+  String get helpFaqPurposeAnswer =>
+      'پلن‌اکت برای برنامه‌ریزی تعهدها، زمان‌بندی جلسات، پیگیری یادآوری‌ها و هم‌زمان‌سازی وضعیت واقعی با وضعیت برنامه‌ریزی‌شده استفاده می‌شود. این برنامه بیشتر به‌صورت محلی و آفلاین کار می‌کند و داده‌ها روی دستگاه شما نگهداری می‌شوند.';
+
+  @override
+  String get helpFaqStartQuestion => 'از کجا شروع کنم؟';
+
+  @override
+  String get helpFaqStartAnswer =>
+      'از دکمهٔ + یا گزینهٔ «افزودن تعهد» در منوی کناری شروع کنید. عنوان و زمان‌بندی را مشخص کنید و گزینه‌های اختیاری را در همان فرم باز کنید. پس از ذخیره، نوبت‌ها را در امروز، تقویم یا جزئیات تعهد پیگیری کنید.';
+
+  @override
+  String get helpFaqConceptsQuestion => 'تفاوت تعهد، برنامه و رخداد چیست؟';
+
+  @override
+  String get helpFaqConceptsAnswer =>
+      'تعهد همان مفهوم اصلی است؛ برنامهٔ تکرارشونده یا یک‌باره تعیین می‌کند قرار است چه زمانی رخ بدهد و رخداد همان نوبت یا جلسهٔ خاصی است که از آن برنامه ساخته می‌شود. این جداسازی باعث می‌شود تغییرات در برنامه، تاریخچهٔ قبلی را به‌صورت ناخواسته بازنویسی نکند.';
+
+  @override
+  String get helpFaqCommitmentsTitle => 'تعهدها و زمان‌بندی';
+
+  @override
+  String get helpFaqCreateQuestion => 'چگونه یک تعهد جدید بسازم؟';
+
+  @override
+  String get helpFaqCreateAnswer =>
+      'از دکمهٔ + یا «افزودن تعهد» در منوی کناری استفاده کنید؛ مسیر «بیشتر» هم در دسترس است. عنوان و زمان‌بندی را وارد کنید و در صورت نیاز بخش‌های اختیاری مانند یادآوری را باز کنید. تاریخ و ساعت را آگاهانه انتخاب کنید؛ فهرست کارها را پس از ساخت از اقدام‌ها یا جزئیات تعهد مدیریت کنید.';
+
+  @override
+  String get helpFaqRecurrenceQuestion =>
+      'چگونه یک برنامهٔ تکرارشونده ایجاد کنم؟';
+
+  @override
+  String get helpFaqRecurrenceAnswer =>
+      'در بخش زمان‌بندی فرم، الگوی تکرار روزانه، هفتگی، ماهانه یا سالانه و پایان مورد نظر را تنظیم کنید. تعداد نوبت یا تاریخ پایان با بازهٔ آماده‌سازی نوبت‌ها فرق دارد؛ همهٔ نوبت‌های دوردست از ابتدا ثبت نمی‌شوند. تعداد نوبت، اعتبار جلسه یا پرداخت نیست.';
+
+  @override
+  String get helpFaqHistoryQuestion =>
+      'آیا تغییر برنامه، تاریخچهٔ قبلی را تغییر می‌دهد؟';
+
+  @override
+  String get helpFaqHistoryAnswer =>
+      'تغییر زمان‌بندی نباید سوابق انجام‌شده یا لغوشده را بازنویسی کند. فقط از دامنهٔ تغییری استفاده کنید که فرم موجود صریحاً پشتیبانی می‌کند؛ اگر نوع تکرار یا پایان برنامه قابل ویرایش نیست، آن را با تغییر دیگری دور نزنید. بازگشایی یک نوبت نیز سابقهٔ نتیجهٔ قبلی را پاک نمی‌کند.';
+
+  @override
+  String get helpFaqCreditQuestion => 'تفاوت زمان‌بندی با اعتبار جلسات چیست؟';
+
+  @override
+  String get helpFaqCreditAnswer =>
+      'زمان‌بندی می‌گوید نوبت‌ها چه زمانی و چند بار باشند؛ اعتبار جلسات حق مصرف یک بسته است. تعداد تکرار به‌تنهایی اعتبار ایجاد نمی‌کند. فرم عمومی افزودن تعهد اکنون مسیر ساخت بستهٔ اعتبار جلسات ندارد؛ آن را با تعداد نوبت اشتباه نگیرید.';
+
+  @override
+  String get helpFaqOutcomeQuestion =>
+      'چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟';
+
+  @override
+  String get helpFaqOutcomeAnswer =>
+      'از جزئیات تعهد یا اقدام‌های نوبت، گزینهٔ موجود برای انجام، لغو یا تغییر زمان را انتخاب کنید و تأیید لازم را انجام دهید. سابقه حفظ می‌شود؛ یادآوری‌های آینده با زمان و وضعیت جدید هماهنگ می‌شوند و اعلان غیرضروری نوبت انجام‌شده یا لغوشده نباید فعال بماند. بازگشایی نوبت به معنی برگشت خودکار پول یا اعتبار نیست.';
+
+  @override
+  String get helpFaqCreateAccountQuestion => 'چگونه حساب مالی بسازم؟';
+
+  @override
+  String get helpFaqCreateAccountAnswer =>
+      'از مالی ← حساب‌ها یا گزینهٔ «حساب‌ها» در منوی کناری، حساب اضافه کنید. نام و نوع حساب را مشخص کنید؛ شناسه‌های کارت، شبا و شماره حساب اختیاری‌اند. ثبت درآمد، هزینه و انتقال را پس از ساخت حساب از مسیر مالی انجام دهید.';
+
+  @override
+  String get helpFaqTransferQuestion =>
+      'تفاوت درآمد، هزینه و انتقال بین حساب‌ها چیست؟';
+
+  @override
+  String get helpFaqTransferAnswer =>
+      'درآمد و هزینه‌ها ثبت‌های مالی مستقیم هستند؛ انتقال بین حساب‌ها یک عملیات داخلی است که از درآمد و هزینه جدا می‌ماند و به‌عنوان جابه‌جایی بین دو حساب نگهداری می‌شود.';
+
+  @override
+  String get helpFaqPaymentQuestion =>
+      'چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟';
+
+  @override
+  String get helpFaqPaymentAnswer =>
+      'انجام‌شدن یک نوبت با لغوشدن آن فرق دارد و هیچ‌کدام به‌تنهایی پرداخت را ثابت نمی‌کند. پرداخت واقعی باید به‌صورت تراکنش ثبت شود و ارتباط مبلغ با تعهد یا نوبت، جداگانه تأیید شود؛ پرداخت جزئی نیز با تسویهٔ کامل فرق دارد.';
+
+  @override
+  String get helpFaqMoneyQuestion => 'مبالغ چگونه ذخیره و نمایش داده می‌شوند؟';
+
+  @override
+  String get helpFaqMoneyAnswer =>
+      'از تنظیمات، واحد نمایش و ورود مبلغ را ریال یا تومان انتخاب کنید؛ پیش‌فرض ریال است. این انتخاب تبدیل ارز نیست و مبالغ قبلی را تغییر نمی‌دهد. فرم باز، واحد نمایش‌داده‌شدهٔ خود را تا بسته‌شدن حفظ می‌کند. مبالغ ایرانی جدید با دقت عدد صحیح ریال ذخیره و با رقم فارسی و جداکنندهٔ سه‌رقمی نمایش داده می‌شوند؛ ماندهٔ یک‌دهم تومان گرد نمی‌شود.';
+
+  @override
+  String get helpFaqInboxTitle => 'صندوق ورودی و پیامک';
+
+  @override
+  String get helpFaqSmsConsentQuestion =>
+      'پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟';
+
+  @override
+  String get helpFaqSmsConsentAnswer =>
+      'از صندوق ورودی، راه‌اندازی پیامک را باز کنید. دسترسی گوشی به‌تنهایی رضایت خواندن نیست: بازهٔ ۷ روز، ۳۰ روز یا از همین حالا را صریحاً انتخاب کنید. دریافت خودکار انتخاب جداگانه و ابتدا خاموش است. دکمهٔ بررسی دستی و کشیدن صندوق ورودی برای تازه‌سازی، در محدودهٔ رضایت دستی کار می‌کنند؛ خاموش‌بودن دریافت خودکار مانع بررسی دستی نیست. هیچ تراکنشی بدون تأیید شما ثبت نمی‌شود.';
+
+  @override
+  String get helpFaqSmsConfirmQuestion =>
+      'چرا پیشنهاد پیامک قبل از ثبت مالی نیاز به تأیید دارد؟';
+
+  @override
+  String get helpFaqSmsConfirmAnswer =>
+      'زیرا دادهٔ پیامک ممکن است نامشخص، ناقص یا دارای واحد پول مبهم باشد. پیش‌نمایش پیامک فقط پیشنهاد است و ثبت نهایی فقط با تأیید و بررسی کاربر انجام می‌شود.';
+
+  @override
+  String get helpFaqSmsUnitQuestion =>
+      'اگر واحد مبلغ ریال یا تومان نامشخص باشد چه کار کنم؟';
+
+  @override
+  String get helpFaqSmsUnitAnswer =>
+      'اگر واحد پیامک نامعلوم باشد، فرم بررسی واحد تنظیمات را به‌صورت پیشنهادی و قابل تغییر نشان می‌دهد و آن را برای همان فرم نگه می‌دارد. واحد شناسایی‌شده یا قبلاً بررسی‌شده تغییر نمی‌کند. مبلغ و واحد را بررسی و سپس تأیید نهایی کنید؛ بازکردن فرم یا انصراف، پیشنهاد واحد را ذخیره نمی‌کند.';
+
+  @override
+  String get helpFaqSmsRejectQuestion =>
+      'آیا رد کردن پیشنهاد پیامک، تراکنشی را حذف می‌کند؟';
+
+  @override
+  String get helpFaqSmsRejectAnswer =>
+      'نه. فقط پیشنهاد تأییدنشده را رد می‌کنید و می‌توانید همان مورد را دوباره برای بررسی باز کنید. تراکنش تأییدشده از صندوق ورودی حذف یا برگردانده نمی‌شود؛ برای اصلاح یا لغو آن از مسیر مالی استفاده کنید.';
+
+  @override
+  String get helpFaqReminderSetupQuestion =>
+      'چگونه برای یک رخداد یادآوری تنظیم کنم؟';
+
+  @override
+  String get helpFaqReminderSetupAnswer =>
+      'در فرم تعهد، بخش یادآوری را باز و گزینهٔ زمانی موجود را انتخاب کنید؛ ویرایش یادآوری نوبت نیز از اقدام‌های مربوط در دسترس است. اعلان معمولی با هشدار زنگ‌دار اختیاری اندروید فرق دارد و ممکن است به دسترسی گوشی نیاز داشته باشد. توقف یا تعویق هشدار، نوبت را انجام‌شده نمی‌کند.';
+
+  @override
+  String get helpFaqReminderCleanupQuestion =>
+      'چرا بعد از تکمیل یا لغو رخداد، یادآوری فعال باقی نمی‌ماند؟';
+
+  @override
+  String get helpFaqReminderCleanupAnswer =>
+      'پس از انجام یا لغو نوبت، قصد یادآوری آینده با وضعیت تازه هماهنگ می‌شود تا اعلان اضافی ارسال نشود؛ سابقهٔ نوبت و یادآوری پاک نمی‌شود. تغییر زمان هم نیازمند هماهنگی یادآوری‌های آینده است. محدودیت مجوز یا تحویل گوشی می‌تواند نیاز به بررسی و تلاش مجدد داشته باشد.';
+
+  @override
+  String get helpFaqDeliveryQuestion => 'تفاوت ثبت رخداد با ارسال اعلان چیست؟';
+
+  @override
+  String get helpFaqDeliveryAnswer =>
+      'ذخیرهٔ تعهد یا تغییر وضعیت، ثبت داده در برنامه است؛ ارسال اعلان یا هشدار مرحلهٔ جداگانه‌ای روی گوشی است. خطای تحویل اعلان لزوماً به معنی شکست ذخیره نیست. ابتدا نتیجهٔ ذخیره را بررسی کنید و برای رفع مشکل اعلان، دسترسی و تنظیمات یادآوری را بررسی کنید؛ ثبت تکراری نسازید.';
+
+  @override
+  String get helpFaqBackupTitle => 'پشتیبان‌گیری و حریم خصوصی';
+
+  @override
+  String get helpFaqStorageQuestion => 'اطلاعات من کجا نگهداری می‌شود؟';
+
+  @override
+  String get helpFaqStorageAnswer =>
+      'داده‌های اصلی برنامه به‌صورت محلی روی دستگاه شما نگهداری می‌شوند و برای استفادهٔ اصلی نیاز به اینترنت یا سرویس ابری نیست. با نسخه‌برداری و بازیابی محلی هم می‌توانید از داده‌ها محافظت کنید.';
+
+  @override
+  String get helpFaqOfflineQuestion =>
+      'آیا برای استفاده از قابلیت‌های اصلی اینترنت یا حساب ابری لازم است؟';
+
+  @override
+  String get helpFaqOfflineAnswer =>
+      'خیر. استفادهٔ اصلی پلن‌اکت آفلاین است و برای برنامه‌ریزی، تعهد، یادآوری، مالی و دسترسی به داده‌های محلی نیاز به اینترنت یا حساب ابری ندارید.';
+
+  @override
+  String get helpFaqBackupQuestion => 'چگونه پشتیبان تهیه و بازیابی کنم؟';
+
+  @override
+  String get helpFaqBackupAnswer =>
+      'از بخش پشتیبان‌گیری، فایل رمزگذاری‌شده بسازید. هر خروجی جدید کلید بازیابی مستقل دارد؛ هشدارها را بخوانید، کلید را جداگانه نگه دارید و سپس فایل را ذخیره کنید. برای بازیابی، فایل و کلید همان خروجی لازم است؛ اعتبار و سازگاری پیش از جایگزینی بررسی می‌شود. نسخه‌های قدیمی با قالب وابسته به کلید نصب، به همان کلید نصب قبلی نیاز دارند.';
+
+  @override
+  String get helpFaqRecoveryKeyQuestion =>
+      'چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟';
+
+  @override
+  String get helpFaqRecoveryKeyAnswer =>
+      'کلید امکان بازکردن فایل رمزگذاری‌شده را می‌دهد؛ آن را کنار فایل نگه ندارید و در جای امن جداگانه حفظ کنید. اگر کلید همان خروجی را از دست بدهید، برنامه نمی‌تواند آن را بازیابی کند. داشتن فایل به‌تنهایی کافی نیست؛ هر خروجی جدید کلید جداگانهٔ خود را دارد.';
+
+  @override
+  String get helpFaqCorrectionQuestion =>
+      'تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟';
+
+  @override
+  String get helpFaqCorrectionAnswer =>
+      'اگر فقط شرح درآمد یا هزینه را تغییر دهید، همان تراکنش با حفظ مبلغ، حساب، هشتگ‌ها و ارتباط‌ها به‌روزرسانی می‌شود و سابقهٔ ویرایش شرح می‌ماند. تغییر اطلاعات مالی مسیر تأیید اصلاح دارد: اصل با ثبت برگشت خنثی و جایگزین ساخته می‌شود. هشتگ‌ها و دستهٔ نسخهٔ جاری حفظ می‌شوند مگر دسته را عوض کنید؛ تخصیص پرداخت و منشأ پیامک خودکار به جایگزین منتقل نمی‌شوند. لغو نیز با ثبت برگشت انجام می‌شود، نه پاک‌کردن تاریخچه.';
+
+  @override
+  String get helpFaqCorrectionHistoryQuestion =>
+      'چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟';
+
+  @override
+  String get helpFaqCorrectionHistoryAnswer =>
+      'گزینهٔ «نمایش سوابق اصلاح تراکنش‌ها» در تنظیمات پیش‌فرض خاموش است؛ فهرست مالی نسخهٔ جاریِ لغونشده را نشان می‌دهد و سوابق اثبات‌شدهٔ اصلاح را پنهان می‌کند. آن را برای دیدن نسخه‌های قبلی و برگشت‌های اصلاح روشن کنید؛ سوابق مرتبط از مسیر خود رکورد هم در دسترس‌اند. لغو نسخهٔ نهایی، نسخهٔ قدیمی را برنمی‌گرداند. موجودی، گزارش‌ها و تقویم از این فیلتر تغییر نمی‌کنند.';
+
+  @override
+  String get helpFaqRelationshipQuestion =>
+      'تعیین ارتباط تراکنش با تطبیق پرداخت چه فرقی دارد؟';
+
+  @override
+  String get helpFaqRelationshipAnswer =>
+      'تطبیق پرداخت، مبلغ تراکنش را به تعهد یا نوبت مربوط می‌کند و می‌تواند جزئی باشد. تعیین ارتباط برای بررسی مبلغ بدون ارتباط است؛ تنها تأیید صریح مستقل‌بودن، آن مانده را از صف بررسی خارج می‌کند. بازکردن یا بستن صفحه تصمیم نیست و بازکردن دوبارهٔ بررسی، پول یا تطبیق‌های قبلی را برنمی‌گرداند.';
+
+  @override
+  String get helpFaqSmsNotificationQuestion =>
+      'اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟';
+
+  @override
+  String get helpFaqSmsNotificationAnswer =>
+      'اعلان تشخیص پیامک انتخابی جدا از مجوز و رضایت خواندن پیامک است. روشن‌کردن آن به معنی اجازهٔ ثبت مالی نیست؛ با لمس اعلان، پیشنهادهای باقی‌مانده را در صندوق ورودی و در صورت نیاز پس از بازکردن قفل برنامه بررسی می‌کنید. اعلان صفحهٔ قفل عمومی است و هیچ تأیید یا رد مالی از خود اعلان انجام نمی‌شود. تحویل پس‌زمینه تابع محدودیت‌های اندروید است و در توقف اجباری تضمین نمی‌شود.';
+
+  @override
+  String get helpFaqCalendarVisibilityQuestion =>
+      'چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟';
+
+  @override
+  String get helpFaqCalendarVisibilityAnswer =>
+      'در تنظیمات ← تقویم، تعهدها و یادداشت‌ها پیش‌فرض روشن و درآمد، هزینه و انتقال بین حساب‌ها پیش‌فرض خاموش‌اند. دستهٔ مورد نظر را روشن کنید تا در ماه و هفته نمایش داده شود. تاریخ تراکنش ثبت‌شده ملاک است، نه زمان دریافت یا تأیید پیامک. پنهان‌کردن فقط نمایش را عوض می‌کند و پول، نوبت و یادآوری را تغییر نمی‌دهد.';
+
+  @override
+  String get helpFaqNotesChecklistQuestion =>
+      'تفاوت یادداشت تقویم با فهرست کارهای تعهد چیست؟';
+
+  @override
+  String get helpFaqNotesChecklistAnswer =>
+      'از افزودن سریع می‌توانید یادداشت مستقل با تاریخ شمسی بسازید؛ یادداشت تعهد، یادآوری یا اثر مالی ایجاد نمی‌کند. فهرست کارها متعلق به خود تعهد است و میان نوبت‌ها مشترک می‌ماند. تیک‌زدن همهٔ کارها به‌تنهایی نوبت را انجام‌شده نمی‌کند، پرداخت ثبت نمی‌کند و اعتبار جلسه مصرف نمی‌کند.';
+
+  @override
+  String get helpFaqCalendarTitle => 'تقویم و فهرست کارها';
+
+  @override
+  String get cycleSelect => 'دورهٔ انتخابی';
+
+  @override
+  String get cycleCreate => 'ایجاد دورهٔ بعدی';
+
+  @override
+  String get cycleFinish => 'پایان دوره';
+
+  @override
+  String get cycleFinishConfirm =>
+      'همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.';
+
+  @override
+  String get cycleReadOnly => 'این دوره تاریخی و فقط خواندنی است.';
+
+  @override
+  String get cycleInactiveOwner => 'برای عملیات دوره، تعهد باید فعال باشد.';
+
+  @override
+  String get cycleFailure =>
+      'عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.';
+
+  @override
+  String get cycleLoadError => 'دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.';
+
+  @override
+  String get cycleActive => 'دورهٔ فعال';
+
+  @override
+  String get cycleHistorical => 'دورهٔ تاریخی';
+
+  @override
+  String get cycleNoTransfer =>
+      'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.';
 }

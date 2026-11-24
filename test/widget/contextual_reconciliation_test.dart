@@ -74,6 +74,10 @@ void main() {
           startAt: DateTime.now().add(const Duration(days: 1)),
         );
     occurrenceId = plan.occurrences.single.id;
+    await database.customStatement(
+      'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 1000, ?, 0, 0, 0)',
+      [StableId.generate().value, occurrenceId.value, 'IRR'],
+    );
     final account = FinancialAccount(
       id: StableId.generate(),
       name: 'حساب آزمون',
@@ -700,7 +704,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.drag(find.byType(SnackBar), const Offset(0, 300));
         await tester.pumpAndSettle();
-        await tester.scrollUntilVisible(find.text('کلاس موسیقی'), 150);
+        await tester.scrollUntilVisible(
+          find.widgetWithText(ListTile, 'کلاس موسیقی'),
+          150,
+          scrollable: find.byType(Scrollable).first,
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.ensureVisible(

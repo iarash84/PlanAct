@@ -1,5 +1,9 @@
 # AGENTS.md — Personal Commitment Manager
 
+## Approved descriptive financial relationships (2026-11-24)
+
+A transaction may explicitly associate with one commitment without an occurrence. This is descriptive only, never settlement, debt, credit, account effect or independent-remainder review. Create/change/unlink append revisioned history under fresh SQLite writer admission, checking durable transaction, account, target and expected revision atomically. Preserve heads/history through cold reopen and strict personal-backup validation. Financial correction must not transfer the association. Today retains the remainder until valid allocation or explicit independent review; reports distinguish association from settlement. New allocations are bounded by transaction remainder and same-currency outstanding expectation; retain legacy allocations without rewriting or transferable credit. See docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md for the contract and separate independent/device/older-writer gates.
+
 This file is the repository-level execution contract for human developers and AI coding agents.
 It defines **how PlanAct must be implemented**, while `docs/product/PRD.md` defines **what product behavior must exist and why**.
 Read both files before changing product behavior. Read `docs/DESIGN_SYSTEM.md` before meaningful presentation or design-system work. If implementation guidance and product behavior appear to disagree, follow the source-of-truth hierarchy in Section 19 and do not silently invent a compromise.
@@ -142,6 +146,20 @@ Commitment
 - `Occurrence` is one scheduled instance.
 - `Actual/Evidence` records what happened.
 
+Successive-cycle checkpoint (2026-11-24): explicit Details commands complete the
+active cycle only after recorded occurrences are resolved, using a user-selected
+actual local end date, then create an independent next cycle under the same owner.
+Admit both commands against fresh durable owner/cycle/occurrence state and a
+cycle-set token under SQLite writer admission; creation and dependent intent are
+atomic. Permit one active cycle and no overlap with retained prior completion or
+recorded dates. Never transfer credit, debt, results, payments or reminder rules.
+Completed cycles are read-only; owner archive/restore must not reactivate them.
+Keep approved historical date/result edits for still-active cycles of paused or
+archived owners, without notification delivery. Details selects an explicit cycle;
+reports and history retain all cycles. No schema migration alone can establish
+older-writer safety. See docs/SCHEDULE_ACTUAL_VERIFICATION.md for bounded evidence
+and independent/device release gates.
+
 ### 6.2 Status separation
 
 Commitment lifecycle is separate from occurrence status.
@@ -183,6 +201,37 @@ Independent correction checkpoint: count termination and package credit are sepa
 
 ### 6.5 Financial balance is ledger-based
 
+User-approved 2026-11-21 current-transaction metadata: financial correction must copy fresh durable tag memberships to the replacement atomically with reversal, replacement and operation evidence, retaining original memberships. Preserve the category when no replacement category is supplied. The form retains the existing note; explicit edits or clearing apply only to the replacement. Subsequent corrections copy the current owner, not the chain root. Do not copy financial allocations, relationship-review decisions or SMS provenance. Do not backfill old replacements heuristically. This supersedes earlier no-tag-copy limitations; see docs/verification/TRANSACTION_CORRECTION_CLARITY_VERIFICATION.md.
+
+
+User-approved 2026-11-21 Finance display preference: “نمایش سوابق اصلاح تراکنش‌ها” defaults off. Filter only centrally proven correction history (superseded originals/intermediate replacements and correction reversals) before main-list counts/pagination; retain only unreversed current replacements. Cancelling a final replacement never resurrects earlier versions. Ordinary cancellation reversals and unknown legacy evidence remain visible. Focused records and related chains stay accessible; never filter ledger balances, reports or Calendar. Persist before publishing, retain prior effective value on failure with Persian retry feedback, and preserve metadata through restart/backup.
+
+User-approved correction-record clarity: derive read-only transaction roles and
+related chains centrally from explicit durable financial operation evidence and
+validated reversal relationships, never arbitrary reference IDs, SMS references,
+notes or timestamp proximity. Distinguish correction from cancellation reversals;
+retain user notes separately from system explanations. A replacement remains a
+valid entry only while unreversed; repeated corrections preserve the entire chain.
+Role projection must not mutate money, allocations or historical records. Missing
+legacy evidence stays unknown. See docs/verification/TRANSACTION_CORRECTION_CLARITY_VERIFICATION.md.
+
+User-approved 2026-11-21 transaction-note repair: when only an income/expense
+note changes, preserve the existing entry ID and all financial fields, source,
+tags, allocations and relationship decisions; do not reverse or replace money.
+Compare fresh durable state and a monotonic note revision under SQLite writer
+admission, updating only the note and appending before/after history atomically.
+Reject stale/reversed entries; no-op saves add no history. Financial-field changes
+retain the existing explicit correction confirmation and reversal path. Preserve
+note heads/history in personal backup; unchanged schema does not approve older
+writers. See docs/verification/TRANSACTION_NOTE_EDIT_VERIFICATION.md.
+
+User-approved 2026-11-21 bank report review form: when the report unit is unknown,
+propose the persisted money-unit preference visibly and pin it for the open form.
+Preserve known source/reviewed units and source amounts; never reinterpret known
+reports through Settings. Opening/cancellation writes nothing; only explicit review
+confirmation persists the proposed unit through the existing revision-checked command.
+Use shared spacing tokens between review controls. See docs/verification/BANK_REVIEW_FORM_VERIFICATION.md.
+
 Bank evidence review checkpoint (2026-11-16, step 1): preserve incomplete independent
 balance evidence without borrowing transaction units, Settings or receipt time.
 Keep original observations immutable; explicit account/amount/unit/time review,
@@ -219,7 +268,7 @@ Financial accounts include bank accounts, cash wallets, digital wallets, and pot
 - Account balance must be rebuildable from account entries.
 - A transfer between the user’s own accounts is **not** income and **not** expense.
 - A correction/reversal must leave an audit trail; do not erase history.
-- User-approved 2026-11-14 transaction account correction: Finance correction may assign an income/expense replacement to a different active same-currency account. Reverse the original in its original account and append the linked replacement atomically under fresh writer admission; validate both accounts, disclose both balance effects, and never model this as an own-account transfer. Preserve original SMS evidence, tags and allocations without automatic reassignment, with explicit pre-save disclosure. See docs/TRANSACTION_ACCOUNT_CORRECTION_VERIFICATION.md.
+- User-approved 2026-11-14 transaction account correction: Finance correction may assign an income/expense replacement to a different active same-currency account. Reverse the original in its original account and append the linked replacement atomically under fresh writer admission; validate both accounts, disclose both balance effects, and never model this as an own-account transfer. Preserve original SMS evidence and financial allocations without automatic reassignment, with explicit pre-save disclosure. The later approved descriptive-metadata rule above copies tag memberships to the replacement without removing original memberships. See docs/TRANSACTION_ACCOUNT_CORRECTION_VERIFICATION.md.
 - User-approved Undo repair (2026-10-14): new financial reversals use the stable reversal enum and exactly negate the original signed integer effect. Transactional fresh writer admission rejects repeated cancellation; transfer cancellation covers both legs and recorded fees with explicit disclosure. Versioned append-only Undo evidence in the existing metadata extension store must survive restart and backup, with durable per-owner heads rejecting superseded operations. Known legacy compensation cannot be silently rewritten or cancelled twice. Lifecycle Undo restores recorded prior status; legacy archive restoration to active must be disclosed. Schedule Undo retains every definition and uses forward versioning for series restoration. See ADR 0007 and SCHEDULE_ACTUAL_VERIFICATION.md; unchanged schema does not establish older-writer safety or release acceptance.
 - Accounts with history should be archived, not hard-deleted.
 
@@ -1091,7 +1140,7 @@ All tag-name presentation must reuse the shared tag badge/summary and centralize
 
 ## Calendar visibility safeguards (2026-11-14)
 
-Settings > Calendar persists versioned display-only choices before publishing them: commitments and notes default on, income/expense/own-account transfers default off. Apply to Month and Week; disclose hidden categories. Financial calendar rows read confirmed durable ledger entries at their persisted transaction time, never SMS receipt/confirmation time. Deduplicate grouped transfers, retain explicit reversed-history labels and keep actual payments distinct from commitment due dates. Hiding must not mutate money, matches, occurrences or reminders. Preserve metadata through restart and personal backup. Holidays remain independent. See docs/CALENDAR_VISIBILITY_VERIFICATION.md for bounded evidence and independent/device gates.
+Settings > Calendar persists versioned display-only choices before publishing them: commitments and notes default on, income/expense/own-account transfers default off. Apply to Month and Week. User-approved 2026-11-23: do not show a persistent filtered-display notice or replacement disclosure in Calendar; keep visibility controls in Settings and retain genuine load-error/retry feedback. Financial calendar rows read confirmed durable ledger entries at their persisted transaction time, never SMS receipt/confirmation time. Deduplicate grouped transfers, retain explicit reversed-history labels and keep actual payments distinct from commitment due dates. Hiding must not mutate money, matches, occurrences or reminders. Preserve metadata through restart and personal backup. Holidays remain independent. See docs/CALENDAR_VISIBILITY_VERIFICATION.md for bounded evidence and independent/device gates.
 
 ## Approved inline quick financial options (2026-11-16)
 
@@ -1101,3 +1150,11 @@ Quick Add income and expense reveal optional Jalali date/time inline in the same
 ## SMS detection notification checkpoint (2026-11-16)
 
 Detection notifications are optional and independent from SMS consent. Amount disclosure is a separate preference; lockscreen copy must remain generic. Payloads are navigation hints only: re-read durable pending/edited status behind app lock and reuse Inbox review; never confirm or reject from a notification. Historical scans do not enqueue per-message alerts. Notification delivery failures must not fail SMS staging or hide other Today content. Versioned notification metadata uses the existing metadata store and must survive backup; platform identifiers are not portable truth. The current implementation is Partial: closed-app durable ingestion, temporal batching, unconditional lockscreen privacy, restore rebind and native/independent acceptance remain blockers in docs/SMS_VERIFICATION.md. Do not describe live receiver signals or successful Kotlin compilation as background capability acceptance.
+
+## UI consistency checkpoint (2026-11-21)
+
+Shared Flutter typography uses bundled Vazirmatn v33.003 (400/500/600/700), not system sans. Keep font selection centralized, ship the SIL OFL 1.1 license and About license registration, and preserve provenance in [font assets](assets/fonts/vazirmatn/README.md). These are offline assets, not a new package dependency; native launcher/splash/alarm surfaces remain unchanged.
+
+Commitment Details initially presents metadata read-only; explicit Edit enables title, description, priority and identity color. Preserve draft retention/retry, discard confirmation and save-time guards. Read-only metadata must not disable independently persisted tags, checklist, progress, occurrence/reminder/financial/history or correction commands. Inbox keeps decision-critical amount, direction, date/unit uncertainty, account, warnings and actions visible; source/reviewed evidence expands without writes and retains masking. Shared state messages distinguish information, empty, success, warning and error; information/empty must not imply successful completion. Use page spacing tokens at ordinary page boundaries without flattening calendar, modal or security-specific geometry.
+
+The [integration verification](docs/verification/UI_CONSISTENCY_VERIFICATION.md) separates source coverage, delegated test evidence and release acceptance. Source review and Windows widget tests do not establish Linux golden, real-device font/accessibility or independent release acceptance. No domain, schema, migration or dependency change is authorized by this presentation checkpoint.

@@ -1,3 +1,4 @@
+import 'package:planact/core/presentation/planact_state_message.dart';
 import 'package:planact/features/inbox/application/sms_detection_notifications.dart';
 import 'package:planact/features/inbox/presentation/sms_notification_settings.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
@@ -27,6 +28,8 @@ class SettingsPage extends StatefulWidget {
     this.backupMessage,
     required this.themeMode,
     required this.onThemeModeChanged,
+    this.showTransactionCorrectionHistory = false,
+    this.onShowTransactionCorrectionHistoryChanged,
     this.showArchivedAccounts = false,
     this.onShowArchivedAccountsChanged,
     this.background = AppBackground.none,
@@ -47,6 +50,9 @@ class SettingsPage extends StatefulWidget {
   final String? backupMessage;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
+  final bool showTransactionCorrectionHistory;
+  final Future<void> Function(bool enabled)?
+  onShowTransactionCorrectionHistoryChanged;
   final bool showArchivedAccounts;
   final Future<void> Function(bool enabled)? onShowArchivedAccountsChanged;
   final AppBackground background;
@@ -66,6 +72,9 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late ThemeMode _themeMode = widget.themeMode;
   late bool _showArchivedAccounts = widget.showArchivedAccounts;
+  late bool _showCorrectionHistory = widget.showTransactionCorrectionHistory;
+  bool _savingCorrectionHistory = false;
+  bool _correctionHistorySaveFailed = false;
   bool _savingAccounts = false;
   bool _accountsSaveFailed = false;
   bool _morningReminderEnabled = false;
@@ -163,6 +172,22 @@ class _SettingsPageState extends State<SettingsPage> {
   String _formatMorningTime(int minutes) =>
       TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60).format(context);
 
+  Future<void> _changeCorrectionHistory(bool enabled) async {
+    if (_savingCorrectionHistory) return;
+    setState(() {
+      _savingCorrectionHistory = true;
+      _correctionHistorySaveFailed = false;
+    });
+    try {
+      await widget.onShowTransactionCorrectionHistoryChanged!(enabled);
+      if (mounted) setState(() => _showCorrectionHistory = enabled);
+    } catch (_) {
+      if (mounted) setState(() => _correctionHistorySaveFailed = true);
+    } finally {
+      if (mounted) setState(() => _savingCorrectionHistory = false);
+    }
+  }
+
   Future<void> _changeArchivedAccounts(bool enabled) async {
     if (_savingAccounts) return;
     setState(() {
@@ -183,6 +208,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void didUpdateWidget(covariant SettingsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.themeMode != widget.themeMode) _themeMode = widget.themeMode;
+    if (oldWidget.showTransactionCorrectionHistory !=
+        widget.showTransactionCorrectionHistory) {
+      _showCorrectionHistory = widget.showTransactionCorrectionHistory;
+    }
     if (oldWidget.showArchivedAccounts != widget.showArchivedAccounts) {
       _showArchivedAccounts = widget.showArchivedAccounts;
     }
@@ -190,7 +219,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(PlanActSpacing.page),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -208,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).commonGeneral,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         Card(
           child: Column(
             children: [
@@ -220,7 +249,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(PlanActSpacing.lg),
                 child: SegmentedButton<ThemeMode>(
                   segments: [
                     ButtonSegment(
@@ -265,6 +294,31 @@ class _SettingsPageState extends State<SettingsPage> {
             onChanged: widget.onBackgroundChanged!,
           ),
         ],
+        if (widget.onShowTransactionCorrectionHistoryChanged != null) ...[
+          const SizedBox(height: PlanActSpacing.lg),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.history),
+              title: Text(planActL10n(context).financeShowCorrectionHistory),
+              subtitle: Text(
+                planActL10n(context).financeShowCorrectionHistoryDescription,
+              ),
+              value: _showCorrectionHistory,
+              onChanged: _savingCorrectionHistory
+                  ? null
+                  : _changeCorrectionHistory,
+            ),
+          ),
+          if (_savingCorrectionHistory) const LinearProgressIndicator(),
+          if (_correctionHistorySaveFailed)
+            Semantics(
+              liveRegion: true,
+              child: PlanActStateMessage(
+                message: planActL10n(context).financeCorrectionHistorySaveError,
+                kind: PlanActMessageKind.error,
+              ),
+            ),
+        ],
         if (widget.onShowArchivedAccountsChanged != null) ...[
           const SizedBox(height: PlanActSpacing.lg),
           Card(
@@ -280,9 +334,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           if (_savingAccounts) const LinearProgressIndicator(),
           if (_accountsSaveFailed)
-            Text(
-              planActL10n(context).financeArchivedAccountsSaveError,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            PlanActStateMessage(
+              message: planActL10n(context).financeArchivedAccountsSaveError,
+              kind: PlanActMessageKind.error,
             ),
         ],
         if (widget.settings != null) ...[
@@ -291,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
             planActL10n(context).settingsMorningReminderTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: PlanActSpacing.md),
           Card(
             child: Column(
               children: [
@@ -345,9 +399,9 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           if (_morningReminderSaveFailed)
-            Text(
-              planActL10n(context).settingsMorningReminderSaveError,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            PlanActStateMessage(
+              message: planActL10n(context).settingsMorningReminderSaveError,
+              kind: PlanActMessageKind.error,
             ),
         ],
         const SizedBox(height: 20),
@@ -355,7 +409,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).settingsSecurity,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         AppLockSettingsCard(
           enabled: widget.appLockEnabled,
           change: widget.onAppLockChanged,
@@ -369,7 +423,7 @@ class _SettingsPageState extends State<SettingsPage> {
           planActL10n(context).settingsAbout,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: PlanActSpacing.md),
         Card(
           child: ListTile(
             leading: const Icon(Icons.info_outline),

@@ -38,6 +38,9 @@ class _TransactionRelationshipPageState
     extends State<TransactionRelationshipPage> {
   TransactionRelationshipContext? _context;
   StableId? _selected;
+  StableId? _associationDraft;
+  bool _associationInitialized = false;
+  String? _associationError;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -77,6 +80,10 @@ class _TransactionRelationshipPageState
       if (mounted) {
         setState(() {
           _context = result;
+          if (!_associationInitialized) {
+            _associationDraft = result.association?.commitmentId;
+            _associationInitialized = true;
+          }
           _loading = false;
         });
       }
@@ -91,6 +98,7 @@ class _TransactionRelationshipPageState
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final amount = _moneyInput.parse(
       _amount.text,
       currency: _context!.transaction.amount.currency,
@@ -208,6 +216,8 @@ class _TransactionRelationshipPageState
           targets: previous.targets,
           review: review,
           matches: previous.matches,
+          association: previous.association,
+          commitments: previous.commitments,
         );
       });
       ScaffoldMessenger.of(context)
@@ -233,6 +243,154 @@ class _TransactionRelationshipPageState
         _error = PersianCopy.transactionRelationshipPageDecideMessage;
       });
     }
+  }
+
+  Future<void> _saveAssociation({bool unlink = false}) async {
+    final data = _context;
+    final expected = data?.association;
+    if (_saving || data == null || expected == null) return;
+    final target = unlink ? null : _associationDraft;
+    if (target == expected.commitmentId || (!unlink && target == null)) return;
+    final l10n = planActL10n(context);
+    setState(() {
+      _saving = true;
+      _associationError = null;
+    });
+    final confirmed = await confirmRecordedAction(
+      context,
+      unlink
+          ? l10n.commitmentAssociationUnlinkConfirm
+          : l10n.commitmentAssociationSaveConfirm,
+    );
+    if (!mounted) return;
+    if (!confirmed) {
+      setState(() => _saving = false);
+      return;
+    }
+    try {
+      final head = await widget.flow.associateCommitment(
+        expected: expected,
+        transactionId: widget.transactionId,
+        commitmentId: target,
+      );
+      if (!mounted) return;
+      setState(() {
+        _context = TransactionRelationshipContext(
+          transaction: data.transaction,
+          account: data.account,
+          available: data.available,
+          targets: data.targets,
+          review: data.review,
+          matches: data.matches,
+          association: head,
+          commitments: data.commitments,
+        );
+        _associationDraft = head.commitmentId;
+        _saving = false;
+        _dirty = true;
+      });
+      showRecordedActionFeedback(context, l10n.commitmentAssociationSaved);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _associationError = l10n.commitmentAssociationError;
+      });
+    }
+  }
+
+  Widget _associationSection(TransactionRelationshipContext data) {
+    final l10n = planActL10n(context);
+    final current = data.association!.commitmentId;
+    final currentOwner = data.commitments
+        .where((c) => c.id == current)
+        .firstOrNull;
+    final draftAvailable = data.commitments.any(
+      (c) => c.id == _associationDraft,
+    );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(PlanActSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.commitmentAssociationTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: PlanActSpacing.sm),
+            Text(l10n.commitmentAssociationDisclaimer),
+            const SizedBox(height: PlanActSpacing.sm),
+            Text(
+              currentOwner == null
+                  ? l10n.commitmentAssociationNone
+                  : l10n.commitmentAssociationCurrent(currentOwner.title),
+            ),
+            const SizedBox(height: PlanActSpacing.md),
+            DropdownButtonFormField<StableId>(
+              key: ValueKey('association-draft-${_associationDraft?.value}'),
+              initialValue: draftAvailable ? _associationDraft : null,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.commitmentAssociationSelect,
+              ),
+              items: [
+                for (final commitment in data.commitments)
+                  DropdownMenuItem(
+                    value: commitment.id,
+                    child: Text(
+                      commitment.status == CommitmentStatus.archived
+                          ? '${commitment.title} · ${l10n.transactionRelationshipPageBuildSubtitle}'
+                          : commitment.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: _saving
+                  ? null
+                  : (value) => setState(() => _associationDraft = value),
+            ),
+            if (data.commitments.isEmpty) Text(l10n.commitmentAssociationEmpty),
+            const SizedBox(height: PlanActSpacing.sm),
+            Wrap(
+              spacing: PlanActSpacing.sm,
+              runSpacing: PlanActSpacing.sm,
+              children: [
+                FilledButton.tonal(
+                  key: const ValueKey('association-save'),
+                  onPressed:
+                      _saving || !draftAvailable || _associationDraft == current
+                      ? null
+                      : () => _saveAssociation(),
+                  child: Text(
+                    current == null
+                        ? l10n.commitmentAssociationSave
+                        : l10n.commitmentAssociationChange,
+                  ),
+                ),
+                if (current != null)
+                  OutlinedButton(
+                    key: const ValueKey('association-unlink'),
+                    onPressed: _saving
+                        ? null
+                        : () => _saveAssociation(unlink: true),
+                    child: Text(l10n.commitmentAssociationUnlink),
+                  ),
+              ],
+            ),
+            if (_associationError != null)
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  _associationError!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _back() async {
@@ -348,7 +506,7 @@ class _TransactionRelationshipPageState
         body: _loading
             ? const Center(child: CircularProgressIndicator())
             : ListView(
-                padding: const EdgeInsets.all(PlanActSpacing.lg),
+                padding: const EdgeInsets.all(PlanActSpacing.page),
                 children: [
                   if (widget.reviewRemaining != null)
                     Text(
@@ -511,6 +669,11 @@ class _TransactionRelationshipPageState
                     if (data.review?.isIndependent != true) ...[
                       Text(
                         planActL10n(context)
+                            .commitmentAssociationSettlementTitle,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        planActL10n(context)
                             .transactionRelationshipPageBuildChildren10,
                       ),
                       TextField(
@@ -612,6 +775,10 @@ class _TransactionRelationshipPageState
                     onPressed: _saving ? null : _load,
                     child: Text(planActL10n(context).inboxPageBuildTooltip),
                   ),
+                  if (data?.association != null) ...[
+                    const SizedBox(height: PlanActSpacing.lg),
+                    _associationSection(data!),
+                  ],
                 ],
               ),
       ),

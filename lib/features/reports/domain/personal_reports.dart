@@ -11,6 +11,8 @@ import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/sessions/domain/entitlement.dart';
 
+import 'package:planact/features/reconciliation/domain/commitment_association.dart';
+
 enum PersonalReportKind {
   overview,
   performance,
@@ -120,6 +122,7 @@ class ReportSnapshot {
     this.expectations = const [],
     this.matches = const [],
     this.reviews = const [],
+    this.associations = const [],
     this.entitlements = const [],
     this.ledger = const [],
     this.tags = const [],
@@ -136,6 +139,7 @@ class ReportSnapshot {
   final List<FinancialExpectation> expectations;
   final List<TransactionMatch> matches;
   final List<RelationshipReviewEntry> reviews;
+  final List<CommitmentAssociation> associations;
   final List<EntitlementPlan> entitlements;
   final List<EntitlementLedgerEntry> ledger;
   final List<Tag> tags;
@@ -176,6 +180,18 @@ class ReportMovement {
   /// Related mode contains only confirmed allocations, never the whole payment.
   final int minorUnits;
   final AccountEntryType cashType;
+}
+
+/// Amount-free descriptive row, intentionally separate from cash and settlement.
+class ReportCommitmentAssociation {
+  const ReportCommitmentAssociation(
+    this.association,
+    this.transaction,
+    this.commitment,
+  );
+  final CommitmentAssociation association;
+  final AccountEntry transaction;
+  final Commitment commitment;
 }
 
 class ReportSettlement {
@@ -241,6 +257,7 @@ class PersonalReport {
     required this.previews,
     required this.unreviewed,
     required this.cashTotals,
+    this.associations = const [],
   });
   final List<ReportOccurrence> occurrences;
   final List<ReportMovement> movements;
@@ -250,6 +267,7 @@ class PersonalReport {
   final List<ReportPreview> previews;
   final Map<StableId, RelationshipReview> unreviewed;
   final Map<String, ReportCashTotal> cashTotals;
+  final List<ReportCommitmentAssociation> associations;
 }
 
 /// No clock, database, notification, financial or entitlement mutation.
@@ -544,7 +562,44 @@ PersonalReport buildPersonalReport(
         filter.dateMatches(p.slot.date) &&
         !reportDate(p.slot.date).isBefore(today);
   }).toList();
+  final associations = <ReportCommitmentAssociation>[];
+  for (final association in data.associations) {
+    final owner = owners[association.commitmentId];
+    final entry = entriesById[association.transactionId.value];
+    if (owner == null ||
+        entry == null ||
+        reversedIds.contains(entry.id.value) ||
+        (entry.type != AccountEntryType.income &&
+            entry.type != AccountEntryType.expense) ||
+        !filter.dateMatches(entry.occurredAt) ||
+        (filter.commitmentId != null && filter.commitmentId != owner.id) ||
+        (filter.commitmentKind != null &&
+            filter.commitmentKind != owner.kind) ||
+        filter.cycleId != null ||
+        filter.occurrenceStatus != null ||
+        filter.settlementState != null ||
+        (filter.accountId != null && filter.accountId != entry.accountId) ||
+        (filter.currency != null && filter.currency != entry.amount.currency) ||
+        (filter.entryType != null && filter.entryType != entry.type) ||
+        (filter.source != null && filter.source != entry.source) ||
+        (filter.category != null && filter.category != entry.category) ||
+        !filter.textMatches(
+          '${owner.title} ${entry.note ?? ''} ${entry.category ?? ''}',
+        ) ||
+        !filter.tagMatches(
+          filter.tagSource == ReportTagSource.direct
+              ? data.entryTags[entry.id] ?? {}
+              : data.commitmentTags[owner.id] ?? {},
+        )) {
+      continue;
+    }
+    associations.add(ReportCommitmentAssociation(association, entry, owner));
+  }
+  associations.sort(
+    (a, b) => b.transaction.occurredAt.compareTo(a.transaction.occurredAt),
+  );
   return PersonalReport(
+    associations: List.unmodifiable(associations),
     occurrences: rows,
     movements: movements,
     settlements: settlements,

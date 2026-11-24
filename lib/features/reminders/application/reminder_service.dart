@@ -169,7 +169,8 @@ class ReminderService {
         : previous.status == ReminderInstanceStatus.cancelled
         ? previous.reschedule(previous.scheduledAt)
         : previous;
-    await repository.saveRule(rule);
+    // Ineligible history can cancel delivery, but must not rewrite its rule.
+    if (eligible) await repository.saveRule(rule);
     for (final old in stale) {
       await repository.saveInstance(old.cancel());
     }

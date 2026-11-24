@@ -199,6 +199,10 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text('درآمد ثبت‌شده'), findsWidgets);
+        expect(
+          find.text('نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.'),
+          findsNothing,
+        );
         await tester.scrollUntilVisible(
           find.byType(CalendarTransactionTile),
           300,
@@ -212,6 +216,10 @@ void main() {
         await tester.tap(find.text('هفته'));
         await tester.pumpAndSettle();
         expect(find.byType(CalendarTransactionTile), findsOneWidget);
+        expect(
+          find.text('نمایش تقویم محدود است؛ همهٔ داده‌ها نمایش داده نمی‌شوند.'),
+          findsNothing,
+        );
         await tester.ensureVisible(find.byType(CalendarTransactionTile));
         await tester.tap(find.byType(CalendarTransactionTile));
         expect(tester.takeException(), isNull);

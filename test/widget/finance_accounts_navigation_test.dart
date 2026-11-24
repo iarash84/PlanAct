@@ -77,6 +77,24 @@ Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+// Compare durable values: repository reads may rebuild history projections.
+List<Object?> _ledgerSnapshot(List<AccountEntry> entries) => [
+  for (final entry in entries)
+    (
+      entry.id,
+      entry.accountId,
+      entry.type,
+      entry.amount,
+      entry.occurredAt,
+      entry.referenceId,
+      entry.note,
+      entry.category,
+      entry.source,
+      entry.transferGroupId,
+      entry.noteRevision,
+    ),
+];
+
 void main() {
   for (final dark in [false, true]) {
     testWidgets(
@@ -87,7 +105,7 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
         final repository = await _seed();
-        final before = await repository.listEntries();
+        final before = _ledgerSnapshot(await repository.listEntries());
         await _open(tester, repository, dark: dark, scale: 2);
         expect(find.byType(AccountInformationCard), findsNothing);
         expect(
@@ -136,7 +154,7 @@ void main() {
                   .text,
           'حساب 79',
         );
-        expect(await repository.listEntries(), before);
+        expect(_ledgerSnapshot(await repository.listEntries()), before);
         expect(tester.takeException(), isNull);
       },
     );
@@ -224,7 +242,7 @@ void main() {
     'account filter combines with type and clears without ledger writes',
     (tester) async {
       final repository = await _seed();
-      final before = await repository.listEntries();
+      final before = _ledgerSnapshot(await repository.listEntries());
       await _open(tester, repository);
       final filter = find.byType(DropdownButtonFormField<StableId>);
       await _tapVisible(tester, filter);
@@ -255,7 +273,7 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.textContaining('صفحهٔ ۱ از ۶'), findsWidgets);
-      expect(await repository.listEntries(), before);
+      expect(_ledgerSnapshot(await repository.listEntries()), before);
       expect(tester.takeException(), isNull);
     },
   );

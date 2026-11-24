@@ -1,3 +1,4 @@
+import 'package:planact/features/finance/domain/transaction_history.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/features/finance/presentation/accounts_management_view.dart';
 import 'package:planact/features/finance/domain/bank_balance.dart';
@@ -85,6 +86,7 @@ class FinancePage extends StatefulWidget {
     this.embedded = false,
     this.bottomContentPadding = 0,
     this.showArchivedAccounts = false,
+    this.showTransactionCorrectionHistory = false,
     this.manageAccounts = false,
     this.initialAccountFilter,
     this.focusedRecordId,
@@ -99,6 +101,7 @@ class FinancePage extends StatefulWidget {
   final bool embedded;
   final double bottomContentPadding;
   final bool showArchivedAccounts;
+  final bool showTransactionCorrectionHistory;
   final bool manageAccounts;
   final StableId? initialAccountFilter;
 
@@ -145,6 +148,15 @@ class FinancePageState extends State<FinancePage> {
   void initState() {
     super.initState();
     _refresh();
+  }
+
+  @override
+  void didUpdateWidget(covariant FinancePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showTransactionCorrectionHistory !=
+        widget.showTransactionCorrectionHistory) {
+      _entryPage = 0;
+    }
   }
 
   Future<void> _refresh() async {
@@ -447,10 +459,23 @@ class FinancePageState extends State<FinancePage> {
                   });
                   try {
                     if (original != null) {
-                      if (!await confirmRecordedAction(
-                            context,
-                            '${planActL10n(context).financeCorrectAccountEffects(originalAccount?.name ?? original.accountId.value, PersianMoneyText.money(-original.signedAmount, unit: moneyInput.unit, isolateNumber: true), selectedAccount.name, PersianMoneyText.amount(income ? value : -value, selectedAccount.currency, unit: moneyInput.unit, isolateNumber: true))}\n\n${planActL10n(context).financeCorrectMessage}',
-                          ) ||
+                      final noteOnly = original.hasSameFinancialDetails(
+                        accountId: selectedAccount.id,
+                        type: income
+                            ? AccountEntryType.income
+                            : AccountEntryType.expense,
+                        amount: Money(
+                          minorUnits: value,
+                          currency: selectedAccount.currency,
+                        ),
+                        occurredAt: occurredAt,
+                        category: original.category,
+                      );
+                      if ((!noteOnly &&
+                              !await confirmRecordedAction(
+                                context,
+                                '${planActL10n(context).financeCorrectAccountEffects(originalAccount?.name ?? original.accountId.value, PersianMoneyText.money(-original.signedAmount, unit: moneyInput.unit, isolateNumber: true), selectedAccount.name, PersianMoneyText.amount(income ? value : -value, selectedAccount.currency, unit: moneyInput.unit, isolateNumber: true))}\n\n${planActL10n(context).financeCorrectMessage}',
+                              )) ||
                           !context.mounted) {
                         if (context.mounted) {
                           setDialogState(() => saving = false);
@@ -769,6 +794,15 @@ class FinancePageState extends State<FinancePage> {
         _entries
             .where(
               (entry) =>
+                  widget.focusedRecordId != null ||
+                  showInFinanceTransactionList(
+                    entry,
+                    showCorrectionHistory:
+                        widget.showTransactionCorrectionHistory,
+                  ),
+            )
+            .where(
+              (entry) =>
                   _accountFilter == null || entry.accountId == _accountFilter,
             )
             .where(
@@ -998,9 +1032,9 @@ class FinancePageState extends State<FinancePage> {
                     : ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.fromLTRB(
+                          PlanActSpacing.page,
                           PlanActSpacing.lg,
-                          PlanActSpacing.lg,
-                          PlanActSpacing.lg,
+                          PlanActSpacing.page,
                           PlanActSpacing.lg + widget.bottomContentPadding,
                         ),
                         children: [

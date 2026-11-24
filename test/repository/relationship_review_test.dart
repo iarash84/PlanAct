@@ -8,6 +8,7 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/backup/data/sqlite_backup_snapshot.dart';
+import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/data/drift_finance_repository.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
@@ -57,7 +58,7 @@ void main() {
       [commitment, 'کلاس'],
     );
     await database.customStatement(
-      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 0)',
+      'INSERT INTO commitment_cycles VALUES (?, ?, 0, 0, NULL, NULL, NULL, 0, 0, 1)',
       [cycle, commitment],
     );
     await database.customStatement(
@@ -67,6 +68,10 @@ void main() {
     await database.customStatement(
       "INSERT INTO occurrences VALUES (?, ?, ?, 'one', 0, '2026-01-01', '2026-01-01', 0, 0)",
       [occurrence.value, cycle, schedule],
+    );
+    await database.customStatement(
+      'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 1000, ?, 0, 0, 0)',
+      [StableId.generate().value, occurrence.value, 'IRR'],
     );
   });
   tearDown(() async {
@@ -90,6 +95,289 @@ void main() {
         decision: RelationshipReviewDecision.independent,
         recordedAt: DateTime.utc(2026),
       );
+
+  Future<AccountEntry> anotherTransaction({int amount = 1000}) async {
+    final entry = AccountEntry(
+      id: StableId.generate(),
+      accountId: transaction.accountId,
+      type: AccountEntryType.expense,
+      amount: Money(minorUnits: amount, currency: 'IRR'),
+      occurredAt: DateTime.utc(2026),
+    );
+    await DriftFinanceRepository(database).saveEntry(entry);
+    return entry;
+  }
+
+  Future<TransactionMatch> allocate(
+    AccountEntry entry,
+    int amount, {
+    DriftReconciliationRepository? writer,
+  }) => ReconciliationUseCases(writer ?? repository).match(
+    transactionId: entry.id,
+    transactionAmount: entry.amount,
+    createdAt: DateTime.utc(2026),
+    occurrenceIds: [occurrence],
+    allocations: [Money(minorUnits: amount, currency: 'IRR')],
+  );
+
+  test(
+    'approved excess remains transaction remainder, never transferable credit',
+    () async {
+      await database.customStatement(
+        'UPDATE financial_expectations SET minor_units=1000000',
+      );
+      final entry = await anotherTransaction(amount: 1200000);
+      await expectLater(
+        allocate(entry, 1000001),
+        throwsA(isA<ValidationError>()),
+      );
+      expect(await repository.list(), isEmpty);
+      await allocate(entry, 1000000);
+      expect((await repository.loadReview(entry)).remainderMinorUnits, 200000);
+      await expectLater(allocate(entry, 1), throwsA(isA<ValidationError>()));
+      expect(
+        (await DriftFinanceRepository(database).listEntries()),
+        hasLength(2),
+      );
+    },
+  );
+
+  test(
+    'partial many-to-many payments aggregate duplicate occurrence rows',
+    () async {
+      final secondOccurrence = StableId.generate();
+      await database.customStatement(
+        'INSERT INTO occurrences SELECT ?,cycle_id,schedule_definition_id,?,time_semantics,original_scheduled_value,current_scheduled_value,status,is_manual_override FROM occurrences WHERE id=?',
+        [secondOccurrence.value, 'two', occurrence.value],
+      );
+      await database.customStatement(
+        'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 500, ?, 0, 0, 0)',
+        [StableId.generate().value, secondOccurrence.value, 'IRR'],
+      );
+      await match(400);
+      final other = await anotherTransaction();
+      final commands = ReconciliationUseCases(repository);
+      await expectLater(
+        commands.match(
+          transactionId: other.id,
+          transactionAmount: other.amount,
+          createdAt: DateTime.utc(2026),
+          occurrenceIds: [occurrence, occurrence],
+          allocations: const [
+            Money(minorUnits: 400, currency: 'IRR'),
+            Money(minorUnits: 201, currency: 'IRR'),
+          ],
+        ),
+        throwsA(isA<ValidationError>()),
+      );
+      await commands.match(
+        transactionId: other.id,
+        transactionAmount: other.amount,
+        createdAt: DateTime.utc(2026),
+        occurrenceIds: [occurrence, secondOccurrence],
+        allocations: const [
+          Money(minorUnits: 600, currency: 'IRR'),
+          Money(minorUnits: 300, currency: 'IRR'),
+        ],
+      );
+      expect((await repository.loadReview(other)).remainderMinorUnits, 100);
+      await expectLater(
+        allocate(transaction, 1),
+        throwsA(isA<ValidationError>()),
+      );
+      expect(await repository.list(), hasLength(2));
+    },
+  );
+
+  test(
+    'expectation cap serializes different transactions on separate writers',
+    () async {
+      final otherEntry = await anotherTransaction();
+      final second = AppDatabase.forTesting(NativeDatabase(file));
+      try {
+        final writer = DriftReconciliationRepository(second);
+        await second.readMetadata('schema_version');
+        final outcomes = await Future.wait([
+          allocate(
+            transaction,
+            600,
+          ).then((_) => true, onError: (Object _) => false),
+          allocate(
+            otherEntry,
+            600,
+            writer: writer,
+          ).then((_) => true, onError: (Object _) => false),
+        ]);
+        expect(outcomes.where((value) => value), hasLength(1));
+        final saved = (await repository.list()).single;
+        final loser = saved.transactionId == transaction.id
+            ? otherEntry
+            : transaction;
+        await expectLater(
+          allocate(loser, 401, writer: writer),
+          throwsA(isA<ValidationError>()),
+        );
+        await allocate(loser, 400, writer: writer);
+        expect(
+          (await repository.list()).fold<int>(
+            0,
+            (sum, m) => sum + m.allocatedMinorUnits,
+          ),
+          1000,
+        );
+      } finally {
+        await second.close();
+      }
+    },
+  );
+
+  test(
+    'fresh expectation edits reject stale proposal and correction rolls back',
+    () async {
+      final original = await match(400);
+      final other = await anotherTransaction();
+      await allocate(other, 300);
+      await expectLater(
+        ReconciliationUseCases(repository).correct(
+          original: original,
+          createdAt: DateTime.utc(2026),
+          occurrenceIds: [occurrence],
+          allocations: const [Money(minorUnits: 701, currency: 'IRR')],
+        ),
+        throwsA(isA<ValidationError>()),
+      );
+      expect(
+        (await repository.list()).firstWhere((m) => m.id == original.id).status,
+        MatchStatus.active,
+      );
+      final corrected = await ReconciliationUseCases(repository).correct(
+        original: original,
+        createdAt: DateTime.utc(2026),
+        occurrenceIds: [occurrence],
+        allocations: const [Money(minorUnits: 700, currency: 'IRR')],
+      );
+      expect(corrected.allocatedMinorUnits, 700);
+      await expectLater(
+        ReconciliationUseCases(repository).correct(
+          original: original,
+          createdAt: DateTime.utc(2026),
+          occurrenceIds: [occurrence],
+          allocations: const [Money(minorUnits: 1, currency: 'IRR')],
+        ),
+        throwsA(isA<ValidationError>()),
+      );
+      await database.customStatement(
+        'UPDATE financial_expectations SET minor_units=500',
+      );
+      await expectLater(allocate(other, 1), throwsA(isA<ValidationError>()));
+      expect(await repository.list(), hasLength(3));
+    },
+  );
+
+  test(
+    'historical overallocations survive cold reopen and explicit correction',
+    () async {
+      final original = await match(900);
+      await database.customStatement(
+        'UPDATE financial_expectations SET minor_units=500',
+      );
+      final before = allocationFingerprintFor(await repository.list());
+      await database.close();
+      database = AppDatabase.forTesting(NativeDatabase(file));
+      repository = DriftReconciliationRepository(database);
+      expect(allocationFingerprintFor(await repository.list()), before);
+      await repository.save(
+        original,
+      ); // Idempotent historical save is not a new allocation.
+      final other = await anotherTransaction();
+      await expectLater(allocate(other, 1), throwsA(isA<ValidationError>()));
+      await ReconciliationUseCases(repository).correct(
+        original: original,
+        createdAt: DateTime.utc(2026),
+        occurrenceIds: [occurrence],
+        allocations: const [Money(minorUnits: 500, currency: 'IRR')],
+      );
+      final history = (await repository.list()).firstWhere(
+        (m) => m.id == original.id,
+      );
+      expect(history.allocations.single.amount.minorUnits, 900);
+      expect(history.status, MatchStatus.corrected);
+    },
+  );
+
+  test('reversed transactions release expectation capacity without rewriting matches', () async {
+    final original = await match(1000);
+    final finance = DriftFinanceRepository(database);
+    await FinanceUseCases(finance).voidEntry(
+      original: transaction,
+      account: (await finance.listAccounts()).single,
+    );
+    final other = await anotherTransaction();
+    await allocate(other, 1000);
+    expect(
+      (await repository.list()).firstWhere((m) => m.id == original.id).status,
+      MatchStatus.active,
+    );
+    expect(
+      (await repository.list())
+          .firstWhere((m) => m.id == original.id)
+          .allocatedMinorUnits,
+      1000,
+    );
+  });
+
+  test('unchanged transaction review cannot bypass a freshly reduced expectation', () async {
+    final expected = await repository.loadReview(transaction);
+    final second = AppDatabase.forTesting(NativeDatabase(file));
+    try {
+      await second.customStatement(
+        'UPDATE financial_expectations SET minor_units=300',
+      );
+      // Review tokens cover this transaction, not a stale expectation preview.
+      (await repository.loadReview(transaction)).requireExpected(expected);
+      await expectLater(
+        match(400, expected: expected),
+        throwsA(isA<ValidationError>()),
+      );
+      expect(await repository.list(), isEmpty);
+      await match(300, expected: expected);
+      expect(
+        (await repository.loadReview(transaction)).remainderMinorUnits,
+        700,
+      );
+    } finally {
+      await second.close();
+    }
+  });
+
+  test(
+    'unknown, archived or absent expectation cannot authorize new allocation',
+    () async {
+      for (final sql in [
+        'UPDATE financial_expectations SET currency=NULL',
+        "UPDATE financial_expectations SET currency='USD'",
+        "UPDATE financial_expectations SET currency='IRR', status=1",
+        'DELETE FROM financial_expectations',
+      ]) {
+        await database.customStatement(sql);
+        await expectLater(match(1), throwsA(isA<ValidationError>()));
+      }
+      expect(await repository.list(), isEmpty);
+    },
+  );
+
+  test(
+    'completed cycle rejects new allocation without changing financial history',
+    () async {
+      await database.customStatement('UPDATE commitment_cycles SET status = 2');
+      await expectLater(match(400), throwsA(isA<ValidationError>()));
+      expect(await repository.list(), isEmpty);
+      expect(
+        await database.select(database.accountEntries).get(),
+        hasLength(1),
+      );
+    },
+  );
 
   test('partial remainder decision and explicit reopen survive cold restart without financial mutation', () async {
     await match(400);

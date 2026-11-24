@@ -7,8 +7,10 @@ class CommitmentCorrectionRequest {
     required this.reason,
     this.scheduleCount,
     this.creditDelta,
+    this.cycleId,
   });
   final StableId commitmentId;
+  final StableId? cycleId;
   final String reason;
   final int? scheduleCount;
   final int? creditDelta;

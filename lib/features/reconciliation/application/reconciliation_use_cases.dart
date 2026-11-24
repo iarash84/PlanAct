@@ -35,9 +35,17 @@ class ReconciliationEngine {
     required Iterable<FinancialExpectation> expectations,
     required Map<StableId, DateTime> expectedDates,
     required Iterable<TransactionMatch> existingMatches,
+    Set<StableId> reversedTransactionIds = const {},
   }) {
+    if (reversedTransactionIds.contains(transaction.id)) return const [];
+    final matches = existingMatches.toList(growable: false);
+    final capacity = OutstandingExpectationCapacity(
+      expectations: expectations,
+      matches: matches,
+      reversedTransactionIds: reversedTransactionIds,
+    );
     final used = <StableId, int>{};
-    for (final match in existingMatches.where(
+    for (final match in matches.where(
       (item) => item.status == MatchStatus.active,
     )) {
       for (final allocation in match.allocations) {
@@ -53,11 +61,18 @@ class ReconciliationEngine {
     return expectations
         .where((item) => item.status == FinancialExpectationStatus.active)
         .map((item) {
+          final outstanding = item.currency == null
+              ? 0
+              : capacity.remaining(item.occurrenceId, item.currency!);
+          if (outstanding <= 0) return null;
           final candidate = scorer.score(
             transaction: transaction,
             expectation: item,
             expectedAt: expectedDates[item.occurrenceId] ?? item.createdAt,
-            availableAmount: available,
+            availableAmount: Money(
+              minorUnits: available.minorUnits.clamp(0, outstanding),
+              currency: available.currency,
+            ),
           );
           return candidate;
         })

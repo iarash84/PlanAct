@@ -24,6 +24,7 @@ import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/features/reports/application/reports_reader.dart';
 import 'package:planact/features/reports/domain/personal_reports.dart';
 import 'package:planact/features/reports/presentation/report_bar_chart.dart';
+import 'package:planact/features/reports/presentation/report_commitment_association_list.dart';
 import 'package:planact/features/reports/presentation/financial_report_chart.dart';
 import 'package:planact/features/reports/domain/financial_chart_projections.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
@@ -657,6 +658,16 @@ class _ReportsPageState extends State<ReportsPage> {
 
   List<Widget> _content(PersonalReport report, ReportSnapshot data) {
     final widgets = <Widget>[];
+    if (_combined || _financial || _kind == PersonalReportKind.settlement) {
+      widgets.add(
+        ReportCommitmentAssociationList(
+          associations: report.associations,
+          title: planActL10n(context).commitmentAssociationTitle,
+          descriptiveNotSettlementLabel: planActL10n(context)
+              .commitmentAssociationDisclaimer,
+        ),
+      );
+    }
     if (_combined ||
         [
           PersonalReportKind.performance,

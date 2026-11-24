@@ -334,18 +334,6 @@ class _CalendarPageState extends State<CalendarPage> {
     final dates = WeekTimeline.dates(_selectedDay);
     return Column(
       children: [
-        if (!(widget.visibility.commitments &&
-            widget.visibility.notes &&
-            widget.visibility.income &&
-            widget.visibility.expense &&
-            widget.visibility.transfers))
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: PlanActSpacing.md),
-            child: Text(
-              planActL10n(context).calendarVisibilityFiltered,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: PlanActSpacing.md,

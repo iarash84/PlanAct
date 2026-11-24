@@ -1,4 +1,9 @@
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/features/scheduling/application/recurrence_schedule_edit.dart';
+import 'package:planact/features/commitments/domain/commitment.dart';
+
+export 'recurrence_schedule_edit.dart';
+
 import 'package:planact/features/scheduling/application/schedule_undo.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -9,11 +14,58 @@ import 'package:planact/features/scheduling/application/series_editing.dart';
 import 'package:planact/features/scheduling/domain/occurrence.dart';
 import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 
-/// Date/time-only series edits. Frequency and termination are not inferred.
+/// Date/time edits and explicit preview-confirmed recurrence changes.
 class EditCommitmentSchedule {
   const EditCommitmentSchedule(this.plans, {this.reminders});
   final CommitmentPlanRepository plans;
   final ReminderService? reminders;
+
+  Future<RecurrenceEditPreview> preview({
+    required StableId commitmentId,
+    required Occurrence expected,
+    required Object scheduledAt,
+    required SeriesEditScope scope,
+    required DateTime now,
+    required RecurrenceScheduleEdit recurrenceEdit,
+  }) => CommandGate.runFor(plans, () async {
+    final repository = plans;
+    if (repository is! RecurrenceEditRepository) {
+      throw StateError('Recurrence editing requires snapshot persistence.');
+    }
+    final source = repository as RecurrenceEditRepository;
+    final token = await source.recurrenceEditToken(commitmentId);
+    final plan = await plans.findByCommitmentId(commitmentId);
+    if (plan == null ||
+        plan.commitment.status != CommitmentStatus.active ||
+        plan.cycle.status != CommitmentCycleStatus.active) {
+      throw const ValidationError(
+        'Only an active commitment and cycle can be edited.',
+      );
+    }
+    final row = plan.occurrences.where((o) => o.id == expected.id).firstOrNull;
+    if (row == null ||
+        row.currentScheduledAt != expected.currentScheduledAt ||
+        row.status != expected.status ||
+        row.resultRevision != expected.resultRevision ||
+        row.isManualOverride != expected.isManualOverride ||
+        row.scheduleDefinitionId != expected.scheduleDefinitionId) {
+      throw const ValidationError('Occurrence changed; reload before editing.');
+    }
+    final protected = await source.protectedScheduleOccurrences(commitmentId);
+    if (token != await source.recurrenceEditToken(commitmentId)) {
+      throw const ValidationError('Schedule changed; preview again.');
+    }
+    return buildRecurrenceEditPreview(
+      plan: plan,
+      expected: row,
+      scheduledAt: scheduledAt,
+      scope: scope,
+      today: LocalDate.fromDateTime(now),
+      edit: recurrenceEdit,
+      token: token,
+      protectedIds: protected,
+    );
+  });
 
   Future<bool> call({
     required StableId commitmentId,
@@ -21,6 +73,8 @@ class EditCommitmentSchedule {
     required Object scheduledAt,
     required SeriesEditScope scope,
     required DateTime now,
+    RecurrenceScheduleEdit? recurrenceEdit,
+    String? previewToken,
   }) => CommandGate.runFor(plans, () async {
     final transaction = plans;
     if (transaction is! CommitmentPlanTransaction) {
@@ -28,6 +82,39 @@ class EditCommitmentSchedule {
     }
     Future<List<Occurrence>>
     edit() => (transaction as CommitmentPlanTransaction).runTransaction(() async {
+      if (recurrenceEdit != null) {
+        if (previewToken == null) {
+          throw const ValidationError(
+            'Confirm a fresh recurrence preview first.',
+          );
+        }
+        final proposed = await preview(
+          commitmentId: commitmentId,
+          expected: expected,
+          scheduledAt: scheduledAt,
+          scope: scope,
+          now: now,
+          recurrenceEdit: recurrenceEdit,
+        );
+        if (proposed.token != previewToken) {
+          throw const ValidationError('Schedule changed; preview again.');
+        }
+        final fresh = (await plans.findByCommitmentId(commitmentId))!;
+        await plans.save(
+          CommitmentPlan(
+            commitment: fresh.commitment,
+            cycle: fresh.cycle,
+            schedule: proposed.schedule,
+            occurrences: proposed.occurrences,
+            reminders: const [],
+          ),
+        );
+        for (final row in proposed.occurrences) {
+          await (plans as RecurrenceEditRepository)
+              .recordScheduleReminderIntent(row.id);
+        }
+        return proposed.occurrences;
+      }
       final plan = await plans.findByCommitmentId(commitmentId);
       if (plan == null) throw const ValidationError('Plan was not found.');
       if (plan.cycle.status != CommitmentCycleStatus.active) {
@@ -39,7 +126,9 @@ class EditCommitmentSchedule {
       if (occurrence == null ||
           occurrence.status != expected.status ||
           occurrence.currentScheduledAt != expected.currentScheduledAt ||
-          occurrence.scheduleDefinitionId != expected.scheduleDefinitionId) {
+          occurrence.scheduleDefinitionId != expected.scheduleDefinitionId ||
+          occurrence.resultRevision != expected.resultRevision ||
+          occurrence.isManualOverride != expected.isManualOverride) {
         throw const ValidationError(
           'Occurrence changed; reload before editing.',
         );
@@ -57,7 +146,17 @@ class EditCommitmentSchedule {
           _date(scheduledAt).compareTo(today) < 0) {
         throw const ValidationError('Past dates cannot be edited.');
       }
+      final protectedIds = plans is RecurrenceEditRepository
+          ? await (plans as RecurrenceEditRepository)
+                .protectedScheduleOccurrences(commitmentId)
+          : <StableId>{};
       if (scope == SeriesEditScope.onlyThis) {
+        if (protectedIds.contains(occurrence.id) ||
+            occurrence.resultRevision != 0) {
+          throw const ValidationError(
+            'Protected history cannot be rescheduled.',
+          );
+        }
         final result = const SeriesEditor().editOccurrence(
           schedule: plan.schedule,
           occurrence: occurrence,
@@ -66,6 +165,10 @@ class EditCommitmentSchedule {
           notBefore: today,
         );
         await plans.saveOccurrence(result.updatedOccurrence!);
+        if (plans is RecurrenceEditRepository) {
+          await (plans as RecurrenceEditRepository)
+              .recordScheduleReminderIntent(occurrence.id);
+        }
         return [result.updatedOccurrence!];
       }
       if (plan.schedule.mode == ScheduleMode.oneOff) {
@@ -103,6 +206,11 @@ class EditCommitmentSchedule {
             notBefore: boundary,
           )
           .occurrences!;
+      if (shifted.any(
+        (o) => protectedIds.contains(o.id) || o.resultRevision != 0,
+      )) {
+        throw const ValidationError('Protected history cannot be rescheduled.');
+      }
       if (shifted.any(
         (o) => _date(o.currentScheduledAt).compareTo(today) < 0,
       )) {
@@ -193,6 +301,12 @@ class EditCommitmentSchedule {
           reminders: const [],
         ),
       );
+      if (plans is RecurrenceEditRepository) {
+        for (final row in updated) {
+          await (plans as RecurrenceEditRepository)
+              .recordScheduleReminderIntent(row.id);
+        }
+      }
       return updated;
     });
     final changed = plans is ScheduleUndoRepository

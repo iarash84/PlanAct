@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:planact/features/finance/domain/transaction_history.dart';
+
 import 'package:planact/features/finance/domain/bank_balance.dart';
 import 'package:planact/features/finance/data/bank_balance_store.dart';
 
@@ -26,6 +28,7 @@ class DriftFinanceRepository
         BankObservationReviewRepository,
         AtomicAccountEditing,
         AtomicFinanceCorrection,
+        AtomicTransactionNoteEditing,
         AtomicFinanceReversal,
         AccountStatusUndoRepository,
         TaggedFinanceCreation {
@@ -209,6 +212,32 @@ class DriftFinanceRepository
       );
 
   @override
+  Future<AccountEntry> editEntryNote(AccountEntry expected, String? note) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final journal = UndoJournal(database);
+          await journal.admitWriter();
+          final edited = prepareEntryNoteEdit(
+            expected: expected,
+            note: note,
+            entries: await listEntries(),
+            accounts: await listAccounts(),
+          );
+          if (edited.noteRevision == expected.noteRevision) return edited;
+          await (database.update(database.accountEntries)
+                ..where((t) => t.id.equals(expected.id.value)))
+              .write(db.AccountEntriesCompanion(note: Value(note)));
+          await journal.append(
+            owner: 'transaction-note:${expected.id.value}',
+            before: {'note': expected.note, 'revision': expected.noteRevision},
+            after: {'note': edited.note, 'revision': edited.noteRevision},
+          );
+          return edited;
+        }),
+      );
+
+  @override
   Future<AccountEntry> reverseEntry({
     required AccountEntry expected,
     required StableId accountId,
@@ -230,7 +259,23 @@ class DriftFinanceRepository
       for (final reversal in reversals) {
         await saveEntry(reversal);
       }
-      if (corrected != null) await saveEntry(corrected);
+      if (corrected != null) {
+        await saveEntry(corrected);
+        final tags = await (database.select(
+          database.accountEntryTags,
+        )..where((row) => row.accountEntryId.equals(expected.id.value))).get();
+        for (final tag in tags) {
+          await database
+              .into(database.accountEntryTags)
+              .insert(
+                db.AccountEntryTagsCompanion.insert(
+                  accountEntryId: corrected.id.value,
+                  tagId: tag.tagId,
+                  lastUsedAt: Value(occurredAt.toUtc()),
+                ),
+              );
+        }
+      }
       await journal.append(
         owner: 'finance:${expected.id.value}',
         before: [for (final e in reversals) e.referenceId],
@@ -296,9 +341,31 @@ class DriftFinanceRepository
   @override
   Future<List<AccountEntry>> listEntries() => CommandGate.runFor(
     this,
-    () async {
+    () => database.transaction(() async {
       final rows = await database.select(database.accountEntries).get();
-      return rows
+      final revisionRows = await database
+          .customSelect(
+            "SELECT h.key AS owner_key, e.value AS event_value FROM schema_metadata h "
+            "JOIN schema_metadata e ON e.key = 'undo_event_v1:' || h.value "
+            "WHERE h.key LIKE 'undo_head_v1:transaction-note:%'",
+            readsFrom: {database.schemaMetadata},
+          )
+          .get();
+      final revisions = <String, int>{};
+      for (final revisionRow in revisionRows) {
+        final event = jsonDecode(
+          revisionRow.read<String>('event_value'),
+        ) as Map<String, dynamic>;
+        if (event['version'] != 1) {
+          throw const ValidationError('Unsupported transaction note history');
+        }
+        final id = revisionRow
+            .read<String>('owner_key')
+            .substring('undo_head_v1:transaction-note:'.length);
+        revisions[id] =
+            (event['after'] as Map<String, dynamic>)['revision'] as int;
+      }
+      final entries = rows
           .map(
             (row) => AccountEntry(
               id: StableId.parse(row.id),
@@ -308,6 +375,7 @@ class DriftFinanceRepository
               occurredAt: row.occurredAt.toUtc(),
               referenceId: row.referenceId,
               note: row.note,
+              noteRevision: revisions[row.id] ?? 0,
               category: row.category,
               source: AccountEntrySource.values[row.source],
               transferGroupId: row.transferGroupId == null
@@ -316,7 +384,64 @@ class DriftFinanceRepository
             ),
           )
           .toList(growable: false);
-    },
+      final events = await database
+          .customSelect(
+            "SELECT e.value AS event_value FROM schema_metadata h "
+            "JOIN schema_metadata e ON e.key = 'undo_event_v1:' || h.value "
+            "WHERE h.key LIKE 'undo_head_v1:finance:%'",
+            readsFrom: {database.schemaMetadata},
+          )
+          .get();
+      final operations = <FinanceHistoryOperation>[];
+      for (final row in events) {
+        final event =
+            jsonDecode(row.read<String>('event_value')) as Map<String, dynamic>;
+        final owner = event['owner'];
+        final before = event['before'];
+        final after = event['after'];
+        if (event['version'] == 1 &&
+            event['undoOf'] == null &&
+            owner is String &&
+            owner.startsWith('finance:') &&
+            before is List &&
+            after is List &&
+            before.every((id) => id is String) &&
+            after.every((id) => id is String) &&
+            before.contains(owner.substring('finance:'.length))) {
+          operations.add(
+            FinanceHistoryOperation(
+              before: before.cast<String>(),
+              after: after.cast<String>(),
+            ),
+          );
+        }
+      }
+      final tagsByEntry = <String, List<String>>{};
+      if (operations.isNotEmpty) {
+        final links = await database.select(database.accountEntryTags).join([
+          innerJoin(
+            database.tags,
+            database.tags.id.equalsExp(database.accountEntryTags.tagId),
+          ),
+        ]).get();
+        for (final link in links) {
+          final entryId = link
+              .readTable(database.accountEntryTags)
+              .accountEntryId;
+          (tagsByEntry[entryId] ??= []).add(
+            link.readTable(database.tags).label,
+          );
+        }
+        for (final labels in tagsByEntry.values) {
+          labels.sort();
+        }
+      }
+      return projectTransactionHistory(
+        entries,
+        operations,
+        tagsByEntry: tagsByEntry,
+      );
+    }),
   );
 
   Future<FinancialAccount> _readAccount(db.FinancialAccount row) async {

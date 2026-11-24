@@ -27,6 +27,10 @@ class _AboutPageState extends State<AboutPage> {
       LicenseRegistry.addLicense(() async* {
         final text = await rootBundle.loadString('assets/licenses/planact.txt');
         yield LicenseEntryWithLineBreaks(['PlanAct'], text);
+        final fontLicense = await rootBundle.loadString(
+          'assets/fonts/vazirmatn/OFL.txt',
+        );
+        yield LicenseEntryWithLineBreaks(['Vazirmatn'], fontLicense);
       });
       _licenseRegistered = true;
     }

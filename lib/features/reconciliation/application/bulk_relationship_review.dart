@@ -1,11 +1,19 @@
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/finance/application/finance_use_cases.dart';
 import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
 
 class RelationshipQueueItem {
-  const RelationshipQueueItem(this.transaction, this.review);
+  const RelationshipQueueItem(
+    this.transaction,
+    this.review, {
+    this.account,
+    this.tagLabels = const [],
+  });
+  final FinancialAccount? account;
+  final List<String> tagLabels;
   final AccountEntry transaction;
   final RelationshipReview review;
   bool get selectable =>
@@ -21,7 +29,8 @@ class RelationshipQueueSnapshot {
 /// Reads only review projections, never commitment plans or matching targets.
 /// Selection is bounded; the existing finance list API still reads all entries.
 class RelationshipQueue {
-  const RelationshipQueue(this.finance, this.reviews);
+  const RelationshipQueue(this.finance, this.reviews, {this.tags});
+  final TagRepository? tags;
   final FinanceRepository finance;
   final RelationshipReviewRepository reviews;
 
@@ -54,6 +63,7 @@ class RelationshipQueue {
           });
     final items = <RelationshipQueueItem>[];
     var skipped = 0;
+    var hasNext = false;
     for (final entry in candidates) {
       // A read failure is surfaced, not silently interpreted as ineligibility.
       final review = await reviews.loadReview(entry);
@@ -63,11 +73,53 @@ class RelationshipQueue {
       }
       if (skipped++ < page * BulkRelationshipReview.pageSize) continue;
       if (items.length == BulkRelationshipReview.pageSize) {
-        return RelationshipQueueSnapshot(List.unmodifiable(items), true);
+        hasNext = true;
+        break;
       }
       items.add(RelationshipQueueItem(entry, review));
     }
-    return RelationshipQueueSnapshot(List.unmodifiable(items), false);
+    // Metadata reads are bounded to this page and never write.
+    final accounts = {for (final a in await finance.listAccounts()) a.id: a};
+    final repository = tags;
+    final labels = await repository?.list() ?? [];
+    final memberships = <String, Set<StableId>>{};
+    if (repository is BatchTagRepository) {
+      memberships.addAll(
+        await (repository as BatchTagRepository).tagsForMany(
+          items.map((item) => item.transaction.id.value),
+          TaggableType.accountEntry,
+        ),
+      );
+    } else if (repository != null) {
+      for (final item in items) {
+        memberships[item.transaction.id.value] = await repository.tagsFor(
+          item.transaction.id.value,
+          TaggableType.accountEntry,
+        );
+      }
+    }
+    return RelationshipQueueSnapshot(
+      List.unmodifiable([
+        for (final item in items)
+          RelationshipQueueItem(
+            item.transaction,
+            item.review,
+            account: accounts[item.transaction.accountId],
+            tagLabels: List.unmodifiable(
+              labels
+                  .where(
+                    (tag) =>
+                        memberships[item.transaction.id.value]?.contains(
+                          tag.id,
+                        ) ??
+                        false,
+                  )
+                  .map((tag) => tag.label),
+            ),
+          ),
+      ]),
+      hasNext,
+    );
   }
 }
 

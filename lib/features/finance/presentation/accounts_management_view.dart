@@ -62,7 +62,7 @@ class _AccountsManagementViewState extends State<AccountsManagementView> {
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(PlanActSpacing.lg),
+          padding: const EdgeInsets.all(PlanActSpacing.page),
           sliver: SliverList.list(
             children: [
               if (widget.loadError != null)

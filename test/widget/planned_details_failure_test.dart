@@ -5,6 +5,7 @@ import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/database/app_database.dart'
     hide Commitment, Occurrence;
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/core/time/jalali_date.dart';
 import 'package:planact/features/calendar/presentation/planned_occurrence_widgets.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/data/drift_commitment_plan_repository.dart';
@@ -23,6 +24,9 @@ void main() {
     final db = AppDatabase.forTesting(NativeDatabase.memory());
     final repository = _FailingPlans(db);
     late CommitmentPlan plan;
+    final now = JalaliDate.now();
+    // Keep the monthly slot away from either calendar's month boundary.
+    final start = JalaliDate(now.year, now.month, 15).toDateTime();
     await tester.runAsync(() async {
       plan =
           await CreateCommitmentPlan(
@@ -31,8 +35,9 @@ void main() {
           ).call(
             title: 'برنامه بلندمدت',
             kind: CommitmentKind.recurring,
-            startAt: DateTime.now(),
+            startAt: start,
             frequency: RecurrenceFrequency.monthly,
+            recurrenceCalendar: RecurrenceCalendar.jalali,
             occurrenceCount: 60,
           );
     });

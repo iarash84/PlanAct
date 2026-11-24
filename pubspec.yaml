@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.2.7+18
+version: 0.2.8+19
 
 environment:
   sdk: ^3.13.4
@@ -77,7 +77,20 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/vazirmatn/Vazirmatn-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/vazirmatn/Vazirmatn-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/vazirmatn/Vazirmatn-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/vazirmatn/Vazirmatn-Bold.ttf
+          weight: 700
+
   assets:
+    - assets/fonts/vazirmatn/OFL.txt
     - assets/licenses/planact.txt
     - assets/icons/app_icon.png
     - assets/banks/

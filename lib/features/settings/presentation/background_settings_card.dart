@@ -1,3 +1,5 @@
+import 'package:planact/core/presentation/planact_state_message.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -42,7 +44,7 @@ class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
     final l10n = planActL10n(context);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(PlanActSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -50,9 +52,9 @@ class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
               l10n.settingsBackground,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: PlanActSpacing.xs),
             Text(l10n.settingsBackgroundDescription),
-            const SizedBox(height: 12),
+            const SizedBox(height: PlanActSpacing.md),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -68,10 +70,10 @@ class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
             if (_saving) const LinearProgressIndicator(),
             if (_saveFailed)
               Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  l10n.settingsBackgroundSaveError,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                padding: const EdgeInsets.only(top: PlanActSpacing.sm),
+                child: PlanActStateMessage(
+                  message: l10n.settingsBackgroundSaveError,
+                  kind: PlanActMessageKind.error,
                 ),
               ),
           ],
@@ -97,7 +99,7 @@ class _BackgroundSettingsCardState extends State<BackgroundSettingsCard> {
         child: AnimatedContainer(
           duration: PlanActMotion.duration(context, PlanActMotion.short),
           curve: PlanActMotion.curve,
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(PlanActSpacing.xs),
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerHighest.withValues(
               alpha: 0.24,

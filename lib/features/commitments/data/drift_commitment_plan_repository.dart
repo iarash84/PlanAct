@@ -1,4 +1,7 @@
+import 'package:planact/features/commitments/data/cycle_write_guard.dart';
 import 'package:planact/core/application/command_gate.dart';
+import 'package:planact/core/errors/app_error.dart';
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/features/scheduling/data/drift_schedule_undo.dart';
 
 import 'dart:convert';
@@ -28,6 +31,7 @@ class DriftCommitmentPlanRepository
     implements
         CommandGateProvider,
         CommitmentPlanRepository,
+        CommitmentCyclesRepository,
         CommitmentPlanTransaction,
         CalendarRangeRepository,
         RecurringScheduleMaintenance,
@@ -55,6 +59,54 @@ class DriftCommitmentPlanRepository
   @override
   Future<void> save(CommitmentPlan plan) => CommandGate.runFor(this, () async {
     await database.transaction(() async {
+      await database.customStatement(
+        'UPDATE schema_metadata SET value = value WHERE key = ?',
+        ['schema_version'],
+      );
+      final stored = await (database.select(
+        database.commitmentCycles,
+      )..where((t) => t.id.equals(plan.cycle.id.value))).getSingleOrNull();
+      if (stored != null) {
+        await requireWritableCycle(
+          database,
+          stored.id,
+          requireActiveOwner: false,
+        );
+        if (stored.status != plan.cycle.status.index) {
+          throw const ValidationError(
+            'Use the explicit cycle completion command',
+          );
+        }
+      } else {
+        final owner = await DriftCommitmentRepository(database)
+            .findById(plan.commitment.id);
+        final others = await (database.select(
+          database.commitmentCycles,
+        )..where((t) => t.commitmentId.equals(plan.commitment.id.value))).get();
+        if (owner == null ||
+            owner.status != CommitmentStatus.active ||
+            others.any(
+              (c) => c.status != CommitmentCycleStatus.completed.index,
+            )) {
+          throw const ValidationError(
+            'An active owner and completed prior cycles are required',
+          );
+        }
+        for (final prior in others) {
+          if (prior.actualEndDate == null ||
+              LocalDate.fromDateTime(plan.cycle.startDate.toLocal()).compareTo(
+                    LocalDate.fromDateTime(prior.actualEndDate!.toLocal()),
+                  ) <=
+                  0) {
+            throw const ValidationError('Cycle civil dates must not overlap');
+          }
+        }
+      }
+      if (plan.schedule.cycleId != plan.cycle.id ||
+          plan.cycle.commitmentId != plan.commitment.id ||
+          plan.occurrences.any((o) => o.cycleId != plan.cycle.id)) {
+        throw const ValidationError('Plan cycle ownership mismatch');
+      }
       await database
           .into(database.commitmentCycles)
           .insertOnConflictUpdate(
@@ -103,6 +155,7 @@ class DriftCommitmentPlanRepository
             ),
           );
       for (final occurrence in plan.occurrences) {
+        await _requireCycleDate(plan.cycle.id, occurrence.currentScheduledAt);
         await database
             .into(database.occurrences)
             .insertOnConflictUpdate(
@@ -133,88 +186,288 @@ class DriftCommitmentPlanRepository
   });
 
   @override
-  Future<void> saveOccurrence(
-    Occurrence occurrence,
-  ) => CommandGate.runFor(this, () async {
-    final schedule =
-        await (database.select(database.scheduleDefinitions)..where(
-              (table) => table.id.equals(occurrence.scheduleDefinitionId.value),
-            ))
-            .getSingleOrNull();
-    if (schedule == null) throw StateError('Schedule was not found.');
-    await database
-        .into(database.occurrences)
-        .insertOnConflictUpdate(
-          db.OccurrencesCompanion.insert(
-            id: occurrence.id.value,
-            cycleId: occurrence.cycleId.value,
-            scheduleDefinitionId: occurrence.scheduleDefinitionId.value,
-            occurrenceKey: occurrence.occurrenceKey,
-            timeSemantics: schedule.timeSemantics,
-            originalScheduledValue: occurrence.originalScheduledAt is LocalDate
-                ? 'date:${_date(occurrence.originalScheduledAt as LocalDate)}'
-                : _value(
-                    occurrence.originalScheduledAt,
-                    TimeSemantics.values[schedule.timeSemantics],
-                  ),
-            currentScheduledValue: _value(
-              occurrence.currentScheduledAt,
-              TimeSemantics.values[schedule.timeSemantics],
+  Future<void> saveOccurrence(Occurrence occurrence) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      await requireWritableCycle(
+        database,
+        occurrence.cycleId.value,
+        requireActiveOwner: false,
+      );
+      await _requireCycleDate(
+        occurrence.cycleId,
+        occurrence.currentScheduledAt,
+      );
+      final schedule =
+          await (database.select(database.scheduleDefinitions)..where(
+                (table) =>
+                    table.id.equals(occurrence.scheduleDefinitionId.value),
+              ))
+              .getSingleOrNull();
+      if (schedule == null) throw StateError('Schedule was not found.');
+      await database
+          .into(database.occurrences)
+          .insertOnConflictUpdate(
+            db.OccurrencesCompanion.insert(
+              id: occurrence.id.value,
+              cycleId: occurrence.cycleId.value,
+              scheduleDefinitionId: occurrence.scheduleDefinitionId.value,
+              occurrenceKey: occurrence.occurrenceKey,
+              timeSemantics: schedule.timeSemantics,
+              originalScheduledValue:
+                  occurrence.originalScheduledAt is LocalDate
+                  ? 'date:${_date(occurrence.originalScheduledAt as LocalDate)}'
+                  : _value(
+                      occurrence.originalScheduledAt,
+                      TimeSemantics.values[schedule.timeSemantics],
+                    ),
+              currentScheduledValue: _value(
+                occurrence.currentScheduledAt,
+                TimeSemantics.values[schedule.timeSemantics],
+              ),
+              status: occurrence.status.index,
+              isManualOverride: occurrence.isManualOverride,
             ),
-            status: occurrence.status.index,
-            isManualOverride: occurrence.isManualOverride,
-          ),
-        );
-  });
+          );
+    }),
+  );
 
   @override
-  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) =>
-      CommandGate.runFor(this, () async {
-        final cycle =
-            await (database.select(database.commitmentCycles)
-                  ..where((t) => t.commitmentId.equals(commitmentId.value)))
-                .getSingleOrNull();
-        if (cycle == null) return null;
-        final schedule =
-            await (database.select(database.scheduleDefinitions)
-                  ..where((t) => t.cycleId.equals(cycle.id))
-                  ..orderBy([(t) => OrderingTerm.desc(t.version)])
-                  ..limit(1))
-                .getSingleOrNull();
-        if (schedule == null) return null;
-        final rows = await (database.select(
-          database.occurrences,
-        )..where((t) => t.cycleId.equals(cycle.id))).get();
-        final commitment = await DriftCommitmentRepository(database)
-            .findById(commitmentId);
-        if (commitment == null) return null;
-        final rules = await DriftReminderRepository(database).listRules();
-        final occurrenceIds = rows.map((row) => row.id).toSet();
-        final revisions = await database
-            .customSelect(
-              'SELECT a.occurrence_id, COUNT(*) AS revision FROM actuals a JOIN occurrences o ON o.id = a.occurrence_id WHERE o.cycle_id = ? GROUP BY a.occurrence_id',
-              variables: [Variable(cycle.id)],
-              readsFrom: {database.actuals, database.occurrences},
-            )
+  Future<List<CommitmentPlan>> listByCommitmentId(StableId id) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(() async {
+          final cycles =
+              await (database.select(database.commitmentCycles)
+                    ..where((t) => t.commitmentId.equals(id.value))
+                    ..orderBy([
+                      (t) => OrderingTerm.asc(t.startDate),
+                      (t) => OrderingTerm.asc(t.id),
+                    ]))
+                  .get();
+          final result = <CommitmentPlan>[];
+          for (final cycle in cycles) {
+            final plan = await findByCycleId(StableId.parse(cycle.id));
+            if (plan != null) result.add(plan);
+          }
+          return List.unmodifiable(result);
+        }),
+      );
+
+  /// Compatibility read: active cycle, otherwise latest retained cycle.
+  @override
+  Future<CommitmentPlan?> findByCommitmentId(StableId commitmentId) async {
+    final plans = await listByCommitmentId(commitmentId);
+    final active = plans
+        .where((p) => p.cycle.status == CommitmentCycleStatus.active)
+        .toList();
+    if (active.length > 1) {
+      throw const ValidationError('Ambiguous active cycle set');
+    }
+    return active.firstOrNull ?? plans.lastOrNull;
+  }
+
+  @override
+  Future<CommitmentPlan?> findByCycleId(StableId cycleId) => CommandGate.runFor(
+    this,
+    () async {
+      final cycle = await (database.select(
+        database.commitmentCycles,
+      )..where((t) => t.id.equals(cycleId.value))).getSingleOrNull();
+      if (cycle == null) return null;
+      final commitmentId = StableId.parse(cycle.commitmentId);
+      final schedule =
+          await (database.select(database.scheduleDefinitions)
+                ..where((t) => t.cycleId.equals(cycle.id))
+                ..orderBy([(t) => OrderingTerm.desc(t.version)])
+                ..limit(1))
+              .getSingleOrNull();
+      if (schedule == null) return null;
+      final rows = await (database.select(
+        database.occurrences,
+      )..where((t) => t.cycleId.equals(cycle.id))).get();
+      final commitment = await DriftCommitmentRepository(database)
+          .findById(commitmentId);
+      if (commitment == null) return null;
+      final rules = await DriftReminderRepository(database).listRules();
+      final occurrenceIds = rows.map((row) => row.id).toSet();
+      final revisions = await database
+          .customSelect(
+            'SELECT a.occurrence_id, COUNT(*) AS revision FROM actuals a JOIN occurrences o ON o.id = a.occurrence_id WHERE o.cycle_id = ? GROUP BY a.occurrence_id',
+            variables: [Variable(cycle.id)],
+            readsFrom: {database.actuals, database.occurrences},
+          )
+          .get();
+      final revisionById = {
+        for (final r in revisions)
+          r.read<String>('occurrence_id'): r.read<int>('revision'),
+      };
+      return CommitmentPlan(
+        commitment: commitment,
+        cycle: _cycle(cycle),
+        schedule: _schedule(schedule),
+        occurrences: rows
+            .map((r) => _occurrence(r, resultRevision: revisionById[r.id] ?? 0))
+            .toList(growable: false),
+        reminders: rules
+            .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
+            .toList(growable: false),
+      );
+    },
+  );
+
+  Future<void> _requireCycleDate(StableId cycleId, Object value) async {
+    final cycle = await (database.select(
+      database.commitmentCycles,
+    )..where((t) => t.id.equals(cycleId.value))).getSingle();
+    final date = value is LocalDate
+        ? value
+        : LocalDate.fromDateTime((value as DateTime).toLocal());
+    final previous =
+        await (database.select(database.commitmentCycles)..where(
+              (t) =>
+                  t.commitmentId.equals(cycle.commitmentId) &
+                  t.id.equals(cycle.id).not(),
+            ))
             .get();
-        final revisionById = {
-          for (final r in revisions)
-            r.read<String>('occurrence_id'): r.read<int>('revision'),
-        };
-        return CommitmentPlan(
-          commitment: commitment,
-          cycle: _cycle(cycle),
-          schedule: _schedule(schedule),
-          occurrences: rows
-              .map(
-                (r) => _occurrence(r, resultRevision: revisionById[r.id] ?? 0),
-              )
-              .toList(growable: false),
-          reminders: rules
-              .where((rule) => occurrenceIds.contains(rule.occurrenceId.value))
-              .toList(growable: false),
+    for (final prior in previous) {
+      if (prior.actualEndDate != null &&
+          date.compareTo(
+                LocalDate.fromDateTime(prior.actualEndDate!.toLocal()),
+              ) <=
+              0) {
+        throw const ValidationError('Occurrence overlaps a retained cycle');
+      }
+    }
+  }
+
+  @override
+  Future<String> cycleSetToken(StableId id) => CommandGate.runFor(
+    this,
+    () => database.transaction(() async {
+      final rows = await database
+          .customSelect(
+            'SELECT * FROM commitment_cycles WHERE commitment_id = ? ORDER BY id',
+            variables: [Variable(id.value)],
+          )
+          .get();
+      final owner = await database
+          .customSelect(
+            'SELECT * FROM commitments WHERE id = ?',
+            variables: [Variable(id.value)],
+          )
+          .get();
+      final occurrences = await database
+          .customSelect(
+            'SELECT o.* FROM occurrences o JOIN commitment_cycles c ON c.id = o.cycle_id WHERE c.commitment_id = ? ORDER BY o.id',
+            variables: [Variable(id.value)],
+          )
+          .get();
+      return jsonEncode([
+        owner.map((r) => r.data).toList(),
+        rows.map((r) => r.data).toList(),
+        occurrences.map((r) => r.data).toList(),
+      ]);
+    }),
+  );
+
+  Future<void> _requireCycleSet(StableId ownerId, String expected) async {
+    if (await cycleSetToken(ownerId) != expected) {
+      throw const ValidationError('Cycle set changed; reload before retrying');
+    }
+    final owner = await DriftCommitmentRepository(database).findById(ownerId);
+    if (owner == null || owner.status != CommitmentStatus.active) {
+      throw const ValidationError('An active commitment is required');
+    }
+  }
+
+  @override
+  Future<void> admitNextCycle(
+    NewCommitmentCycleContext context,
+    DateTime start,
+  ) async {
+    // Called inside the creation transaction, which already owns SQLite's writer.
+    await _requireCycleSet(context.commitmentId, context.expectedCycleSet);
+    final cycles = await (database.select(
+      database.commitmentCycles,
+    )..where((t) => t.commitmentId.equals(context.commitmentId.value))).get();
+    if (cycles.isEmpty ||
+        cycles.any(
+          (c) =>
+              c.status != CommitmentCycleStatus.completed.index ||
+              c.actualEndDate == null,
+        )) {
+      throw const ValidationError(
+        'Explicitly complete every prior cycle first',
+      );
+    }
+    final startDay = LocalDate.fromDateTime(start);
+    for (final cycle in cycles) {
+      if (startDay.compareTo(
+            LocalDate.fromDateTime(cycle.actualEndDate!.toLocal()),
+          ) <=
+          0) {
+        throw const ValidationError('Cycle civil dates must not overlap');
+      }
+    }
+  }
+
+  @override
+  Future<CommitmentCycle> completeCycle({
+    required StableId cycleId,
+    required String expectedCycleSet,
+    required DateTime completedAt,
+  }) => runTransaction(() async {
+    final plan = await findByCycleId(cycleId);
+    if (plan == null) throw const ValidationError('Cycle not found');
+    await _requireCycleSet(plan.commitment.id, expectedCycleSet);
+    final end = LocalDate.fromDateTime(completedAt);
+    if (end.compareTo(LocalDate.fromDateTime(plan.cycle.startDate.toLocal())) <
+        0) {
+      throw const ValidationError('Cycle end precedes its start');
+    }
+    for (final occurrence in plan.occurrences) {
+      if (!{
+        OccurrenceStatus.completed,
+        OccurrenceStatus.cancelled,
+        OccurrenceStatus.skipped,
+      }.contains(occurrence.status)) {
+        throw const ValidationError(
+          'Resolve every recorded occurrence before completing the cycle',
         );
-      });
+      }
+      for (final value in [
+        occurrence.originalScheduledAt,
+        occurrence.currentScheduledAt,
+      ]) {
+        final date = value is LocalDate
+            ? value
+            : LocalDate.fromDateTime((value as DateTime).toLocal());
+        if (date.compareTo(end) > 0) {
+          throw const ValidationError('Cycle end precedes recorded history');
+        }
+      }
+    }
+    final completed = plan.cycle.complete(completedAt: completedAt);
+    await (database.update(
+      database.commitmentCycles,
+    )..where((t) => t.id.equals(cycleId.value))).write(
+      db.CommitmentCyclesCompanion(
+        status: Value(completed.status.index),
+        actualEndDate: Value(completed.actualEndDate),
+      ),
+    );
+    await database.customStatement(
+      'UPDATE reminder_instances SET status = ?, snoozed_until = NULL WHERE occurrence_id IN (SELECT id FROM occurrences WHERE cycle_id = ?) AND status IN (?, ?)',
+      [
+        ReminderInstanceStatus.cancelled.index,
+        cycleId.value,
+        ReminderInstanceStatus.scheduled.index,
+        ReminderInstanceStatus.snoozed.index,
+      ],
+    );
+    return completed;
+  });
 
   @override
   Future<int> extendRecurringSchedules(

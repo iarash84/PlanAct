@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/features/commitments/application/commitment_plan_use_case.dart';
 import 'package:planact/features/commitments/domain/counted_commitment_progress.dart';
@@ -14,9 +15,19 @@ class RepositoryCommitmentProgressReader implements CommitmentProgressReader {
   final CommitmentPlanRepository plans;
   final FinancialExpectationRepository expectations;
 
+  Future<CountedCommitmentProgress?> readCycle(StableId cycleId) async {
+    final repository = plans;
+    if (repository is! CommitmentCyclesRepository) return null;
+    return _project(
+      await (repository as CommitmentCyclesRepository).findByCycleId(cycleId),
+    );
+  }
+
   @override
-  Future<CountedCommitmentProgress?> read(StableId commitmentId) async {
-    final plan = await plans.findByCommitmentId(commitmentId);
+  Future<CountedCommitmentProgress?> read(StableId commitmentId) async =>
+      _project(await plans.findByCommitmentId(commitmentId));
+
+  Future<CountedCommitmentProgress?> _project(CommitmentPlan? plan) async {
     if (plan == null || plan.schedule.occurrenceCount == null) return null;
     return buildCountedCommitmentProgress(
       schedule: plan.schedule,

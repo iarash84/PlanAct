@@ -13,6 +13,17 @@ class DriftCommitmentProgressReader
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
 
+  Future<CountedCommitmentProgress?> readCycle(StableId cycleId) =>
+      CommandGate.runFor(
+        this,
+        () => database.transaction(
+          () => RepositoryCommitmentProgressReader(
+            DriftCommitmentPlanRepository(database),
+            DriftFinancialExpectationRepository(database),
+          ).readCycle(cycleId),
+        ),
+      );
+
   @override
   Future<CountedCommitmentProgress?> read(StableId commitmentId) =>
       CommandGate.runFor(

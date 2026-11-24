@@ -1,6 +1,7 @@
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/database/app_database.dart' as db;
 import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/reconciliation/data/drift_commitment_association_repository.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/actuals/data/drift_actual_repository.dart';
 import 'package:planact/features/classification/data/drift_tag_repository.dart';
@@ -82,6 +83,8 @@ class DriftReportsReader implements ReportsReader, CommandGateProvider {
         start = chunkEnd;
       }
       return ReportSnapshot(
+        associations: await DriftCommitmentAssociationRepository(database)
+            .listAssociations(),
         commitments: commitments,
         cycles: cycleRows
             .map(

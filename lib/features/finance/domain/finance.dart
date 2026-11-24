@@ -2,6 +2,7 @@ import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
 import 'package:planact/core/money/money.dart';
 import 'package:planact/features/finance/domain/account_identifiers.dart';
+import 'package:planact/features/finance/domain/transaction_history.dart';
 
 enum FinancialAccountType { bank, cash, digitalWallet, credit }
 
@@ -147,6 +148,8 @@ class AccountEntry {
     this.category,
     this.source = AccountEntrySource.manual,
     this.transferGroupId,
+    this.noteRevision = 0,
+    this.history,
   }) {
     if (amount.minorUnits == 0) {
       throw const ValidationError('Entry amount cannot be zero');
@@ -162,6 +165,52 @@ class AccountEntry {
   final String? category;
   final AccountEntrySource source;
   final StableId? transferGroupId;
+  final int noteRevision;
+
+  /// Rebuildable read projection; never persisted or used for money calculations.
+  final TransactionHistory? history;
+
+  AccountEntry withHistory(TransactionHistory history) => AccountEntry(
+    id: id,
+    accountId: accountId,
+    type: type,
+    amount: amount,
+    occurredAt: occurredAt,
+    referenceId: referenceId,
+    note: note,
+    category: category,
+    source: source,
+    transferGroupId: transferGroupId,
+    noteRevision: noteRevision,
+    history: history,
+  );
+
+  bool hasSameFinancialDetails({
+    required StableId accountId,
+    required AccountEntryType type,
+    required Money amount,
+    required DateTime occurredAt,
+    required String? category,
+  }) =>
+      this.accountId == accountId &&
+      this.type == type &&
+      this.amount == amount &&
+      this.occurredAt.isAtSameMomentAs(occurredAt) &&
+      this.category == category;
+
+  AccountEntry withNote(String? note) => AccountEntry(
+    id: id,
+    accountId: accountId,
+    type: type,
+    amount: amount,
+    occurredAt: occurredAt,
+    referenceId: referenceId,
+    note: note,
+    category: category,
+    source: source,
+    transferGroupId: transferGroupId,
+    noteRevision: noteRevision + 1,
+  );
 
   Money get signedAmount {
     switch (type) {

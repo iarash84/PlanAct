@@ -443,13 +443,17 @@ void main() {
         ),
         findsOneWidget,
       );
+      // Correction history is hidden by default, not removed from the ledger.
       expect(
-        find.descendant(
-          of: find.byKey(ValueKey('transaction-account:${entry.id.value}')),
-          matching: find.text(bank.name),
-        ),
-        findsOneWidget,
+        find.byKey(ValueKey('transaction-account:${entry.id.value}')),
+        findsNothing,
       );
+      final retainedOriginal = (await finance.listEntries()).singleWhere(
+        (e) => e.id == entry.id,
+      );
+      expect(retainedOriginal.accountId, bank.id);
+      expect(retainedOriginal.amount, entry.amount);
+      expect(retainedOriginal.history!.role.corrected, isTrue);
 
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
@@ -475,6 +479,10 @@ void main() {
         commitments: commitments,
         plans: plans,
         reconciliation: reconciliation,
+      );
+      await database.customStatement(
+        'INSERT INTO financial_expectations(id,occurrence_id,direction,minor_units,currency,status,created_at,updated_at) VALUES (?, ?, 0, 100, ?, 0, 0, 0)',
+        [StableId.generate().value, plan.occurrences.single.id.value, 'IRR'],
       );
       await flow.confirm(
         transactionId: entry.id,

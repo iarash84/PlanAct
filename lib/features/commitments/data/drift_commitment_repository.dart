@@ -1,3 +1,4 @@
+import 'package:planact/features/commitments/domain/commitment_cycle.dart';
 import 'package:planact/core/application/command_gate.dart';
 
 import 'dart:convert';
@@ -224,8 +225,11 @@ class DriftCommitmentRepository
         : Map<String, dynamic>.from(jsonDecode(stored) as Map);
     final rows = await _database
         .customSelect(
-          'SELECT r.* FROM reminder_instances r WHERE occurrence_id IN (SELECT id FROM occurrences WHERE cycle_id IN (SELECT id FROM commitment_cycles WHERE commitment_id = ?))',
-          variables: [Variable(id.value)],
+          'SELECT r.* FROM reminder_instances r WHERE occurrence_id IN (SELECT id FROM occurrences WHERE cycle_id IN (SELECT id FROM commitment_cycles WHERE commitment_id = ? AND status = ?))',
+          variables: [
+            Variable(id.value),
+            Variable(CommitmentCycleStatus.active.index),
+          ],
         )
         .get();
     if (status != CommitmentStatus.active) {

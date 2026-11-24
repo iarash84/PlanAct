@@ -17,8 +17,10 @@ class FinancialExpectationEditor extends StatefulWidget {
     required this.useCases,
     required this.accounts,
     this.onSaved,
+    this.readOnly = false,
   });
 
+  final bool readOnly;
   final StableId occurrenceId;
   final FinancialExpectationUseCases useCases;
   final List<FinancialAccount> accounts;
@@ -126,6 +128,19 @@ class _FinancialExpectationEditorState
   @override
   Widget build(BuildContext context) {
     if (_loading) return const LinearProgressIndicator();
+    if (widget.readOnly) {
+      final item = _existing;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(planActL10n(context).cycleReadOnly),
+          if (item != null)
+            Text(
+              _moneyInput.inputText(item.amount, currency: item.currency ?? ''),
+            ),
+        ],
+      );
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(PlanActSpacing.lg),

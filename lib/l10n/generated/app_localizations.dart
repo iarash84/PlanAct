@@ -94,6 +94,192 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Heading for the amount-free commitment association editor and report section.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی با تعهد'**
+  String get commitmentAssociationTitle;
+
+  /// Explicit distinction between descriptive association, settlement and remainder review, shared by editor and reports.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.'**
+  String get commitmentAssociationDisclaimer;
+
+  /// No persisted descriptive commitment association for this transaction.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز ارتباط توصیفی ثبت نشده است.'**
+  String get commitmentAssociationNone;
+
+  /// Persisted descriptive association, distinct from the unsaved selection.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهد مرتبط: {title}'**
+  String commitmentAssociationCurrent(String title);
+
+  /// Explicit commitment selection; choosing does not write data.
+  ///
+  /// In fa, this message translates to:
+  /// **'انتخاب تعهد برای ارتباط توصیفی'**
+  String get commitmentAssociationSelect;
+
+  /// Empty commitment selection in the descriptive association editor.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدی برای انتخاب وجود ندارد.'**
+  String get commitmentAssociationEmpty;
+
+  /// Action opening confirmation before creating a descriptive association.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت ارتباط توصیفی'**
+  String get commitmentAssociationSave;
+
+  /// Action opening confirmation before changing the associated commitment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر ارتباط توصیفی'**
+  String get commitmentAssociationChange;
+
+  /// Non-destructive unlink action retaining association history.
+  ///
+  /// In fa, this message translates to:
+  /// **'قطع ارتباط توصیفی'**
+  String get commitmentAssociationUnlink;
+
+  /// Confirmation for creating or changing the descriptive association; no financial effects.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی با تعهد انتخاب‌شده ثبت شود؟ هیچ مبلغی تخصیص نمی‌یابد و وضعیت تسویه و بررسی باقی‌مانده تغییر نمی‌کند.'**
+  String get commitmentAssociationSaveConfirm;
+
+  /// Explicit unlink confirmation explaining retained history and unchanged allocations.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی قطع شود؟ سابقه حفظ می‌شود؛ تخصیص‌های واقعی و تراکنش تغییر نمی‌کنند.'**
+  String get commitmentAssociationUnlinkConfirm;
+
+  /// Success feedback for descriptive association writes, including unlink.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط توصیفی ذخیره شد؛ تسویه تغییری نکرد.'**
+  String get commitmentAssociationSaved;
+
+  /// Retryable association error retaining the draft and guiding stale-state refresh.
+  ///
+  /// In fa, this message translates to:
+  /// **'ارتباط ذخیره نشد. انتخاب شما حفظ شده است؛ دوباره تلاش کنید. اگر اطلاعات تغییر کرده، ابتدا بازخوانی کنید.'**
+  String get commitmentAssociationError;
+
+  /// Heading separating existing amount-based occurrence settlement from descriptive association.
+  ///
+  /// In fa, this message translates to:
+  /// **'تخصیص واقعی مبلغ به نوبت'**
+  String get commitmentAssociationSettlementTitle;
+
+  /// Opt-in switch for editing recurrence rather than date and time only.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش الگو و پایان تکرار'**
+  String get scheduleEditPattern;
+
+  /// Recurrence frequency field in the schedule editor.
+  ///
+  /// In fa, this message translates to:
+  /// **'الگوی تکرار'**
+  String get scheduleEditFrequency;
+
+  /// Positive recurrence interval, measured in the selected frequency unit.
+  ///
+  /// In fa, this message translates to:
+  /// **'فاصلهٔ تکرار (عدد مثبت)'**
+  String get scheduleEditInterval;
+
+  /// Inclusive end-date choice and date-picker action.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ پایان (شامل این روز)'**
+  String get scheduleEditEndDate;
+
+  /// Total logical schedule slots including those before the edit boundary; not session credit.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعداد کل نوبت‌های برنامه'**
+  String get scheduleEditTotalCount;
+
+  /// Explains preserved recurrence anchors and guarded edits without implying entitlement changes.
+  ///
+  /// In fa, this message translates to:
+  /// **'تقویم مرجع و روز و ماه مبنای برنامه حفظ می‌شوند. تعداد نوبت، اعتبار جلسه نیست. تغییر مبهم یا جابه‌جایی سوابق محافظت‌شده پذیرفته نمی‌شود.'**
+  String get scheduleEditAnchorsPreserved;
+
+  /// Actionable local validation feedback before requesting a recurrence preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'فاصله و تعداد را با عدد مثبت وارد کنید؛ برای الگوی هفتگی روز و برای پایان تاریخی، تاریخ انتخاب کنید.'**
+  String get scheduleEditInvalid;
+
+  /// Read-only preview action; does not save the draft.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیش‌نمایش تغییرات'**
+  String get scheduleEditPreview;
+
+  /// Explicit confirmation after viewing a fresh recurrence preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید و ثبت تغییرات'**
+  String get scheduleEditConfirm;
+
+  /// Preview rejection or failure; retains draft and invites an explicit retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیش‌نمایش آماده نشد؛ ممکن است برنامه تغییر کرده باشد یا این ترکیب با حفظ سوابق ممکن نباشد. ورودی‌ها را بررسی و دوباره پیش‌نمایش بگیرید.'**
+  String get scheduleEditPreviewFailed;
+
+  /// Save failure with retained draft; recurrence confirmation requires another preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییرات ثبت نشد. پیش‌نویس حفظ شده است؛ برنامه و ورودی‌ها را بررسی و دوباره تلاش کنید. برای تغییر الگو، پیش‌نمایش تازه لازم است.'**
+  String get scheduleEditSaveFailed;
+
+  /// Read-only effect preview showing the backend boundary and affected persisted rows, not the full logical count.
+  ///
+  /// In fa, this message translates to:
+  /// **'مرز اثر: {boundary}؛ {count} نوبت ثبت‌شده تغییر می‌کند. زمان‌های جدید در زیر آمده‌اند؛ هنوز چیزی ثبت نشده است.'**
+  String scheduleEditPreviewSummary(String boundary, String count);
+
+  /// Today SMS preview status: this suggestion has not been confirmed into the ledger.
+  ///
+  /// In fa, this message translates to:
+  /// **'هنوز ثبت نشده'**
+  String get todayTransactionUnconfirmed;
+
+  /// Labels the unallocated amount in the Today relationship preview, not the original transaction total.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ بدون ارتباط'**
+  String get todayTransactionRemainder;
+
+  /// Original transaction total shown only when the unallocated remainder differs.
+  ///
+  /// In fa, this message translates to:
+  /// **'کل تراکنش: {amount}'**
+  String todayTransactionTotal(String amount);
+
+  /// The SMS draft date is unknown or only a receipt fallback; never presents it as an extracted date.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ تراکنش نیاز به بررسی دارد'**
+  String get todayTransactionDateNeedsReview;
+
+  /// Explicit reviewer-selected transaction date in the Today SMS preview.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ بازبینی‌شده: {date}'**
+  String todayTransactionReviewedDate(String date);
+
   /// Feedback when the captured sequential review queue has no remaining eligible items. New arrivals are not included.
   ///
   /// In fa, this message translates to:
@@ -151,7 +337,7 @@ abstract class AppLocalizations {
   /// Action opening a read-only account reconciliation preview; opening it does not write a financial entry.
   ///
   /// In fa, this message translates to:
-  /// **'بررسی و تطبیق حساب'**
+  /// **'مقایسه با موجودی بانک'**
   String get bankBalanceReconcile;
 
   /// Label for the ledger balance through the valid source report time, not the current balance.
@@ -7801,7 +7987,7 @@ abstract class AppLocalizations {
   /// Undo repair: explicit operation feedback and confirmation.
   ///
   /// In fa, this message translates to:
-  /// **'تراکنش اصلی با ثبت جبرانی خنثی و مبلغ اصلاح‌شده جداگانه ثبت می‌شود. ارتباط‌ها و برچسب‌های قبلی خودکار به تراکنش جدید منتقل نمی‌شوند.'**
+  /// **'اثر مالی تراکنش قبلی با ثبت برگشت خنثی و نسخهٔ اصلاح‌شده جداگانه ثبت می‌شود. برچسب‌ها و دسته‌بندی روی نسخهٔ اصلاح‌شده هم حفظ می‌شوند و شرح مطابق فرم ثبت می‌شود؛ سابقهٔ قبلی دست‌نخورده می‌ماند. ارتباط‌های مالی و منشأ پیامکی خودکار منتقل نمی‌شوند.'**
   String get financeCorrectMessage;
 
   /// Undo repair: explicit operation feedback and confirmation.
@@ -8941,25 +9127,25 @@ abstract class AppLocalizations {
   /// Title and explicit action for reversing dependent bank reconciliations.
   ///
   /// In fa, this message translates to:
-  /// **'بازیابی تطبیق‌های وابسته'**
+  /// **'لغو تطبیق‌های قبلی'**
   String get bankRecoveryTitle;
 
   /// Disclosure before explicit atomic dependency recovery.
   ///
   /// In fa, this message translates to:
-  /// **'همهٔ تطبیق‌های فعال حساب‌های زیر، از جدیدترین گزارش به قدیمی‌ترین، با ثبت جبرانی باطل می‌شوند. اصل تراکنش‌ها، گزارش‌های موجودی، برچسب‌ها و تخصیص‌ها باقی می‌مانند. این کار گزارش موجودی را ذخیره یا پیامک را تأیید نمی‌کند؛ پس از بازگشت، اطلاعات را بررسی و دوباره اقدام کنید.'**
+  /// **'این صفحه فقط پیش‌نمایش است. با تأیید نهایی، همهٔ تطبیق‌های فعال حساب‌های زیر از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند. اصل سوابق، گزارش‌ها، ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند؛ پیش‌نویس حفظ می‌شود و پس از بازگشت باید صریحاً دوباره برای ثبت تلاش کنید.'**
   String get bankRecoveryDisclosure;
 
   /// Successful recovery; user must explicitly retry the retained draft.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق‌های وابسته باطل شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.'**
+  /// **'تطبیق‌های قبلی لغو شدند. پیش‌نویس حفظ شده است؛ برای ادامه دوباره بررسی و تأیید کنید.'**
   String get bankRecoveryDone;
 
   /// Empty recovery preview.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق فعالی برای بازیابی وجود ندارد.'**
+  /// **'تطبیق فعالی برای لغو وجود ندارد.'**
   String get bankRecoveryEmpty;
 
   /// Label for immutable source observation identity.
@@ -9025,32 +9211,654 @@ abstract class AppLocalizations {
   /// Account help: ReviewAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد گزارش مستقل از تنظیم نمایش ریال یا تومان است. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.'**
+  /// **'از کارت حساب، «بررسی گزارش موجودی» را باز کنید و حساب، مبلغ، واحد و تاریخ و ساعت گزارش را بررسی کنید. واحد معلوم گزارش مستقل از تنظیم نمایش ریال یا تومان حفظ می‌شود. اگر واحد نامعلوم باشد، واحد تنظیمات به‌صورت پیشنهاد قابل تغییر برای همان فرم ثابت می‌ماند؛ فقط تأیید نهایی آن را ذخیره می‌کند. تأیید بررسی فقط نسخهٔ بررسی‌شدهٔ گزارش را ذخیره می‌کند؛ تراکنش یا موجودی دفتر تغییر نمی‌کند. گزارش اصلی و تاریخچه حفظ می‌شوند. بی‌اعتبارکردن یا معتبرکردن دوبارهٔ گزارش نیز با تأیید شما انجام می‌شود. بستن فرم بدون تأیید، تغییری ثبت نمی‌کند.'**
   String get helpAccountsReviewAnswer;
 
   /// Account help: ReconcileQuestion. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'تطبیق موجودی بانک چگونه انجام می‌شود؟'**
+  /// **'مقایسه با موجودی بانک چگونه انجام می‌شود؟'**
   String get helpAccountsReconcileQuestion;
 
   /// Account help: ReconcileAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'وقتی گزارش معتبر و کامل قابل استفاده باشد، تطبیق را از کارت حساب باز کنید. پیش‌نمایش، موجودی دفتر تا زمان گزارش و اختلاف آن با گزارش بانک را نشان می‌دهد. کارمزد مشخص به‌عنوان هزینه و اختلاف نامعلوم به‌عنوان تعدیل ثبت می‌شود؛ اختلاف نامعلوم خودکار درآمد یا هزینه نیست. ثبت تنها با انتخاب دلیل و تأیید شما انجام می‌شود و بر موجودی دفتر اثر دارد.'**
+  /// **'از مالی ← حساب‌ها، مقایسه با موجودی بانک را باز کنید. موجودی دفتر و بانک در زمان گزارش تاریخی مقایسه می‌شوند و کمتر یا بیشتر بودن بانک مشخص است؛ این موجودی زنده نیست. اگر تراکنشی جا افتاده یا اشتباه است، آن را در مالی ثبت یا اصلاح کنید و دوباره مقایسه کنید؛ این انتخاب تعدیل نمی‌سازد. برای کارمزد مشخص، ثبت کارمزد و برای اختلاف نامعلوم، ثبت تعدیل موجودی را صریحاً تأیید کنید. گزارش ناقص یا مبهم اجازهٔ ثبت اختلاف نمی‌دهد.'**
   String get helpAccountsReconcileAnswer;
 
   /// Account help: RecoveryQuestion. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'بازیابی تطبیق‌های وابسته چه زمانی لازم است؟'**
+  /// **'لغو تطبیق‌های قبلی چه زمانی لازم است؟'**
   String get helpAccountsRecoveryQuestion;
 
   /// Account help: RecoveryAnswer. Describes existing explicit account operations and privacy boundaries.
   ///
   /// In fa, this message translates to:
-  /// **'اگر اصلاح گزارش یا ثبت تراکنش قدیمی به تطبیق‌های فعال وابسته باشد، مسیر بازیابی پیش‌نمایش حساب‌ها و تطبیق‌های درگیر را نشان می‌دهد. پس از تأیید صریح شما، همهٔ تطبیق‌های فعال حساب‌های درگیر از جدیدترین به قدیمی‌ترین با ثبت جبرانی باطل می‌شوند؛ اصل تراکنش‌ها، گزارش‌ها، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. این کار گزارش را ذخیره یا پیامک را تأیید نمی‌کند: پس از بازگشت، پیش‌نویس را دوباره بررسی و ثبت کنید. انصراف تغییری نمی‌دهد؛ در خطا، پیام را بررسی و صریحاً دوباره تلاش کنید.'**
+  /// **'وقتی بررسی گزارش یا ثبت تراکنش قدیمی به تطبیق فعال وابسته است، بررسی تطبیق‌های قبلی فقط پیش‌نمایش را باز می‌کند. حساب‌های درگیر، تعداد تطبیق‌ها و خالص اثر لغو هر حساب را بررسی کنید. تنها با تأیید نهاییِ دارای تعداد، تطبیق‌های فعال از جدیدترین گزارش به قدیمی‌ترین با ثبت جبرانی لغو می‌شوند؛ اصل سوابق و ممیزی، برچسب‌ها و تخصیص‌ها حفظ می‌شوند. گزارش یا پیامک خودکار ذخیره نمی‌شود؛ پیش‌نویس را پس از بازگشت صریحاً دوباره ثبت کنید. انصراف تغییری نمی‌دهد و خطا نیازمند پیش‌نمایش و تأیید تازه است.'**
   String get helpAccountsRecoveryAnswer;
+
+  /// Badge for an original entry superseded by a confirmed correction.
+  ///
+  /// In fa, this message translates to:
+  /// **'اصلاح‌شده'**
+  String get transactionCorrected;
+
+  /// Role of the reversal committed with a correction replacement.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت بابت اصلاح'**
+  String get transactionCorrectionReversal;
+
+  /// Explains the correction reversal without changing ledger semantics.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت اثر تراکنش قبلی را خنثی می‌کند و پرداخت مستقلی نیست.'**
+  String get transactionCorrectionReversalHelp;
+
+  /// Role of a valid replacement financial entry.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت اصلاحی — جایگزین تراکنش قبلی'**
+  String get transactionReplacement;
+
+  /// Explains that an unreversed replacement remains a valid financial entry.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت، تراکنش مالی معتبرِ جایگزین است.'**
+  String get transactionReplacementHelp;
+
+  /// Role of an explicitly journalled cancellation reversal.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت بابت لغو'**
+  String get transactionCancellationReversal;
+
+  /// Explains a cancellation reversal, distinct from correction.
+  ///
+  /// In fa, this message translates to:
+  /// **'این ثبت اثر تراکنش لغوشده را خنثی می‌کند و پرداخت مستقلی نیست.'**
+  String get transactionCancellationReversalHelp;
+
+  /// Status for a reversed original or replacement.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت‌خورده — فقط سابقه؛ ثبت جاری نیست'**
+  String get transactionReversedHistory;
+
+  /// Neutral role when reversal purpose has insufficient evidence.
+  ///
+  /// In fa, this message translates to:
+  /// **'برگشت ثبت قبلی'**
+  String get transactionUnknownReversal;
+
+  /// Action opening read-only related financial records.
+  ///
+  /// In fa, this message translates to:
+  /// **'مشاهدهٔ ثبت‌های مرتبط'**
+  String get transactionHistoryOpen;
+
+  /// Title of the read-only correction and cancellation history.
+  ///
+  /// In fa, this message translates to:
+  /// **'زنجیرهٔ ثبت‌های مرتبط'**
+  String get transactionHistoryTitle;
+
+  /// Role for the initial entry in the related records viewer.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت اولیه'**
+  String get transactionHistoryOriginal;
+
+  /// Finance setting label for correction history, off by default.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش سوابق اصلاح تراکنش‌ها'**
+  String get financeShowCorrectionHistory;
+
+  /// Explains the display-only Finance correction history preference.
+  ///
+  /// In fa, this message translates to:
+  /// **'نمایش نسخه‌های قبلی و برگشت‌های بابت اصلاح در فهرست مالی؛ مانده و گزارش‌ها تغییر نمی‌کنند.'**
+  String get financeShowCorrectionHistoryDescription;
+
+  /// Save failure retaining the previous effective preference with retry guidance.
+  ///
+  /// In fa, this message translates to:
+  /// **'تنظیم ذخیره نشد؛ مقدار قبلی حفظ شد. برای تلاش دوباره کلید را بزنید.'**
+  String get financeCorrectionHistorySaveError;
+
+  /// Explains historical bank comparison.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی دفتر را با گزارش تاریخی بانک در همان زمان مقایسه کنید؛ این موجودی زنده نیست.'**
+  String get bankBalanceComparisonHelp;
+
+  /// Unselected reason hint; no financial reason is assumed.
+  ///
+  /// In fa, this message translates to:
+  /// **'علت اختلاف را انتخاب کنید'**
+  String get bankBalanceReason;
+
+  /// Guidance-only choice; never creates an adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنشی جا افتاده یا اشتباه ثبت شده'**
+  String get bankBalanceMissingTransaction;
+
+  /// Guides explicit transaction repair without automatic adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش جاافتاده را در مالی ثبت کنید یا تراکنش اشتباه را از عملیات همان تراکنش اصلاح کنید؛ سپس دوباره مقایسه کنید. این انتخاب هیچ تعدیلی ثبت نمی‌کند.'**
+  String get bankBalanceTransactionGuidance;
+
+  /// Final explicit action recording a known fee expense.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت کارمزد'**
+  String get bankBalanceRegisterFee;
+
+  /// Final explicit action recording an unknown signed balance adjustment.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت تعدیل موجودی'**
+  String get bankBalanceRegisterAdjustment;
+
+  /// Read-only zero difference state.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک و دفتر در زمان گزارش برابر است.'**
+  String get bankBalanceEqual;
+
+  /// Explains contextual reversal preview without automatic reversal.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق فعال وجود دارد؛ برای تغییر گزارش یا ثبت مؤثر بر گذشته، ابتدا تطبیق‌های قبلی را بررسی کنید.'**
+  String get bankBalanceAlreadyReconciled;
+
+  /// Opens read-only reversal preview, not confirmation.
+  ///
+  /// In fa, this message translates to:
+  /// **'بررسی تطبیق‌های قبلی'**
+  String get bankRecoveryReview;
+
+  /// Reloads preview after failed or stale consent.
+  ///
+  /// In fa, this message translates to:
+  /// **'دریافت دوبارهٔ پیش‌نمایش'**
+  String get bankRecoveryRetry;
+
+  /// Directional comparison when bank is lower.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک {amount} کمتر از دفتر است.'**
+  String bankBalanceBankLower(String amount);
+
+  /// Directional comparison when bank is higher.
+  ///
+  /// In fa, this message translates to:
+  /// **'موجودی بانک {amount} بیشتر از دفتر است.'**
+  String bankBalanceBankHigher(String amount);
+
+  /// Final confirmation naming total reversals.
+  ///
+  /// In fa, this message translates to:
+  /// **'لغو {count} تطبیق قبلی'**
+  String bankRecoveryConfirmCount(String count);
+
+  /// Per-account reversal count and exact signed net effect.
+  ///
+  /// In fa, this message translates to:
+  /// **'{account}؛ {count} تطبیق؛ خالص تغییر موجودی: {amount}'**
+  String bankRecoveryAccountSummary(
+    String account,
+    String count,
+    String amount,
+  );
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'شروع کار'**
+  String get helpFaqGettingStartedTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پلن‌اکت برای چه کاری است؟'**
+  String get helpFaqPurposeQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پلن‌اکت برای برنامه‌ریزی تعهدها، زمان‌بندی جلسات، پیگیری یادآوری‌ها و هم‌زمان‌سازی وضعیت واقعی با وضعیت برنامه‌ریزی‌شده استفاده می‌شود. این برنامه بیشتر به‌صورت محلی و آفلاین کار می‌کند و داده‌ها روی دستگاه شما نگهداری می‌شوند.'**
+  String get helpFaqPurposeAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از کجا شروع کنم؟'**
+  String get helpFaqStartQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از دکمهٔ + یا گزینهٔ «افزودن تعهد» در منوی کناری شروع کنید. عنوان و زمان‌بندی را مشخص کنید و گزینه‌های اختیاری را در همان فرم باز کنید. پس از ذخیره، نوبت‌ها را در امروز، تقویم یا جزئیات تعهد پیگیری کنید.'**
+  String get helpFaqStartAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت تعهد، برنامه و رخداد چیست؟'**
+  String get helpFaqConceptsQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهد همان مفهوم اصلی است؛ برنامهٔ تکرارشونده یا یک‌باره تعیین می‌کند قرار است چه زمانی رخ بدهد و رخداد همان نوبت یا جلسهٔ خاصی است که از آن برنامه ساخته می‌شود. این جداسازی باعث می‌شود تغییرات در برنامه، تاریخچهٔ قبلی را به‌صورت ناخواسته بازنویسی نکند.'**
+  String get helpFaqConceptsAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعهدها و زمان‌بندی'**
+  String get helpFaqCommitmentsTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک تعهد جدید بسازم؟'**
+  String get helpFaqCreateQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از دکمهٔ + یا «افزودن تعهد» در منوی کناری استفاده کنید؛ مسیر «بیشتر» هم در دسترس است. عنوان و زمان‌بندی را وارد کنید و در صورت نیاز بخش‌های اختیاری مانند یادآوری را باز کنید. تاریخ و ساعت را آگاهانه انتخاب کنید؛ فهرست کارها را پس از ساخت از اقدام‌ها یا جزئیات تعهد مدیریت کنید.'**
+  String get helpFaqCreateAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک برنامهٔ تکرارشونده ایجاد کنم؟'**
+  String get helpFaqRecurrenceQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'در بخش زمان‌بندی فرم، الگوی تکرار روزانه، هفتگی، ماهانه یا سالانه و پایان مورد نظر را تنظیم کنید. تعداد نوبت یا تاریخ پایان با بازهٔ آماده‌سازی نوبت‌ها فرق دارد؛ همهٔ نوبت‌های دوردست از ابتدا ثبت نمی‌شوند. تعداد نوبت، اعتبار جلسه یا پرداخت نیست.'**
+  String get helpFaqRecurrenceAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا تغییر برنامه، تاریخچهٔ قبلی را تغییر می‌دهد؟'**
+  String get helpFaqHistoryQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تغییر زمان‌بندی نباید سوابق انجام‌شده یا لغوشده را بازنویسی کند. فقط از دامنهٔ تغییری استفاده کنید که فرم موجود صریحاً پشتیبانی می‌کند؛ اگر نوع تکرار یا پایان برنامه قابل ویرایش نیست، آن را با تغییر دیگری دور نزنید. بازگشایی یک نوبت نیز سابقهٔ نتیجهٔ قبلی را پاک نمی‌کند.'**
+  String get helpFaqHistoryAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت زمان‌بندی با اعتبار جلسات چیست؟'**
+  String get helpFaqCreditQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'زمان‌بندی می‌گوید نوبت‌ها چه زمانی و چند بار باشند؛ اعتبار جلسات حق مصرف یک بسته است. تعداد تکرار به‌تنهایی اعتبار ایجاد نمی‌کند. فرم عمومی افزودن تعهد اکنون مسیر ساخت بستهٔ اعتبار جلسات ندارد؛ آن را با تعداد نوبت اشتباه نگیرید.'**
+  String get helpFaqCreditAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه یک رخداد را تکمیل، لغو یا جابه‌جا کنم؟'**
+  String get helpFaqOutcomeQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از جزئیات تعهد یا اقدام‌های نوبت، گزینهٔ موجود برای انجام، لغو یا تغییر زمان را انتخاب کنید و تأیید لازم را انجام دهید. سابقه حفظ می‌شود؛ یادآوری‌های آینده با زمان و وضعیت جدید هماهنگ می‌شوند و اعلان غیرضروری نوبت انجام‌شده یا لغوشده نباید فعال بماند. بازگشایی نوبت به معنی برگشت خودکار پول یا اعتبار نیست.'**
+  String get helpFaqOutcomeAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه حساب مالی بسازم؟'**
+  String get helpFaqCreateAccountQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از مالی ← حساب‌ها یا گزینهٔ «حساب‌ها» در منوی کناری، حساب اضافه کنید. نام و نوع حساب را مشخص کنید؛ شناسه‌های کارت، شبا و شماره حساب اختیاری‌اند. ثبت درآمد، هزینه و انتقال را پس از ساخت حساب از مسیر مالی انجام دهید.'**
+  String get helpFaqCreateAccountAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت درآمد، هزینه و انتقال بین حساب‌ها چیست؟'**
+  String get helpFaqTransferQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'درآمد و هزینه‌ها ثبت‌های مالی مستقیم هستند؛ انتقال بین حساب‌ها یک عملیات داخلی است که از درآمد و هزینه جدا می‌ماند و به‌عنوان جابه‌جایی بین دو حساب نگهداری می‌شود.'**
+  String get helpFaqTransferAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا تکمیل یک رخداد به‌تنهایی به معنی پرداخت‌شدن آن نیست؟'**
+  String get helpFaqPaymentQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'انجام‌شدن یک نوبت با لغوشدن آن فرق دارد و هیچ‌کدام به‌تنهایی پرداخت را ثابت نمی‌کند. پرداخت واقعی باید به‌صورت تراکنش ثبت شود و ارتباط مبلغ با تعهد یا نوبت، جداگانه تأیید شود؛ پرداخت جزئی نیز با تسویهٔ کامل فرق دارد.'**
+  String get helpFaqPaymentAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبالغ چگونه ذخیره و نمایش داده می‌شوند؟'**
+  String get helpFaqMoneyQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از تنظیمات، واحد نمایش و ورود مبلغ را ریال یا تومان انتخاب کنید؛ پیش‌فرض ریال است. این انتخاب تبدیل ارز نیست و مبالغ قبلی را تغییر نمی‌دهد. فرم باز، واحد نمایش‌داده‌شدهٔ خود را تا بسته‌شدن حفظ می‌کند. مبالغ ایرانی جدید با دقت عدد صحیح ریال ذخیره و با رقم فارسی و جداکنندهٔ سه‌رقمی نمایش داده می‌شوند؛ ماندهٔ یک‌دهم تومان گرد نمی‌شود.'**
+  String get helpFaqMoneyAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'صندوق ورودی و پیامک'**
+  String get helpFaqInboxTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیامک بانکی چگونه وارد صندوق ورودی می‌شود؟'**
+  String get helpFaqSmsConsentQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از صندوق ورودی، راه‌اندازی پیامک را باز کنید. دسترسی گوشی به‌تنهایی رضایت خواندن نیست: بازهٔ ۷ روز، ۳۰ روز یا از همین حالا را صریحاً انتخاب کنید. دریافت خودکار انتخاب جداگانه و ابتدا خاموش است. دکمهٔ بررسی دستی و کشیدن صندوق ورودی برای تازه‌سازی، در محدودهٔ رضایت دستی کار می‌کنند؛ خاموش‌بودن دریافت خودکار مانع بررسی دستی نیست. هیچ تراکنشی بدون تأیید شما ثبت نمی‌شود.'**
+  String get helpFaqSmsConsentAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا پیشنهاد پیامک قبل از ثبت مالی نیاز به تأیید دارد؟'**
+  String get helpFaqSmsConfirmQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'زیرا دادهٔ پیامک ممکن است نامشخص، ناقص یا دارای واحد پول مبهم باشد. پیش‌نمایش پیامک فقط پیشنهاد است و ثبت نهایی فقط با تأیید و بررسی کاربر انجام می‌شود.'**
+  String get helpFaqSmsConfirmAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر واحد مبلغ ریال یا تومان نامشخص باشد چه کار کنم؟'**
+  String get helpFaqSmsUnitQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر واحد پیامک نامعلوم باشد، فرم بررسی واحد تنظیمات را به‌صورت پیشنهادی و قابل تغییر نشان می‌دهد و آن را برای همان فرم نگه می‌دارد. واحد شناسایی‌شده یا قبلاً بررسی‌شده تغییر نمی‌کند. مبلغ و واحد را بررسی و سپس تأیید نهایی کنید؛ بازکردن فرم یا انصراف، پیشنهاد واحد را ذخیره نمی‌کند.'**
+  String get helpFaqSmsUnitAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا رد کردن پیشنهاد پیامک، تراکنشی را حذف می‌کند؟'**
+  String get helpFaqSmsRejectQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'نه. فقط پیشنهاد تأییدنشده را رد می‌کنید و می‌توانید همان مورد را دوباره برای بررسی باز کنید. تراکنش تأییدشده از صندوق ورودی حذف یا برگردانده نمی‌شود؛ برای اصلاح یا لغو آن از مسیر مالی استفاده کنید.'**
+  String get helpFaqSmsRejectAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه برای یک رخداد یادآوری تنظیم کنم؟'**
+  String get helpFaqReminderSetupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'در فرم تعهد، بخش یادآوری را باز و گزینهٔ زمانی موجود را انتخاب کنید؛ ویرایش یادآوری نوبت نیز از اقدام‌های مربوط در دسترس است. اعلان معمولی با هشدار زنگ‌دار اختیاری اندروید فرق دارد و ممکن است به دسترسی گوشی نیاز داشته باشد. توقف یا تعویق هشدار، نوبت را انجام‌شده نمی‌کند.'**
+  String get helpFaqReminderSetupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا بعد از تکمیل یا لغو رخداد، یادآوری فعال باقی نمی‌ماند؟'**
+  String get helpFaqReminderCleanupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پس از انجام یا لغو نوبت، قصد یادآوری آینده با وضعیت تازه هماهنگ می‌شود تا اعلان اضافی ارسال نشود؛ سابقهٔ نوبت و یادآوری پاک نمی‌شود. تغییر زمان هم نیازمند هماهنگی یادآوری‌های آینده است. محدودیت مجوز یا تحویل گوشی می‌تواند نیاز به بررسی و تلاش مجدد داشته باشد.'**
+  String get helpFaqReminderCleanupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت ثبت رخداد با ارسال اعلان چیست؟'**
+  String get helpFaqDeliveryQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیرهٔ تعهد یا تغییر وضعیت، ثبت داده در برنامه است؛ ارسال اعلان یا هشدار مرحلهٔ جداگانه‌ای روی گوشی است. خطای تحویل اعلان لزوماً به معنی شکست ذخیره نیست. ابتدا نتیجهٔ ذخیره را بررسی کنید و برای رفع مشکل اعلان، دسترسی و تنظیمات یادآوری را بررسی کنید؛ ثبت تکراری نسازید.'**
+  String get helpFaqDeliveryAnswer;
+
+  /// Help FAQ title for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'پشتیبان‌گیری و حریم خصوصی'**
+  String get helpFaqBackupTitle;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات من کجا نگهداری می‌شود؟'**
+  String get helpFaqStorageQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'داده‌های اصلی برنامه به‌صورت محلی روی دستگاه شما نگهداری می‌شوند و برای استفادهٔ اصلی نیاز به اینترنت یا سرویس ابری نیست. با نسخه‌برداری و بازیابی محلی هم می‌توانید از داده‌ها محافظت کنید.'**
+  String get helpFaqStorageAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'آیا برای استفاده از قابلیت‌های اصلی اینترنت یا حساب ابری لازم است؟'**
+  String get helpFaqOfflineQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'خیر. استفادهٔ اصلی پلن‌اکت آفلاین است و برای برنامه‌ریزی، تعهد، یادآوری، مالی و دسترسی به داده‌های محلی نیاز به اینترنت یا حساب ابری ندارید.'**
+  String get helpFaqOfflineAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چگونه پشتیبان تهیه و بازیابی کنم؟'**
+  String get helpFaqBackupQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'از بخش پشتیبان‌گیری، فایل رمزگذاری‌شده بسازید. هر خروجی جدید کلید بازیابی مستقل دارد؛ هشدارها را بخوانید، کلید را جداگانه نگه دارید و سپس فایل را ذخیره کنید. برای بازیابی، فایل و کلید همان خروجی لازم است؛ اعتبار و سازگاری پیش از جایگزینی بررسی می‌شود. نسخه‌های قدیمی با قالب وابسته به کلید نصب، به همان کلید نصب قبلی نیاز دارند.'**
+  String get helpFaqBackupAnswer;
+
+  /// Help FAQ question for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا فایل پشتیبان و کلید بازیابی باید جداگانه نگهداری شوند؟'**
+  String get helpFaqRecoveryKeyQuestion;
+
+  /// Help FAQ answer for the local read-only help page.
+  ///
+  /// In fa, this message translates to:
+  /// **'کلید امکان بازکردن فایل رمزگذاری‌شده را می‌دهد؛ آن را کنار فایل نگه ندارید و در جای امن جداگانه حفظ کنید. اگر کلید همان خروجی را از دست بدهید، برنامه نمی‌تواند آن را بازیابی کند. داشتن فایل به‌تنهایی کافی نیست؛ هر خروجی جدید کلید جداگانهٔ خود را دارد.'**
+  String get helpFaqRecoveryKeyAnswer;
+
+  /// Help FAQ question about Correction in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت ویرایش شرح با اصلاح یا لغو تراکنش چیست؟'**
+  String get helpFaqCorrectionQuestion;
+
+  /// Help FAQ answer about Correction in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اگر فقط شرح درآمد یا هزینه را تغییر دهید، همان تراکنش با حفظ مبلغ، حساب، هشتگ‌ها و ارتباط‌ها به‌روزرسانی می‌شود و سابقهٔ ویرایش شرح می‌ماند. تغییر اطلاعات مالی مسیر تأیید اصلاح دارد: اصل با ثبت برگشت خنثی و جایگزین ساخته می‌شود. هشتگ‌ها و دستهٔ نسخهٔ جاری حفظ می‌شوند مگر دسته را عوض کنید؛ تخصیص پرداخت و منشأ پیامک خودکار به جایگزین منتقل نمی‌شوند. لغو نیز با ثبت برگشت انجام می‌شود، نه پاک‌کردن تاریخچه.'**
+  String get helpFaqCorrectionAnswer;
+
+  /// Help FAQ question about CorrectionHistory in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا نسخه‌های قبلی تراکنش اصلاح‌شده را در مالی نمی‌بینم؟'**
+  String get helpFaqCorrectionHistoryQuestion;
+
+  /// Help FAQ answer about CorrectionHistory in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'گزینهٔ «نمایش سوابق اصلاح تراکنش‌ها» در تنظیمات پیش‌فرض خاموش است؛ فهرست مالی نسخهٔ جاریِ لغونشده را نشان می‌دهد و سوابق اثبات‌شدهٔ اصلاح را پنهان می‌کند. آن را برای دیدن نسخه‌های قبلی و برگشت‌های اصلاح روشن کنید؛ سوابق مرتبط از مسیر خود رکورد هم در دسترس‌اند. لغو نسخهٔ نهایی، نسخهٔ قدیمی را برنمی‌گرداند. موجودی، گزارش‌ها و تقویم از این فیلتر تغییر نمی‌کنند.'**
+  String get helpFaqCorrectionHistoryAnswer;
+
+  /// Help FAQ question about Relationship in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تعیین ارتباط تراکنش با تطبیق پرداخت چه فرقی دارد؟'**
+  String get helpFaqRelationshipQuestion;
+
+  /// Help FAQ answer about Relationship in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تطبیق پرداخت، مبلغ تراکنش را به تعهد یا نوبت مربوط می‌کند و می‌تواند جزئی باشد. تعیین ارتباط برای بررسی مبلغ بدون ارتباط است؛ تنها تأیید صریح مستقل‌بودن، آن مانده را از صف بررسی خارج می‌کند. بازکردن یا بستن صفحه تصمیم نیست و بازکردن دوبارهٔ بررسی، پول یا تطبیق‌های قبلی را برنمی‌گرداند.'**
+  String get helpFaqRelationshipAnswer;
+
+  /// Help FAQ question about SmsNotification in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان تشخیص پیامک با دریافت خودکار چه فرقی دارد؟'**
+  String get helpFaqSmsNotificationQuestion;
+
+  /// Help FAQ answer about SmsNotification in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعلان تشخیص پیامک انتخابی جدا از مجوز و رضایت خواندن پیامک است. روشن‌کردن آن به معنی اجازهٔ ثبت مالی نیست؛ با لمس اعلان، پیشنهادهای باقی‌مانده را در صندوق ورودی و در صورت نیاز پس از بازکردن قفل برنامه بررسی می‌کنید. اعلان صفحهٔ قفل عمومی است و هیچ تأیید یا رد مالی از خود اعلان انجام نمی‌شود. تحویل پس‌زمینه تابع محدودیت‌های اندروید است و در توقف اجباری تضمین نمی‌شود.'**
+  String get helpFaqSmsNotificationAnswer;
+
+  /// Help FAQ question about CalendarVisibility in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'چرا تراکنش‌ها در تقویم دیده نمی‌شوند؟'**
+  String get helpFaqCalendarVisibilityQuestion;
+
+  /// Help FAQ answer about CalendarVisibility in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'در تنظیمات ← تقویم، تعهدها و یادداشت‌ها پیش‌فرض روشن و درآمد، هزینه و انتقال بین حساب‌ها پیش‌فرض خاموش‌اند. دستهٔ مورد نظر را روشن کنید تا در ماه و هفته نمایش داده شود. تاریخ تراکنش ثبت‌شده ملاک است، نه زمان دریافت یا تأیید پیامک. پنهان‌کردن فقط نمایش را عوض می‌کند و پول، نوبت و یادآوری را تغییر نمی‌دهد.'**
+  String get helpFaqCalendarVisibilityAnswer;
+
+  /// Help FAQ question about NotesChecklist in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'تفاوت یادداشت تقویم با فهرست کارهای تعهد چیست؟'**
+  String get helpFaqNotesChecklistQuestion;
+
+  /// Help FAQ answer about NotesChecklist in the current local app.
+  ///
+  /// In fa, this message translates to:
+  /// **'از افزودن سریع می‌توانید یادداشت مستقل با تاریخ شمسی بسازید؛ یادداشت تعهد، یادآوری یا اثر مالی ایجاد نمی‌کند. فهرست کارها متعلق به خود تعهد است و میان نوبت‌ها مشترک می‌ماند. تیک‌زدن همهٔ کارها به‌تنهایی نوبت را انجام‌شده نمی‌کند، پرداخت ثبت نمی‌کند و اعتبار جلسه مصرف نمی‌کند.'**
+  String get helpFaqNotesChecklistAnswer;
+
+  /// Help FAQ category for calendar visibility, notes and commitment checklists.
+  ///
+  /// In fa, this message translates to:
+  /// **'تقویم و فهرست کارها'**
+  String get helpFaqCalendarTitle;
+
+  /// Label for selecting one commitment cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ انتخابی'**
+  String get cycleSelect;
+
+  /// Action to schedule the next cycle of the same commitment.
+  ///
+  /// In fa, this message translates to:
+  /// **'ایجاد دورهٔ بعدی'**
+  String get cycleCreate;
+
+  /// Explicit action to complete the active cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'پایان دوره'**
+  String get cycleFinish;
+
+  /// Completion confirmation explaining history and no carry-over.
+  ///
+  /// In fa, this message translates to:
+  /// **'همهٔ نوبت‌های ثبت‌شده باید تعیین تکلیف شده باشند. پایان این دوره سابقه، اعتبار یا بدهی را به دورهٔ بعد منتقل نمی‌کند. دورهٔ پایان‌یافته فقط خواندنی خواهد بود.'**
+  String get cycleFinishConfirm;
+
+  /// Explanation for hidden mutation controls on a historical cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'این دوره تاریخی و فقط خواندنی است.'**
+  String get cycleReadOnly;
+
+  /// Explanation when an inactive commitment blocks cycle actions.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای عملیات دوره، تعهد باید فعال باشد.'**
+  String get cycleInactiveOwner;
+
+  /// Retry feedback for rejected or stale cycle commands.
+  ///
+  /// In fa, this message translates to:
+  /// **'عملیات انجام نشد؛ وضعیت دوره یا تاریخ‌ها را بررسی کنید. در صورت تغییر هم‌زمان، فرم را ببندید و دوباره باز کنید.'**
+  String get cycleFailure;
+
+  /// Cycle listing read failure.
+  ///
+  /// In fa, this message translates to:
+  /// **'دوره‌ها بارگذاری نشدند. دوباره تلاش کنید.'**
+  String get cycleLoadError;
+
+  /// Active cycle status label.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ فعال'**
+  String get cycleActive;
+
+  /// Read-only historical cycle status label.
+  ///
+  /// In fa, this message translates to:
+  /// **'دورهٔ تاریخی'**
+  String get cycleHistorical;
+
+  /// Next-cycle authoring disclosure.
+  ///
+  /// In fa, this message translates to:
+  /// **'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.'**
+  String get cycleNoTransfer;
 }
 
 class _AppLocalizationsDelegate

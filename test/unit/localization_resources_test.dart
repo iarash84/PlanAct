@@ -144,6 +144,34 @@ void main() {
     },
   );
 
+  test('Today preview additions are separate from the migration baseline', () {
+    final copy = AppLocalizationsFa();
+    expect(copy.todayTransactionUnconfirmed, 'هنوز ثبت نشده');
+    expect(copy.todayTransactionRemainder, 'مبلغ بدون ارتباط');
+    expect(copy.todayTransactionTotal('۱۰۰ ریال'), 'کل تراکنش: ۱۰۰ ریال');
+    expect(
+      copy.todayTransactionDateNeedsReview,
+      'تاریخ تراکنش نیاز به بررسی دارد',
+    );
+    expect(
+      copy.todayTransactionReviewedDate('۱۴۰۵/۰۸/۳۰'),
+      'تاریخ بازبینی‌شده: ۱۴۰۵/۰۸/۳۰',
+    );
+    for (final key in [
+      'todayTransactionUnconfirmed',
+      'todayTransactionRemainder',
+      'todayTransactionTotal',
+      'todayTransactionDateNeedsReview',
+      'todayTransactionReviewedDate',
+    ]) {
+      expect(
+        (catalog['@$key'] as Map)['x-planact-introduced'],
+        'today-transaction-preview-2026-11-21',
+        reason: key,
+      );
+    }
+  });
+
   test('all migrated Persian templates preserve the pre-migration copy', () {
     // Frozen from the original source expressions before their replacement,
     // including punctuation and placeholder order. Intentional copy changes
@@ -178,6 +206,7 @@ void main() {
                     'bank-balance-2026-11-11',
                     'bank-evidence-review-2026-11-16',
                     'bank-recovery-2026-11-16',
+                    'bank-usability-2026-11-21',
                     'calendar-visibility-2026-11-14',
                     'transaction-account-correction-2026-11-14',
                     'finance-account-management-2026-11-14',
@@ -185,6 +214,13 @@ void main() {
                     'sms-detection-2026-11-16',
                     'sequential-review-2026-11-17',
                     'account-help-2026-11-18',
+                    'transaction-correction-clarity-2026-11-21',
+                    'finance-correction-history-2026-11-21',
+                    'today-transaction-preview-2026-11-21',
+                    'help-faq-refresh-2026-11-21',
+                    'commitment-cycles-2026-11-24',
+                    'schedule-edit-2026-11-24',
+                    'commitment-association-2026-11-24',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -214,6 +250,27 @@ void main() {
 
   test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'commitment-association-2026-11-24': {
+        'commitmentAssociationTitle',
+        'commitmentAssociationDisclaimer',
+        'commitmentAssociationNone',
+        'commitmentAssociationCurrent',
+        'commitmentAssociationSelect',
+        'commitmentAssociationEmpty',
+        'commitmentAssociationSave',
+        'commitmentAssociationChange',
+        'commitmentAssociationUnlink',
+        'commitmentAssociationSaveConfirm',
+        'commitmentAssociationUnlinkConfirm',
+        'commitmentAssociationSaved',
+        'commitmentAssociationError',
+        'commitmentAssociationSettlementTitle',
+      },
+      'finance-correction-history-2026-11-21': {
+        'financeShowCorrectionHistory',
+        'financeShowCorrectionHistoryDescription',
+        'financeCorrectionHistorySaveError',
+      },
       'bank-recovery-2026-11-16': {
         'bankRecoveryTitle',
         'bankRecoveryDisclosure',
