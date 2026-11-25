@@ -9231,4 +9231,86 @@
     "description": "Next-cycle authoring disclosure.",
     "x-planact-introduced": "commitment-cycles-2026-11-24"
   }
+,
+
+  "actualTextConfirmTitle": "تأیید ثبت",
+  "@actualTextConfirmTitle": {
+    "description": "Confirmation title for recording a result or text evidence revision.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextConfirmMessage": "این تغییر ثبت شود؟ نتیجه و سوابق قبلی حفظ می‌شوند.",
+  "@actualTextConfirmMessage": {
+    "description": "Explicit confirmation before a result or evidence write.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextDiscardMessage": "این متن کنار گذاشته شود؟ متن اصلی و همهٔ نسخه‌ها در سوابق باقی می‌مانند.",
+  "@actualTextDiscardMessage": {
+    "description": "Disclosure before retaining a discarded text evidence head.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualOptionalNote": "یادداشت نتیجه (اختیاری)",
+  "@actualOptionalNote": {
+    "description": "Optional immutable note saved with a new actual result.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextLabel": "شاهد متنی نتیجه",
+  "@actualTextLabel": {
+    "description": "Text evidence owned by one recorded result.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextLatest": "آخرین متن ثبت‌شده؛ پیش‌نویس شما حفظ شده است",
+  "@actualTextLatest": {
+    "description": "Latest durable evidence shown after explicit reload without replacing the draft.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextSaveError": "ذخیره نشد. پیش‌نویس حفظ شده است؛ اگر سابقه تغییر کرده، آخرین نسخه را بخوانید و دوباره ذخیره کنید.",
+  "@actualTextSaveError": {
+    "description": "Save failure including stale evidence; draft remains available for explicit retry.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextReload": "خواندن آخرین نسخه",
+  "@actualTextReload": {
+    "description": "Explicitly refresh the expected evidence revision while preserving typed text.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextDiscard": "کنار گذاشتن متن",
+  "@actualTextDiscard": {
+    "description": "Append a discard revision without deleting history.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextAdd": "افزودن شاهد متنی",
+  "@actualTextAdd": {
+    "description": "Create independent text evidence on this actual result.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextEdit": "ویرایش شاهد متنی",
+  "@actualTextEdit": {
+    "description": "Edit one result-owned evidence item.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextRefreshError": "متن ثبت شد؛ تازه‌سازی صفحه انجام نشد. دوباره صفحه را باز کنید.",
+  "@actualTextRefreshError": {
+    "description": "Evidence commit succeeded but related route refresh failed.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextHistoryRetry": "تلاش دوباره برای خواندن سوابق",
+  "@actualTextHistoryRetry": {
+    "description": "Retry loading actual history without any write.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextDiscarded": "متن کنارگذاشته‌شده",
+  "@actualTextDiscarded": {
+    "description": "Retained discarded evidence, not a deleted result.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextRevisions": "نسخه‌های ثبت‌شده",
+  "@actualTextRevisions": {
+    "description": "Expandable additive evidence revision history.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  },
+  "actualTextOriginal": "متن اولیه",
+  "@actualTextOriginal": {
+    "description": "Immutable original evidence text.",
+    "x-planact-introduced": "actual-text-evidence-job06"
+  }
 }

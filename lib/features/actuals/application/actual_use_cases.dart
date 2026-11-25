@@ -9,6 +9,15 @@ abstract interface class ActualRepository {
   Future<void> save(Actual actual);
 }
 
+/// Text changes retain the original Actual owner and never change its outcome.
+abstract interface class ActualEvidenceWriter {
+  Future<void> mutateTextEvidence({
+    required StableId actualId,
+    Evidence? expected,
+    required String? value,
+  });
+}
+
 /// Commits an append-only result and its occurrence status together, rejecting
 /// stale input. Production implementations must provide a database transaction.
 abstract interface class OccurrenceActualWriter {

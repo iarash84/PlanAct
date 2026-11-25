@@ -9859,6 +9859,102 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.'**
   String get cycleNoTransfer;
+
+  /// Confirmation title for recording a result or text evidence revision.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید ثبت'**
+  String get actualTextConfirmTitle;
+
+  /// Explicit confirmation before a result or evidence write.
+  ///
+  /// In fa, this message translates to:
+  /// **'این تغییر ثبت شود؟ نتیجه و سوابق قبلی حفظ می‌شوند.'**
+  String get actualTextConfirmMessage;
+
+  /// Disclosure before retaining a discarded text evidence head.
+  ///
+  /// In fa, this message translates to:
+  /// **'این متن کنار گذاشته شود؟ متن اصلی و همهٔ نسخه‌ها در سوابق باقی می‌مانند.'**
+  String get actualTextDiscardMessage;
+
+  /// Optional immutable note saved with a new actual result.
+  ///
+  /// In fa, this message translates to:
+  /// **'یادداشت نتیجه (اختیاری)'**
+  String get actualOptionalNote;
+
+  /// Text evidence owned by one recorded result.
+  ///
+  /// In fa, this message translates to:
+  /// **'شاهد متنی نتیجه'**
+  String get actualTextLabel;
+
+  /// Latest durable evidence shown after explicit reload without replacing the draft.
+  ///
+  /// In fa, this message translates to:
+  /// **'آخرین متن ثبت‌شده؛ پیش‌نویس شما حفظ شده است'**
+  String get actualTextLatest;
+
+  /// Save failure including stale evidence; draft remains available for explicit retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیره نشد. پیش‌نویس حفظ شده است؛ اگر سابقه تغییر کرده، آخرین نسخه را بخوانید و دوباره ذخیره کنید.'**
+  String get actualTextSaveError;
+
+  /// Explicitly refresh the expected evidence revision while preserving typed text.
+  ///
+  /// In fa, this message translates to:
+  /// **'خواندن آخرین نسخه'**
+  String get actualTextReload;
+
+  /// Append a discard revision without deleting history.
+  ///
+  /// In fa, this message translates to:
+  /// **'کنار گذاشتن متن'**
+  String get actualTextDiscard;
+
+  /// Create independent text evidence on this actual result.
+  ///
+  /// In fa, this message translates to:
+  /// **'افزودن شاهد متنی'**
+  String get actualTextAdd;
+
+  /// Edit one result-owned evidence item.
+  ///
+  /// In fa, this message translates to:
+  /// **'ویرایش شاهد متنی'**
+  String get actualTextEdit;
+
+  /// Evidence commit succeeded but related route refresh failed.
+  ///
+  /// In fa, this message translates to:
+  /// **'متن ثبت شد؛ تازه‌سازی صفحه انجام نشد. دوباره صفحه را باز کنید.'**
+  String get actualTextRefreshError;
+
+  /// Retry loading actual history without any write.
+  ///
+  /// In fa, this message translates to:
+  /// **'تلاش دوباره برای خواندن سوابق'**
+  String get actualTextHistoryRetry;
+
+  /// Retained discarded evidence, not a deleted result.
+  ///
+  /// In fa, this message translates to:
+  /// **'متن کنارگذاشته‌شده'**
+  String get actualTextDiscarded;
+
+  /// Expandable additive evidence revision history.
+  ///
+  /// In fa, this message translates to:
+  /// **'نسخه‌های ثبت‌شده'**
+  String get actualTextRevisions;
+
+  /// Immutable original evidence text.
+  ///
+  /// In fa, this message translates to:
+  /// **'متن اولیه'**
+  String get actualTextOriginal;
 }
 
 class _AppLocalizationsDelegate

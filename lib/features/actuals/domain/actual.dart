@@ -48,7 +48,11 @@ class Evidence {
     required this.type,
     required this.value,
     required this.createdAt,
-  }) {
+    this.revision = 0,
+    this.isDiscarded = false,
+    this.history = const [],
+    String? originalValue,
+  }) : originalValue = originalValue ?? value {
     if (value.trim().isEmpty) {
       throw const ValidationError('Evidence value cannot be empty');
     }
@@ -59,6 +63,25 @@ class Evidence {
   final EvidenceType type;
   final String value;
   final DateTime createdAt;
+  final int revision;
+  final bool isDiscarded;
+  final List<EvidenceRevision> history;
+  final String originalValue;
+}
+
+/// A retained snapshot; revision zero is the immutable original evidence.
+class EvidenceRevision {
+  const EvidenceRevision({
+    required this.revision,
+    required this.value,
+    required this.isDiscarded,
+    required this.recordedAt,
+  });
+
+  final int revision;
+  final String value;
+  final bool isDiscarded;
+  final DateTime recordedAt;
 }
 
 class Actual {

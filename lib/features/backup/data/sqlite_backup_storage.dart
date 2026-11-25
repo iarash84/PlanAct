@@ -1,4 +1,9 @@
 import 'dart:convert';
+
+import 'package:planact/core/ids/stable_id.dart';
+import 'package:planact/features/actuals/domain/actual.dart';
+import 'package:planact/features/actuals/data/actual_evidence_metadata.dart';
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -151,6 +156,45 @@ class SqliteBackupStorage implements BackupStorage, BackupPayloadValidation {
       }
       if (schema(db).join('\n') != expectedSchema.join('\n')) {
         _validateLegacyRows(db);
+      }
+      final hasActualMetadata = db.select(
+        'SELECT key FROM schema_metadata WHERE key = ? OR key LIKE ? OR key LIKE ?',
+        [
+          ActualEvidenceMetadata.orderKey,
+          '${ActualEvidenceMetadata.historyPrefix}%',
+          '${ActualEvidenceMetadata.headPrefix}%',
+        ],
+      ).isNotEmpty;
+      if (hasActualMetadata) {
+        ActualEvidenceMetadata.validate(
+          metadata: {
+            for (final row in db.select(
+              'SELECT key, value FROM schema_metadata',
+            ))
+              row['key'] as String: row['value'] as String,
+          },
+          actualIds: [
+            for (final row in db.select(
+              'SELECT id FROM actuals ORDER BY rowid',
+            ))
+              row['id'] as String,
+          ],
+          originals: [
+            for (final row in db.select(
+              'SELECT * FROM evidences ORDER BY rowid',
+            ))
+              Evidence(
+                id: StableId.parse(row['id'] as String),
+                actualId: StableId.parse(row['actual_id'] as String),
+                type: EvidenceType.values[row['type'] as int],
+                value: row['value'] as String,
+                createdAt: DateTime.fromMillisecondsSinceEpoch(
+                  (row['created_at'] as int) * 1000,
+                  isUtc: true,
+                ),
+              ),
+          ],
+        );
       }
       CommitmentAssociationMetadata.validate(
         metadata: {

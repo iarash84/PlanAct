@@ -2777,6 +2777,7 @@ class _CommitmentDetailsPageState extends State<CommitmentDetailsPage> {
                             executor: widget.occurrenceExecutor,
                             useActionsMenu: true,
                             readOnly: !_cycleEnabled,
+                            evidenceReadOnly: !_cycleEnabled,
                             key: ValueKey(
                               '${occurrence.id}:${occurrence.currentScheduledAt}:${occurrence.status}:${occurrence.resultRevision}',
                             ),

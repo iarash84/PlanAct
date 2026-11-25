@@ -1,5 +1,6 @@
 import 'package:planact/core/localization/planact_localizations.dart';
-import 'package:planact/core/localization/persian_copy.g.dart';
+import 'package:planact/features/scheduling/presentation/actual_history_dialog.dart';
+import 'package:planact/features/scheduling/presentation/actual_text_dialog.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/features/scheduling/presentation/occurrence_status_label.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class OccurrenceActionRow extends StatefulWidget {
     this.onEdit,
     this.useActionsMenu = false,
     this.readOnly = false,
+    this.evidenceReadOnly,
   });
 
   final Occurrence occurrence;
@@ -33,6 +35,7 @@ class OccurrenceActionRow extends StatefulWidget {
   /// Today and Calendar intentionally keep the expanded action rows.
   final bool useActionsMenu;
   final bool readOnly;
+  final bool? evidenceReadOnly;
 
   @override
   State<OccurrenceActionRow> createState() => _OccurrenceActionRowState();
@@ -106,6 +109,71 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
         if (mounted) setState(() => _busy = false);
       }
       return;
+    }
+    final executor = widget.executor;
+    if (executor is PersistedOccurrenceActionExecutor &&
+        executor.actuals != null) {
+      final outcome = switch (action.type) {
+        OccurrenceActionType.complete => ActualOutcome.completed,
+        OccurrenceActionType.restore => ActualOutcome.reopened,
+        OccurrenceActionType.noShow => ActualOutcome.noShow,
+        OccurrenceActionType.cancel ||
+        OccurrenceActionType.providerCancelled ||
+        OccurrenceActionType.userCancelled => ActualOutcome.cancelled,
+        _ => null,
+      };
+      if (outcome != null) {
+        var pendingDelivery = false;
+        final saved = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => ActualTextDialog(
+            title: action.label,
+            optional: true,
+            onSave: (note) async {
+              try {
+                _updated = await executor.recordResult(
+                  occurrence,
+                  outcome,
+                  note: note,
+                );
+              } on OccurrenceReminderDeliveryPending catch (pending) {
+                _updated = pending.occurrence;
+                pendingDelivery = true;
+              }
+            },
+          ),
+        );
+        if (saved == true) {
+          try {
+            await widget.onChanged();
+          } catch (_) {
+            pendingDelivery = true;
+          }
+          if (mounted) {
+            setState(() {});
+            final changed = _updated;
+            final messenger = ScaffoldMessenger.of(context);
+            final l10n = planActL10n(context);
+            showRecordedActionFeedback(
+              context,
+              pendingDelivery
+                  ? l10n.occurrenceActionRowPerformContent2
+                  : l10n.occurrenceActionRowPerformContent,
+              onUndo: changed == null
+                  ? null
+                  : () => _undo(
+                      changed,
+                      messenger,
+                      successMessage: l10n.undoSuccess,
+                      pendingMessage: l10n.undoRefreshPending,
+                      conflictMessage: l10n.undoConflict,
+                    ),
+            );
+          }
+        }
+        return;
+      }
     }
     setState(() => _busy = true);
     try {
@@ -191,67 +259,11 @@ class _OccurrenceActionRowState extends State<OccurrenceActionRow> {
     if (repository is! ActualRepository) return;
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(PersianCopy.occurrenceActionRowShowHistoryTitle),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: FutureBuilder<List<Actual>>(
-            future: (repository as ActualRepository).list(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Text(
-                  PersianCopy.occurrenceActionRowShowHistoryBuilder,
-                );
-              }
-              if (!snapshot.hasData) return const CircularProgressIndicator();
-              final items = snapshot.data!
-                  .where((item) => item.occurrenceId == widget.occurrence.id)
-                  .toList();
-              if (items.isEmpty) {
-                return const Text(
-                  PersianCopy.occurrenceActionRowShowHistoryBuilder2,
-                );
-              }
-              return ListView(
-                shrinkWrap: true,
-                children: [
-                  for (final item in items)
-                    ListTile(
-                      title: Text(switch (item.outcome) {
-                        ActualOutcome.completed =>
-                          PersianCopy.planactAppShowCommitmentDetailsTitle,
-                        ActualOutcome.attended =>
-                          PersianCopy.occurrenceActionRowActualOutcomeAttended,
-                        ActualOutcome.cancelled =>
-                          PersianCopy.occurrenceActionRowSelectedChildren2,
-                        ActualOutcome.missed =>
-                          PersianCopy.occurrenceActionRowActualOutcomeMissed,
-                        ActualOutcome.noShow => PersianCopy.occurrenceSkipped,
-                        ActualOutcome.partial =>
-                          PersianCopy.occurrenceActionRowSelectedChildren3,
-                        ActualOutcome.reopened =>
-                          PersianCopy.occurrenceActionRowActualOutcomeReopened,
-                      }),
-                      subtitle: Text(
-                        [
-                          PersianDateFormatter.date(
-                            JalaliDate.fromDateTime(item.recordedAt.toLocal()),
-                          ),
-                          if (item.note != null) item.note!,
-                        ].join('\n'),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(PersianCopy.commonClose),
-          ),
-        ],
+      builder: (context) => ActualHistoryDialog(
+        repository: repository as ActualRepository,
+        occurrence: widget.occurrence,
+        readOnly: widget.evidenceReadOnly ?? widget.readOnly,
+        onChanged: widget.onChanged,
       ),
     );
   }

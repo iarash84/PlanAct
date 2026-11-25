@@ -743,6 +743,13 @@ void main() {
       );
       expect(find.text(PersianCopy.actualReopenMessage), findsOneWidget);
       await tapText(tester, PersianCopy.financePageConfirmedActions);
+      await tester.enterText(
+        find.byKey(const ValueKey('actual-text-input')),
+        'بازگشایی با یادداشت مستقل',
+      );
+      await tester.pumpAndSettle();
+      await tapText(tester, PersianCopy.commonSave);
+      await tapText(tester, PersianCopy.commonSave);
       expect(
         (await plans.findByCommitmentId(plan.commitment.id))!
             .occurrences

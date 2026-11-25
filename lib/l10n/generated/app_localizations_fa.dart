@@ -5881,4 +5881,56 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get cycleNoTransfer =>
       'برنامهٔ تازه برای همین تعهد؛ بدون انتقال اعتبار یا بدهی و بدون تغییر مشخصات مشترک.';
+
+  @override
+  String get actualTextConfirmTitle => 'تأیید ثبت';
+
+  @override
+  String get actualTextConfirmMessage =>
+      'این تغییر ثبت شود؟ نتیجه و سوابق قبلی حفظ می‌شوند.';
+
+  @override
+  String get actualTextDiscardMessage =>
+      'این متن کنار گذاشته شود؟ متن اصلی و همهٔ نسخه‌ها در سوابق باقی می‌مانند.';
+
+  @override
+  String get actualOptionalNote => 'یادداشت نتیجه (اختیاری)';
+
+  @override
+  String get actualTextLabel => 'شاهد متنی نتیجه';
+
+  @override
+  String get actualTextLatest => 'آخرین متن ثبت‌شده؛ پیش‌نویس شما حفظ شده است';
+
+  @override
+  String get actualTextSaveError =>
+      'ذخیره نشد. پیش‌نویس حفظ شده است؛ اگر سابقه تغییر کرده، آخرین نسخه را بخوانید و دوباره ذخیره کنید.';
+
+  @override
+  String get actualTextReload => 'خواندن آخرین نسخه';
+
+  @override
+  String get actualTextDiscard => 'کنار گذاشتن متن';
+
+  @override
+  String get actualTextAdd => 'افزودن شاهد متنی';
+
+  @override
+  String get actualTextEdit => 'ویرایش شاهد متنی';
+
+  @override
+  String get actualTextRefreshError =>
+      'متن ثبت شد؛ تازه‌سازی صفحه انجام نشد. دوباره صفحه را باز کنید.';
+
+  @override
+  String get actualTextHistoryRetry => 'تلاش دوباره برای خواندن سوابق';
+
+  @override
+  String get actualTextDiscarded => 'متن کنارگذاشته‌شده';
+
+  @override
+  String get actualTextRevisions => 'نسخه‌های ثبت‌شده';
+
+  @override
+  String get actualTextOriginal => 'متن اولیه';
 }

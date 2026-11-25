@@ -264,6 +264,10 @@ void main() {
       await tester.tap(occurrenceMenu);
       await tester.pumpAndSettle();
       await tester.tap(find.text('انجام شد / حضور داشت'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'ذخیره'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'ذخیره').last);
       await settleIo(tester);
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.text('انجام‌شده: ۱ نوبت (۲۵٪)'), findsOneWidget);

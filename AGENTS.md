@@ -1,5 +1,9 @@
 # AGENTS.md — Personal Commitment Manager
 
+## Approved result-owned text evidence (2026-11-25)
+
+Text evidence remains owned by its original Actual. Explicit create/edit/discard is permitted for current and earlier results of a still-active cycle, including reopened occurrences and paused/archived owners; completed cycles are read-only. Retain immutable originals and append revisioned history under fresh SQLite writer admission with owner and expected-revision checks. Reopening never transfers or deletes evidence. Evidence alone has no money, status or entitlement effects. Preserve history and durable append ordering through cold reopen and strict personal backup validation. Result notes are captured at result recording, not overwritten. See docs/SCHEDULE_ACTUAL_VERIFICATION.md for bounded evidence, legacy ordering limitations and separate independent/device/older-writer gates.
+
 ## Approved descriptive financial relationships (2026-11-24)
 
 A transaction may explicitly associate with one commitment without an occurrence. This is descriptive only, never settlement, debt, credit, account effect or independent-remainder review. Create/change/unlink append revisioned history under fresh SQLite writer admission, checking durable transaction, account, target and expected revision atomically. Preserve heads/history through cold reopen and strict personal-backup validation. Financial correction must not transfer the association. Today retains the remainder until valid allocation or explicit independent review; reports distinguish association from settlement. New allocations are bounded by transaction remainder and same-currency outstanding expectation; retain legacy allocations without rewriting or transferable credit. See docs/CONTEXTUAL_RECONCILIATION_VERIFICATION.md for the contract and separate independent/device/older-writer gates.

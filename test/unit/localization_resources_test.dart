@@ -221,6 +221,7 @@ void main() {
                     'commitment-cycles-2026-11-24',
                     'schedule-edit-2026-11-24',
                     'commitment-association-2026-11-24',
+                    'actual-text-evidence-job06',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
@@ -250,6 +251,24 @@ void main() {
 
   test('new feature copy has explicit introduction metadata', () {
     final groups = {
+      'actual-text-evidence-job06': {
+        'actualTextConfirmTitle',
+        'actualTextConfirmMessage',
+        'actualTextDiscardMessage',
+        'actualOptionalNote',
+        'actualTextLabel',
+        'actualTextLatest',
+        'actualTextSaveError',
+        'actualTextReload',
+        'actualTextDiscard',
+        'actualTextAdd',
+        'actualTextEdit',
+        'actualTextRefreshError',
+        'actualTextHistoryRetry',
+        'actualTextDiscarded',
+        'actualTextRevisions',
+        'actualTextOriginal',
+      },
       'commitment-association-2026-11-24': {
         'commitmentAssociationTitle',
         'commitmentAssociationDisclaimer',
