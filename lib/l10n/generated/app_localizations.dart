@@ -9955,6 +9955,162 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'متن اولیه'**
   String get actualTextOriginal;
+
+  /// Transaction relationship target browser: Filters.
+  ///
+  /// In fa, this message translates to:
+  /// **'فیلترهای هدف'**
+  String get relationshipFilters;
+
+  /// Transaction relationship target browser: Search.
+  ///
+  /// In fa, this message translates to:
+  /// **'جستجوی عنوان، شرح یا برچسب'**
+  String get relationshipSearch;
+
+  /// Transaction relationship target browser: From.
+  ///
+  /// In fa, this message translates to:
+  /// **'از تاریخ'**
+  String get relationshipFrom;
+
+  /// Transaction relationship target browser: To.
+  ///
+  /// In fa, this message translates to:
+  /// **'تا تاریخ'**
+  String get relationshipTo;
+
+  /// Transaction relationship target browser: Minimum.
+  ///
+  /// In fa, this message translates to:
+  /// **'حداقل مانده'**
+  String get relationshipMinimum;
+
+  /// Transaction relationship target browser: Maximum.
+  ///
+  /// In fa, this message translates to:
+  /// **'حداکثر مانده'**
+  String get relationshipMaximum;
+
+  /// Transaction relationship target browser: OccurrenceStatus.
+  ///
+  /// In fa, this message translates to:
+  /// **'وضعیت رخداد'**
+  String get relationshipOccurrenceStatus;
+
+  /// Transaction relationship target browser: CommitmentStatus.
+  ///
+  /// In fa, this message translates to:
+  /// **'وضعیت تعهد'**
+  String get relationshipCommitmentStatus;
+
+  /// Transaction relationship target browser: Cycle.
+  ///
+  /// In fa, this message translates to:
+  /// **'دوره'**
+  String get relationshipCycle;
+
+  /// Transaction relationship target browser: All.
+  ///
+  /// In fa, this message translates to:
+  /// **'همه'**
+  String get relationshipAll;
+
+  /// Transaction relationship target browser: Sort.
+  ///
+  /// In fa, this message translates to:
+  /// **'مرتب‌سازی'**
+  String get relationshipSort;
+
+  /// Transaction relationship target browser: DateAscending.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ: قدیمی‌تر'**
+  String get relationshipDateAscending;
+
+  /// Transaction relationship target browser: DateDescending.
+  ///
+  /// In fa, this message translates to:
+  /// **'تاریخ: جدیدتر'**
+  String get relationshipDateDescending;
+
+  /// Transaction relationship target browser: AmountAscending.
+  ///
+  /// In fa, this message translates to:
+  /// **'مانده: کمتر'**
+  String get relationshipAmountAscending;
+
+  /// Transaction relationship target browser: AmountDescending.
+  ///
+  /// In fa, this message translates to:
+  /// **'مانده: بیشتر'**
+  String get relationshipAmountDescending;
+
+  /// Transaction relationship target browser: Previous.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ قبل'**
+  String get relationshipPrevious;
+
+  /// Transaction relationship target browser: Next.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ بعد'**
+  String get relationshipNext;
+
+  /// Transaction relationship target browser: Selected.
+  ///
+  /// In fa, this message translates to:
+  /// **'هدف انتخاب‌شده'**
+  String get relationshipSelected;
+
+  /// Transaction relationship target browser: Expected.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ مورد انتظار'**
+  String get relationshipExpected;
+
+  /// Transaction relationship target browser: Allocated.
+  ///
+  /// In fa, this message translates to:
+  /// **'تخصیص‌یافته'**
+  String get relationshipAllocated;
+
+  /// Transaction relationship target browser: Outstanding.
+  ///
+  /// In fa, this message translates to:
+  /// **'ماندهٔ مورد انتظار'**
+  String get relationshipOutstanding;
+
+  /// Transaction relationship target browser: TargetError.
+  ///
+  /// In fa, this message translates to:
+  /// **'هدف‌ها بارگذاری نشدند. دوباره تلاش کنید.'**
+  String get relationshipTargetError;
+
+  /// Transaction relationship target browser: InvalidRange.
+  ///
+  /// In fa, this message translates to:
+  /// **'بازهٔ تاریخ یا مبلغ معتبر نیست.'**
+  String get relationshipInvalidRange;
+
+  /// Transaction relationship target browser: ClearFilters.
+  ///
+  /// In fa, this message translates to:
+  /// **'پاک‌کردن فیلترها'**
+  String get relationshipClearFilters;
+
+  /// Transaction relationship target browser: ApplyFilters.
+  ///
+  /// In fa, this message translates to:
+  /// **'اعمال فیلترها'**
+  String get relationshipApplyFilters;
+
+  /// Filtered target page number, page count and total, supplied with localized digits.
+  ///
+  /// In fa, this message translates to:
+  /// **'صفحهٔ {page} از {pages} · {total} هدف'**
+  String relationshipPageSummary(String page, String pages, String total);
 }
 
 class _AppLocalizationsDelegate

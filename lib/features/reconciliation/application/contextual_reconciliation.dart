@@ -1,3 +1,5 @@
+import 'package:planact/features/classification/application/tag_repository.dart';
+import 'package:planact/features/reconciliation/application/relationship_target_reader.dart';
 import 'package:planact/features/commitments/application/commitment_cycles.dart';
 import 'package:planact/core/errors/app_error.dart';
 import 'package:planact/core/ids/stable_id.dart';
@@ -17,9 +19,20 @@ import 'package:planact/features/reconciliation/application/commitment_associati
 import 'package:planact/features/reconciliation/domain/commitment_association.dart';
 
 class RelationshipTarget {
-  const RelationshipTarget(this.commitment, this.occurrence);
+  const RelationshipTarget(
+    this.commitment,
+    this.occurrence, {
+    this.expected,
+    this.allocated,
+    this.outstanding,
+    this.cycleLabel,
+  });
   final Commitment commitment;
   final Occurrence occurrence;
+  final Money? expected;
+  final Money? allocated;
+  final Money? outstanding;
+  final String? cycleLabel;
 }
 
 class TransactionRelationshipContext {
@@ -32,7 +45,9 @@ class TransactionRelationshipContext {
     this.matches = const [],
     this.association,
     this.commitments = const [],
+    this.transactionTags = const [],
   });
+  final List<String> transactionTags;
   final CommitmentAssociation? association;
   final List<Commitment> commitments;
   final AccountEntry transaction;
@@ -51,13 +66,36 @@ class ContextualReconciliation {
     required this.commitments,
     required this.plans,
     required this.reconciliation,
+    this.targetReader,
+    this.pageLoader,
+    this.tags,
   });
   final FinanceRepository finance;
   final CommitmentRepository commitments;
   final CommitmentPlanRepository plans;
   final ReconciliationUseCases reconciliation;
 
-  Future<TransactionRelationshipContext> load(StableId transactionId) async {
+  final RelationshipTargetReader? targetReader;
+  final TagRepository? tags;
+  final Future<TransactionRelationshipContext> Function(
+    Future<TransactionRelationshipContext> Function() read,
+  )?
+  pageLoader;
+
+  Future<TransactionRelationshipContext> load(StableId transactionId) =>
+      _load(transactionId, includeTargets: true);
+
+  Future<TransactionRelationshipContext> loadForPage(StableId transactionId) {
+    if (targetReader == null && pageLoader == null) return load(transactionId);
+    Future<TransactionRelationshipContext> read() =>
+        _load(transactionId, includeTargets: targetReader == null);
+    return pageLoader == null ? read() : pageLoader!(read);
+  }
+
+  Future<TransactionRelationshipContext> _load(
+    StableId transactionId, {
+    required bool includeTargets,
+  }) async {
     final entries = await finance.listEntries();
     final transaction = entries.where((e) => e.id == transactionId).firstOrNull;
     if (transaction == null ||
@@ -81,7 +119,8 @@ class ContextualReconciliation {
         .fold<int>(0, (sum, m) => sum + m.allocatedMinorUnits);
     final targets = <RelationshipTarget>[];
     final selectableCommitments = await commitments.list();
-    for (final commitment in selectableCommitments) {
+    for (final commitment
+        in includeTargets ? selectableCommitments : <Commitment>[]) {
       // Archived commitments remain selectable as explicitly labelled history.
       final allPlans = await plans.listByCommitmentId(commitment.id);
       for (final occurrence in allPlans.expand((p) => p.occurrences)) {
@@ -94,7 +133,32 @@ class ContextualReconciliation {
             transaction,
           )
         : null;
+    if (!includeTargets) {
+      targets.addAll(
+        await targetReader!.byIds(
+          matches
+              .where((m) => m.transactionId == transactionId)
+              .expand((m) => m.allocations.map((a) => a.occurrenceId)),
+          transaction.amount.currency,
+        ),
+      );
+    }
+    final tagRepository = tags;
+    final transactionTags = <String>[];
+    if (tagRepository != null) {
+      final memberships = await tagRepository.tagsFor(
+        transactionId.value,
+        TaggableType.accountEntry,
+      );
+      transactionTags.addAll(
+        (await tagRepository.list())
+            .where((tag) => memberships.contains(tag.id))
+            .map((tag) => tag.label),
+      );
+      transactionTags.sort();
+    }
     return TransactionRelationshipContext(
+      transactionTags: List.unmodifiable(transactionTags),
       association: repository is CommitmentAssociationRepository
           ? await (repository as CommitmentAssociationRepository)
                 .loadAssociation(transactionId)

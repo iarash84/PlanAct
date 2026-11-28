@@ -5933,4 +5933,85 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get actualTextOriginal => 'متن اولیه';
+
+  @override
+  String get relationshipFilters => 'فیلترهای هدف';
+
+  @override
+  String get relationshipSearch => 'جستجوی عنوان، شرح یا برچسب';
+
+  @override
+  String get relationshipFrom => 'از تاریخ';
+
+  @override
+  String get relationshipTo => 'تا تاریخ';
+
+  @override
+  String get relationshipMinimum => 'حداقل مانده';
+
+  @override
+  String get relationshipMaximum => 'حداکثر مانده';
+
+  @override
+  String get relationshipOccurrenceStatus => 'وضعیت رخداد';
+
+  @override
+  String get relationshipCommitmentStatus => 'وضعیت تعهد';
+
+  @override
+  String get relationshipCycle => 'دوره';
+
+  @override
+  String get relationshipAll => 'همه';
+
+  @override
+  String get relationshipSort => 'مرتب‌سازی';
+
+  @override
+  String get relationshipDateAscending => 'تاریخ: قدیمی‌تر';
+
+  @override
+  String get relationshipDateDescending => 'تاریخ: جدیدتر';
+
+  @override
+  String get relationshipAmountAscending => 'مانده: کمتر';
+
+  @override
+  String get relationshipAmountDescending => 'مانده: بیشتر';
+
+  @override
+  String get relationshipPrevious => 'صفحهٔ قبل';
+
+  @override
+  String get relationshipNext => 'صفحهٔ بعد';
+
+  @override
+  String get relationshipSelected => 'هدف انتخاب‌شده';
+
+  @override
+  String get relationshipExpected => 'مبلغ مورد انتظار';
+
+  @override
+  String get relationshipAllocated => 'تخصیص‌یافته';
+
+  @override
+  String get relationshipOutstanding => 'ماندهٔ مورد انتظار';
+
+  @override
+  String get relationshipTargetError =>
+      'هدف‌ها بارگذاری نشدند. دوباره تلاش کنید.';
+
+  @override
+  String get relationshipInvalidRange => 'بازهٔ تاریخ یا مبلغ معتبر نیست.';
+
+  @override
+  String get relationshipClearFilters => 'پاک‌کردن فیلترها';
+
+  @override
+  String get relationshipApplyFilters => 'اعمال فیلترها';
+
+  @override
+  String relationshipPageSummary(String page, String pages, String total) {
+    return 'صفحهٔ $page از $pages · $total هدف';
+  }
 }

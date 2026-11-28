@@ -1,3 +1,6 @@
+import 'package:planact/features/reconciliation/presentation/relationship_target_browser.dart';
+import 'package:planact/features/classification/presentation/tag_badge.dart';
+import 'package:planact/features/finance/domain/finance.dart';
 import 'package:planact/core/localization/planact_localizations.dart';
 import 'package:planact/core/presentation/undo_feedback.dart';
 import 'package:planact/features/reconciliation/domain/reconciliation.dart';
@@ -8,11 +11,8 @@ import 'package:planact/app/money_unit_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/core/ids/stable_id.dart';
-import 'package:planact/core/localization/persian_date_formatter.dart';
 import 'package:planact/core/localization/persian_numbers.dart';
 import 'package:planact/core/presentation/persian_money_text.dart';
-import 'package:planact/core/time/jalali_date.dart';
-import 'package:planact/features/scheduling/domain/schedule_definition.dart';
 import 'package:planact/features/commitments/domain/commitment.dart';
 import 'package:planact/features/reconciliation/application/contextual_reconciliation.dart';
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
@@ -51,7 +51,7 @@ class _TransactionRelationshipPageState
   PinnedMoneyInput get _moneyInput =>
       _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
   final _amount = TextEditingController();
-  String _query = '';
+  int _loadRequest = 0;
   bool _loading = true;
   bool _saving = false;
   bool _dirty = false;
@@ -71,13 +71,14 @@ class _TransactionRelationshipPageState
   }
 
   Future<void> _load() async {
+    final request = ++_loadRequest;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final result = await widget.flow.load(widget.transactionId);
-      if (mounted) {
+      final result = await widget.flow.loadForPage(widget.transactionId);
+      if (mounted && request == _loadRequest) {
         setState(() {
           _context = result;
           if (!_associationInitialized) {
@@ -88,7 +89,7 @@ class _TransactionRelationshipPageState
         });
       }
     } catch (_) {
-      if (mounted) {
+      if (mounted && request == _loadRequest) {
         setState(() {
           _loading = false;
           _error = PersianCopy.transactionRelationshipPageLoadMessage;
@@ -218,6 +219,7 @@ class _TransactionRelationshipPageState
           matches: previous.matches,
           association: previous.association,
           commitments: previous.commitments,
+          transactionTags: previous.transactionTags,
         );
       });
       ScaffoldMessenger.of(context)
@@ -284,6 +286,7 @@ class _TransactionRelationshipPageState
           matches: data.matches,
           association: head,
           commitments: data.commitments,
+          transactionTags: data.transactionTags,
         );
         _associationDraft = head.commitmentId;
         _saving = false;
@@ -313,6 +316,7 @@ class _TransactionRelationshipPageState
         padding: const EdgeInsets.all(PlanActSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: PlanActSpacing.md,
           children: [
             Text(
               l10n.commitmentAssociationTitle,
@@ -441,6 +445,24 @@ class _TransactionRelationshipPageState
 
   Future<void> _correctMatch(TransactionMatch match) async {
     if (_saving || _context == null) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    TransactionRelationshipContext correctionContext;
+    try {
+      correctionContext = await widget.flow.load(widget.transactionId);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = PersianCopy.transactionRelationshipPageLoadMessage;
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _saving = false);
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -449,7 +471,7 @@ class _TransactionRelationshipPageState
       enableDrag: false,
       builder: (context) => MatchCorrectionSheet(
         flow: widget.flow,
-        data: _context!,
+        data: correctionContext,
         original: match,
       ),
     );
@@ -465,30 +487,9 @@ class _TransactionRelationshipPageState
     }
   }
 
-  String _date(RelationshipTarget target) {
-    final value = target.occurrence.currentScheduledAt;
-    final date = value is DateTime
-        ? value.toLocal()
-        : value is LocalDate
-        ? DateTime(value.year, value.month, value.day)
-        : null;
-    if (date == null) return PersianCopy.transactionRelationshipPageDateMessage;
-    final jalali = JalaliDate.fromDateTime(date);
-    final label =
-        '${PersianDateFormatter.date(jalali)} ${PersianNumbers.format(jalali.year)}';
-    return value is DateTime
-        ? '$label · ${PersianNumbers.format(date.hour.toString().padLeft(2, '0'))}:${PersianNumbers.format(date.minute.toString().padLeft(2, '0'))}'
-        : label;
-  }
-
   @override
   Widget build(BuildContext context) {
     final data = _context;
-    final targets =
-        data?.targets
-            .where((t) => t.commitment.title.contains(_query))
-            .toList() ??
-        <RelationshipTarget>[];
     return PopScope(
       canPop: !_saving && (!_dirty || _leaving),
       onPopInvokedWithResult: (didPop, result) {
@@ -503,283 +504,271 @@ class _TransactionRelationshipPageState
               ? BackButton(onPressed: _saving ? null : _back)
               : null,
         ),
-        body: _loading
+        body: _loading && data == null
             ? const Center(child: CircularProgressIndicator())
-            : ListView(
+            : SingleChildScrollView(
                 padding: const EdgeInsets.all(PlanActSpacing.page),
-                children: [
-                  if (widget.reviewRemaining != null)
-                    Text(
-                      planActL10n(context).sequentialReviewRemaining(
-                        PersianNumbers.format(widget.reviewRemaining!),
-                      ),
-                    ),
-                  if (widget.onOpenQueue != null)
-                    OutlinedButton.icon(
-                      onPressed: _saving
-                          ? null
-                          : () async {
-                              await widget.onOpenQueue!();
-                              if (mounted) {
-                                _dirty = true;
-                                await _load();
-                              }
-                            },
-                      icon: const Icon(Icons.playlist_add_check),
-                      label: Text(
-                        planActL10n(context).relationshipQueuePageBuildTitle,
-                      ),
-                    ),
-                  if (data != null) ...[
-                    Text(
-                      data.transaction.note ??
-                          planActL10n(context)
-                              .relationshipQueuePageBuildSemanticLabel,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      planActL10n(context)
-                          .transactionRelationshipPageBuildChildren(
-                            (PersianMoneyText.money(
-                              data.transaction.amount,
-                              unit: MoneyUnitScope.of(context),
-                            )).toString(),
-                          ),
-                    ),
-                    Text(
-                      planActL10n(
-                        context,
-                      ).transactionRelationshipPageBuildChildren3(
-                        (data.account?.name ??
-                                planActL10n(context)
-                                    .transactionRelationshipPageBuildChildren2)
-                            .toString(),
-                      ),
-                    ),
-                    Text(
-                      planActL10n(context)
-                          .transactionRelationshipPageBuildChildren4(
-                            (PersianMoneyText.money(
-                              data.available,
-                              unit: MoneyUnitScope.of(context),
-                            )).toString(),
-                          ),
-                    ),
-                    const SizedBox(height: PlanActSpacing.lg),
-                    if (data.matches.isNotEmpty) ...[
-                      ExpansionTile(
-                        title: Text(planActL10n(context).matchHistoryTitle),
-                        children: [
-                          for (final match in data.matches)
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                  PlanActSpacing.md,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (final allocation in match.allocations)
-                                      Text(
-                                        '${data.targets.where((t) => t.occurrence.id == allocation.occurrenceId).firstOrNull?.commitment.title ?? ''} · ${PersianMoneyText.money(allocation.amount, unit: MoneyUnitScope.of(context))}',
-                                      ),
-                                    if (match.status == MatchStatus.active)
-                                      Wrap(
-                                        spacing: PlanActSpacing.sm,
-                                        children: [
-                                          TextButton(
-                                            onPressed: _saving
-                                                ? null
-                                                : () => _removeMatch(match),
-                                            child: Text(
-                                              planActL10n(context)
-                                                  .matchRemoveAction,
-                                            ),
-                                          ),
-                                          if (match.allocations.every(
-                                            (a) =>
-                                                a.type ==
-                                                AllocationType.payment,
-                                          ))
-                                            TextButton(
-                                              onPressed: _saving
-                                                  ? null
-                                                  : () => _correctMatch(match),
-                                              child: Text(
-                                                planActL10n(context)
-                                                    .matchCorrectAction,
-                                              ),
-                                            ),
-                                        ],
-                                      )
-                                    else
-                                      Text(
-                                        planActL10n(context)
-                                            .matchHistoryResolved,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                    if (data.review?.isIndependent == true) ...[
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: PlanActSpacing.md,
+                  children: [
+                    if (_loading) const LinearProgressIndicator(),
+                    if (widget.reviewRemaining != null)
                       Text(
-                        planActL10n(context)
-                            .transactionRelationshipPageBuildChildren5,
-                      ),
-                      Text(
-                        planActL10n(context)
-                            .transactionRelationshipPageBuildChildren6,
-                      ),
-                      OutlinedButton(
-                        onPressed: _saving
-                            ? null
-                            : () => _decide(independent: false),
-                        child: Text(
-                          planActL10n(context)
-                              .relationshipQueuePageBuildChildren11,
+                        planActL10n(context).sequentialReviewRemaining(
+                          PersianNumbers.format(widget.reviewRemaining!),
                         ),
                       ),
-                    ] else if (data.review != null &&
-                        data.available.minorUnits > 0) ...[
-                      Text(
-                        planActL10n(context)
-                            .transactionRelationshipPageBuildChildren7,
-                      ),
-                      OutlinedButton(
+                    if (widget.onOpenQueue != null)
+                      OutlinedButton.icon(
                         onPressed: _saving
                             ? null
-                            : () => _decide(independent: true),
-                        child: Text(
-                          planActL10n(context)
-                              .transactionRelationshipPageBuildChildren8,
+                            : () async {
+                                await widget.onOpenQueue!();
+                                if (mounted) {
+                                  _dirty = true;
+                                  await _load();
+                                }
+                              },
+                        icon: const Icon(Icons.playlist_add_check),
+                        label: Text(
+                          planActL10n(context).relationshipQueuePageBuildTitle,
                         ),
                       ),
-                    ],
-                    if (_saving) ...[
-                      const LinearProgressIndicator(),
+                    if (data != null) ...[
                       Text(
-                        planActL10n(context)
-                            .transactionRelationshipPageBuildChildren9,
+                        data.transaction.type == AccountEntryType.income
+                            ? planActL10n(context).calendarVisibilityIncome
+                            : planActL10n(context).calendarVisibilityExpense,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                    ],
-                    if (data.review?.isIndependent != true) ...[
+                      Text(relationshipDateLabel(data.transaction.occurredAt)),
+                      if (data.transactionTags.isNotEmpty)
+                        Wrap(
+                          spacing: PlanActSpacing.sm,
+                          runSpacing: PlanActSpacing.sm,
+                          children: [
+                            for (final tag in data.transactionTags)
+                              TagBadge(label: tag),
+                          ],
+                        ),
                       Text(
-                        planActL10n(context)
-                            .commitmentAssociationSettlementTitle,
+                        data.transaction.note ??
+                            planActL10n(context)
+                                .relationshipQueuePageBuildSemanticLabel,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       Text(
                         planActL10n(context)
-                            .transactionRelationshipPageBuildChildren10,
-                      ),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: planActL10n(context)
-                              .transactionRelationshipPageBuildLabelText,
-                        ),
-                        enabled: !_saving,
-                        onChanged: (v) => setState(() => _query = v.trim()),
-                      ),
-                      if (data.targets.isEmpty)
-                        Text(
-                          planActL10n(context)
-                              .transactionRelationshipPageBuildChildren11,
-                        ),
-                      if (data.targets.isNotEmpty && targets.isEmpty)
-                        Text(
-                          planActL10n(context)
-                              .transactionRelationshipPageBuildChildren12,
-                        ),
-                      for (final target in targets)
-                        ListTile(
-                          selected: _selected == target.occurrence.id,
-                          leading: Icon(
-                            _selected == target.occurrence.id
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_unchecked,
-                          ),
-                          title: Text(target.commitment.title),
-                          subtitle: Text(
-                            planActL10n(
-                              context,
-                            ).weekTimelineViewAgendaDelegate2(
-                              (_date(target)).toString(),
-                              (target.commitment.status ==
-                                          CommitmentStatus.archived
-                                      ? planActL10n(
-                                          context,
-                                        ).transactionRelationshipPageBuildSubtitle
-                                      : '')
-                                  .toString(),
+                            .transactionRelationshipPageBuildChildren(
+                              (PersianMoneyText.money(
+                                data.transaction.amount,
+                                unit: MoneyUnitScope.of(context),
+                              )).toString(),
                             ),
-                          ),
-                          onTap: _saving || data.available.minorUnits == 0
-                              ? null
-                              : () => setState(
-                                  () => _selected = target.occurrence.id,
-                                ),
-                        ),
-                      TextField(
-                        controller: _amount,
-                        enabled: !_saving && data.available.minorUnits > 0,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        inputFormatters: const [
-                          MoneyInputFormatter(decimal: true),
-                        ],
-                        decoration: InputDecoration(
-                          labelText: planActL10n(context)
-                              .transactionRelationshipPageBuildLabelText2(
-                                (_moneyInput.label(
-                                  data.transaction.amount.currency,
-                                )).toString(),
-                              ),
+                      ),
+                      Text(
+                        planActL10n(
+                          context,
+                        ).transactionRelationshipPageBuildChildren3(
+                          (data.account?.name ??
+                                  planActL10n(
+                                    context,
+                                  ).transactionRelationshipPageBuildChildren2)
+                              .toString(),
                         ),
                       ),
-                      const SizedBox(height: PlanActSpacing.md),
-                      FilledButton(
-                        onPressed: _saving || data.available.minorUnits == 0
-                            ? null
-                            : _save,
-                        child: Text(
-                          _saving
-                              ? planActL10n(context)
-                                    .transactionRelationshipPageBuildChildren9
-                              : planActL10n(context)
-                                    .transactionRelationshipPageBuildChildren13,
-                        ),
-                      ),
-                    ],
-                    if (data.available.minorUnits == 0)
                       Text(
                         planActL10n(context)
-                            .transactionRelationshipPageBuildChildren14,
+                            .transactionRelationshipPageBuildChildren4(
+                              (PersianMoneyText.money(
+                                data.available,
+                                unit: MoneyUnitScope.of(context),
+                              )).toString(),
+                            ),
                       ),
-                  ],
-                  if (_error != null)
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                      if (data.matches.isNotEmpty) ...[
+                        ExpansionTile(
+                          title: Text(planActL10n(context).matchHistoryTitle),
+                          children: [
+                            for (final match in data.matches)
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: PlanActSpacing.md,
+                                ),
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(
+                                      PlanActSpacing.md,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        for (final allocation
+                                            in match.allocations)
+                                          Text(
+                                            '${data.targets.where((t) => t.occurrence.id == allocation.occurrenceId).firstOrNull?.commitment.title ?? ''} · ${PersianMoneyText.money(allocation.amount, unit: MoneyUnitScope.of(context))}',
+                                          ),
+                                        if (match.status == MatchStatus.active)
+                                          Wrap(
+                                            spacing: PlanActSpacing.sm,
+                                            children: [
+                                              TextButton(
+                                                onPressed: _saving
+                                                    ? null
+                                                    : () => _removeMatch(match),
+                                                child: Text(
+                                                  planActL10n(context)
+                                                      .matchRemoveAction,
+                                                ),
+                                              ),
+                                              if (match.allocations.every(
+                                                (a) =>
+                                                    a.type ==
+                                                    AllocationType.payment,
+                                              ))
+                                                TextButton(
+                                                  onPressed: _saving
+                                                      ? null
+                                                      : () => _correctMatch(
+                                                          match,
+                                                        ),
+                                                  child: Text(
+                                                    planActL10n(context)
+                                                        .matchCorrectAction,
+                                                  ),
+                                                ),
+                                            ],
+                                          )
+                                        else
+                                          Text(
+                                            planActL10n(context)
+                                                .matchHistoryResolved,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                      if (data.review?.isIndependent == true) ...[
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren5,
+                        ),
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren6,
+                        ),
+                        OutlinedButton(
+                          onPressed: _saving
+                              ? null
+                              : () => _decide(independent: false),
+                          child: Text(
+                            planActL10n(context)
+                                .relationshipQueuePageBuildChildren11,
+                          ),
+                        ),
+                      ] else if (data.review != null &&
+                          data.available.minorUnits > 0) ...[
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren7,
+                        ),
+                        OutlinedButton(
+                          onPressed: _saving
+                              ? null
+                              : () => _decide(independent: true),
+                          child: Text(
+                            planActL10n(context)
+                                .transactionRelationshipPageBuildChildren8,
+                          ),
+                        ),
+                      ],
+                      if (_saving) ...[
+                        const LinearProgressIndicator(),
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren9,
+                        ),
+                      ],
+                      if (data.review?.isIndependent != true) ...[
+                        Text(
+                          planActL10n(context)
+                              .commitmentAssociationSettlementTitle,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren10,
+                        ),
+                        RelationshipTargetBrowser(
+                          reader: widget.flow.targetReader,
+                          targets: data.targets,
+                          currency: data.transaction.amount.currency,
+                          selected: _selected,
+                          moneyInput: _moneyInput,
+                          enabled: !_saving && data.available.minorUnits > 0,
+                          onSelected: (id) => setState(() => _selected = id),
+                        ),
+                        TextField(
+                          controller: _amount,
+                          enabled: !_saving && data.available.minorUnits > 0,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: const [
+                            MoneyInputFormatter(decimal: true),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: planActL10n(context)
+                                .transactionRelationshipPageBuildLabelText2(
+                                  (_moneyInput.label(
+                                    data.transaction.amount.currency,
+                                  )).toString(),
+                                ),
+                          ),
+                        ),
+                        FilledButton(
+                          onPressed: _saving || data.available.minorUnits == 0
+                              ? null
+                              : _save,
+                          child: Text(
+                            _saving
+                                ? planActL10n(context)
+                                      .transactionRelationshipPageBuildChildren9
+                                : planActL10n(
+                                    context,
+                                  ).transactionRelationshipPageBuildChildren13,
+                          ),
+                        ),
+                      ],
+                      if (data.available.minorUnits == 0)
+                        Text(
+                          planActL10n(context)
+                              .transactionRelationshipPageBuildChildren14,
+                        ),
+                    ],
+                    if (_error != null)
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
+                    TextButton(
+                      onPressed: _saving ? null : _load,
+                      child: Text(planActL10n(context).inboxPageBuildTooltip),
                     ),
-                  TextButton(
-                    onPressed: _saving ? null : _load,
-                    child: Text(planActL10n(context).inboxPageBuildTooltip),
-                  ),
-                  if (data?.association != null) ...[
-                    const SizedBox(height: PlanActSpacing.lg),
-                    _associationSection(data!),
+                    if (data?.association != null) _associationSection(data!),
                   ],
-                ],
+                ),
               ),
       ),
     );

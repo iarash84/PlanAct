@@ -107,6 +107,8 @@ import 'package:planact/features/reminders/application/reminder_service.dart';
 import 'package:planact/features/reminders/application/reminder_platform.dart';
 import 'package:planact/features/reminders/data/drift_reminder_repository.dart';
 import 'package:planact/core/money/money.dart';
+import 'package:planact/features/reconciliation/data/drift_relationship_target_reader.dart';
+import 'package:planact/features/reconciliation/data/drift_relationship_page_loader.dart';
 import 'package:planact/features/reconciliation/application/contextual_reconciliation.dart';
 import 'package:planact/features/reconciliation/application/relationship_review_repository.dart';
 import 'package:planact/features/reconciliation/domain/relationship_review.dart';
@@ -978,6 +980,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     commitments: _repository,
                     plans: _planRepository,
                     reconciliation: _reconciliation,
+                    tags: _tagRepository,
+                    targetReader: _repository is DriftCommitmentRepository
+                        ? DriftRelationshipTargetReader(_repository.database)
+                        : null,
+                    pageLoader: _repository is DriftCommitmentRepository
+                        ? DriftRelationshipPageLoader(_repository.database).load
+                        : null,
                   ),
                 ),
               ),
@@ -1008,6 +1017,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             commitments: _repository,
             plans: _planRepository,
             reconciliation: _reconciliation,
+            tags: _tagRepository,
+            targetReader: _repository is DriftCommitmentRepository
+                ? DriftRelationshipTargetReader(_repository.database)
+                : null,
+            pageLoader: _repository is DriftCommitmentRepository
+                ? DriftRelationshipPageLoader(_repository.database).load
+                : null,
           ),
         ),
       ),

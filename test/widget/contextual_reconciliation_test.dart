@@ -23,6 +23,7 @@ import 'package:planact/features/reconciliation/application/contextual_reconcili
 import 'package:planact/features/reconciliation/application/reconciliation_use_cases.dart';
 import 'package:planact/features/reconciliation/data/drift_reconciliation_repository.dart';
 import 'package:planact/features/reconciliation/presentation/transaction_relationship_page.dart';
+import 'package:planact/features/reconciliation/presentation/relationship_target_browser.dart';
 
 class _DelayedContext extends ContextualReconciliation {
   _DelayedContext(ContextualReconciliation flow, this.pending)
@@ -139,6 +140,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('۱ مورد بعد'), findsOneWidget);
       await tester.ensureVisible(find.text('کلاس موسیقی'));
+      await tester.ensureVisible(find.text('کلاس موسیقی'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
       final amount = find.byWidgetPredicate(
         (w) =>
@@ -160,6 +163,8 @@ void main() {
       );
       expect((await flow.load(transaction.id)).available.minorUnits, 600);
       await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+      await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('به تعهدی مربوط نیست'));
       await tester.pumpAndSettle();
       expect(
@@ -294,6 +299,8 @@ void main() {
       ),
     );
     await tester.tap(find.text('شروع بررسی'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('کلاس موسیقی'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('کلاس موسیقی'));
     await tester.enterText(
@@ -521,14 +528,13 @@ void main() {
       }
 
       await open();
-      expect(
-        find.text('هنوز رخدادی برای انتخاب ثبت نشده است.'),
-        findsOneWidget,
-      );
+      expect(find.text('تعهدی با این عبارت پیدا نشد.'), findsOneWidget);
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect((await emptyFlow.load(transaction.id)).review!.revision, 0);
       await tester.tap(find.text('ورود'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('به تعهدی مربوط نیست'));
       await tester.pumpAndSettle();
@@ -554,6 +560,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('کلاس موسیقی'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
       await tester.enterText(
         find.byWidgetPredicate(
@@ -567,6 +575,8 @@ void main() {
       final independent = await flow.markIndependent(
         expected: (await flow.load(transaction.id)).review!,
       );
+      await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('به تعهدی مربوط نیست'));
@@ -586,7 +596,14 @@ void main() {
             .text,
         '400',
       );
-      expect(tester.widget<ListTile>(find.byType(ListTile)).selected, isTrue);
+      expect(
+        tester
+            .widget<RelationshipTargetCard>(
+              find.byKey(const ValueKey('relationship-selected')),
+            )
+            .selected,
+        isTrue,
+      );
       await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('بازخوانی'));
@@ -670,6 +687,8 @@ void main() {
         );
         await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
         expect((await flow.load(transaction.id)).review!.isIndependent, isTrue);
@@ -681,6 +700,8 @@ void main() {
           isFalse,
         );
         await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
         await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
@@ -705,10 +726,12 @@ void main() {
         await tester.drag(find.byType(SnackBar), const Offset(0, 300));
         await tester.pumpAndSettle();
         await tester.scrollUntilVisible(
-          find.widgetWithText(ListTile, 'کلاس موسیقی'),
+          find.widgetWithText(RelationshipTargetCard, 'کلاس موسیقی').first,
           150,
           scrollable: find.byType(Scrollable).first,
         );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('کلاس موسیقی'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.ensureVisible(
@@ -797,6 +820,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('به تعهدی مربوط نیست'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('به تعهدی مربوط نیست'));
         await tester.pumpAndSettle();
         await tester.tap(find.byType(BackButton));
@@ -843,6 +868,8 @@ void main() {
         );
         await tester.tap(find.text('المصدر'));
         await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('کلاس موسیقی'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
         await tester.enterText(
           find.byWidgetPredicate(
@@ -871,7 +898,14 @@ void main() {
               .text,
           '400',
         );
-        expect(tester.widget<ListTile>(find.byType(ListTile)).selected, isTrue);
+        expect(
+          tester
+              .widget<RelationshipTargetCard>(
+                find.byKey(const ValueKey('relationship-selected')),
+              )
+              .selected,
+          isTrue,
+        );
         // A stale remaining amount must fail without losing the user's draft.
         await flow.confirm(
           transactionId: transaction.id,
@@ -897,7 +931,14 @@ void main() {
               .text,
           '400',
         );
-        expect(tester.widget<ListTile>(find.byType(ListTile)).selected, isTrue);
+        expect(
+          tester
+              .widget<RelationshipTargetCard>(
+                find.byKey(const ValueKey('relationship-selected')),
+              )
+              .selected,
+          isTrue,
+        );
         await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('بازخوانی'));
