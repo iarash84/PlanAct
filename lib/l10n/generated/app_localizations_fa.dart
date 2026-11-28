@@ -10,6 +10,25 @@ class AppLocalizationsFa extends AppLocalizations {
   AppLocalizationsFa([String locale = 'fa']) : super(locale);
 
   @override
+  String get occurrenceAllocationSuggestion =>
+      'پیشنهاد قابل ویرایش: ماندهٔ قابل تخصیص این تراکنش؛ با ذخیره تأیید می‌شود.';
+
+  @override
+  String get occurrenceAllocationOriginalShortcut =>
+      'مبلغ کل این نوبت برابر مبلغ این تراکنش است';
+
+  @override
+  String get occurrenceAllocationChooseOutstanding =>
+      'استفاده از ماندهٔ این نوبت';
+
+  @override
+  String get occurrenceAllocationCapacityDifference =>
+      'ماندهٔ این نوبت کمتر از ماندهٔ تراکنش است؛ مبلغ پیشنهادی کاهش داده نشده است.';
+
+  @override
+  String get occurrenceAllocationSheetTitle => 'تخصیص به نوبت انتخاب‌شده';
+
+  @override
   String get commitmentAssociationTitle => 'ارتباط توصیفی با تعهد';
 
   @override
@@ -6032,14 +6051,14 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get occurrenceAllocationTotalConfirmation =>
-      'تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.';
+      'مبلغ کل مورد انتظار این رخداد را، جدا از مبلغ تخصیص، تأیید می‌کنم.';
 
   @override
   String get occurrenceAllocationConfirm => 'ثبت اطلاعات مالی و ارتباط';
 
   @override
   String get occurrenceAllocationTotalHelper =>
-      'کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.';
+      'پیشنهاد اولیه، مبلغ اصلی تراکنش است، نه ماندهٔ آن؛ می‌توانید آن را ویرایش کنید. این کل می‌تواند بیشتر از مبلغ تراکنش باشد و با چند تراکنش تسویه شود؛ با مبلغ تخصیص یکی نیست و به تأیید شما نیاز دارد.';
 
   @override
   String get occurrenceAllocationAmountHelper =>

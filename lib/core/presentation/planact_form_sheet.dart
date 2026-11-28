@@ -53,6 +53,20 @@ class PlanActFormSheet extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (showDragHandle)
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          margin: const EdgeInsets.only(
+                            bottom: PlanActSpacing.md,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                        ),
+                      ),
                     Flexible(
                       child: SingleChildScrollView(
                         keyboardDismissBehavior:
@@ -60,22 +74,6 @@ class PlanActFormSheet extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (showDragHandle)
-                              Center(
-                                child: Container(
-                                  width: 36,
-                                  height: 4,
-                                  margin: const EdgeInsets.only(
-                                    bottom: PlanActSpacing.md,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .outlineVariant,
-                                    borderRadius: BorderRadius.circular(99),
-                                  ),
-                                ),
-                              ),
                             Text(
                               title,
                               style: Theme.of(context).textTheme.titleLarge,

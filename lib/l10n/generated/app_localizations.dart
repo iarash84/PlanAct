@@ -94,6 +94,36 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('fa')];
 
+  /// Visible editable suggestion from fresh durable transaction remainder, not a persisted default.
+  ///
+  /// In fa, this message translates to:
+  /// **'پیشنهاد قابل ویرایش: ماندهٔ قابل تخصیص این تراکنش؛ با ذخیره تأیید می‌شود.'**
+  String get occurrenceAllocationSuggestion;
+
+  /// Explicit shortcut filling total with ORIGINAL transaction amount, not remainder; does not confirm total.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ کل این نوبت برابر مبلغ این تراکنش است'**
+  String get occurrenceAllocationOriginalShortcut;
+
+  /// Explicit action replacing allocation draft with occurrence outstanding capacity.
+  ///
+  /// In fa, this message translates to:
+  /// **'استفاده از ماندهٔ این نوبت'**
+  String get occurrenceAllocationChooseOutstanding;
+
+  /// Warning about smaller occurrence capacity without silent clamping.
+  ///
+  /// In fa, this message translates to:
+  /// **'ماندهٔ این نوبت کمتر از ماندهٔ تراکنش است؛ مبلغ پیشنهادی کاهش داده نشده است.'**
+  String get occurrenceAllocationCapacityDifference;
+
+  /// Title of automatic occurrence allocation modal form sheet.
+  ///
+  /// In fa, this message translates to:
+  /// **'تخصیص به نوبت انتخاب‌شده'**
+  String get occurrenceAllocationSheetTitle;
+
   /// Heading for the amount-free commitment association editor and report section.
   ///
   /// In fa, this message translates to:
@@ -10133,7 +10163,7 @@ abstract class AppLocalizations {
   /// Explicit acknowledgement that expectation total is distinct from allocation.
   ///
   /// In fa, this message translates to:
-  /// **'تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.'**
+  /// **'مبلغ کل مورد انتظار این رخداد را، جدا از مبلغ تخصیص، تأیید می‌کنم.'**
   String get occurrenceAllocationTotalConfirmation;
 
   /// Atomic action creating the selected occurrence expectation and allocating payment.
@@ -10142,10 +10172,10 @@ abstract class AppLocalizations {
   /// **'ثبت اطلاعات مالی و ارتباط'**
   String get occurrenceAllocationConfirm;
 
-  /// Explains that the explicit total covers the whole occurrence and may be settled by multiple transactions, separately from this allocation.
+  /// Discloses the editable initial expectation-total suggestion from the original durable transaction amount, not its remainder. Total may exceed the transaction and requires explicit confirmation independently from allocation; retained drafts are not overwritten.
   ///
   /// In fa, this message translates to:
-  /// **'کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.'**
+  /// **'پیشنهاد اولیه، مبلغ اصلی تراکنش است، نه ماندهٔ آن؛ می‌توانید آن را ویرایش کنید. این کل می‌تواند بیشتر از مبلغ تراکنش باشد و با چند تراکنش تسویه شود؛ با مبلغ تخصیص یکی نیست و به تأیید شما نیاز دارد.'**
   String get occurrenceAllocationTotalHelper;
 
   /// Explains the separately required allocation: the portion of this transaction linked to the selected occurrence, never inferred from the total.

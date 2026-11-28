@@ -143,10 +143,11 @@ void main() {
       await tester.ensureVisible(find.text('کلاس موسیقی'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
+      await tester.pumpAndSettle();
       final amount = find.byWidgetPredicate(
         (w) =>
             w is TextField &&
-            (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+            (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
       );
       await tester.enterText(amount, '400');
       FocusManager.instance.primaryFocus?.unfocus();
@@ -303,11 +304,12 @@ void main() {
     await tester.ensureVisible(find.text('کلاس موسیقی'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('کلاس موسیقی'));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.byWidgetPredicate(
         (w) =>
             w is TextField &&
-            (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+            (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
       ),
       '1000',
     );
@@ -563,15 +565,18 @@ void main() {
       await tester.ensureVisible(find.text('کلاس موسیقی'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('کلاس موسیقی'));
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byWidgetPredicate(
           (w) =>
               w is TextField &&
-              (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+              (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
         ),
         '400',
       );
       FocusManager.instance.primaryFocus?.unfocus();
+      await tester.tap(find.text('انصراف'));
+      await tester.pumpAndSettle();
       final independent = await flow.markIndependent(
         expected: (await flow.load(transaction.id)).review!,
       );
@@ -582,13 +587,18 @@ void main() {
       await tester.tap(find.text('به تعهدی مربوط نیست'));
       await tester.pumpAndSettle();
       expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('relationship-selected')),
+      );
+      await tester.tap(find.byKey(const ValueKey('relationship-selected')));
+      await tester.pumpAndSettle();
       expect(
         tester
             .widget<TextField>(
               find.byWidgetPredicate(
                 (w) =>
                     w is TextField &&
-                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                    (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ??
                         false),
               ),
             )
@@ -604,9 +614,13 @@ void main() {
             .selected,
         isTrue,
       );
-      await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+      await tester.tap(find.text('انصراف'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('بازخوانی'));
+      await tester.ensureVisible(
+        find.widgetWithText(TextButton, 'بازخوانی').last,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('بازخوانی').last);
       await tester.pumpAndSettle();
       await flow.reopen(expected: independent);
       await tester.ensureVisible(find.text('بازگشایی بررسی ارتباط'));
@@ -615,9 +629,16 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('ثبت تصمیم انجام نشد'), findsOneWidget);
       expect(find.text('بازگشایی بررسی ارتباط'), findsOneWidget);
-      await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+      await tester.ensureVisible(
+        find.widgetWithText(TextButton, 'بازخوانی').last,
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('بازخوانی'));
+      await tester.tap(find.text('بازخوانی').last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('relationship-selected')),
+      );
+      await tester.tap(find.byKey(const ValueKey('relationship-selected')));
       await tester.pumpAndSettle();
       expect(
         tester
@@ -625,7 +646,7 @@ void main() {
               find.byWidgetPredicate(
                 (w) =>
                     w is TextField &&
-                    (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                    (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ??
                         false),
               ),
             )
@@ -734,11 +755,12 @@ void main() {
         await tester.ensureVisible(find.text('کلاس موسیقی'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
+        await tester.pumpAndSettle();
         await tester.ensureVisible(
           find.byWidgetPredicate(
             (w) =>
                 w is TextField &&
-                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+                (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
           ),
         );
         await tester.pumpAndSettle();
@@ -746,7 +768,7 @@ void main() {
           find.byWidgetPredicate(
             (w) =>
                 w is TextField &&
-                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+                (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
           ),
           '600',
         );
@@ -871,18 +893,21 @@ void main() {
         await tester.ensureVisible(find.text('کلاس موسیقی'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('کلاس موسیقی'));
+        await tester.pumpAndSettle();
         await tester.enterText(
           find.byWidgetPredicate(
             (w) =>
                 w is TextField &&
-                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+                (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
           ),
           '400',
         );
         FocusManager.instance.primaryFocus?.unfocus();
-        await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+        await tester.ensureVisible(
+          find.widgetWithText(TextButton, 'بازخوانی').last,
+        );
         await tester.pumpAndSettle();
-        await tester.tap(find.text('بازخوانی'));
+        await tester.tap(find.text('بازخوانی').last);
         await tester.pumpAndSettle();
         expect(
           tester
@@ -890,7 +915,7 @@ void main() {
                 find.byWidgetPredicate(
                   (w) =>
                       w is TextField &&
-                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                      (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ??
                           false),
                 ),
               )
@@ -923,7 +948,7 @@ void main() {
                 find.byWidgetPredicate(
                   (w) =>
                       w is TextField &&
-                      (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ??
+                      (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ??
                           false),
                 ),
               )
@@ -939,15 +964,17 @@ void main() {
               .selected,
           isTrue,
         );
-        await tester.ensureVisible(find.widgetWithText(TextButton, 'بازخوانی'));
+        await tester.ensureVisible(
+          find.widgetWithText(TextButton, 'بازخوانی').last,
+        );
         await tester.pumpAndSettle();
-        await tester.tap(find.text('بازخوانی'));
+        await tester.tap(find.text('بازخوانی').last);
         await tester.pumpAndSettle();
         await tester.enterText(
           find.byWidgetPredicate(
             (w) =>
                 w is TextField &&
-                (w.decoration?.labelText?.startsWith('مبلغ ارتباط') ?? false),
+                (w.decoration?.labelText?.startsWith('مبلغ تخصیص') ?? false),
           ),
           '300',
         );

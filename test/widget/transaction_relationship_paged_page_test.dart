@@ -91,14 +91,10 @@ void main() {
             tester.getBottomLeft(cards.first).dy,
         greaterThanOrEqualTo(PlanActSpacing.md),
       );
-      final browser = find.byType(RelationshipTargetBrowser);
       final allocation = find.byWidgetPredicate(
         (w) => w is TextField && w.controller != null && w.key == null,
       );
-      expect(
-        tester.getTopLeft(allocation).dy - tester.getBottomLeft(browser).dy,
-        greaterThanOrEqualTo(PlanActSpacing.md),
-      );
+      expect(allocation, findsNothing);
       final filters = find.byType(ExpansionTile);
       await tester.ensureVisible(filters);
       await tester.tap(filters);
@@ -119,6 +115,8 @@ void main() {
       await tester.ensureVisible(amount);
       await tester.enterText(amount, '123');
       final before = tester.widget<TextField>(amount).controller!.text;
+      await tester.tap(find.text('انصراف'));
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('صفحهٔ بعد'));
       await tester.tap(find.text('صفحهٔ بعد'));
       await tester.pumpAndSettle();
@@ -130,12 +128,13 @@ void main() {
       await tester.tap(find.text('بازخوانی'));
       await tester.pumpAndSettle();
       expect(flow.pageLoads, 2);
-      expect(tester.widget<TextField>(amount).controller!.text, before);
-      expect(
-        find.byKey(const ValueKey('relationship-selected')),
-        findsOneWidget,
-      );
+      final selected = find.byKey(const ValueKey('relationship-selected'));
+      expect(selected, findsOneWidget);
       expect(reader.queries.last.query, '42');
+      await tester.ensureVisible(selected);
+      await tester.tap(selected);
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(amount).controller!.text, before);
       expect(await flow.reconciliation.repository.list(), isEmpty);
       expect(tester.takeException(), isNull);
     },

@@ -1,4 +1,14 @@
 {
+  "occurrenceAllocationSuggestion": "پیشنهاد قابل ویرایش: ماندهٔ قابل تخصیص این تراکنش؛ با ذخیره تأیید می‌شود.",
+  "@occurrenceAllocationSuggestion": {"x-planact-introduced": "occurrence-allocation-2026-11-28", "description": "Visible editable suggestion from fresh durable transaction remainder, not a persisted default."},
+  "occurrenceAllocationOriginalShortcut": "مبلغ کل این نوبت برابر مبلغ این تراکنش است",
+  "@occurrenceAllocationOriginalShortcut": {"x-planact-introduced": "occurrence-allocation-2026-11-28", "description": "Explicit shortcut filling total with ORIGINAL transaction amount, not remainder; does not confirm total."},
+  "occurrenceAllocationChooseOutstanding": "استفاده از ماندهٔ این نوبت",
+  "@occurrenceAllocationChooseOutstanding": {"x-planact-introduced": "occurrence-allocation-2026-11-28", "description": "Explicit action replacing allocation draft with occurrence outstanding capacity."},
+  "occurrenceAllocationCapacityDifference": "ماندهٔ این نوبت کمتر از ماندهٔ تراکنش است؛ مبلغ پیشنهادی کاهش داده نشده است.",
+  "@occurrenceAllocationCapacityDifference": {"x-planact-introduced": "occurrence-allocation-2026-11-28", "description": "Warning about smaller occurrence capacity without silent clamping."},
+  "occurrenceAllocationSheetTitle": "تخصیص به نوبت انتخاب‌شده",
+  "@occurrenceAllocationSheetTitle": {"x-planact-introduced": "occurrence-allocation-2026-11-28", "description": "Title of automatic occurrence allocation modal form sheet."},
   "commitmentAssociationTitle": "ارتباط توصیفی با تعهد",
   "@commitmentAssociationTitle": {"description": "Heading for the amount-free commitment association editor and report section.", "x-planact-introduced": "commitment-association-2026-11-24"},
   "commitmentAssociationDisclaimer": "این ارتباط فقط توضیح می‌دهد تراکنش مربوط به کدام تعهد است؛ تسویه یا تخصیص مبلغ نیست و باقی‌مانده را از بررسی امروز خارج نمی‌کند.",
@@ -9479,7 +9489,7 @@
     },
     "x-planact-introduced": "occurrence-allocation-2026-11-28"
   },
-  "occurrenceAllocationTotalConfirmation": "تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.",
+  "occurrenceAllocationTotalConfirmation": "مبلغ کل مورد انتظار این رخداد را، جدا از مبلغ تخصیص، تأیید می‌کنم.",
   "@occurrenceAllocationTotalConfirmation": {
     "description": "Explicit acknowledgement that expectation total is distinct from allocation.",
     "x-planact-introduced": "occurrence-allocation-2026-11-28"
@@ -9489,9 +9499,9 @@
     "description": "Atomic action creating the selected occurrence expectation and allocating payment.",
     "x-planact-introduced": "occurrence-allocation-2026-11-28"
   },
-  "occurrenceAllocationTotalHelper": "کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.",
+  "occurrenceAllocationTotalHelper": "پیشنهاد اولیه، مبلغ اصلی تراکنش است، نه ماندهٔ آن؛ می‌توانید آن را ویرایش کنید. این کل می‌تواند بیشتر از مبلغ تراکنش باشد و با چند تراکنش تسویه شود؛ با مبلغ تخصیص یکی نیست و به تأیید شما نیاز دارد.",
   "@occurrenceAllocationTotalHelper": {
-    "description": "Explains that the explicit total covers the whole occurrence and may be settled by multiple transactions, separately from this allocation.",
+    "description": "Discloses the editable initial expectation-total suggestion from the original durable transaction amount, not its remainder. Total may exceed the transaction and requires explicit confirmation independently from allocation; retained drafts are not overwritten.",
     "x-planact-introduced": "occurrence-allocation-2026-11-28"
   },
   "occurrenceAllocationAmountHelper": "بخشی از مبلغ همین تراکنش را که می‌خواهید به این رخداد اختصاص دهید، جداگانه وارد کنید؛ تأیید مبلغ کل جای این ورودی را نمی‌گیرد.",

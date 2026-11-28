@@ -317,6 +317,9 @@ class _RelationshipTargetBrowserState extends State<RelationshipTargetBrowser> {
             key: const ValueKey('relationship-selected'),
             target: _selection!,
             selected: true,
+            onTap: widget.enabled
+                ? () => widget.onSelected(_selection!.occurrence.id)
+                : null,
           ),
         ],
         TextField(

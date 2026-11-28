@@ -1,3 +1,4 @@
+import 'package:planact/core/presentation/planact_form_sheet.dart';
 import 'package:planact/features/reconciliation/application/atomic_occurrence_allocation_repository.dart';
 import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/core/money/money.dart';
@@ -53,6 +54,32 @@ class _TransactionRelationshipPageState
   PinnedMoneyInput? _pinned;
   PinnedMoneyInput get _moneyInput =>
       _pinned ??= PinnedMoneyInput(MoneyUnitScope.of(context));
+  final Map<
+    StableId,
+    ({String amount, String total, bool confirmed, String? fingerprint})
+  >
+  _drafts = {};
+  final Set<StableId> _staleTargets = {};
+  StateSetter? _sheetSetState;
+  BuildContext? _sheetContext;
+  RelationshipTarget? _sheetTarget;
+
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    if (_sheetContext?.mounted == true) _sheetSetState?.call(() {});
+  }
+
+  void _rememberDraft() {
+    if (_selected == null || _selectionLoading) return;
+    _drafts[_selected!] = (
+      amount: _amount.text,
+      total: _total.text,
+      confirmed: _totalConfirmed,
+      fingerprint: _allocationSnapshot?.fingerprint,
+    );
+  }
+
   final _amount = TextEditingController();
   final _total = TextEditingController();
   OccurrenceAllocationSnapshot? _allocationSnapshot;
@@ -135,16 +162,52 @@ class _TransactionRelationshipPageState
 
   Future<void> _selectOccurrence(StableId id) async {
     if (_saving) return;
-    if (_selected == id) return;
+    _rememberDraft();
+    final draft = _drafts[id];
     setState(() {
       _selected = id;
-      _total.clear();
+      _amount.text = draft?.amount ?? '';
+      _total.text = draft?.total ?? '';
       _totalConfirmed = false;
+      _sheetTarget = null;
     });
-    await _loadSelection(id);
+    final loading = _loadSelection(id);
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: true,
+      // Keep the handle inside the saving guard, not in the modal host.
+      showDragHandle: false,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, update) {
+          _sheetSetState = update;
+          _sheetContext = context;
+          return PopScope(
+            canPop: !_saving,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              // Modal drag uses Navigator.pop, which bypasses PopScope. Win
+              // the vertical gesture inside the host while a command is pending.
+              onVerticalDragStart: _saving ? (_) {} : null,
+              child: _allocationSheet(),
+            ),
+          );
+        },
+      ),
+    );
+    _sheetSetState = null;
+    _sheetContext = null;
+    if (mounted) {
+      if (saved != true) _rememberDraft();
+      setState(() {});
+    }
+    await loading;
   }
 
   Future<void> _loadSelection(StableId id) async {
+    final draft = _drafts[id];
     final request = ++_selectionRequest;
     setState(() {
       _allocationSnapshot = null;
@@ -158,9 +221,41 @@ class _TransactionRelationshipPageState
         widget.transactionId,
         id,
       );
+      final targets = widget.flow.targetReader == null
+          ? _context!.targets.where((t) => t.occurrence.id == id).toList()
+          : await widget.flow.targetReader!.byIds([
+              id,
+            ], _context!.transaction.amount.currency);
       if (!mounted || request != _selectionRequest || _selected != id) return;
       setState(() {
         _allocationSnapshot = snapshot;
+        _sheetTarget = targets.firstOrNull;
+        if (draft == null) {
+          _amount.text = _moneyInput.inputText(
+            snapshot?.transactionCapacity.minorUnits ??
+                _context!.available.minorUnits,
+            currency: _context!.transaction.amount.currency,
+          );
+          if (snapshot?.expectationState ==
+              OccurrenceExpectationState.missing) {
+            _total.text = _moneyInput.inputText(
+              snapshot!.transaction.amount.minorUnits,
+              currency: snapshot.transaction.amount.currency,
+            );
+          }
+        }
+        _totalConfirmed =
+            draft?.confirmed == true &&
+            draft?.fingerprint == snapshot?.fingerprint;
+        final changedDraft =
+            draft?.fingerprint != null &&
+            draft!.fingerprint != snapshot?.fingerprint;
+        if (changedDraft) _staleTargets.add(id);
+        _requiresRefresh = _staleTargets.contains(id);
+        if (_requiresRefresh) {
+          _totalConfirmed = false;
+          _error = _allocationError(OccurrenceAllocationErrorCode.stale);
+        }
         _selectionLoading = false;
       });
     } catch (error) {
@@ -258,8 +353,17 @@ class _TransactionRelationshipPageState
           _saving = false;
           _dirty = true;
         });
+        _drafts.clear();
+        if (_sheetContext != null) {
+          final sheet = _sheetContext!;
+          _sheetSetState = null;
+          _sheetContext = null;
+          if (sheet.mounted) Navigator.of(sheet).pop(true);
+        }
         if (widget.reviewRemaining != null &&
-            amount < _context!.available.minorUnits) {
+            amount <
+                (snapshot?.transactionCapacity.minorUnits ??
+                    _context!.available.minorUnits)) {
           _amount.clear();
           _total.clear();
           setState(() {
@@ -280,6 +384,9 @@ class _TransactionRelationshipPageState
           _saving = false;
           _totalConfirmed = false;
           _requiresRefresh = widget.flow.supportsAtomicAllocation;
+          if (_requiresRefresh && _selected != null) {
+            _staleTargets.add(_selected!);
+          }
           _error = error is OccurrenceAllocationException
               ? _allocationError(error.code)
               : PersianCopy.transactionRelationshipPageSaveMessage2;
@@ -545,12 +652,20 @@ class _TransactionRelationshipPageState
           l10n.occurrenceAllocationMissingTitle,
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        Text(
-          snapshot.suggestedDirection == FinancialExpectationDirection.incoming
-              ? l10n.occurrenceAllocationSuggestedIncome
-              : l10n.occurrenceAllocationSuggestedExpense,
-        ),
         Text(l10n.occurrenceAllocationScope),
+        TextButton(
+          key: const ValueKey('occurrence-total-original'),
+          onPressed: _saving || _requiresRefresh
+              ? null
+              : () => setState(() {
+                  _total.text = _moneyInput.inputText(
+                    snapshot.transaction.amount.minorUnits,
+                    currency: snapshot.transaction.amount.currency,
+                  );
+                  _totalConfirmed = false;
+                }),
+          child: Text(l10n.occurrenceAllocationOriginalShortcut),
+        ),
         TextField(
           key: const ValueKey('occurrence-expectation-total'),
           controller: _total,
@@ -577,6 +692,152 @@ class _TransactionRelationshipPageState
           controlAffinity: ListTileControlAffinity.leading,
         ),
       ],
+    );
+  }
+
+  Widget _allocationSheet() {
+    final data = _context!;
+    final l10n = planActL10n(context);
+    final snapshot = _allocationSnapshot;
+    String money(Money value) =>
+        PersianMoneyText.money(value, unit: _moneyInput.unit);
+    final capacity = snapshot?.expectationCapacity;
+    return PlanActFormSheet(
+      title: l10n.occurrenceAllocationSheetTitle,
+      showDragHandle: true,
+      primaryKey: const ValueKey('occurrence-allocation-save'),
+      isLoading: _saving,
+      error: _error,
+      onSecondary: _saving ? null : () => Navigator.of(_sheetContext!).pop(),
+      primaryLabel:
+          snapshot?.expectationState == OccurrenceExpectationState.missing
+          ? l10n.occurrenceAllocationConfirm
+          : l10n.transactionRelationshipPageBuildChildren13,
+      onPrimary:
+          _saving ||
+              _selectionLoading ||
+              _requiresRefresh ||
+              (widget.flow.supportsAtomicAllocation && snapshot == null) ||
+              snapshot?.expectationState ==
+                  OccurrenceExpectationState.ambiguous ||
+              (snapshot?.expectationState ==
+                      OccurrenceExpectationState.missing &&
+                  !_totalConfirmed)
+          ? null
+          : _save,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: PlanActSpacing.md,
+        children: [
+          if (_selectionLoading) const LinearProgressIndicator(),
+          if (snapshot != null) ...[
+            Text(
+              snapshot.suggestedDirection ==
+                      FinancialExpectationDirection.incoming
+                  ? l10n.occurrenceAllocationSuggestedIncome
+                  : l10n.occurrenceAllocationSuggestedExpense,
+            ),
+            Text(
+              l10n.transactionRelationshipPageBuildChildren(
+                money(snapshot.transaction.amount),
+              ),
+            ),
+            Text(
+              l10n.transactionRelationshipPageBuildChildren4(
+                money(snapshot.transactionCapacity),
+              ),
+            ),
+          ],
+          if (_sheetTarget != null) ...[
+            Text(
+              _sheetTarget!.commitment.title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text(
+              relationshipDateLabel(
+                _sheetTarget!.occurrence.currentScheduledAt,
+              ),
+            ),
+          ],
+          if (snapshot?.expectedTotal != null) ...[
+            Text(
+              '${l10n.relationshipExpected}: ${money(snapshot!.expectedTotal!)}',
+            ),
+            if (capacity != null) ...[
+              Text(
+                '${l10n.relationshipAllocated}: ${money(Money(minorUnits: snapshot.expectedTotal!.minorUnits - capacity.minorUnits, currency: capacity.currency))}',
+              ),
+              Text('${l10n.relationshipOutstanding}: ${money(capacity)}'),
+            ],
+          ],
+          Text(l10n.occurrenceAllocationSuggestion),
+          if (capacity != null &&
+              capacity.minorUnits <
+                  snapshot!.transactionCapacity.minorUnits) ...[
+            Text(l10n.occurrenceAllocationCapacityDifference),
+            TextButton(
+              key: const ValueKey('occurrence-use-outstanding'),
+              onPressed: _saving || _requiresRefresh
+                  ? null
+                  : () => setState(() {
+                      _amount.text = _moneyInput.inputText(
+                        capacity.minorUnits,
+                        currency: capacity.currency,
+                      );
+                      _amountError = null;
+                    }),
+              child: Text(l10n.occurrenceAllocationChooseOutstanding),
+            ),
+          ],
+
+          if (_allocationSnapshot?.expectationState ==
+              OccurrenceExpectationState.missing)
+            _missingExpectation(),
+          if (_allocationSnapshot?.expectationState ==
+              OccurrenceExpectationState.ambiguous)
+            Text(planActL10n(context).occurrenceAllocationErrorAmbiguous),
+          TextField(
+            controller: _amount,
+            enabled:
+                !_saving &&
+                !_selectionLoading &&
+                !_requiresRefresh &&
+                data.available.minorUnits > 0,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: const [MoneyInputFormatter(decimal: true)],
+            onChanged: (_) => setState(() => _amountError = null),
+            decoration: InputDecoration(
+              errorText: _amountError,
+              errorMaxLines: 3,
+              helperText: planActL10n(context).occurrenceAllocationAmountHelper,
+              helperMaxLines: 5,
+              labelText: planActL10n(context)
+                  .transactionRelationshipPageBuildLabelText2(
+                    (_moneyInput.label(data.transaction.amount.currency))
+                        .toString(),
+                  ),
+            ),
+          ),
+
+          TextButton(
+            onPressed: _saving || _selectionLoading
+                ? null
+                : () async {
+                    _rememberDraft();
+                    final id = _selected!;
+                    _staleTargets.remove(id);
+                    _drafts[id] = (
+                      amount: _amount.text,
+                      total: _total.text,
+                      confirmed: false,
+                      fingerprint: null,
+                    );
+                    await _loadSelection(id);
+                  },
+            child: Text(l10n.inboxPageBuildTooltip),
+          ),
+        ],
+      ),
     );
   }
 
@@ -897,68 +1158,6 @@ class _TransactionRelationshipPageState
                           enabled: !_saving && data.available.minorUnits > 0,
                           onSelected: _selectOccurrence,
                         ),
-                        if (_selectionLoading) const LinearProgressIndicator(),
-                        if (_allocationSnapshot?.expectationState ==
-                            OccurrenceExpectationState.missing)
-                          _missingExpectation(),
-                        if (_allocationSnapshot?.expectationState ==
-                            OccurrenceExpectationState.ambiguous)
-                          Text(
-                            planActL10n(context)
-                                .occurrenceAllocationErrorAmbiguous,
-                          ),
-                        TextField(
-                          controller: _amount,
-                          enabled: !_saving && data.available.minorUnits > 0,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          inputFormatters: const [
-                            MoneyInputFormatter(decimal: true),
-                          ],
-                          onChanged: (_) => setState(() => _amountError = null),
-                          decoration: InputDecoration(
-                            errorText: _amountError,
-                            errorMaxLines: 3,
-                            helperText: planActL10n(context)
-                                .occurrenceAllocationAmountHelper,
-                            helperMaxLines: 5,
-                            labelText: planActL10n(context)
-                                .transactionRelationshipPageBuildLabelText2(
-                                  (_moneyInput.label(
-                                    data.transaction.amount.currency,
-                                  )).toString(),
-                                ),
-                          ),
-                        ),
-                        FilledButton(
-                          onPressed:
-                              _saving ||
-                                  data.available.minorUnits == 0 ||
-                                  _selectionLoading ||
-                                  _requiresRefresh ||
-                                  (widget.flow.supportsAtomicAllocation &&
-                                      _allocationSnapshot == null) ||
-                                  _allocationSnapshot?.expectationState ==
-                                      OccurrenceExpectationState.ambiguous ||
-                                  (_allocationSnapshot?.expectationState ==
-                                          OccurrenceExpectationState.missing &&
-                                      !_totalConfirmed)
-                              ? null
-                              : _save,
-                          child: Text(
-                            _saving
-                                ? planActL10n(context)
-                                      .transactionRelationshipPageBuildChildren9
-                                : _allocationSnapshot?.expectationState ==
-                                      OccurrenceExpectationState.missing
-                                ? planActL10n(context)
-                                      .occurrenceAllocationConfirm
-                                : planActL10n(
-                                    context,
-                                  ).transactionRelationshipPageBuildChildren13,
-                          ),
-                        ),
                       ],
                       if (data.available.minorUnits == 0)
                         Text(
@@ -966,7 +1165,7 @@ class _TransactionRelationshipPageState
                               .transactionRelationshipPageBuildChildren14,
                         ),
                     ],
-                    if (_error != null)
+                    if (_error != null && _sheetContext?.mounted != true)
                       Semantics(
                         liveRegion: true,
                         child: Text(

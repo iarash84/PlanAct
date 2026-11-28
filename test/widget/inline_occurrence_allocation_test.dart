@@ -154,7 +154,10 @@ void main() {
             (await db.customSelect('SELECT total_changes() AS n').getSingle())
                 .read<int>('n');
         final before = await tester.runAsync(writeCount);
-        // Exact reported submission: total equals transaction, allocation untouched.
+        // Approved suggestion is editable; clearing it still requires a value.
+        expect(tester.widget<TextField>(amount).controller!.text, '200');
+        await tester.ensureVisible(amount);
+        await tester.enterText(amount, '');
         await tap(save);
         expect(
           find.text(copy.occurrenceAllocationAmountRequired),
@@ -318,8 +321,8 @@ void main() {
             ValueKey('relationship-target-${plan.occurrences.first.id.value}'),
           ),
         );
-        expect(tester.widget<TextField>(total).controller!.text, isEmpty);
-        expect(tester.widget<TextField>(amount).controller!.text, isEmpty);
+        expect(tester.widget<TextField>(total).controller!.text, '200');
+        expect(tester.widget<TextField>(amount).controller!.text, '200');
         expect(tester.widget<CheckboxListTile>(check).value, isFalse);
         expect(tester.widget<FilledButton>(save).onPressed, isNull);
         expect(
@@ -344,12 +347,15 @@ void main() {
         await tester.runAsync(
           () async => expect(await count('financial_expectations'), 0),
         );
-        await open(first);
+        // Only the panel was cancelled; the route retains this target's draft.
+        expect(find.byType(TransactionRelationshipPage), findsOneWidget);
         await tap(
           find.byKey(
             ValueKey('relationship-target-${plan.occurrences.first.id.value}'),
           ),
         );
+        expect(tester.widget<TextField>(total).controller!.text, '500');
+        expect(tester.widget<TextField>(amount).controller!.text, '200');
         await tester.ensureVisible(total);
         await tester.enterText(total, '500');
         await tester.ensureVisible(amount);
@@ -368,7 +374,7 @@ void main() {
         expect(tester.widget<TextField>(amount).controller!.text, '200');
         expect(tester.widget<CheckboxListTile>(check).value, isFalse);
         expect(tester.widget<FilledButton>(save).onPressed, isNull);
-        await tap(find.text('بازخوانی'));
+        await tap(find.text('بازخوانی').last);
         expect(tester.widget<CheckboxListTile>(check).value, isFalse);
         await tester.runAsync(
           () => db.customStatement(
@@ -389,7 +395,7 @@ void main() {
           expect(await count('transaction_matches'), 0);
           await db.customStatement('DROP TRIGGER fail_inline_allocation');
         });
-        await tap(find.text('بازخوانی'));
+        await tap(find.text('بازخوانی').last);
         await tap(check);
         await tap(save);
         expect(find.byType(TransactionRelationshipPage), findsNothing);
