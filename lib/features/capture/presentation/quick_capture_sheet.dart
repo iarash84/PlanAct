@@ -542,6 +542,8 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
         ),
         if (_draft.termination == RecurrenceTermination.open)
           const Text(PersianCopy.quickCaptureSheetScheduleFieldsChildren2),
+        if (_draft.termination != RecurrenceTermination.open)
+          const SizedBox(height: PlanActSpacing.md),
         if (_draft.termination == RecurrenceTermination.count)
           TextField(
             enabled: !_saving,
@@ -669,6 +671,44 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
   Widget _financialFields() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      const Text(PersianCopy.quickCaptureSheetFinancialFieldsChildren),
+      const SizedBox(height: PlanActSpacing.sm),
+      Wrap(
+        key: const ValueKey('commitment-financial-meaning'),
+        spacing: PlanActSpacing.sm,
+        runSpacing: PlanActSpacing.sm,
+        children: [
+          for (final option in const [
+            (
+              CommitmentFinancialMeaning.none,
+              PersianCopy.quickCaptureSheetFinancialFieldsLabel,
+              Icons.money_off_outlined,
+            ),
+            (
+              CommitmentFinancialMeaning.paymentRequired,
+              PersianCopy.quickCaptureSheetFinancialFieldsLabel2,
+              Icons.payments_outlined,
+            ),
+            (
+              CommitmentFinancialMeaning.receivable,
+              PersianCopy.quickCaptureSheetFinancialFieldsLabel3,
+              Icons.account_balance_wallet_outlined,
+            ),
+          ])
+            ChoiceChip(
+              key: ValueKey('commitment-financial-meaning-${option.$1.name}'),
+              avatar: Icon(option.$3),
+              label: Text(option.$2),
+              selected: _draft.financialMeaning == option.$1,
+              onSelected: _saving
+                  ? null
+                  : (_) => setState(
+                      () =>
+                          _draft = _draft.copyWith(financialMeaning: option.$1),
+                    ),
+            ),
+        ],
+      ),
       if (_draft.financialMeaning != CommitmentFinancialMeaning.none) ...[
         const SizedBox(height: PlanActSpacing.md),
         TextField(
@@ -705,30 +745,6 @@ class _QuickCaptureSheetState extends State<QuickCaptureSheet> {
             ),
           ),
         ),
-      const SizedBox(height: PlanActSpacing.lg),
-      const Text(PersianCopy.quickCaptureSheetFinancialFieldsChildren),
-      const SizedBox(height: PlanActSpacing.sm),
-      SegmentedButton<CommitmentFinancialMeaning>(
-        direction: Axis.vertical,
-        segments: const [
-          ButtonSegment(
-            value: CommitmentFinancialMeaning.none,
-            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel),
-          ),
-          ButtonSegment(
-            value: CommitmentFinancialMeaning.paymentRequired,
-            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel2),
-          ),
-          ButtonSegment(
-            value: CommitmentFinancialMeaning.receivable,
-            label: Text(PersianCopy.quickCaptureSheetFinancialFieldsLabel3),
-          ),
-        ],
-        selected: {_draft.financialMeaning},
-        onSelectionChanged: (value) => setState(
-          () => _draft = _draft.copyWith(financialMeaning: value.first),
-        ),
-      ),
     ],
   );
 

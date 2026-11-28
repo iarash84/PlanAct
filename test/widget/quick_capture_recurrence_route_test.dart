@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planact/app/planact_app.dart';
+import 'package:planact/app/theme/planact_spacing.dart';
 import 'package:planact/app/theme/planact_theme.dart';
 import 'package:planact/core/database/app_database.dart';
 import 'package:planact/features/calendar/presentation/calendar_page.dart';
@@ -104,6 +105,27 @@ void main() {
               termination == RecurrenceTermination.count
                   ? 'تعداد مشخص'
                   : 'تا تاریخ مشخص',
+            );
+            final terminationControl = find.byKey(
+              ValueKey(
+                termination == RecurrenceTermination.count
+                    ? 'recurrence-count'
+                    : 'recurrence-end-date',
+              ),
+            );
+            await tester.ensureVisible(terminationControl);
+            await tester.pumpAndSettle();
+            expect(
+              tester.getTopLeft(terminationControl).dy -
+                  tester
+                      .getBottomLeft(
+                        find.byKey(const ValueKey('recurrence-termination')),
+                      )
+                      .dy,
+              closeTo(PlanActSpacing.md, 0.01),
+              reason:
+                  'Conditional termination controls use the same gap as '
+                  'adjacent scheduling fields.',
             );
             final expected = <DateTime>[];
             for (var slot = 0; slot < 3; slot++) {
