@@ -1,3 +1,4 @@
+import 'package:planact/features/reconciliation/application/atomic_occurrence_allocation_repository.dart';
 import 'package:planact/features/classification/application/tag_repository.dart';
 import 'package:planact/features/reconciliation/application/relationship_target_reader.dart';
 import 'package:planact/features/commitments/application/commitment_cycles.dart';
@@ -246,6 +247,58 @@ class ContextualReconciliation {
       expected: expected,
       decision: decision,
       recordedAt: at ?? DateTime.now().toUtc(),
+    );
+  }
+
+  bool get supportsAtomicAllocation =>
+      reconciliation.repository is AtomicOccurrenceAllocationRepository;
+
+  Future<OccurrenceAllocationSnapshot?> loadOccurrenceAllocation(
+    StableId transactionId,
+    StableId occurrenceId,
+  ) async {
+    final repository = reconciliation.repository;
+    if (repository is! AtomicOccurrenceAllocationRepository) return null;
+    return (repository as AtomicOccurrenceAllocationRepository)
+        .loadOccurrenceAllocation(transactionId, occurrenceId);
+  }
+
+  Future<void> confirmSelectedOccurrence({
+    required OccurrenceAllocationSnapshot? snapshot,
+    required StableId transactionId,
+    required StableId occurrenceId,
+    required Money allocation,
+    Money? total,
+    RelationshipReview? expectedReview,
+  }) async {
+    final repository = reconciliation.repository;
+    if (repository is AtomicOccurrenceAllocationRepository) {
+      if (snapshot == null ||
+          snapshot.transaction.id != transactionId ||
+          snapshot.occurrenceId != occurrenceId) {
+        throw const OccurrenceAllocationException(
+          OccurrenceAllocationErrorCode.stale,
+        );
+      }
+      await (repository as AtomicOccurrenceAllocationRepository)
+          .confirmOccurrenceAllocation(
+            snapshot,
+            total: total,
+            allocation: allocation,
+          );
+      return;
+    }
+    // Compatibility for nonproduction repositories without the atomic contract.
+    if (total != null) {
+      throw const OccurrenceAllocationException(
+        OccurrenceAllocationErrorCode.missing,
+      );
+    }
+    await confirm(
+      transactionId: transactionId,
+      occurrenceId: occurrenceId,
+      minorUnits: allocation.minorUnits,
+      expectedReview: expectedReview,
     );
   }
 

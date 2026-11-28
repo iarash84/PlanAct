@@ -5279,7 +5279,7 @@
   "@transactionRelationshipPageBuildSubtitle": {
     "description": "Application copy. Original usage: lib/features/reconciliation/presentation/transaction_relationship_page.dart:310."
   },
-  "transactionRelationshipPageBuildLabelText2": "مبلغ ارتباط به {value1}",
+  "transactionRelationshipPageBuildLabelText2": "مبلغ تخصیص از این تراکنش ({value1})",
   "@transactionRelationshipPageBuildLabelText2": {
     "description": "Application copy. Original usage: lib/features/reconciliation/presentation/transaction_relationship_page.dart:329.",
     "placeholders": {
@@ -9315,103 +9315,119 @@
   },
   "relationshipFilters": "فیلترهای هدف",
   "@relationshipFilters": {
-    "description": "Transaction relationship target browser: Filters."
+    "description": "Transaction relationship target browser: Filters.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipSearch": "جستجوی عنوان، شرح یا برچسب",
   "@relationshipSearch": {
-    "description": "Transaction relationship target browser: Search."
+    "description": "Transaction relationship target browser: Search.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipFrom": "از تاریخ",
   "@relationshipFrom": {
-    "description": "Transaction relationship target browser: From."
+    "description": "Transaction relationship target browser: From.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipTo": "تا تاریخ",
   "@relationshipTo": {
-    "description": "Transaction relationship target browser: To."
+    "description": "Transaction relationship target browser: To.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipMinimum": "حداقل مانده",
   "@relationshipMinimum": {
-    "description": "Transaction relationship target browser: Minimum."
+    "description": "Transaction relationship target browser: Minimum.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipMaximum": "حداکثر مانده",
   "@relationshipMaximum": {
-    "description": "Transaction relationship target browser: Maximum."
+    "description": "Transaction relationship target browser: Maximum.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipOccurrenceStatus": "وضعیت رخداد",
   "@relationshipOccurrenceStatus": {
-    "description": "Transaction relationship target browser: OccurrenceStatus."
+    "description": "Transaction relationship target browser: OccurrenceStatus.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipCommitmentStatus": "وضعیت تعهد",
   "@relationshipCommitmentStatus": {
-    "description": "Transaction relationship target browser: CommitmentStatus."
+    "description": "Transaction relationship target browser: CommitmentStatus.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipCycle": "دوره",
   "@relationshipCycle": {
-    "description": "Transaction relationship target browser: Cycle."
+    "description": "Transaction relationship target browser: Cycle.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipAll": "همه",
   "@relationshipAll": {
-    "description": "Transaction relationship target browser: All."
+    "description": "Transaction relationship target browser: All.",
+    "x-planact-introduced": "relationship-targets-2026-11-28",
+    "x-planact-distinct-context": "No restriction on occurrence status, commitment lifecycle or cycle filters; distinct from global search scope and transaction review classification."
   },
   "relationshipSort": "مرتب‌سازی",
   "@relationshipSort": {
-    "description": "Transaction relationship target browser: Sort."
+    "description": "Transaction relationship target browser: Sort.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipDateAscending": "تاریخ: قدیمی‌تر",
   "@relationshipDateAscending": {
-    "description": "Transaction relationship target browser: DateAscending."
+    "description": "Transaction relationship target browser: DateAscending.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipDateDescending": "تاریخ: جدیدتر",
   "@relationshipDateDescending": {
-    "description": "Transaction relationship target browser: DateDescending."
+    "description": "Transaction relationship target browser: DateDescending.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipAmountAscending": "مانده: کمتر",
   "@relationshipAmountAscending": {
-    "description": "Transaction relationship target browser: AmountAscending."
+    "description": "Transaction relationship target browser: AmountAscending.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipAmountDescending": "مانده: بیشتر",
   "@relationshipAmountDescending": {
-    "description": "Transaction relationship target browser: AmountDescending."
-  },
-  "relationshipPrevious": "صفحهٔ قبل",
-  "@relationshipPrevious": {
-    "description": "Transaction relationship target browser: Previous."
-  },
-  "relationshipNext": "صفحهٔ بعد",
-  "@relationshipNext": {
-    "description": "Transaction relationship target browser: Next."
+    "description": "Transaction relationship target browser: AmountDescending.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipSelected": "هدف انتخاب‌شده",
   "@relationshipSelected": {
-    "description": "Transaction relationship target browser: Selected."
+    "description": "Transaction relationship target browser: Selected.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipExpected": "مبلغ مورد انتظار",
   "@relationshipExpected": {
-    "description": "Transaction relationship target browser: Expected."
+    "description": "Transaction relationship target browser: Expected.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipAllocated": "تخصیص‌یافته",
   "@relationshipAllocated": {
-    "description": "Transaction relationship target browser: Allocated."
+    "description": "Transaction relationship target browser: Allocated.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipOutstanding": "ماندهٔ مورد انتظار",
   "@relationshipOutstanding": {
-    "description": "Transaction relationship target browser: Outstanding."
+    "description": "Transaction relationship target browser: Outstanding.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipTargetError": "هدف‌ها بارگذاری نشدند. دوباره تلاش کنید.",
   "@relationshipTargetError": {
-    "description": "Transaction relationship target browser: TargetError."
+    "description": "Transaction relationship target browser: TargetError.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipInvalidRange": "بازهٔ تاریخ یا مبلغ معتبر نیست.",
   "@relationshipInvalidRange": {
-    "description": "Transaction relationship target browser: InvalidRange."
+    "description": "Transaction relationship target browser: InvalidRange.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipClearFilters": "پاک‌کردن فیلترها",
   "@relationshipClearFilters": {
-    "description": "Transaction relationship target browser: ClearFilters."
+    "description": "Transaction relationship target browser: ClearFilters.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipApplyFilters": "اعمال فیلترها",
   "@relationshipApplyFilters": {
-    "description": "Transaction relationship target browser: ApplyFilters."
+    "description": "Transaction relationship target browser: ApplyFilters.",
+    "x-planact-introduced": "relationship-targets-2026-11-28"
   },
   "relationshipPageSummary": "صفحهٔ {page} از {pages} · {total} هدف",
   "@relationshipPageSummary": {
@@ -9429,6 +9445,113 @@
         "type": "String",
         "description": "total formatted with Persian digits."
       }
-    }
+    },
+    "x-planact-introduced": "relationship-targets-2026-11-28"
+  },
+  "occurrenceAllocationMissingTitle": "اطلاعات مالی این رخداد ثبت نشده است",
+  "@occurrenceAllocationMissingTitle": {
+    "description": "Heading for explicitly creating an expectation for only the selected occurrence.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationSuggestedIncome": "جهت پیشنهادی بر اساس تراکنش: درآمد",
+  "@occurrenceAllocationSuggestedIncome": {
+    "description": "Suggested expectation direction from the durable income transaction.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationSuggestedExpense": "جهت پیشنهادی بر اساس تراکنش: هزینه",
+  "@occurrenceAllocationSuggestedExpense": {
+    "description": "Suggested expectation direction from the durable expense transaction.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationScope": "مبلغ کل فقط برای همین رخداد ثبت می‌شود؛ مبلغ تخصیص بخشی از آن است و جداگانه وارد می‌شود.",
+  "@occurrenceAllocationScope": {
+    "description": "Explains occurrence-only scope and separation of total from allocation.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationTotal": "مبلغ کل این رخداد ({unit})",
+  "@occurrenceAllocationTotal": {
+    "description": "Explicit expectation total input, never prefilled from allocation.",
+    "placeholders": {
+      "unit": {
+        "type": "String",
+        "description": "Pinned monetary input unit label."
+      }
+    },
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationTotalConfirmation": "تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.",
+  "@occurrenceAllocationTotalConfirmation": {
+    "description": "Explicit acknowledgement that expectation total is distinct from allocation.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationConfirm": "ثبت اطلاعات مالی و ارتباط",
+  "@occurrenceAllocationConfirm": {
+    "description": "Atomic action creating the selected occurrence expectation and allocating payment.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationTotalHelper": "کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.",
+  "@occurrenceAllocationTotalHelper": {
+    "description": "Explains that the explicit total covers the whole occurrence and may be settled by multiple transactions, separately from this allocation.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationAmountHelper": "بخشی از مبلغ همین تراکنش را که می‌خواهید به این رخداد اختصاص دهید، جداگانه وارد کنید؛ تأیید مبلغ کل جای این ورودی را نمی‌گیرد.",
+  "@occurrenceAllocationAmountHelper": {
+    "description": "Explains the separately required allocation: the portion of this transaction linked to the selected occurrence, never inferred from the total.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationAmountRequired": "مبلغ تخصیص از این تراکنش را وارد کنید.",
+  "@occurrenceAllocationAmountRequired": {
+    "description": "Actionable allocation field error when the user submits an empty allocation amount. No refresh is needed.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationAmountInvalid": "برای مبلغ تخصیص، عدد معتبر و بزرگ‌تر از صفر وارد کنید.",
+  "@occurrenceAllocationAmountInvalid": {
+    "description": "Allocation field error for an unparseable, out-of-range or nonpositive amount. Correct the input without refreshing.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationAmountOverCapacity": "مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است؛ مبلغ تخصیص را کاهش دهید.",
+  "@occurrenceAllocationAmountOverCapacity": {
+    "description": "Local validation for an actual allocation capacity overflow in the unchanged form. Correct the allocation without a mandatory refresh.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationTotalRequired": "مبلغ کل مثبت را جداگانه وارد و تأیید کنید.",
+  "@occurrenceAllocationTotalRequired": {
+    "description": "Validation when an explicit positive total or acknowledgement is missing.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorStale": "اطلاعات تغییر کرده است. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.",
+  "@occurrenceAllocationErrorStale": {
+    "description": "Stale atomic snapshot; explicit refresh and reconfirmation required.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorMissing": "تراکنش یا رخداد در دسترس نیست. پیش‌نویس حفظ شد؛ بازخوانی کنید.",
+  "@occurrenceAllocationErrorMissing": {
+    "description": "Missing durable target or transaction.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorAmbiguous": "اطلاعات مالی این رخداد مبهم است؛ امکان ثبت ارتباط وجود ندارد.",
+  "@occurrenceAllocationErrorAmbiguous": {
+    "description": "Ambiguous retained expectation set; never offer uncapped allocation.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorCurrency": "واحد پول تراکنش و اطلاعات مالی رخداد سازگار نیست.",
+  "@occurrenceAllocationErrorCurrency": {
+    "description": "Currency mismatch or unknown expectation currency.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorCapacity": "مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است. پیش‌نویس حفظ شد؛ بازخوانی کنید.",
+  "@occurrenceAllocationErrorCapacity": {
+    "description": "Capacity conflict; no silent clamping.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorInactive": "رخداد، دوره، تعهد یا حساب دیگر برای این ثبت فعال نیست.",
+  "@occurrenceAllocationErrorInactive": {
+    "description": "Historical or inactive durable state blocks atomic allocation.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
+  },
+  "occurrenceAllocationErrorStorage": "ذخیره نشد. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.",
+  "@occurrenceAllocationErrorStorage": {
+    "description": "Atomic storage failure; retain draft without automatic retry.",
+    "x-planact-introduced": "occurrence-allocation-2026-11-28"
   }
 }

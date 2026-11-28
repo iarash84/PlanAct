@@ -5826,7 +5826,7 @@ abstract class AppLocalizations {
   /// Application copy. Original usage: lib/features/reconciliation/presentation/transaction_relationship_page.dart:329.
   ///
   /// In fa, this message translates to:
-  /// **'مبلغ ارتباط به {value1}'**
+  /// **'مبلغ تخصیص از این تراکنش ({value1})'**
   String transactionRelationshipPageBuildLabelText2(String value1);
 
   /// Application copy. Original usage: lib/features/reconciliation/presentation/transaction_relationship_page.dart:337.
@@ -10046,18 +10046,6 @@ abstract class AppLocalizations {
   /// **'مانده: بیشتر'**
   String get relationshipAmountDescending;
 
-  /// Transaction relationship target browser: Previous.
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ قبل'**
-  String get relationshipPrevious;
-
-  /// Transaction relationship target browser: Next.
-  ///
-  /// In fa, this message translates to:
-  /// **'صفحهٔ بعد'**
-  String get relationshipNext;
-
   /// Transaction relationship target browser: Selected.
   ///
   /// In fa, this message translates to:
@@ -10111,6 +10099,126 @@ abstract class AppLocalizations {
   /// In fa, this message translates to:
   /// **'صفحهٔ {page} از {pages} · {total} هدف'**
   String relationshipPageSummary(String page, String pages, String total);
+
+  /// Heading for explicitly creating an expectation for only the selected occurrence.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات مالی این رخداد ثبت نشده است'**
+  String get occurrenceAllocationMissingTitle;
+
+  /// Suggested expectation direction from the durable income transaction.
+  ///
+  /// In fa, this message translates to:
+  /// **'جهت پیشنهادی بر اساس تراکنش: درآمد'**
+  String get occurrenceAllocationSuggestedIncome;
+
+  /// Suggested expectation direction from the durable expense transaction.
+  ///
+  /// In fa, this message translates to:
+  /// **'جهت پیشنهادی بر اساس تراکنش: هزینه'**
+  String get occurrenceAllocationSuggestedExpense;
+
+  /// Explains occurrence-only scope and separation of total from allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ کل فقط برای همین رخداد ثبت می‌شود؛ مبلغ تخصیص بخشی از آن است و جداگانه وارد می‌شود.'**
+  String get occurrenceAllocationScope;
+
+  /// Explicit expectation total input, never prefilled from allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ کل این رخداد ({unit})'**
+  String occurrenceAllocationTotal(String unit);
+
+  /// Explicit acknowledgement that expectation total is distinct from allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.'**
+  String get occurrenceAllocationTotalConfirmation;
+
+  /// Atomic action creating the selected occurrence expectation and allocating payment.
+  ///
+  /// In fa, this message translates to:
+  /// **'ثبت اطلاعات مالی و ارتباط'**
+  String get occurrenceAllocationConfirm;
+
+  /// Explains that the explicit total covers the whole occurrence and may be settled by multiple transactions, separately from this allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.'**
+  String get occurrenceAllocationTotalHelper;
+
+  /// Explains the separately required allocation: the portion of this transaction linked to the selected occurrence, never inferred from the total.
+  ///
+  /// In fa, this message translates to:
+  /// **'بخشی از مبلغ همین تراکنش را که می‌خواهید به این رخداد اختصاص دهید، جداگانه وارد کنید؛ تأیید مبلغ کل جای این ورودی را نمی‌گیرد.'**
+  String get occurrenceAllocationAmountHelper;
+
+  /// Actionable allocation field error when the user submits an empty allocation amount. No refresh is needed.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ تخصیص از این تراکنش را وارد کنید.'**
+  String get occurrenceAllocationAmountRequired;
+
+  /// Allocation field error for an unparseable, out-of-range or nonpositive amount. Correct the input without refreshing.
+  ///
+  /// In fa, this message translates to:
+  /// **'برای مبلغ تخصیص، عدد معتبر و بزرگ‌تر از صفر وارد کنید.'**
+  String get occurrenceAllocationAmountInvalid;
+
+  /// Local validation for an actual allocation capacity overflow in the unchanged form. Correct the allocation without a mandatory refresh.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است؛ مبلغ تخصیص را کاهش دهید.'**
+  String get occurrenceAllocationAmountOverCapacity;
+
+  /// Validation when an explicit positive total or acknowledgement is missing.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ کل مثبت را جداگانه وارد و تأیید کنید.'**
+  String get occurrenceAllocationTotalRequired;
+
+  /// Stale atomic snapshot; explicit refresh and reconfirmation required.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات تغییر کرده است. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.'**
+  String get occurrenceAllocationErrorStale;
+
+  /// Missing durable target or transaction.
+  ///
+  /// In fa, this message translates to:
+  /// **'تراکنش یا رخداد در دسترس نیست. پیش‌نویس حفظ شد؛ بازخوانی کنید.'**
+  String get occurrenceAllocationErrorMissing;
+
+  /// Ambiguous retained expectation set; never offer uncapped allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'اطلاعات مالی این رخداد مبهم است؛ امکان ثبت ارتباط وجود ندارد.'**
+  String get occurrenceAllocationErrorAmbiguous;
+
+  /// Currency mismatch or unknown expectation currency.
+  ///
+  /// In fa, this message translates to:
+  /// **'واحد پول تراکنش و اطلاعات مالی رخداد سازگار نیست.'**
+  String get occurrenceAllocationErrorCurrency;
+
+  /// Capacity conflict; no silent clamping.
+  ///
+  /// In fa, this message translates to:
+  /// **'مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است. پیش‌نویس حفظ شد؛ بازخوانی کنید.'**
+  String get occurrenceAllocationErrorCapacity;
+
+  /// Historical or inactive durable state blocks atomic allocation.
+  ///
+  /// In fa, this message translates to:
+  /// **'رخداد، دوره، تعهد یا حساب دیگر برای این ثبت فعال نیست.'**
+  String get occurrenceAllocationErrorInactive;
+
+  /// Atomic storage failure; retain draft without automatic retry.
+  ///
+  /// In fa, this message translates to:
+  /// **'ذخیره نشد. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.'**
+  String get occurrenceAllocationErrorStorage;
 }
 
 class _AppLocalizationsDelegate

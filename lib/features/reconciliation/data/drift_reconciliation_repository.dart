@@ -1,3 +1,10 @@
+import 'dart:convert';
+
+import 'package:planact/features/commitments/domain/commitment.dart';
+import 'package:planact/features/commitments/domain/commitment_cycle.dart';
+
+import 'package:planact/features/reconciliation/application/atomic_occurrence_allocation_repository.dart';
+import 'package:planact/features/finance/domain/financial_expectation.dart';
 import 'package:planact/core/application/command_gate.dart';
 import 'package:planact/core/database/undo_journal.dart';
 import 'package:drift/drift.dart';
@@ -18,6 +25,8 @@ import 'package:planact/features/reconciliation/application/commitment_associati
 import 'package:planact/features/reconciliation/data/drift_commitment_association_repository.dart';
 import 'package:planact/features/reconciliation/domain/commitment_association.dart';
 
+part 'drift_occurrence_allocation_backend.dart';
+
 class DriftReconciliationRepository
     implements
         CommandGateProvider,
@@ -25,12 +34,28 @@ class DriftReconciliationRepository
         AtomicMatchCorrection,
         AtomicMatchRemoval,
         RelationshipReviewRepository,
-        CommitmentAssociationRepository {
+        CommitmentAssociationRepository,
+        AtomicOccurrenceAllocationRepository {
   DriftReconciliationRepository(this.database);
 
   @override
   CommandGate? get commandGate => CommandGate.forOwner(database);
   final db.AppDatabase database;
+
+  @override
+  Future<OccurrenceAllocationSnapshot> loadOccurrenceAllocation(
+    StableId transactionId,
+    StableId occurrenceId,
+  ) => _OccurrenceAllocationBackend(this).load(transactionId, occurrenceId);
+
+  @override
+  Future<TransactionMatch> confirmOccurrenceAllocation(
+    OccurrenceAllocationSnapshot snapshot, {
+    Money? total,
+    required Money allocation,
+  }) =>
+      _OccurrenceAllocationBackend(this)
+          .confirm(snapshot, total: total, allocation: allocation);
 
   DriftCommitmentAssociationRepository get _associations =>
       DriftCommitmentAssociationRepository(database);

@@ -67,6 +67,53 @@ void main() {
     }
   });
 
+  test('inline occurrence allocation separates total, direction and typed failures', () {
+    final copy = AppLocalizationsFa();
+    expect(copy.occurrenceAllocationConfirm, 'ثبت اطلاعات مالی و ارتباط');
+    expect(copy.occurrenceAllocationTotal('ریال'), 'مبلغ کل این رخداد (ریال)');
+    expect(copy.occurrenceAllocationSuggestedIncome, contains('درآمد'));
+    expect(copy.occurrenceAllocationSuggestedExpense, contains('هزینه'));
+    expect(
+      copy.occurrenceAllocationTotalConfirmation,
+      contains('جدا از مبلغ تخصیص'),
+    );
+    expect(
+      copy.transactionRelationshipPageBuildLabelText2('ریال'),
+      'مبلغ تخصیص از این تراکنش (ریال)',
+    );
+    expect(copy.occurrenceAllocationTotalHelper, contains('چند تراکنش'));
+    expect(copy.occurrenceAllocationAmountHelper, contains('جداگانه'));
+    final inputErrors = [
+      copy.occurrenceAllocationAmountRequired,
+      copy.occurrenceAllocationAmountInvalid,
+      copy.occurrenceAllocationAmountOverCapacity,
+    ];
+    expect(inputErrors.toSet(), hasLength(3));
+    for (final message in inputErrors) {
+      expect(message, isNot(contains('بازخوانی')));
+    }
+    final errors = [
+      copy.occurrenceAllocationErrorStale,
+      copy.occurrenceAllocationErrorMissing,
+      copy.occurrenceAllocationErrorAmbiguous,
+      copy.occurrenceAllocationErrorCurrency,
+      copy.occurrenceAllocationErrorCapacity,
+      copy.occurrenceAllocationErrorInactive,
+      copy.occurrenceAllocationErrorStorage,
+    ];
+    expect(errors.toSet(), hasLength(7));
+    for (final key in catalog.keys.where(
+      (key) => key.startsWith('occurrenceAllocation'),
+    )) {
+      final metadata = catalog['@$key'] as Map;
+      expect(
+        metadata['x-planact-introduced'],
+        'occurrence-allocation-2026-11-28',
+      );
+      expect(metadata['description'], isNotEmpty);
+    }
+  });
+
   test('Persian remains the only exposed locale and template', () {
     expect(AppLocalizations.supportedLocales.map((l) => l.languageCode), [
       'fa',
@@ -222,12 +269,21 @@ void main() {
                     'schedule-edit-2026-11-24',
                     'commitment-association-2026-11-24',
                     'actual-text-evidence-job06',
+                    'occurrence-allocation-2026-11-28',
+                    'relationship-targets-2026-11-28',
                   }.contains(
                     (catalog['@${entry.key}']
                         as Map<String, dynamic>)['x-planact-introduced'],
                   ),
             )
-            .map((entry) => entry.value as String)
+            // Keep the frozen migration baseline; the approved allocation label
+            // replacement is asserted explicitly above, not folded into its hash.
+            .map(
+              (entry) =>
+                  entry.key == 'transactionRelationshipPageBuildLabelText2'
+                  ? 'مبلغ ارتباط به {value1}'
+                  : entry.value as String,
+            )
             .toSet()
             .toList()
           ..sort();

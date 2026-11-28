@@ -550,7 +550,7 @@ class _RelationshipTargetBrowserState extends State<RelationshipTargetBrowser> {
                         _load();
                       }
                     : null,
-                child: Text(l.relationshipPrevious),
+                child: Text(l.commonPreviousPage),
               ),
               OutlinedButton(
                 onPressed: widget.enabled && (_page + 1) * 20 < total
@@ -559,7 +559,7 @@ class _RelationshipTargetBrowserState extends State<RelationshipTargetBrowser> {
                         _load();
                       }
                     : null,
-                child: Text(l.relationshipNext),
+                child: Text(l.commonNextPage),
               ),
             ],
           ),

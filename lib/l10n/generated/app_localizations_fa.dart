@@ -3450,7 +3450,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String transactionRelationshipPageBuildLabelText2(String value1) {
-    return 'مبلغ ارتباط به $value1';
+    return 'مبلغ تخصیص از این تراکنش ($value1)';
   }
 
   @override
@@ -5980,12 +5980,6 @@ class AppLocalizationsFa extends AppLocalizations {
   String get relationshipAmountDescending => 'مانده: بیشتر';
 
   @override
-  String get relationshipPrevious => 'صفحهٔ قبل';
-
-  @override
-  String get relationshipNext => 'صفحهٔ بعد';
-
-  @override
   String get relationshipSelected => 'هدف انتخاب‌شده';
 
   @override
@@ -6014,4 +6008,84 @@ class AppLocalizationsFa extends AppLocalizations {
   String relationshipPageSummary(String page, String pages, String total) {
     return 'صفحهٔ $page از $pages · $total هدف';
   }
+
+  @override
+  String get occurrenceAllocationMissingTitle =>
+      'اطلاعات مالی این رخداد ثبت نشده است';
+
+  @override
+  String get occurrenceAllocationSuggestedIncome =>
+      'جهت پیشنهادی بر اساس تراکنش: درآمد';
+
+  @override
+  String get occurrenceAllocationSuggestedExpense =>
+      'جهت پیشنهادی بر اساس تراکنش: هزینه';
+
+  @override
+  String get occurrenceAllocationScope =>
+      'مبلغ کل فقط برای همین رخداد ثبت می‌شود؛ مبلغ تخصیص بخشی از آن است و جداگانه وارد می‌شود.';
+
+  @override
+  String occurrenceAllocationTotal(String unit) {
+    return 'مبلغ کل این رخداد ($unit)';
+  }
+
+  @override
+  String get occurrenceAllocationTotalConfirmation =>
+      'تأیید می‌کنم مبلغ کل این رخداد را جدا از مبلغ تخصیص وارد کرده‌ام.';
+
+  @override
+  String get occurrenceAllocationConfirm => 'ثبت اطلاعات مالی و ارتباط';
+
+  @override
+  String get occurrenceAllocationTotalHelper =>
+      'کل مبلغ مورد انتظار برای این رخداد را وارد کنید؛ این مبلغ می‌تواند با چند تراکنش تسویه شود و با مبلغ تخصیص از این تراکنش یکی نیست.';
+
+  @override
+  String get occurrenceAllocationAmountHelper =>
+      'بخشی از مبلغ همین تراکنش را که می‌خواهید به این رخداد اختصاص دهید، جداگانه وارد کنید؛ تأیید مبلغ کل جای این ورودی را نمی‌گیرد.';
+
+  @override
+  String get occurrenceAllocationAmountRequired =>
+      'مبلغ تخصیص از این تراکنش را وارد کنید.';
+
+  @override
+  String get occurrenceAllocationAmountInvalid =>
+      'برای مبلغ تخصیص، عدد معتبر و بزرگ‌تر از صفر وارد کنید.';
+
+  @override
+  String get occurrenceAllocationAmountOverCapacity =>
+      'مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است؛ مبلغ تخصیص را کاهش دهید.';
+
+  @override
+  String get occurrenceAllocationTotalRequired =>
+      'مبلغ کل مثبت را جداگانه وارد و تأیید کنید.';
+
+  @override
+  String get occurrenceAllocationErrorStale =>
+      'اطلاعات تغییر کرده است. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.';
+
+  @override
+  String get occurrenceAllocationErrorMissing =>
+      'تراکنش یا رخداد در دسترس نیست. پیش‌نویس حفظ شد؛ بازخوانی کنید.';
+
+  @override
+  String get occurrenceAllocationErrorAmbiguous =>
+      'اطلاعات مالی این رخداد مبهم است؛ امکان ثبت ارتباط وجود ندارد.';
+
+  @override
+  String get occurrenceAllocationErrorCurrency =>
+      'واحد پول تراکنش و اطلاعات مالی رخداد سازگار نیست.';
+
+  @override
+  String get occurrenceAllocationErrorCapacity =>
+      'مبلغ تخصیص از ماندهٔ تراکنش یا رخداد بیشتر است. پیش‌نویس حفظ شد؛ بازخوانی کنید.';
+
+  @override
+  String get occurrenceAllocationErrorInactive =>
+      'رخداد، دوره، تعهد یا حساب دیگر برای این ثبت فعال نیست.';
+
+  @override
+  String get occurrenceAllocationErrorStorage =>
+      'ذخیره نشد. پیش‌نویس حفظ شد؛ بازخوانی کنید و دوباره تأیید کنید.';
 }
